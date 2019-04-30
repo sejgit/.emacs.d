@@ -119,15 +119,44 @@
 
 ;; Preferences
 (require 'init-basic)
-(require 'init-bindings) ; mine - much commented out
+(require 'init-bindings) ; 
 ;;(sej-mode -1) ; off for now
 
 ;; Personal functions
-(require 'init-funcs)
+;;   merge of init-funcs & init-misc-defuns
+(require 'init-defuns)
 
 ;; Set-up the user interface
 (require 'init-ui)
 (require 'init-edit)
+;; (require 'init-appearance)
+
+;; (require 'init-appearance) ; todo: merged 
+;; (require 'init-completion)
+;; x(require 'init-custom) ; not needed
+;; (require 'init-dashboard)
+;; (require 'init-deft)
+;; (require 'init-dired)
+;; (require 'init-flycheck)
+;; (require 'init-frame-cmds)
+;; (require 'init-git)
+;; (require 'init-ido-ivy-helm)
+;; (require 'init-languages)
+;; (require 'init-lisp)
+;; x(require 'init-misc-defuns) ; merged -> init-defuns
+;; (require 'init-misc-filetypes)
+;; (require 'init-misc-pkgs)
+;; (require 'init-org)
+;; (require 'init-projectile)
+;; (require 'init-registers)
+;; (require 'init-shell)
+;; (require 'init-spelling)
+;; (require 'init-templates)
+;; (require 'init-tramp)
+;; (require 'init-view)
+;; (require 'init-writing)
+;; (require 'init+bindings) ; integrated & merged with ui/edit
+;; (require 'init+settings) ; merged with basic
 
 
 ;; (require 'init-ivy)

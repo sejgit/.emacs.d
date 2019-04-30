@@ -1,0 +1,79 @@
+2017-09-20  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* some restructuring ...
+* init-aggressive-indent +-> init-appearance.el
+init-bindings-settings.el /-> self, init-misc-defuns.el, init-appearance, init-movement.el
+* init-autocomplete.el +-> init-lisp.el
+* init-bash.el  +-> init-shell.el
+* init-gist.el  +-> init-git.el
+* init-golden-ratio.el +-> init-appearance.el
+* init-goto-chg.el -> init-movement.el
+* init-which-key.el -> init-misc-pkgs.el
+* init-utils.el -- delete extras & move rest to init-misc-defuns.el
+* int-misc-pkgs.el /-> self, init-appearance.el , init-movement.el
+
+
+2017-08-31  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* init-misc-pkgs.el (drag-stuff): clean-up, defer, map to sej-mode-map
+
+	* init-helm.el: map to sej-mode-map & trim bindings
+
+	* init-goto-chg.el: map to sej-mode-map
+
+	* init-golden-ratio.el (golden-ratio): map to sej-mode-map & setq golden-ratio-auto-scale
+
+	* init-git.el: 2017 08 30 deleted a few packages & documented the rest
+
+2017-08-30  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* removed init-folding.el as not used in any workflow
+
+	* init-flycheck.el: ;; 2017 08 29 map to sej-mode-hook
+
+	* init-elfeed.el (elfeed): disabled for now until better use case
+
+	* init-deft.el:  change bindings to sej-mode-map & add H-d
+
+	* init-company.el:  change binding to sej-map
+
+2017-08-29  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* init-bindings-settings.el: play around with adding my own minor mode for keymapping
+
+2017-08-28  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* init-lisp.el: added some paredit, eldoc, & ielm settings from EOS
+
+	* init-flycheck.el: add some flycheck settings & helm-flycheck
+
+	* init-misc-pkgs.el (google-this): added super-g for google
+	(smartscan): added smartscan M-n M-p when over point to search word
+	(dtrt-indent): added for proper indenting with other people's files
+	(highlight-numbers): special highlighting of numbers
+
+2017-06-12  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* init-misc-pkgs.el (mode-icons): add mode-icons
+
+	* init-git.el: add font-awesome git icon
+
+2017-06-05  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* move mu4e.el to archive
+
+2017-06-01  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+	* init-misc-pkgs.el (crontab-mode): bring simple modes together; prepare to separate in own file & eliminate batch, yaml, etc
+
+2017-05-10  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+        * init-misc-pkgs.el: add bookmark+
+        add rpn-calc
+
+
+2017-05-09  Stephen Jenkins  <stephenearljenkins@gmail.com>
+
+        * init-bindings-settings.el:  rename file to init-bindings-settings.el
+
+        * init-look-and-feel.el: add keybindings from emacs-starter-kit
