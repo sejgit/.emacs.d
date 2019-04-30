@@ -1,8 +1,8 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
 
 ;; This file is not part of GNU Emacs.
@@ -28,41 +28,203 @@
 ;; Editing configurations.
 ;;
 
+;;; Changelog:
+;;
+;; 2019 04 28 merge from init+settings.el
+
 ;;; Code:
 
 (eval-when-compile
+  (require 'init-const)
   (require 'init-custom))
 
-;; Explicitly set the prefered coding systems to avoid annoying prompt
-;; from emacs (especially on Microsoft Windows)
-(prefer-coding-system 'utf-8)
+;; Set the default formatting styles for various C based modes
+(setq c-default-style
+      '((awk-mode . "awk")
+        (other . "java")))
+
+;; yes and no settings
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; do/don't indicate empty or end of a buffer
+(setq-default indicate-empty-lines t)
+(setq-default indicate-buffer-boundaries t)
+(setq-default show-trailing-whitespace nil)
+(setq-default mode-require-final-newline nil)
+(setq-default require-final-newline nil)
+
+;;keep cursor at same position when scrolling
+(setq scroll-preserve-screen-position 1)
+(setq scroll-margin 3)
+
+;; each line of text gets one line on the screen
+(setq-default truncate-lines 1)
+(setq font-lock-maximum-decoration t
+      truncate-partial-width-windows 1)
+
+;; ignore case when searching
+(setq-default case-fold-search 1)
+
+;; add a new line when going to the next line
+(setq next-line-add-newlines t)
+
+;;(transient-mark-mode t)
+(setq select-enable-clipboard t)
+
+;; Automatically update unmodified buffers whose files have changed.
+(global-auto-revert-mode 1)
+
+;; Make compilation buffers scroll to follow the output, but stop scrolling
+;; at the first error.
+(setq compilation-scroll-output 'first-error)
+
+;; echo keystrokes ; no dialog boxes ; visable bell ; highlight parens
+(setq echo-keystrokes 0.1)
+(setq use-dialog-box nil
+      visible-bell t)
+(show-paren-mode t)
+
+
+;; Add proper word wrapping
+(global-visual-line-mode t)
+(setq line-move-visual t)
+
+(setq-default backup-directory-alist
+        '(("." . ".saves")))    ; don't litter my fs tree
+
+(setq vc-make-backup-files t
+      backup-by-copying t      ; don't clobber symlinks
+      backup-directory-alist
+      '(("." . ".saves"))    ; don't litter my fs tree
+      delete-old-versions t
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)       ; use versioned backups
+
+;; delete to trash can
+(setq delete-by-moving-to-trash t)
+
+;; remove kill buffer with live process prompt
+(setq kill-buffer-query-functions
+      (remq 'process-kill-buffer-query-function
+      kill-buffer-query-functions))
+
+(setq-default kill-read-only-ok t)
+
+;; hide mouse while typing
+(setq make-pointer-invisible t)
+
+;; color codes
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+(add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
+
+;; Save whatever’s in the current (system) clipboard before
+;; replacing it with the Emacs’ text.
+;; https://github.com/dakrone/eos/blob/master/eos.org
+(setq save-interprogram-paste-before-kill t)
+
+;; org-mode: Don't ruin S-arrow to switch windows please (use M-+ and M-- instead to toggle)
+(setq org-replace-disputed-keys t)
+
+;; Fontify org-mode code blocks
+(setq org-src-fontify-natively t)
+
+;; UTF-8 please
+(setq locale-coding-system 'utf-8) ; pretty
+(set-terminal-coding-system 'utf-8) ; pretty
+(set-keyboard-coding-system 'utf-8) ; pretty
+(set-selection-coding-system 'utf-8) ; please
+(prefer-coding-system 'utf-8) ; with sugar on top
 
 ;; Miscs
-;; (setq initial-scratch-message nil)
+
+;; scratch buffer
+(setq initial-scratch-message "")
+(defadvice kill-buffer (around kill-buffer-around-advice activate)
+  "Bury the *scratch* buffer, but never kill it."
+  (let ((buffer-to-kill (ad-get-arg 0)))
+    (if (equal buffer-to-kill "*scratch*")
+        (bury-buffer)
+      ad-do-it)))
+
+;; uniquify settings
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets) ; Show path if names are same
+(setq uniquify-separator " • ")
+(setq uniquify-after-kill-buffer-p t)
+(setq uniquify-ignore-buffers-re "^\\*")
+
 (setq adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
 (setq adaptive-fill-first-line-regexp "^* *$")
 (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
 (setq make-backup-files nil)               ; Forbide to make backup files
 (setq auto-save-default nil)               ; Disable auto save
-(setq set-mark-command-repeat-pop t)       ; Repeating C-SPC after popping mark pops it again
-;; (setq-default kill-whole-line t)           ; Kill line including '\n'
+
+;; When popping the mark, continue popping until the cursor actually moves
+;; Also, if the last command was a copy - skip past all the expand-region cruft.
+(defadvice pop-to-mark-command (around ensure-new-position activate)
+  (let ((p (point)))
+    (when (eq last-command 'save-region-or-current-line)
+      ad-do-it
+      ad-do-it
+      ad-do-it)
+    (dotimes (i 10)
+      (when (= p (point)) ad-do-it))))
+
+(setq set-mark-command-repeat-pop t)
+
 
 (setq-default major-mode 'text-mode)
 
+;; Sentences do not need double spaces to end. Period.
 (setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
 (setq sentence-end-double-space nil)
 
-;; Tab and Space
-;; Permanently indent with spaces, never with TABs
-(setq-default c-basic-offset   4
-              tab-width        4
-              indent-tabs-mode nil)
+;; indentation & CodeStyle
+(setq-default tab-width 2
+              indent-tabs-mode nil
+              fill-column 80)
+;; Line and Column
+(setq column-number-mode t)
+(setq line-number-mode t)
 
-;; Delete selection if you insert
+;; Javascript
+(setq-default js2-basic-offset 2)
+
+;; JSON
+(setq-default js-indent-level 2)
+
+;; Coffeescript
+(setq coffee-tab-width 2)
+
+;; Typescript
+(setq typescript-indent-level 2
+      typescript-expr-indent-offset 2)
+
+;; Python
+(setq-default py-indent-offset 2)
+
+;; XML
+(setq-default nxml-child-indent 2)
+
+;; C
+(setq-default c-basic-offset 2)
+
+;; HTML etc with web-mode
+(setq-default web-mode-markup-indent-offset 2
+              web-mode-css-indent-offset 2
+              web-mode-code-indent-offset 2
+              web-mode-style-padding 2
+              web-mode-script-padding 2)
+
+;; Do not delete selection if you insert
 (use-package delsel
   :ensure nil
-  :hook (after-init . delete-selection-mode))
+  :config (setq-default delete-selection-mode nil))
+
+;; set built in regex helper to string format
+(use-package re-builder
+  :ensure nil
+  :config (setq reb-re-syntax 'string))
 
 ;; Rectangle
 (use-package rect
@@ -94,12 +256,40 @@
   :hook ((text-mode . goto-address-mode)
          (prog-mode . goto-address-prog-mode)))
 
+;; for selecting a window to switch to
+(use-package ace-window
+  :bind (:map sej-mode-map
+              ("M-o" . ace-window)
+              ("C-x M-o" . ace-swap-window))
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+;; crux - smart moving to beginning of line or to beginning of text on line
+(use-package crux
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-a" . crux-move-beginning-of-line)
+              ("C-k" . crux-smart-kill-line)
+              ("C-c C-k" . crux-duplicate-current-line-or-region)
+              ("s-d" . crux-duplicate-current-line-or-region)
+              ("C-c n" . crux-cleanup-buffer-or-region)))
+
+;; underscore -> upcase -> camelcase conversion
+(use-package string-inflection
+  :bind (:map sej-mode-map
+              ("M-u" . my-string-inflection-all-cycle)))
+
+;; buffer-move to swap buffers between windows
+(use-package buffer-move)
+
 ;; Jump to things in Emacs tree-style
 (use-package avy
   :bind (("C-:" . avy-goto-char)
          ("C-'" . avy-goto-char-2)
          ("M-g f" . avy-goto-line)
          ("M-g w" . avy-goto-word-1)
+         ;; ("C-<return>" . avy-goto-word-1)
+         ;; ("s-." . avy-goto-word-0)
          ("M-g e" . avy-goto-word-0))
   :hook (after-init . avy-setup-default)
   :config (setq avy-background t))
@@ -111,7 +301,7 @@
 
 ;; Quickly follow links
 (use-package ace-link
-  :bind (("M-o" . ace-link-addr))
+  :bind (("H-o" . ace-link-addr))
   :hook (after-init . ace-link-setup-default))
 
 ;; Jump to Chinese characters
@@ -145,7 +335,7 @@
          (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
                              (thing-at-point 'line))))))
 
-;; Show number of matches in mode-line while searching
+;; Display incremental search stats in the modeline.
 (use-package anzu
   :diminish
   :bind (([remap query-replace] . anzu-query-replace)
@@ -164,11 +354,14 @@
   :diminish
   :commands drag-stuff-define-keys
   :hook (after-init . drag-stuff-global-mode)
+  ;;   :bind (:map sej-mode-map
+  ;;               ("M-<down>" . drag-stuff-down)
+  ;;               ("M-<up>" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
   (drag-stuff-define-keys))
 
-;; A comprehensive visual interface to diff & patch
+;; A saner ediff
 (use-package ediff
   :ensure nil
   :hook(;; show org ediffs unfolded
@@ -176,6 +369,7 @@
         ;; restore window layout when done
         (ediff-quit . winner-undo))
   :config
+  (setq ediff-diff-options "-w")
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-merge-split-window-function 'split-window-horizontally))
@@ -184,7 +378,19 @@
 (use-package elec-pair
   :ensure nil
   :hook (after-init . electric-pair-mode)
-  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit))
+  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+  :config
+(electric-layout-mode t)
+(electric-indent-mode t)
+;; Ignore electric indentation for python and yaml
+(defun electric-indent-ignore-mode (char)
+  "Ignore electric indentation for 'python-mode'.  CHAR is input character."
+  (if (or (equal major-mode 'python-mode)
+          (equal major-mode 'yaml-mode))
+      'no-indent
+    nil))
+(add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+
 
 ;; Edit multiple regions in the same way simultaneously
 (use-package iedit
@@ -295,16 +501,29 @@
     (let ((win (get-buffer-window undo-tree-diff-buffer-name)))
       (when win (with-selected-window win (kill-buffer-and-window))))))
 
-;; Goto last change
 (use-package goto-chg
+  :ensure t
+  :defines sej-mode-map
   :bind ("C-," . goto-last-change))
+
+;; redefine M-< and M-> for some modes
+(use-package beginend               ; smart M-< & M->
+  :ensure t
+  :defer 2
+  :config
+  (beginend-global-mode)
+  )
 
 ;; Handling capitalized subwords in a nomenclature
 (use-package subword
   :ensure nil
   :diminish
   :hook ((prog-mode . subword-mode)
-         (minibuffer-setup . subword-mode)))
+         (minibuffer-setup . subword-mode))
+  :config
+  ;; this makes forward-word & backward-word understand snake & camel case
+  (setq c-subword-mode t)
+  (global-subword-mode t))
 
 ;; Hideshow
 (use-package hideshow
@@ -322,7 +541,7 @@
   :config
   (face-spec-reset-face 'origami-fold-header-face)
 
-  (when centaur-lsp
+  (when sej-lsp
     ;; Support LSP
     (use-package lsp-origami
       :hook (origami-mode . (lambda ()
@@ -351,7 +570,19 @@ _o_: only show current
   :diminish
   :hook (after-init . fancy-narrow-mode))
 
-(provide 'init-edit)
+;; ;; simplified access to the system clipboard in Emacs
+;; (use-package simpleclip
+;;   :ensure t
+;;   :hook (after-init . simpleclip-mode)
+;;   :bind (:map sej-mode-map
+;;               ("s-x" . simpleclip-cut)
+;;               ("s-c" . simpleclip-copy)
+;;               ("s-v" . simpleclip-paste)
+;;               ("C-S-v" . scroll-down-command)
+;;               ("H-v" . scroll-down-command)
+;;               ("M-v" . scroll-down-command)
+;;               )) ;; this last one will help integration with Flycut
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(provide 'init-edit)
 ;;; init-edit.el ends here

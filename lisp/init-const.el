@@ -28,6 +28,11 @@
 ;; Define constants.
 ;;
 
+;;; Changelog
+;;
+;; 2019 04 28 Init & merge
+
+
 ;;; Code:
 
 (defconst sej-homepage
@@ -80,6 +85,5 @@
   "Emacs is 25.2 or above.")
 
 (provide 'init-const)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-const.el ends here
+

@@ -209,11 +209,6 @@
   (add-to-list 'all-the-icons-mode-icon-alist
                '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
 
-;; Line and Column
-(setq-default fill-column 80)
-(setq column-number-mode t)
-(setq line-number-mode t)
-
 ;; Show native line numbers if possible, otherwise use linum
 (if (fboundp 'display-line-numbers-mode)
     (use-package display-line-numbers
@@ -263,10 +258,8 @@
 (setq inhibit-startup-echo-area-message t)
 
 ;; Misc
-(fset 'yes-or-no-p 'y-or-n-p)
-(setq visible-bell t)
 (size-indication-mode 1)
-;; (blink-cursor-mode -1)
+(blink-cursor-mode -1)
 (setq track-eol t)                      ; Keep cursor at end of lines. Require line-move-visual is nil.
 (setq line-move-visual nil)
 (setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.

@@ -1,10 +1,14 @@
 ;;; custom.el --- user customization file    -*- no-byte-compile: t -*-
+
 ;;; Commentary:
 ;;;       Copy custom-template.el to custom.el and change the configurations, then restart Emacs.
 
-;;; Code:
+;;; Changelog
+;;
+;; 2019 04 28 Init plus merge
 
-(setq sej-theme 'default)                  ; Color theme: default, classic, doom, dark, light or daylight
+
+;;; Code:
 
 ;; Fonts
 (when (display-graphic-p)

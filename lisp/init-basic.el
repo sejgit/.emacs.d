@@ -28,6 +28,10 @@
 ;; Basic configuration.
 ;;
 
+;;; Changelog
+;;
+;; 2019 04 28 Merge from init-settings.el
+
 ;;; Code:
 
 (eval-when-compile
@@ -90,6 +94,10 @@
               savehist-autosave-interval 300))
 
 (provide 'init-basic)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-basic.el ends here
+
+
+
+
+
+

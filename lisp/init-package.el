@@ -28,6 +28,11 @@
 ;; Emacs Package management configurations.
 ;;
 
+;;; Changelog
+;;
+;; 2019 04 28 Init & merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -91,28 +96,25 @@
 
 ;; load files from init.d
 ;; check OS type
-(cond
- (sys/win32p
-  (progn
-    (message "Microsoft Windows")
-    ;;see if we can get some speed improvements
-    (use-package auto-compile
-      :ensure t
-      :demand t
-      :config
-      (progn
-        (auto-compile-on-load-mode)
-        (auto-compile-on-save-mode)))
+(when
+    sys/win32p
+     (progn
+       (message "Microsoft Windows")
+       ;;see if we can get some speed improvements
+       (use-package auto-compile
+         :ensure t
+         :demand t
+         :config
+         (progn
+           (auto-compile-on-load-mode)
+           (auto-compile-on-save-mode)))
 
-    ;; set exec-path for latex installation
-    ;;(setq exec-path (concat (getenv "PATH") ";" "C:/Users/NZ891R/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64"))
-    (setq exec-path (append exec-path '("C:/Users/NZ891R/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64")) )
+       ;; set exec-path for latex installation
+       (setq exec-path (append exec-path '("C:/Users/NZ891R/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64")) )
 
-    ;; load AutoHotkey mode
-    (load-library "xahk-mode")
-    )))
+       ;; load AutoHotkey mode
+       (load-library "xahk-mode")))
 
-    (provide 'init-package)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(provide 'init-package)
 ;;; init-package.el ends here
+

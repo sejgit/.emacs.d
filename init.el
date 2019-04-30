@@ -30,6 +30,11 @@
 ;; SeJ Emacs configurations.
 ;;
 
+;;; Changelog
+;;
+;; 2019 04 28 Merge from old .emacs.d
+
+
 ;;; Code:
 
 (when (version< emacs-version "25.1")
@@ -102,26 +107,11 @@
 ;; figure out current hostname
 (setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
 
-;; place to hold specific & secret stuff (redefine above if we want)
-(let ((secret.el (expand-file-name "secret.el" "~/.ssh/")))
-  (when (file-exists-p secret.el)
-    (load secret.el)))
-
 ;; Constants
 (require 'init-const)
 
-;; Load `custom-file'
-;; If it doesn't exist, copy from the template, then load it.
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-
-(let ((custom-template-file
-       (expand-file-name "custom-template.el" user-emacs-directory)))
-  (if (and (file-exists-p custom-template-file)
-           (not (file-exists-p custom-file)))
-      (copy-file custom-template-file custom-file)))
-
-(if (file-exists-p custom-file)
-    (load custom-file))
+;; Custom group definition
+(require 'init-custom)
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
@@ -130,15 +120,16 @@
 ;; Preferences
 (require 'init-basic)
 (require 'init-bindings) ; mine - much commented out
-(sej-mode -1) ; off for now
+;;(sej-mode -1) ; off for now
 
+;; Personal functions
 (require 'init-funcs)
-(require 'init-misc-defuns) ; mine
 
+;; Set-up the user interface
 (require 'init-ui)
-;;(require 'init-settings) ; mine
+(require 'init-edit)
 
-;; (require 'init-edit)
+
 ;; (require 'init-ivy)
 ;; (require 'init-company)
 ;; (require 'init-yasnippet)
@@ -175,5 +166,5 @@
 ;; (require 'init-web)
 ;; (require 'init-prog)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; init.el ends here
