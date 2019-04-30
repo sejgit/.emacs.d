@@ -169,7 +169,7 @@
 ;; (require 'init-dashboard)
 ;; (require 'init-dired)
 ;; (require 'init-ibuffer)
-;; (require 'init-kill-ring)
+(require 'init-kill-ring) ; ok
 ;; (require 'init-persp)
 ;; (require 'init-treemacs)
 

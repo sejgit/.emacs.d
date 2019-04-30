@@ -1,4 +1,4 @@
-;; init-funcs.el --- Define functions.	-*- lexical-binding: t -*-
+;; init-defuns.el --- Define functions.	-*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -355,7 +355,5 @@ output as per `sej/exec'. Otherwise, return nil."
   (setq socks-noproxy nil)
   (message "Disable socks proxy."))
 
-(provide 'init-funcs)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-funcs.el ends here
+(provide 'init-defuns)
+;;; init-defuns.el ends here

@@ -1,3 +1,4 @@
+*~
 *.bak
 *.data
 *.elc
@@ -27,6 +28,7 @@
 /GRTAGS
 /GTAGS
 /TAGS
+/abbrev_defs
 /ac-comphist.dat
 /amx-items
 /bookmarks

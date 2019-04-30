@@ -1,9 +1,9 @@
 ;; init-kill-ring.el --- Initialize kill-ring configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -29,6 +29,10 @@
 ;;
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'init-const)
+  (require 'init-custom))
 
 (setq kill-ring-max 200)
 
