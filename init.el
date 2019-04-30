@@ -148,7 +148,7 @@
 ;; x(require 'init-misc-defuns) ; merged -> init-defuns
 ;; (require 'init-misc-filetypes)
 ;; (require 'init-misc-pkgs) ; merge with init-utils
-;; (require 'init-org)
+;; (require 'init-org) ;; merged then replace centaur
 ;; (require 'init-projectile)
 ;; (require 'init-registers)
 ;; (require 'init-shell)
@@ -165,7 +165,6 @@
 ;; (require 'init-company)
 ;; (require 'init-yasnippet)
 
-;; (require 'init-calendar)
 ;; (require 'init-dashboard)
 ;; (require 'init-dired)
 ;; (require 'init-ibuffer)
@@ -176,8 +175,10 @@
 ;; (require 'init-eshell)
 ;; (require 'init-shell)
 
-;; (require 'init-org)
-;; (require 'init-elfeed)
+(require 'init-org) ;; merged then replace centaur
+;; (require 'init-calendar) ; leave commented
+;; (require 'init-elfeed) ; leave commented
+
 (require 'init-tramp) ; integrated
 
 ;;(require 'init-utils) ; merged then deleted

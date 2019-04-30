@@ -1,8 +1,35 @@
-;;; init-org --- Stephen's emacs init.org.el file
-;;; Commentary:
-;; org-mode settings
+;;; init-org --- Stephen's Emacs Org-mode configuration.	-*- lexical-binding: t -*-
+
+;; Copyright (C) 2019 Stephen Jenkins
+
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
+
+;; This file is not part of GNU Emacs.
 ;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+;; Floor, Boston, MA 02110-1301, USA.
+;;
+
+;;; Commentary:
+;;
+;; Org-mode settings
+;;
+
 ;;;ChangeLog
+;;
 ;; 2016 12 16
 ;; 2017 01 06 change from req-package to use-package
 ;; 2017 04 04 remove ensure went global ; defer not required for mode,bind,int
@@ -13,14 +40,13 @@
 ;; 2018 04 02 add poporg for editing comments in org-mode popup window
 ;; 2018 07 22 correct mold project documents moved for journal.org
 ;; 2018 09 28 tips from ohai
-
+;; 2019 04 30 integration of centaur ideas
 
 ;;; Code:
 
-(use-package olivetti
-  :ensure t
-  :config
-  (setq olivetti-body-width 80))
+(eval-when-compile
+  (require 'init-const)
+  (require 'init-custom))
 
 (use-package org
   :ensure org-plus-contrib
@@ -84,9 +110,7 @@
 	      org-src-window-setup 'current-window
 	      org-startup-folded nil
 	      )
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t) (emacs-lisp . t) (python . t) (latex . t) (calc . t) (C . t)))
+  
   (define-skeleton org-skeleton
     "Header info for a emacs-org file."
     "Title: "
@@ -101,7 +125,7 @@
 
   (setq org-capture-templates
 	      '(
-	        ("m" "CorrectMold" entry (file+olp+datetree "~/gdrive/ColourSensor/ProjectDocuments/journal.org" "Journal") "* %i%?\n %U")
+	        ("m" "CorrectMold" entry (file+olp+datetree "~/gdrive/CorrectMoldClip/ProjectDocuments/journal.org" "Journal") "* %i%?\n %U")
 	        ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
 	        ("j" "Journal" entry (file+datetree org-file-journal "Journal")  "* %i%?\n %U")
 	        ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
@@ -158,28 +182,75 @@ In ~%s~:
   )
 
 (use-package org-bullets
-  :ensure t
   :hook (org-mode . org-bullets-mode)
   :config (org-bullets-mode 1))
 
-(use-package org-dashboard
-  :ensure t
-  :commands org-dashboard-display)
+(use-package org-fancy-priorities
+  :diminish
+  :defines org-fancy-priorities-list
+  :hook (org-mode . org-fancy-priorities-mode)
+  :config
+  (unless (char-displayable-p ?❗)
+    (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+
+;; Babel
+(setq org-confirm-babel-evaluate nil
+      org-src-fontify-natively t
+      org-src-tab-acts-natively t)
+
+(defvar load-language-list '((emacs-lisp . t)
+                             (perl . t)
+                             (python . t)
+                             (ruby . t)
+                             (js . t)
+                             (css . t)
+                             (sass . t)
+                             (C . t)
+                             (java . t)
+                             (plantuml . t)))
+
+;; ob-sh renamed to ob-shell since 26.1.
+(if emacs/>=26p
+    (cl-pushnew '(shell . t) load-language-list)
+  (cl-pushnew '(sh . t) load-language-list))
+
+(use-package ob-go
+  :init (cl-pushnew '(go . t) load-language-list))
+
+(use-package ob-rust
+  :init (cl-pushnew '(rust . t) load-language-list))
+
+(use-package ob-ipython
+  :if (executable-find "jupyter")     ; DO NOT remove
+  :init (cl-pushnew '(ipython . t) load-language-list))
+
+(org-babel-do-load-languages 'org-babel-load-languages
+                             load-language-list)
+
+;; Rich text clipboard
+(use-package org-rich-yank
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
+
+;; Table of contents
+(use-package toc-org
+  :hook (org-mode . toc-org-mode))
+
+;; Preview
+(use-package org-preview-html
+  :diminish org-preview-html-mode)
+
+(use-package org-dashboard)
 
 (use-package poporg
   :ensure t
   :bind (:map sej-mode-map
-	      ("C-c s o" . poporg-dwim)))
-
-(use-package toc-org
-  :ensure t
-  :after org
-  :hook (org-mode . toc-org-enable))
+              ("C-c s o" . poporg-dwim)))
 
 (use-package org-projectile-helm
   :ensure t
   :bind (:map sej-mode-map
-	      ("C-c s c" . org-projectile-capture-for-current-project))
+              ("C-c s c" . org-projectile-capture-for-current-project))
   :config
   (progn
     (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
