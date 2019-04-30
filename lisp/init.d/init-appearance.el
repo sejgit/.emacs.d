@@ -13,6 +13,7 @@
 ;; 2018 07 22 try out eyeliner
 ;; 2018 09 24 some chai tips w/ ethan-wspace added
 ;; 2018 09 28 moved rainbow-mode from init-misc-filetypes
+
 ;;; Code:
 
 (use-package ethan-wspace

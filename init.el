@@ -129,7 +129,9 @@
 ;; Set-up the user interface
 (require 'init-ui)
 (require 'init-edit)
-;; (require 'init-appearance)
+;; (require 'init-appearance) ; sej
+;; (require 'init-highlight)
+;; (require 'init-window)
 
 ;; (require 'init-appearance) ; todo: merged 
 ;; (require 'init-completion)
@@ -145,16 +147,16 @@
 ;; (require 'init-lisp)
 ;; x(require 'init-misc-defuns) ; merged -> init-defuns
 ;; (require 'init-misc-filetypes)
-;; (require 'init-misc-pkgs)
+;; (require 'init-misc-pkgs) ; merge with init-utils
 ;; (require 'init-org)
 ;; (require 'init-projectile)
 ;; (require 'init-registers)
 ;; (require 'init-shell)
 ;; (require 'init-spelling)
 ;; (require 'init-templates)
-;; (require 'init-tramp)
-;; (require 'init-view)
-;; (require 'init-writing)
+;; (require 'init-tramp) ; integrated
+;; (require 'init-view) ; take from remanants of init-utils
+;; (require 'init-writing) ; take last of init-utils
 ;; (require 'init+bindings) ; integrated & merged with ui/edit
 ;; (require 'init+settings) ; merged with basic
 
@@ -166,21 +168,23 @@
 ;; (require 'init-calendar)
 ;; (require 'init-dashboard)
 ;; (require 'init-dired)
-;; (require 'init-highlight)
 ;; (require 'init-ibuffer)
 ;; (require 'init-kill-ring)
 ;; (require 'init-persp)
-;; (require 'init-window)
 ;; (require 'init-treemacs)
 
 ;; (require 'init-eshell)
 ;; (require 'init-shell)
 
-;; (require 'init-markdown)
 ;; (require 'init-org)
 ;; (require 'init-elfeed)
+(require 'init-tramp) ; integrated
 
-;; (require 'init-utils)
+;;(require 'init-utils) ; merged then deleted
+;;(require 'init-markdown) ; merged to writing then deleted
+(require 'init-writing) ; take last of init-utils
+(require 'init-view) ; take from remanants of init-utils
+(require 'init-misc-pkgs) ; merged with init-utils
 
 ;; ;; Programming
 ;; (require 'init-vcs)

@@ -7,6 +7,7 @@
 .DS_Store
 .cache/
 .cask/
+.saves/
 .dap-*
 .vscode/
 /.agignore
