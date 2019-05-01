@@ -1,9 +1,9 @@
 ;; init-buffer.el --- Initialize ibuffer configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -27,6 +27,11 @@
 ;;
 ;; IBuffer configurations.
 ;;
+
+;;; Changelog
+;;
+;; 2019 04 30 Init & Merge
+
 
 ;;; Code:
 
@@ -93,6 +98,9 @@
             "Project: "))))
 
 (provide 'init-ibuffer)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-ibuffer.el ends here
+
+
+
+
+

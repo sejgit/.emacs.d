@@ -133,32 +133,32 @@
 ;; (require 'init-highlight)
 ;; (require 'init-window)
 
-;; (require 'init-appearance) ; todo: merged 
+;; (require 'init-appearance) ; TODO: merge
 ;; (require 'init-completion)
-;; x(require 'init-custom) ; not needed
-;; (require 'init-dashboard)
+;; (require 'init-custom) ; DONE: not needed
+;; (require 'init-dashboard) ; 
 ;; (require 'init-deft)
-;; (require 'init-dired)
+;; (require 'init-dired) ; DONE
 ;; (require 'init-flycheck)
 ;; (require 'init-frame-cmds)
 ;; (require 'init-git)
 ;; (require 'init-ido-ivy-helm)
 ;; (require 'init-languages)
 ;; (require 'init-lisp)
-;; x(require 'init-misc-defuns) ; merged -> init-defuns
+;; (require 'init-misc-defuns) ; DONE: merged -> init-defuns
 ;; (require 'init-misc-filetypes)
-;; (require 'init-misc-pkgs) ; merge with init-utils
-;; (require 'init-org) ;; merged then replace centaur
+;; (require 'init-misc-pkgs) ; DONE: merge with init-utils
+;; (require 'init-org) ;; DONE: merged then replace centaur
 ;; (require 'init-projectile)
 ;; (require 'init-registers)
 ;; (require 'init-shell)
 ;; (require 'init-spelling)
 ;; (require 'init-templates)
-;; (require 'init-tramp) ; integrated
-;; (require 'init-view) ; take from remanants of init-utils
-;; (require 'init-writing) ; take last of init-utils
-;; (require 'init+bindings) ; integrated & merged with ui/edit
-;; (require 'init+settings) ; merged with basic
+;; (require 'init-tramp) ; DONE: integrated
+;; (require 'init-view) ; DONE: take from remanants of init-utils
+;; (require 'init-writing) ; DONE take last of init-utils
+;; (require 'init+bindings) ; DONE integrated & merged with ui/edit
+;; (require 'init+settings) ; DONE merged with basic
 
 
 ;; (require 'init-ivy)
@@ -166,29 +166,29 @@
 ;; (require 'init-yasnippet)
 
 ;; (require 'init-dashboard)
-;; (require 'init-dired)
-;; (require 'init-ibuffer)
-(require 'init-kill-ring) ; ok
+(require 'init-dired) ; DONE
+(require 'init-ibuffer) ; DONE
+(require 'init-kill-ring) ; DONE
 ;; (require 'init-persp)
 ;; (require 'init-treemacs)
 
 ;; (require 'init-eshell)
 ;; (require 'init-shell)
 
-(require 'init-org) ;; merged then replace centaur
+(require 'init-org) ; DONE
 ;; (require 'init-calendar) ; leave commented
 ;; (require 'init-elfeed) ; leave commented
 
-(require 'init-tramp) ; integrated
+(require 'init-tramp) ; DONE
 
-;;(require 'init-utils) ; merged then deleted
-;;(require 'init-markdown) ; merged to writing then deleted
-(require 'init-writing) ; take last of init-utils
-(require 'init-view) ; take from remanants of init-utils
-(require 'init-misc-pkgs) ; merged with init-utils
+;;(require 'init-utils) ; DONE: merged then deleted
+;;(require 'init-markdown) ; DONE: merged to writing then deleted
+(require 'init-writing) ; DONE: take last of init-utils
+(require 'init-view) ; DONE: take from remanants of init-utils
+(require 'init-misc-pkgs) ; DONE: merged with init-utils
 
 ;; ;; Programming
-;; (require 'init-vcs)
+(require 'init-vcs) ; DONE merged with my init-git except popups
 ;; (require 'init-flycheck)
 ;; (require 'init-projectile)
 ;; (require 'init-lsp)

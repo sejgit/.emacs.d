@@ -1,8 +1,8 @@
 ;; init-dired.el --- Initialize dired configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
 
 ;; This file is not part of GNU Emacs.
@@ -25,8 +25,12 @@
 
 ;;; Commentary:
 ;;
-;; Directory configurations.
+;; Dired configurations.
 ;;
+
+;;; Changelog
+;;
+;; 2019 04 30 Init & Merged
 
 ;;; Code:
 
@@ -142,7 +146,22 @@
           (concat dired-omit-files
                   "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*"))))
 
-(provide 'init-dired)
+;; Prefer g-prefixed coreutils version of standard utilities when available
+(when (executable-find "gls") (setq insert-directory-program (executable-find "gls")
+                                    dired-use-ls-dired t))
+;; Quick-preview provides a nice preview of the thing at point for files.
+(use-package quick-preview
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c q" . quick-preview-at-point)
+              :map dired-mode-map
+              ("Q" . quick-preview-at-point)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package browse-at-remote)
+
+;; dired rainbow
+(use-package dired-rainbow)
+
+
+(provide 'init-dired)
 ;;; init-dired.el ends here

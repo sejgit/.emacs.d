@@ -1,9 +1,9 @@
 ;; init-vcs.el --- Initialize version control system configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,6 +28,19 @@
 ;; Version control systems.
 ;;
 
+;;; ChangeLog:
+;; 2017 05 14 init SeJ from purcell/.emacs.d
+;; 2017 06 12 add font-awesome git icon
+;; 2017 08 29 map to sej-mode-map & documentation & defer/ensure
+;; 2017 08 30 deleted a few packages & documented the rest
+;; 2017 09 18 add full screen for magit-status and return to previous on quit
+;; 2017 09 20 move init-gist.el to here & delete file
+;; 2018 04 02 add magit-repository-directories for magit-list-repositories
+;; 2018 06 28 add magit-todos
+;; 2018 09 27 some ahai tips  add git-gutter
+;; 2019 04 30 Init & merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -37,6 +50,7 @@
 ;; Git
 (use-package magit
   :bind (("C-x g" . magit-status)
+         ("<f12>" . magit-status)
          ("C-x M-g" . magit-dispatch)
          ("C-c M-g" . magit-file-popup))
   :config
@@ -46,7 +60,7 @@
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 ;; Access Git forges from Magit
 (if (executable-find "cc")
@@ -147,11 +161,18 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
               ("B" . browse-at-remote)))
 
 ;; Git related modes
+;; gist client
+(use-package gist
+  :defines sej-mode-map
+  :bind  (:map sej-mode-map
+               ("C-x G" . gist-list)
+               ("H-G" . gist-list)))
+
 (use-package gitattributes-mode)
 (use-package gitconfig-mode)
 (use-package gitignore-mode)
+;; M-x git-blamed-mode to turn on view with commits
+(use-package git-blamed)
 
 (provide 'init-vcs)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-vcs.el ends here
