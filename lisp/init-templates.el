@@ -1,9 +1,11 @@
-;; init-yasnippet.el --- Initialize yasnippet configurations.	-*- lexical-binding: t -*-
+;;; init-templates.el --- templates for auto-insertion.	-*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Stephen Jenkins <sejgit@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
+;; Version: 1.0
+;; Keywords: .emacs.d sejgit
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -25,20 +27,31 @@
 
 ;;; Commentary:
 ;;
-;; Yasnippet configurations.
-;;
+;;to be auto inserted in new files
 
-;;; Changelog:
+;;; ChangeLog
 ;;
-;;; 20 05 10 Initialize & Merge
+;; 2017 05 17 init SeJ
+;; 2017 09 01 update ensure / defines
+;; 2019 05 02 Merge into new
 
 
 ;;; Code:
 
-(use-package yasnippet
-  :diminish yas-minor-mode
-  :hook (after-init . yas-global-mode)
-  :config (use-package yasnippet-snippets))
+(use-package autoinsert
+  :ensure t
+  :hook (find-file . auto-insert)
+  :defines
+  auto-insert-query
+  auto-insert-directory
+  :init
+  (setq auto-insert-directory "~/.emacs.d/templates/")
+  (setq auto-insert-query nil)
+  (auto-insert-mode 1)
+  :config
+  (define-auto-insert ".*\\.py[3]?$" "template.py")
+  (define-auto-insert ".*\\.el" "template.el")
+  )
 
-(provide 'init-yasnippet)
-;;; init-yasnippet.el ends here
+(provide 'templates)
+;;; init-templates.el ends here

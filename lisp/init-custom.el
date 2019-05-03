@@ -81,6 +81,19 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   "Enable the init benchmark or not."
   :type 'boolean)
 
+(defcustom sej-org-directory "~/gdrive/todo"
+  "Set org directory"
+  :type 'string)
+
+(defcustom sej-project-org-capture-text "Project"
+  "Text for the Label for the Org Capture Project journal"
+  :type 'string)
+
+(defcustom sej-project-org-capture-file "~/exampleproject/journal.org"
+  "Filename for the Org Capture Project Journal"
+  :type 'string)
+
+
 ;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))

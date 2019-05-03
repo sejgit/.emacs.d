@@ -139,19 +139,19 @@
 ;; (require 'init-dashboard) ; 
 ;; (require 'init-deft)
 ;; (require 'init-dired) ; DONE
-;; (require 'init-flycheck)
+;; (require 'init-flycheck) ; DONE
 ;; (require 'init-frame-cmds)
-;; (require 'init-git)
-;; (require 'init-ido-ivy-helm)
+;; (require 'init-git) ; DONE did not move full-screen routines
+;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
 ;; (require 'init-languages)
-;; (require 'init-lisp)
+;; (require 'init-lisp) : TODO: merge with init-emacs-lisp
 ;; (require 'init-misc-defuns) ; DONE: merged -> init-defuns
 ;; (require 'init-misc-filetypes)
 ;; (require 'init-misc-pkgs) ; DONE: merge with init-utils
 ;; (require 'init-org) ;; DONE: merged then replace centaur
-;; (require 'init-projectile)
-;; (require 'init-registers)
-;; (require 'init-shell)
+;; (require 'init-projectile) ; DONE
+;; (require 'init-registers) ; DONE
+;; (require 'init-shell) ; DONE: test
 ;; (require 'init-spelling)
 ;; (require 'init-templates)
 ;; (require 'init-tramp) ; DONE: integrated
@@ -161,23 +161,26 @@
 ;; (require 'init+settings) ; DONE merged with basic
 
 
-;; (require 'init-ivy)
-;; (require 'init-company)
-;; (require 'init-yasnippet)
+(require 'init-ivy) ; DONE: decide if ivy or helm
+;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
+(require 'init-company) ; DONE
+(require 'init-yasnippet) ; DONE:  add Yasnippets?
 
-;; (require 'init-dashboard)
+(require 'init-registers) ; DONE
+(require 'init-dashboard) ; DONE clean-up 
 (require 'init-dired) ; DONE
 (require 'init-ibuffer) ; DONE
 (require 'init-kill-ring) ; DONE
+
 ;; (require 'init-persp)
 ;; (require 'init-treemacs)
 
-;; (require 'init-eshell)
-;; (require 'init-shell)
+(require 'init-eshell) ; DONE
+(require 'init-shell) ; DONE
 
-(require 'init-org) ; DONE
-;; (require 'init-calendar) ; leave commented
-;; (require 'init-elfeed) ; leave commented
+(require 'init-org) ; TODO: get back to python3.6/3.7 issue
+;; (require 'init-calendar) ; DONE: not used leave commented
+;; (require 'init-elfeed) ; DONE: not used leave commented
 
 (require 'init-tramp) ; DONE
 
@@ -186,19 +189,23 @@
 (require 'init-writing) ; DONE: take last of init-utils
 (require 'init-view) ; DONE: take from remanants of init-utils
 (require 'init-misc-pkgs) ; DONE: merged with init-utils
+(require 'init-templates) ; NEXT
 
 ;; ;; Programming
 (require 'init-vcs) ; DONE merged with my init-git except popups
-;; (require 'init-flycheck)
-;; (require 'init-projectile)
-;; (require 'init-lsp)
+(require 'init-prog) ; TODO some more merge from mine
+
+(require 'init-flycheck) ; DONE
+(require 'init-projectile) ; DONE
 ;; (require 'init-dap)
 
-;; (require 'init-emacs-lisp)
+;; (require 'init-lsp)
+(require 'init-lisp) ; DONE 
+;; (require 'init-lisp) : TODO: merge mine with init-emacs-lisp
+
 ;; (require 'init-c)
 ;; (require 'init-python)
 ;; (require 'init-web)
-;; (require 'init-prog)
 
 
 ;;; init.el ends here

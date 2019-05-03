@@ -49,8 +49,7 @@
   (require 'init-custom))
 
 (use-package org
-  :ensure org-plus-contrib
-  :after olivetti
+  ;;:ensure org-plus-contrib
   :defines
   sej-mode-map
   org-capture-bookmark
@@ -80,9 +79,7 @@
 	            ("C-x c o h" . helm-org-headlines)
 	            )
   :config
-  (if (string-equal system-type "windows-nt")
-      (setq org-directory "C:/Users/NZ891R/gdrive/todo")
-    (setq org-directory "~/gdrive/todo"))
+  (setq org-directory sej-org-directory)
   (defconst org-file-inbox (concat org-directory "/inbox.org"))
   (defconst org-file-someday (concat org-directory "/someday.org"))
   (defconst org-file-gtd (concat org-directory "/gtd.org"))
@@ -116,24 +113,27 @@
     "Title: "
     "#+TITLE:" str " \n"
     "#+DATE:" '(org-date-from-calendar) " \n"
-    "#+AUTHOR: Stephen Jenkins\n"
-    "#+email: stephenearljenkins@gmail.com\n"
+    "#+AUTHOR: " '(sej-full-name) "\n"
+    "#+email: " '(sej-mail-address) "\n"
     "#+INFOJS_OPT: \n"
     "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
     "-----\n\n")
   (global-set-key [C-S-f4] 'org-skeleton)
-
-  (setq org-capture-templates
-	      '(
-	        ("m" "CorrectMold" entry (file+olp+datetree "~/gdrive/CorrectMoldClip/ProjectDocuments/journal.org" "Journal") "* %i%?\n %U")
-	        ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
-	        ("j" "Journal" entry (file+datetree org-file-journal "Journal")  "* %i%?\n %U")
-	        ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
-	        ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
-	        ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
-	        ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-	         "* %?\n%(my/org-capture-code-snippet \"%F\")")
-	        ))
+  
+  (setq sej-project-org-capture-list (list
+                                      "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
+  
+  (setq org-capture-templates (append
+                               '(
+                                 ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
+                                 ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
+                                 ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
+                                 ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
+                                 ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                 )
+                               (list sej-project-org-capture-list)))
 
   ;; org-mode agenda options
   (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
@@ -221,6 +221,7 @@ In ~%s~:
   :init (cl-pushnew '(rust . t) load-language-list))
 
 (use-package ob-ipython
+  :disabled ;; turnoff for now with python3.6 issue
   :if (executable-find "jupyter")     ; DO NOT remove
   :init (cl-pushnew '(ipython . t) load-language-list))
 
@@ -258,3 +259,5 @@ In ~%s~:
 
 (provide 'init-org)
 ;;; init-org.el ends here
+
+

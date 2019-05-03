@@ -1,9 +1,9 @@
 ;; init-dashboard.el --- Initialize dashboard configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,6 +28,20 @@
 ;; Dashboard configurations.
 ;;
 
+;;; ChangeLog
+;;
+;; 2016 12 16 init sej
+;; 2017 01 06 change from req-package to use-package
+;; 2017 11 30 updates to dashboard-items
+;; 2018 07 12 update projects items
+;; 2018 07 22 remove hook as part of startup
+;; 2018 08 02 fixed crashing (I hope)
+;;            added initial-buffer-choice for use in emacsclient
+;;            added bind & hook
+;; 2018 10 17 edit registers settings
+;; 2019 05 02 Initialize & Merge with sejgit
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -35,10 +49,10 @@
   (require 'init-custom))
 
 ;; Dashboard
-(when centaur-dashboard
+(when sej-dashboard
   (use-package dashboard
     :diminish (dashboard-mode page-break-lines-mode)
-    :defines (persp-save-dir persp-special-last-buffer)
+    :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
     :functions (all-the-icons-faicon
                 all-the-icons-material
                 open-custom-file
@@ -49,25 +63,36 @@
                 widget-forward)
     :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
     :bind (("<f2>" . open-dashboard)
-           :map dashboard-mode-map
-           ("H" . browse-homepage)
-           ("R" . restore-session)
-           ("L" . persp-load-state-from-file)
-           ("S" . open-custom-file)
-           ("U" . centaur-update)
-           ("q" . quit-dashboard))
+           (:map sej-mode-map
+                 ("C-c s d" . open-dashboard))
+           (:map dashboard-mode-map
+                 ("H" . browse-homepage)
+                 ("R" . restore-session)
+                 ("L" . persp-load-state-from-file)
+                 ("S" . open-custom-file)
+                 ("U" . sej-update)
+                 ("q" . quit-dashboard)
+                 ("C-p" . widget-backward)
+                 ("C-n" . widget-forward)
+                 ("<up>" . widget-backward)
+                 ("<down>" . widget-forward)
+                 ("<tab>" . widget-forward)
+                 ("C-i" . widget-forward)
+                 ("<backtab>" . widget-backward)
+                 ))
     :hook (dashboard-mode . (lambda ()
                               (setq-local frame-title-format "")
                               (setq-local tab-width 1)))
     :init (dashboard-setup-startup-hook)
     :config
-    (setq dashboard-banner-logo-title "CENTAUR EMACS - Enjoy Programming & Writing")
-    (setq dashboard-startup-banner (or centaur-logo 'official))
-    (setq dashboard-center-content t)
-    (setq dashboard-show-shortcuts nil)
-    (setq dashboard-items '((recents  . 10)
-                            (bookmarks . 5)
-                            (projects . 5)))
+    (setq dashboard-banner-logo-title "SeJ EMACS")
+    (setq dashboard-startup-banner 1)
+    (setq dashboard-center-content nil)
+    (setq dashboard-show-shortcuts t)
+    (setq dashboard-items '((recents  . 15)
+                            (bookmarks . 15)
+                            (projects . 10)
+                            (registers . 10)))
 
     (defun my-banner-path (&rest _)
       "Return the full ,@restpath to banner."
@@ -137,6 +162,11 @@
       (interactive)
       (funcall (local-key-binding "m")))
 
+    (defun dashboard-goto-registers ()
+      "Go to registers."
+      (interactive)
+      (funcall (local-key-binding "e")))
+
     ;; Add heading icons
     (defun dashboard-insert-heading-icon (heading &optional _shortcut)
       (when (display-graphic-p)
@@ -146,9 +176,11 @@
 
         (insert (cond
                  ((string-equal heading "Recent Files:")
-                  (all-the-icons-octicon "history" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                  (all-the-icons-octicon "file-text" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
                  ((string-equal heading "Bookmarks:")
                   (all-the-icons-octicon "bookmark" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                 ((string-equal heading "Registers:")
+                  (all-the-icons-octicon "clippy" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
                  ((string-equal heading "Projects:")
                   (all-the-icons-octicon "file-directory" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))))
         (insert " ")))
@@ -163,21 +195,23 @@
                  (let ((widget nil))
                    (insert "\n    ")
                    (when (display-graphic-p)
-                     (insert (when-let ((path (car (last (split-string ,@rest " - ")))))
-                               (if (file-directory-p path)
-                                   (cond
-                                    ((and (fboundp 'tramp-tramp-file-p)
-                                          (tramp-tramp-file-p default-directory))
-                                     (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
-                                    ((file-symlink-p path)
-                                     (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
-                                    ((all-the-icons-dir-is-submodule path)
-                                     (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
-                                    ((file-exists-p (format "%s/.git" path))
-                                     (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
-                                    (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
-                                         (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
-                                 (all-the-icons-icon-for-file (file-name-nondirectory path)))))
+                     (insert (if-let ((path (car (last (split-string ,@rest " - ")))))
+                                 (if (file-directory-p path)
+                                     (cond
+                                      ((and (fboundp 'tramp-tramp-file-p)
+                                            (tramp-tramp-file-p default-directory))
+                                       (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
+                                      ((file-symlink-p path)
+                                       (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
+                                      ((all-the-icons-dir-is-submodule path)
+                                       (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
+                                      ((file-exists-p (format "%s/.git" path))
+                                       (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
+                                      (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
+                                           (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
+                                   (all-the-icons-icon-for-file (file-name-nondirectory path)))
+                               (all-the-icons-octicon "clippy" :height 1.0 :v-adjust 0.01)
+                               ))
                      (insert "\t"))
                    (setq widget
                          (widget-create 'push-button
@@ -250,6 +284,20 @@ Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
        `(lambda (&rest ignore) (projectile-switch-project-by-name ,el))
        (abbreviate-file-name el)))
 
+    ;;
+    ;; Registers
+    ;;
+    (defun dashboard-insert-registers (list-size)
+      "Add the list of LIST-SIZE items of registers."
+      (require 'register)
+      (dashboard-insert-section
+       "Registers:"
+       register-alist
+       list-size
+       "e"
+       (lambda (&rest ignore) (jump-to-register (car el)))
+       (format "%c - %s" (car el) (register-describe-oneline (car el)))))
+    
     (defun dashboard-center-line (&optional real-width)
       "When point is at the end of a line, center it.
 REAL-WIDTH: the real width of the line.  If the line contains an image, the size
@@ -284,7 +332,7 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
                                (propertize "Homepage" 'face 'font-lock-keyword-face))
                          :help-echo "Browse homepage"
                          :mouse-face 'highlight
-                         centaur-homepage)
+                         sej-homepage)
           (insert " ")
           (widget-create 'push-button
                          :help-echo "Restore previous session"
@@ -304,10 +352,10 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
                          :tag (concat
                                (if (display-graphic-p)
                                    (concat
-                                    (all-the-icons-faicon "cog"
-                                                          :height 1.2
-                                                          :v-adjust -0.1
-                                                          :face 'font-lock-keyword-face)
+                                    (all-the-icons-octicon "tools"
+                                                           :height 1.1
+                                                           :v-adjust 0.0
+                                                           :face 'font-lock-keyword-face)
                                     (propertize " " 'face 'variable-pitch)))
                                (propertize "Settings" 'face 'font-lock-keyword-face))
                          :help-echo "Open custom file"
@@ -315,8 +363,8 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
                          custom-file)
           (insert " ")
           (widget-create 'push-button
-                         :help-echo "Update Centaur Emacs"
-                         :action (lambda (&rest _) (centaur-update))
+                         :help-echo "Update SeJ Emacs"
+                         :action (lambda (&rest _) (sej-update))
                          :mouse-face 'highlight
                          :tag (concat
                                (if (display-graphic-p)
@@ -357,15 +405,9 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
           (goto-char (point-max))
 
           (insert "\n\n")
-          (insert (if (display-graphic-p)
-                      (all-the-icons-faicon "heart"
-                                            :height 1.1
-                                            :v-adjust -0.05
-                                            :face 'error)
-                    "🧡 "))
           (insert " ")
           (insert (propertize
-                   (format "Powered by Vincent Zhang, %s" (format-time-string "%Y"))
+                   (format "SeJ, %s" (format-time-string "%Y"))
                    'face font-lock-doc-face))
           (dashboard-center-line)
           (insert "\n"))))
@@ -375,27 +417,26 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
       "
 ^Head^               ^Section^            ^Item^                  ^Dashboard^
 ^^───────────────────^^───────────────────^^──────────────────────^^───────────────
-_U_pdate             _}_: Next            _RET_: Open             _<f2>_: Open
-_H_omePage           _{_: Previous        _<tab>_/_C-i_: Next       _Q_: Quit
-_R_ecover session    _r_: Recent Files    _<backtab>_: Previous
-_L_ist sessions      _m_: Bookmarks       _C-n_: Next line
-_S_ettings           _p_: Projects        _C-p_: Previous Line
+_U_pdate             _r_: Recent Files    _RET_: Open             _<f2>_: Open
+_H_omePage           _m_: Bookmarks       _<tab>_/_C-i_: Next       _Q_: Quit
+_R_ecover session    _p_: Projects        _<backtab>_: Previous
+_L_ist sessions      _e_: Registers       _C-n_: Next line
+_S_ettings                                _C-p_: Previous Line
 "
       ("<tab>" widget-forward)
       ("C-i" widget-forward)
       ("<backtab>" widget-backward)
       ("RET" widget-button-press :exit t)
       ("g" dashboard-refresh-buffer :exit t)
-      ("}" dashboard-next-section)
-      ("{" dashboard-previous-section)
       ("r" dashboard-goto-recent-files)
       ("p" dashboard-goto-projects)
       ("m" dashboard-goto-bookmarks)
+      ("e" dashboard-goto-registers)
       ("H" browse-homepage :exit t)
       ("R" restore-session :exit t)
       ("L" persp-load-state-from-file :exit t)
       ("S" open-custom-file :exit t)
-      ("U" centaur-update :exit t)
+      ("U" sej-update :exit t)
       ("C-n" next-line)
       ("C-p" previous-line)
       ("<f2>" open-dashboard :exit t)
@@ -406,7 +447,11 @@ _S_ettings           _p_: Projects        _C-p_: Previous Line
                ("h" . hydra-dashboard/body)
                ("?" . hydra-dashboard/body))))
 
-(provide 'init-dashboard)
+;; display ^L page breaks as tidy horizontal lines
+(use-package page-break-lines
+  :config
+  (setq global-page-break-lines-mode t)
+  )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(provide 'init-dashboard)
 ;;; init-dashboard.el ends here

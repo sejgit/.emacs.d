@@ -1,9 +1,9 @@
-;; init-projectile.el --- Initialize projectile configurations.	-*- lexical-binding: t -*-
+;;; init-projectile.el --- Projectile configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -25,8 +25,20 @@
 
 ;;; Commentary:
 ;;
-;; Projectile configurations.
+;; projectile settings
+
+;;; ChangeLog
 ;;
+;; 2017 05 14 SeJ init from purcell/.emacs.d
+;; 2017 06 01 simplified & added helm-projectile
+;; 2017 08 25 add settings from EOS
+;; 2017 08 30 cleanup
+;; 2018 03 19 move helm-projectile to helm init file
+;; 2018 08 28 updates for projectile
+;; 2018 09 28 add redundant bind for helm-projectile
+;; 2018 10 04 helm-projectile only in init-ido-ivy-helm
+;; 2019 05 02 Initialize & Merge
+
 
 ;;; Code:
 
@@ -36,16 +48,27 @@
 ;; Manage and navigate projects
 (use-package projectile
   :diminish
-  :bind (:map projectile-mode-map
-              ("s-t" . projectile-find-file) ; `cmd-t' or `super-t'
-              ("C-c p" . projectile-command-map))
+  :defines sej-mode-map
+  ;;  :diminish projectile-mode
+  :bind (:map sej-mode-map
+	            ("s-P" . projectile-command-map)
+	            ("C-c p" . projectile-command-map))
   :hook (after-init . projectile-mode)
   :init
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)
   (setq projectile-use-git-grep t)
   :config
-  ;; (projectile-update-mode-line)         ; Update mode-line at the first time
+  ;; global ignores
+  (add-to-list 'projectile-globally-ignored-files ".tern-port")
+  (add-to-list 'projectile-globally-ignored-files "GTAGS")
+  (add-to-list 'projectile-globally-ignored-files "GPATH")
+  (add-to-list 'projectile-globally-ignored-files "GRTAGS")
+  (add-to-list 'projectile-globally-ignored-files "GSYMS")
+  (add-to-list 'projectile-globally-ignored-files ".DS_Store")
+  ;; always ignore .class files
+  (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
+  (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/"))
 
   ;; Use the faster searcher to handle project files: ripgrep `rg'.
   (when (executable-find "rg")
@@ -55,25 +78,21 @@
               (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
             (concat "rg -0 --files --color=never --hidden" rg-cmd))))
 
-  ;; Faster searching on Windows
-  (when sys/win32p
-    (when (executable-find "rg")
-      (setq projectile-indexing-method 'alien)
-      (setq projectile-enable-caching nil))
+  )
 
-    ;; FIXME: too slow while getting submodule files on Windows
-    (setq projectile-git-submodule-command nil))
+(use-package helm-ag
+  :ensure t)
 
-  ;; Support Perforce project
-  (let ((val (or (getenv "P4CONFIG") ".p4config")))
-    (add-to-list 'projectile-project-root-files-bottom-up val))
+(use-package grep
+  :ensure t)
 
-  ;; Rails project
-  (use-package projectile-rails
-    :diminish projectile-rails-mode
-    :hook (projectile-mode . projectile-rails-global-mode)))
+(use-package emr
+  :ensure t
+  ;; Just hit M-RET to access your refactoring tools in any supported mode.
+  :bind (:map sej-mode-map
+              ("M-RET" . emr-show-refactor-menu))
+  :config
+  (add-hook 'prog-mode-hook 'emr-initialize))
 
 (provide 'init-projectile)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-projectile.el ends here
