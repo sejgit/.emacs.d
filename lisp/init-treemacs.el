@@ -1,8 +1,8 @@
 ;; init-treemacs.el --- Initialize treemacs.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
 
 ;; This file is not part of GNU Emacs.
@@ -27,6 +27,11 @@
 ;;
 ;; Treemacs: A tree layout file explorer.
 ;;
+
+;;; Changelog:
+;;
+;; 2019 05 03 Initialize & Merge
+
 
 ;;; Code:
 
@@ -142,6 +147,4 @@
            . treemacs-magit--schedule-update)))
 
 (provide 'init-treemacs)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-treemacs.el ends here

@@ -28,12 +28,17 @@
 ;; Language Server Protocol (LSP) configurations.
 ;;
 
+;;; ChangeLog:
+;;
+;; 2019 05 03 Initialize & merge
+
+
 ;;; Code:
 
 (eval-when-compile
   (require 'init-custom))
 
-(pcase centaur-lsp
+(pcase sej-lsp
   ('eglot
    (use-package eglot
      :hook (prog-mode . eglot-ensure)))
@@ -102,7 +107,7 @@
                           (require 'lsp-java)
                           (lsp))))))
 
-(when centaur-lsp
+(when sej-lsp
   ;; Enable LSP in org babel
   ;; https://github.com/emacs-lsp/lsp-mode/issues/377
   (cl-defmacro lsp-org-babel-enbale (lang)
@@ -143,6 +148,4 @@
     (eval `(lsp-org-babel-enbale ,lang))))
 
 (provide 'init-lsp)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-lsp.el ends here
+;;; Init-lsp.el ends here

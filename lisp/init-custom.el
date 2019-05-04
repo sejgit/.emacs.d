@@ -93,7 +93,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   "Filename for the Org Capture Project Journal"
   :type 'string)
 
-
 ;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))

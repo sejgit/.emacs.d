@@ -1,9 +1,9 @@
 ;; init-c.el --- Initialize c configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,6 +28,11 @@
 ;; C/C++ configuration.
 ;;
 
+;;; ChangeLog:
+;;
+;; 2019 05 03 initialize & merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -38,16 +43,15 @@
   :ensure nil
   :bind (:map c-mode-base-map
               ("C-c c" . compile))
-  :hook (c-mode-common . (lambda ()
-                           (c-set-style "bsd")
-                           (setq tab-width 4)
-                           (setq c-basic-offset 4)))
+  :hook ((c-mode-common . flycheck-mode)
+         (c-mode-common . (lambda ()
+                            (c-set-style "bsd")
+                            (setq tab-width 4)
+                            (setq c-basic-offset 4))))
   :config
   (use-package modern-cpp-font-lock
     :diminish
     :init (modern-c++-font-lock-global-mode t)))
 
 (provide 'init-c)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-c.el ends here

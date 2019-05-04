@@ -1,4 +1,4 @@
-;;; init-templates.el --- templates for auto-insertion.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-deft.el --- Initialize Emacs deft.	-*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -27,31 +27,36 @@
 
 ;;; Commentary:
 ;;
-;;to be auto inserted in new files
+;; deft settings for Emacs
 
-;;; ChangeLog
+;;; ChangeLog:
 ;;
-;; 2017 05 17 init SeJ
-;; 2017 09 01 update ensure / defines
-;; 2019 05 02 Merge into new
+;; 2016 12 16 init SeJ
+;; 2017 01 06 change from req-package to use-package
+;; 2017 04 04 remove ensure went global ; defer not required for mode,bind,int
+;; 2017 08 29 change bindings to sej-mode-map & add H-d
+;; 2019 05 03 initialize & merge
 
 
 ;;; Code:
-
-(use-package autoinsert
+(use-package deft
   :ensure t
-  :hook (find-file . auto-insert)
-  :defines
-  auto-insert-query
-  auto-insert-directory
-  :init
-  (setq auto-insert-directory "~/.emacs.d/templates/")
-  (setq auto-insert-query nil)
-  (auto-insert-mode 1)
+  :defines sej-mode-map deft-text-mode
+  :bind (:map sej-mode-map
+              ("<f7>" . deft)
+              ("C-c d" . deft)
+              ("H-d" . deft))
   :config
-  (define-auto-insert ".*\\.py[3]?$" "template.py")
-  (define-auto-insert ".*\\.el" "template.el")
-  )
+  (setq deft-directory sej-org-directory)
+  (setq deft-use-filename-as-title t
+        deft-default-extension "org"
+        deft-text-mode (quote (org-mode))
+        deft-org-mode-title-prefix t
+        deft-use-filter-string-for-filename t
+        deft-auto-save-interval 0
+        deft-recursive t
+        deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
+        deft-org-mode-title-prefix t))
 
-(provide 'init-templates)
-;;; init-templates.el ends here
+(provide 'init-deft)
+;;; init-deft.el ends here

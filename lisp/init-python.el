@@ -1,9 +1,9 @@
 ;; init-python.el --- Initialize python configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,6 +28,11 @@
 ;; Python configurations.
 ;;
 
+;;; ChangeLog:
+;;
+;; 2019 05 03 initialize & merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -38,10 +43,40 @@
 ;; Install:
 ;;   pip install pyflakes
 ;;   pip install autopep8
+;; you also need python-language-server installed and on your PATH
+;; pip3 install -U setuptools
+;; pip3 install python-language-server[all] --isolated
+;; [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle, autopep8, YAPF
+
 (use-package python
   :ensure nil
-  :defines gud-pdb-command-name pdb-path
+  :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
+  :interpreter "python"
+  :bind (:map python-mode-map
+              ("<backtab>" . python-back-indent)
+			        ("<f9>" . py-insert-debug))
+  :hook ((python-mode . flycheck-mode)
+         (python-mode . (lambda ()
+		                      (add-to-list 'flycheck-disabled-checkers 'python-pylint))))
+  :mode (("\\.py$" . python-mode)
+         ("\\.cpy$" . python-mode)
+         ("\\.vpy$" . python-mode))
+  :init
+  ;;(setq python-shell-interpreter "ipython"
+	;;	    python-shell-interpreter-args "--simple-prompt -i")
   :config
+  (define-skeleton python-insert-docstring
+    "Insert a Python docstring."
+    "This string is ignored!"
+    "\"\"\"" - "\n\n    \"\"\"")
+
+  (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
+
+  (setq fill-column 79)
+  (setq-default flycheck-flake8rc "~/.config/flake8rc")
+  (setq python-check-command "flake8")
+  (setq tab-width 2)
+  
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
 
@@ -65,7 +100,33 @@
   :defines ein:completion-backend
   :init (setq ein:completion-backend 'ein:use-company-backend))
 
-(provide 'init-python)
+;; major mode for editing pip requirement files
+(use-package pip-requirements
+  :ensure t
+  :defer t)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; virtualenv api in Emacs
+(use-package python-environment
+  :ensure t
+  :defer t)
+
+;; file comparison
+(use-package ediff
+  :ensure t
+  :defer t
+  :config
+  (setq ediff-shell (getenv "$SHELL"))
+  (setq-default ediff-split-window-function
+		            (quote split-window-vertically)))
+
+(use-package pyvenv
+  :ensure t
+  :hook (pyvenv-post-activate . pyvenv-restart-python))
+
+(use-package company-jedi
+  :ensure t
+  :after company
+  :config (add-to-list 'company-backends 'company-jedi))
+
+(provide 'init-python)
 ;;; init-python.el ends here

@@ -5,6 +5,7 @@
 ;; Author: Trey Jackson (bigfaceworm@gmail.com)
 ;; Created: February 14, 2010
 ;; Keywords: frame, movement, convenience
+;; Package-Version: 20130328.433
 ;;
 ;; This file is not (yet) a part of GNU Emacs.
 ;;
@@ -57,9 +58,9 @@
    ((eq refframe otherframe)
     nil)
    ((memq dir '(left up))
-    (&lt; (fm-frame-coord refframe (fm-opposite dir)) (fm-frame-coord otherframe dir)))
+    (< (fm-frame-coord refframe (fm-opposite dir)) (fm-frame-coord otherframe dir)))
    ((memq dir '(right down))
-    (&gt; (fm-frame-coord refframe (fm-opposite dir)) (fm-frame-coord otherframe dir)))
+    (> (fm-frame-coord refframe (fm-opposite dir)) (fm-frame-coord otherframe dir)))
    (t (error "Invalid direction of movement: %s" dir))))
 
 (defun fm-frame-is-to-dir-of (refframe dir otherframe)
@@ -69,9 +70,9 @@
    ((eq refframe otherframe)
     nil)
    ((memq dir '(left up))
-    (&lt; (fm-frame-coord refframe dir) (fm-frame-coord otherframe dir)))
+    (< (fm-frame-coord refframe dir) (fm-frame-coord otherframe dir)))
    ((memq dir '(right down))
-    (&gt; (fm-frame-coord refframe dir) (fm-frame-coord otherframe dir)))
+    (> (fm-frame-coord refframe dir) (fm-frame-coord otherframe dir)))
    (t (error "Invalid direction of movement: %s" dir))))
 
 (defun fm-absolute-coords-of-position (position)
@@ -124,7 +125,7 @@
                  '(lambda (f) (fm-range-overlap thisframe f dir))
                  possible-frames)
                 '(lambda (f1 f2)
-                   (&lt; (fm-dist-from-coords coords-projected-in-dir f1)
+                   (< (fm-dist-from-coords coords-projected-in-dir f1)
                       (fm-dist-from-coords coords-projected-in-dir f2))))))
           (select-frame-set-input-focus
            (or (car frames-in-line-of-cursor)
@@ -152,8 +153,8 @@
                     (expt y-dist 2)))))))
               
 (defun fm-v-in-range (v range)
-  (and (&gt; v (car range))
-       (&lt; v (cdr range))))
+  (and (> v (car range))
+       (< v (cdr range))))
 
 (defun fm-bbox-range (dir box)
   (if (memq dir '(up down))
@@ -178,15 +179,15 @@ onto the bbox of the frame, or more simply, is the part of the coord
 perpendicular to DIR between the edges of frame perpendicular to DIR"
   (let ((n (if (memq dir '(up down)) (car coord) (cdr coord)))
         (perp (if (memq dir '(up down)) 'left 'up)))
-    (and (&lt; (fm-frame-coord frame perp) n)
-         (&gt; (fm-frame-coord frame (fm-opposite perp)) n))))
+    (and (< (fm-frame-coord frame perp) n)
+         (> (fm-frame-coord frame (fm-opposite perp)) n))))
 
 (defun fm-sort-frames-by-edge (framelist dir)
   (sort
    framelist
    (lambda (f1 f2)
      (apply (symbol-function
-             (if (memq dir '(left up)) '&gt; '&lt;))
+             (if (memq dir '(left up)) '> '<))
             (list (fm-frame-coord f1 dir) (fm-frame-coord f2 dir))))))
 
 ;;;###autoload
@@ -207,7 +208,7 @@ perpendicular to DIR between the edges of frame perpendicular to DIR"
   (fm-next-frame 'right))
 
 ;;;###autoload
-(defun framemove-default-keybindings (&amp;optional modifier)
+(defun framemove-default-keybindings (&optional modifier)
   "Set up keybindings for `framemove'.
 Keybindings are of the form MODIFIER-{left,right,up,down}.
 Default MODIFIER is 'meta."
@@ -230,5 +231,3 @@ Default MODIFIER is 'meta."
 
 (provide 'framemove)
 ;;; framemove.el ends here
-
-
