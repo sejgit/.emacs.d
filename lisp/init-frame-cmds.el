@@ -1,4 +1,4 @@
-;;; init.el --- SeJ Emacs configurations.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-frame-cmds.el --- Initialize frame-cmds.	-*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -27,186 +27,77 @@
 
 ;;; Commentary:
 ;;
-;; SeJ Emacs configurations.
-;;
+;; commands to move the frams around and size in Emacs
 
-;;; Changelog
+;;; ChangeLog
 ;;
-;; 2019 04 28 Merge from old .emacs.d
+;; 2017 01 10 init SeJ
+;; 2017 01 17 comment out some irritating binds
+;; 2017 08 29 map to sej-mode-map
+;; 2017 12 01 update to add :ensure
+;; 2018 08 23 update sizes of frames for win-10
+;; 2018 09 04 go native for functions removing lisp/files also change name from sej- to sej/
+;; 2018 10 05 some adds for bindings and a l2 for double-wide w32 extended screens
+;; 2019 05 03 initialize & merge
 
 
 ;;; Code:
 
-(when (version< emacs-version "25.1")
-  (error "This requires Emacs 25.1 and above!"))
+(defvar sej-mode-map)
+(define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
+(define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
+(define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
 
-;; debugger on
-(setq debug-on-error t)
-(setq debug-on-quit t)
+(define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "s-<S-left>") 'sej/frame-resize-l2)
+(define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
+(define-key sej-mode-map (kbd "s-<S-right>") 'sej/frame-resize-r2)
 
-(defvar emacs-start-time (current-time)
-  "Time Emacs was started.")
+;;set frame full height and 1/2 wide
+;;and position at screen left
+(defun sej/frame-resize-l ()
+  "Set frame full height and 1/2 wide, position at screen left."
+  (interactive)
+  (set-frame-position (selected-frame) 0 0)
+  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+  )
 
-;; Turn off mouse interface early in startup to avoid momentary display
-(if (fboundp 'menu-bar-mode) (menu-bar-mode t))
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+;;set frame full height and 1/2 wide
+;;and position at screen left of screen in extended monitor display
+;;assumes monitors are same resolution
+(defun sej/frame-resize-l2 ()
+  "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
+  (interactive)
+  (set-frame-position (selected-frame) 0 0)
+  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
+		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+  )
 
-;; No splash screen
-(setq inhibit-startup-message t)
+;;set frame full height and 1/2 wide
+;;and position at screen right
+(defun sej/frame-resize-r ()
+  "Set frame full height and 1/2 wide, position at screen right."
+  (interactive)
+  (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
+  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+  )
 
-;; Speed up startup
-(defvar default-file-name-handler-alist file-name-handler-alist)
-(setq file-name-handler-alist nil)
-(setq gc-cons-threshold 80000000)
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            "Restore defalut values after init."
-            (setq file-name-handler-alist default-file-name-handler-alist)
-            (setq gc-cons-threshold 800000)
-            (if (boundp 'after-focus-change-function)
-                (add-function :after after-focus-change-function
-                              (lambda ()
-                                (unless (frame-focus-state)
-                                  (garbage-collect))))
-              (add-hook 'focus-out-hook 'garbage-collect))))
-
-;; Load path
-;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
-(defun update-load-path (&rest _)
-  "Update `load-path'."
-  (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
-  (push (expand-file-name "lisp" user-emacs-directory) load-path))
-
-(defun add-subdirs-to-load-path (&rest _)
-  "Add subdirectories to `load-path'."
-  (let ((default-directory
-          (expand-file-name "site-lisp" user-emacs-directory)))
-    (normal-top-level-add-subdirs-to-load-path)))
-
-(advice-add #'package-initialize :after #'update-load-path)
-(advice-add #'package-initialize :after #'add-subdirs-to-load-path)
-
-(update-load-path)
-
-;; turn on syntax highlightng for all buffers
-(global-font-lock-mode t)
-
-;; raise the maximum number of logs in the *Messages* buffer
-(setq message-log-max 16384)
-
-;; wait a bit longer than the default 0.5s before assuming Emacs is idle
-(setq idle-update-delay 2)
-
-;; make gnutls a bit safer
-(setq gnutls-min-prime-bits 4096)
-
-;; remove irritating 'got redefined' messages
-(setq ad-redefinition-action 'accept)
-
-;; figure out current hostname
-(setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
-
-;; Constants
-(require 'init-const)
-
-;; Custom group definition
-(require 'init-custom)
-
-;; Packages
-;; Without this comment Emacs25 adds (package-initialize) here
-(require 'init-package)
-
-;; Preferences
-(require 'init-basic)
-(require 'init-bindings) ; 
-;;(sej-mode -1) ; off for now
-
-;; Personal functions
-;;   merge of init-funcs & init-misc-defuns
-(require 'init-defuns)
-
-;; Set-up the user interface
-(require 'init-ui)
-(require 'init-edit)
-;; (require 'init-appearance) ; sej
-;; (require 'init-highlight)
-;; (require 'init-window)
-;; (require 'init-frame-cmds) ; DONE
-
-;; (require 'init-appearance) ; TODO: merge
-;; (require 'init-completion)
-;; (require 'init-custom) ; DONE: not needed
-;; (require 'init-dashboard) ; DONE
-;; (require 'init-deft)
-;; (require 'init-dired) ; DONE
-;; (require 'init-flycheck) ; DONE
-;; (require 'init-frame-cmds) ; DONE
-;; (require 'init-git) ; DONE did not move full-screen routines
-;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-;; (require 'init-languages)
-;; (require 'init-lisp) : TODO: merge with init-emacs-lisp
-;; (require 'init-misc-defuns) ; DONE: merged -> init-defuns
-;; (require 'init-misc-filetypes)
-;; (require 'init-misc-pkgs) ; DONE: merge with init-utils
-;; (require 'init-org) ;; DONE: merged then replace centaur
-;; (require 'init-projectile) ; DONE
-;; (require 'init-registers) ; DONE
-;; (require 'init-shell) ; DONE: test
-;; (require 'init-spelling)
-;; (require 'init-templates) ; DONE
-;; (require 'init-tramp) ; DONE: integrated
-;; (require 'init-view) ; DONE: take from remanants of init-utils
-;; (require 'init-writing) ; DONE take last of init-utils
-;; (require 'init+bindings) ; DONE integrated & merged with ui/edit
-;; (require 'init+settings) ; DONE merged with basic
+;;set frame full height and 1/2 wide
+;;and position at screen right of left hand screen in extended monitor display
+;;assumes monitors are same resolution
+(defun sej/frame-resize-r2 ()
+  "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
+  (interactive)
+  (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
+  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
+		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+  )
 
 
-(require 'init-ivy) ; DONE: decide if ivy or helm
-;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-(require 'init-company) ; DONE
-(require 'init-yasnippet) ; DONE:  add Yasnippets?
-
-(require 'init-registers) ; DONE
-(require 'init-dashboard) ; DONE clean-up 
-(require 'init-dired) ; DONE
-(require 'init-ibuffer) ; DONE
-(require 'init-kill-ring) ; DONE
-
-;; (require 'init-persp)
-(require 'init-treemacs) ; TODO keybindings
-
-(require 'init-eshell) ; DONE
-(require 'init-shell) ; DONE
-
-(require 'init-org) ; TODO: get back to python3.6/3.7 issue
-;; (require 'init-calendar) ; DONE: not used leave commented
-;; (require 'init-elfeed) ; DONE: not used leave commented
-
-(require 'init-tramp) ; DONE
-
-;;(require 'init-utils) ; DONE: merged then deleted
-;;(require 'init-markdown) ; DONE: merged to writing then deleted
-(require 'init-writing) ; DONE: take last of init-utils
-(require 'init-view) ; DONE: take from remanants of init-utils
-(require 'init-misc-pkgs) ; DONE: merged with init-utils
-(require 'init-templates) ; DONE
-
-;; ;; Programming
-(require 'init-vcs) ; DONE merged with my init-git except popups
-(require 'init-prog) ; TODO some more merge from mine
-
-(require 'init-flycheck) ; DONE
-(require 'init-projectile) ; DONE
-;; (require 'init-dap)
-
-;; (require 'init-lsp)
-(require 'init-lisp) ; DONE 
-;; (require 'init-lisp) : TODO: merge mine with init-emacs-lisp
-
-;; (require 'init-c)
-;; (require 'init-python)
-;; (require 'init-web)
+(provide 'init-frame-cmds)
+;;; init-frame-cmds.el ends here
 
 
-;;; init.el ends here

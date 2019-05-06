@@ -54,14 +54,12 @@
 ;;
 
 (use-package format-all
-  :ensure t
   :bind (:map sej-mode-map
               ("C-c s f" . format-all-buffer)
               ("A-f" . format-all-buffer)))
 
 ;; arduino-mode
 (use-package arduino-mode
-  :ensure t
   :mode "\\.ino$"
   :config
   (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
@@ -74,7 +72,6 @@
 ;; you also need bash-language-server installed and on your PATH
 ;; npm install -g bash-language-server
 (use-package company-shell
-  :ensure t
   :after company
   :config
   (push 'company-shell company-backends))

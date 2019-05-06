@@ -40,7 +40,7 @@
 ;;            added bind & hook
 ;; 2018 10 17 edit registers settings
 ;; 2019 05 02 Initialize & Merge with sejgit
-
+;; 2019 05 06 Clean-up
 
 ;;; Code:
 
@@ -85,19 +85,14 @@
                               (setq-local tab-width 1)))
     :init (dashboard-setup-startup-hook)
     :config
-    (setq dashboard-banner-logo-title "SeJ EMACS")
-    (setq dashboard-startup-banner 1)
+    ;; (setq dashboard-banner-logo-title "SeJ EMACS")
+    (setq dashboard-startup-banner nil)
     (setq dashboard-center-content nil)
     (setq dashboard-show-shortcuts t)
     (setq dashboard-items '((recents  . 15)
                             (bookmarks . 15)
                             (projects . 10)
                             (registers . 10)))
-
-    (defun my-banner-path (&rest _)
-      "Return the full ,@restpath to banner."
-      (expand-file-name "banner.txt" user-emacs-directory))
-    (advice-add #'dashboard-get-banner-path :override #'my-banner-path)
 
     (defvar dashboard-recover-layout-p nil
       "Wether recovers the layout.")
@@ -138,34 +133,34 @@
         (when (persp-get-buffer-or-null persp-special-last-buffer)
           (persp-switch-to-buffer persp-special-last-buffer))))
 
-    (defun quit-dashboard ()
-      "Quit dashboard window."
-      (interactive)
-      (quit-window t)
-      (when (and dashboard-recover-layout-p
-                 (bound-and-true-p winner-mode))
-        (winner-undo)
-        (setq dashboard-recover-layout-p nil)))
+    ;; (defun quit-dashboard ()
+    ;;   "Quit dashboard window."
+    ;;   (interactive)
+    ;;   (quit-window t)
+    ;;   (when (and dashboard-recover-layout-p
+    ;;              (bound-and-true-p winner-mode))
+    ;;     (winner-undo)
+    ;;     (setq dashboard-recover-layout-p nil)))
 
-    (defun dashboard-goto-recent-files ()
-      "Go to recent files."
-      (interactive)
-      (funcall (local-key-binding "r")))
+    ;; (defun dashboard-goto-recent-files ()
+    ;;   "Go to recent files."
+    ;;   (interactive)
+    ;;   (funcall (local-key-binding "r")))
 
-    (defun dashboard-goto-projects ()
-      "Go to projects."
-      (interactive)
-      (funcall (local-key-binding "p")))
+    ;; (defun dashboard-goto-projects ()
+    ;;   "Go to projects."
+    ;;   (interactive)
+    ;;   (funcall (local-key-binding "p")))
 
-    (defun dashboard-goto-bookmarks ()
-      "Go to bookmarks."
-      (interactive)
-      (funcall (local-key-binding "m")))
+    ;; (defun dashboard-goto-bookmarks ()
+    ;;   "Go to bookmarks."
+    ;;   (interactive)
+    ;;   (funcall (local-key-binding "m")))
 
-    (defun dashboard-goto-registers ()
-      "Go to registers."
-      (interactive)
-      (funcall (local-key-binding "e")))
+    ;; (defun dashboard-goto-registers ()
+    ;;   "Go to registers."
+    ;;   (interactive)
+    ;;   (funcall (local-key-binding "e")))
 
     ;; Add heading icons
     (defun dashboard-insert-heading-icon (heading &optional _shortcut)
@@ -298,19 +293,6 @@ Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
        (lambda (&rest ignore) (jump-to-register (car el)))
        (format "%c - %s" (car el) (register-describe-oneline (car el)))))
     
-    (defun dashboard-center-line (&optional real-width)
-      "When point is at the end of a line, center it.
-REAL-WIDTH: the real width of the line.  If the line contains an image, the size
-            of that image will be considered to be 1 by the calculation method
-            used in this function.  As a consequence, the caller must calculate
-            himself the correct length of the line taking into account the
-            images he inserted in it."
-      (let* ((width (or real-width (current-column)))
-             (margin (max 0 (floor (/ (- dashboard-banner-length width) 2)))))
-        (beginning-of-line)
-        (insert (make-string margin ?\s))
-        (end-of-line)))
-
     (defun dashboard-insert-buttons ()
       "Insert buttions after the banner."
       (interactive)
@@ -319,7 +301,7 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
           (goto-char (point-min))
           (search-forward dashboard-banner-logo-title nil t)
 
-          (insert "\n\n\n")
+          (insert "")
           (widget-create 'url-link
                          :tag (concat
                                (if (display-graphic-p)
@@ -387,14 +369,14 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
                                                          :v-adjust -0.1
                                                          :face 'font-lock-string-face)
                                  (propertize "?" 'face 'font-lock-string-face))))
-          (dashboard-center-line)
-          (insert "\n\n")
+          (insert "\n")
 
           (insert (concat
                    (propertize (format "%d packages loaded in %s"
                                        (length package-activated-list) (emacs-init-time))
                                'face 'font-lock-comment-face)))
-          (dashboard-center-line))))
+          (insert "\n")
+          )))
     (add-hook 'dashboard-mode-hook #'dashboard-insert-buttons)
 
     (defun dashboard-insert-footer ()
@@ -409,7 +391,6 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
           (insert (propertize
                    (format "SeJ, %s" (format-time-string "%Y"))
                    'face font-lock-doc-face))
-          (dashboard-center-line)
           (insert "\n"))))
     (add-hook 'dashboard-mode-hook #'dashboard-insert-footer)
 
