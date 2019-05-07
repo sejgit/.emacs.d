@@ -1,9 +1,34 @@
-;;; init-completion.el --- Completion configuration
+;;; init-completion.el --- Completion configuration.	-*- lexical-binding: t -*-
+
+;; Copyright (C) 2019 Stephen Jenkins
+
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
+
+;; This file is not part of GNU Emacs.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+;; Floor, Boston, MA 02110-1301, USA.
+;;
 
 ;;; Commentary:
+;;
 ;; settings for company-mode in my Emacs
 
 ;; ChangeLog:
+;;
 ;; 2016 12 16 SeJ
 ;; 2017 01 07 switch from req-package to use-package
 ;; 2017 04 04 remove ensure went global ; defer not required for mode,bind,int
@@ -12,6 +37,8 @@
 ;; 2017 09 03 rename to init-completion.el update company settings with EOS
 ;; 2017 09 20 move hippie-expand settings from init-bindings-settings.el
 ;; 2018 09 24 some improvements from ohai
+;; 2019 05 07 merge into new .emacs.d
+
 
 ;;; Code:
 
@@ -30,7 +57,6 @@
         try-compelete-lisp-symbol))
 
 (use-package company
-  :ensure t
   :diminish company-mode
   :demand
   :defines
@@ -78,14 +104,12 @@
   (setq company-transformers '(company-sort-by-occurrence)))
 
 (use-package company-quickhelp
-  :ensure t
   :after (company)
   :hook (company-mode . company-quickhelp-mode)
   :config (setq company-quickhelp-delay 1))
 
 ;; Set up statistics for company completions
 (use-package company-statistics
-  :ensure t
   :hook (after-init . company-statistics-mode))
 
 (use-package company-try-hard
@@ -96,7 +120,6 @@
              ("C-\\" . company-try-hard)))
 
 (use-package smart-tab
-  :ensure t
   :diminish ""
   :defines
   smart-tab-using-hippie-expand

@@ -42,7 +42,7 @@
 
 ;; debugger on
 (setq debug-on-error t)
-(setq debug-on-quit t)
+(setq debug-on-quit nil)
 
 (defvar emacs-start-time (current-time)
   "Time Emacs was started.")
@@ -135,7 +135,7 @@
 (require 'init-frame-cmds) ; DONE
 
 ;; (require 'init-appearance) ; TODO: merge
-;; (require 'init-completion) ; TODO
+;; (require 'init-completion) ; TODO need to merge with init-company
 ;; (require 'init-custom) ; DONE: not needed
 ;; (require 'init-dashboard) ; DONE
 ;; (require 'init-deft) ; DONE
@@ -145,9 +145,9 @@
 ;; (require 'init-git) ; DONE did not move full-screen routines
 ;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
 ;; (require 'init-languages) ; DONE
-;; (require 'init-lisp) ; TODO: merge with init-emacs-lisp
+;; (require 'init-lisp) ; DONE
 ;; (require 'init-misc-defuns) ; DONE: merged -> init-defuns
-;; (require 'init-misc-filetypes) ; TODO
+;; (require 'init-misc-filetypes) ; DONE
 ;; (require 'init-misc-pkgs) ; DONE: merge with init-utils
 ;; (require 'init-org) ; DONE: merged then replace centaur
 ;; (require 'init-projectile) ; DONE
@@ -164,7 +164,8 @@
 
 (require 'init-ivy) ; DONE: decide if ivy or helm
 ;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-(require 'init-company) ; DONE
+(require 'init-company) ; TODO merge with below
+;; (require 'init-completion) ; TODO need to merge with init-company
 (require 'init-yasnippet) ; DONE:  add Yasnippets?
 
 (require 'init-registers) ; DONE
@@ -174,7 +175,7 @@
 (require 'init-kill-ring) ; DONE
 (require 'init-deft) ; DONE
 
-;; (require 'init-persp) ; TODO
+(require 'init-persp) ; DONE
 (require 'init-treemacs) ; TODO keybindings
 
 (require 'init-eshell) ; DONE
@@ -184,19 +185,21 @@
 ;; (require 'init-calendar) ; DONE: not used leave commented
 ;; (require 'init-elfeed) ; DONE: not used leave commented
 
-(require 'init-tramp) ; DONE
 
 ;;(require 'init-utils) ; DONE: merged then deleted
 ;;(require 'init-markdown) ; DONE: merged to writing then deleted
 (require 'init-writing) ; DONE: take last of init-utils
 (require 'init-spelling) ; DONE
 (require 'init-view) ; DONE: take from remanants of init-utils
+
 (require 'init-misc-pkgs) ; DONE: merged with init-utils
 (require 'init-templates) ; DONE
+(require 'init-misc-filetypes) ; DONE
 
 ;; Programming
-(require 'init-vcs) ; DONE merged with my init-git except popups
-(require 'init-prog) ; TODO some more merge from mine
+(require 'init-tramp) ; DONE
+(require 'init-vcs) ; DONE merged with my init-git except popup
+(require 'init-prog) ; DONE some more merge from mine
 
 (require 'init-flycheck) ; DONE
 (require 'init-projectile) ; DONE
@@ -204,7 +207,6 @@
 
 (require 'init-lsp)
 (require 'init-lisp) ; DONE 
-;; (require 'init-lisp) : TODO: merge mine with init-emacs-lisp
 
 (require 'init-c) ; DONE
 (require 'init-python) ; DONE

@@ -1,9 +1,9 @@
 ;;; init-persp.el --- Initialize perspectives configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,6 +28,11 @@
 ;; perspectives configurations.
 ;;
 
+;;; Changelog:
+;;
+;; 2019 05 07 initialize & merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -45,7 +50,7 @@
   (setq persp-nil-name "default")
   (setq persp-set-last-persp-for-new-frames nil)
   (setq persp-kill-foreign-buffer-behaviour 'kill)
-  (when centaur-dashboard (setq persp-auto-resume-time 0))
+  (when sej-dashboard (setq persp-auto-resume-time 0))
   (setq persp-common-buffer-filter-functions
         (list #'(lambda (b)
                   "Ignore temporary buffers."
@@ -108,6 +113,4 @@
                 :override #'my-persp-mode-projectile-bridge-add-new-persp)))
 
 (provide 'init-persp)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-persp.el ends here

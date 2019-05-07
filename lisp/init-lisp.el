@@ -47,7 +47,7 @@
   (require 'init-const)
   (require 'init-custom))
 
-(define-key emacs-lisp-mode-map (kbd "C-c d") 'toggle-debug-on-error)
+(define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 
 ;; Smartparens for editing within lisp
 (use-package smartparens-config
@@ -58,8 +58,8 @@
               ("C-M-a" . sp-beginning-of-sexp)
               ("C-M-e" . sp-end-of-sexp)
 
-              ("C-<down>" . sp-down-sexp)
-              ("C-<up>" . sp-up-sexp)
+              ;; ("C-<down>" . sp-down-sexp)
+              ;; ("C-<up>" . sp-up-sexp)
 
               ("C-M-f" . sp-forward-sexp)
               ("C-M-b" . sp-backward-sexp)
@@ -100,7 +100,6 @@
 
 ;; we don't want this minor mode to be shown in the minibuffer, however
 (use-package eldoc
-  :ensure t
   :defer t
   :diminish
   eldoc-mode
@@ -129,18 +128,13 @@
 (eval-after-load "dash" '(dash-enable-font-lock))
 
 
-;; turn on elisp-slime-nav if available so C-M-. works to jump to function definitions
+;; turn on elisp-slime-nav if available so M-. works to jump to function definitions
 (use-package elisp-slime-nav
-  :ensure t
   :diminish elisp-slime-nav-mode
   :hook (emacs-lisp-mode . elisp-slime-nav-mode))
 
-(use-package lispy
-  :ensure t
-  :defines sej-mode-map
-  :bind (:map sej-mode-map
-	            ("s-8" . lispy-multiline)
-	            ("s-*" . lispy-oneline)))
+;; Use C-M-. to jump to the definition of the symbol under the cursor.
+;; (define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
 
 ;; When saving an elisp file, remove its compiled version if
 ;; there is one, as you'll want to recompile it.
@@ -161,11 +155,7 @@
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e now!
 (use-package eros
   :commands eros-mode
-  :config
-  (add-hook 'emacs-lisp-mode-hook 'eros-mode))
-
-;; Use C-M-. to jump to the definition of the symbol under the cursor.
-(define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
+  :hook (emacs-lisp-mode . eros-mode))
 
 (provide 'init-lisp)
 ;;; init-lisp.el ends here

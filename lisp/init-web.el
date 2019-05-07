@@ -136,7 +136,20 @@
   (setq web-beautify-args '("-s" "2" "-f" "-")))
 
 (use-package haml-mode)
-(use-package php-mode)
+
+;; major mode for editing PHP code
+(use-package php-mode
+  :mode (("\\.module$" . php-mode)
+	       ("\\.inc$" . php-mode)
+	       ("\\.install$" . php-mode)
+	       ("\\.engine$" . php-mode)))
+
+;; YAML support
+(use-package yaml-mode
+  :mode
+  (("\\.yml$" . yaml-mode)
+   ("\\.yaml$" . yaml-mode)))
+
 
 (provide 'init-web)
 ;;; init-web.el ends here

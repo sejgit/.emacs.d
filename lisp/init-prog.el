@@ -83,7 +83,7 @@
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :hook (after-init . dumb-jump-mode)
   :config
-  (setq dumb-jump-prefer-searcher 'rg)
+  (setq dumb-jump-prefer-searcher 'ag)
   (with-eval-after-load 'ivy
     (setq dumb-jump-selector 'ivy))
 
