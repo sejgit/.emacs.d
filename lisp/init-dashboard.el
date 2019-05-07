@@ -133,34 +133,34 @@
         (when (persp-get-buffer-or-null persp-special-last-buffer)
           (persp-switch-to-buffer persp-special-last-buffer))))
 
-    ;; (defun quit-dashboard ()
-    ;;   "Quit dashboard window."
-    ;;   (interactive)
-    ;;   (quit-window t)
-    ;;   (when (and dashboard-recover-layout-p
-    ;;              (bound-and-true-p winner-mode))
-    ;;     (winner-undo)
-    ;;     (setq dashboard-recover-layout-p nil)))
+    (defun quit-dashboard ()
+      "Quit dashboard window."
+      (interactive)
+      (quit-window t)
+      (when (and dashboard-recover-layout-p
+                 (bound-and-true-p winner-mode))
+        (winner-undo)
+        (setq dashboard-recover-layout-p nil)))
 
-    ;; (defun dashboard-goto-recent-files ()
-    ;;   "Go to recent files."
-    ;;   (interactive)
-    ;;   (funcall (local-key-binding "r")))
+    (defun dashboard-goto-recent-files ()
+      "Go to recent files."
+      (interactive)
+      (funcall (local-key-binding "r")))
 
-    ;; (defun dashboard-goto-projects ()
-    ;;   "Go to projects."
-    ;;   (interactive)
-    ;;   (funcall (local-key-binding "p")))
+    (defun dashboard-goto-projects ()
+      "Go to projects."
+      (interactive)
+      (funcall (local-key-binding "p")))
 
-    ;; (defun dashboard-goto-bookmarks ()
-    ;;   "Go to bookmarks."
-    ;;   (interactive)
-    ;;   (funcall (local-key-binding "m")))
+    (defun dashboard-goto-bookmarks ()
+      "Go to bookmarks."
+      (interactive)
+      (funcall (local-key-binding "m")))
 
-    ;; (defun dashboard-goto-registers ()
-    ;;   "Go to registers."
-    ;;   (interactive)
-    ;;   (funcall (local-key-binding "e")))
+    (defun dashboard-goto-registers ()
+      "Go to registers."
+      (interactive)
+      (funcall (local-key-binding "e")))
 
     ;; Add heading icons
     (defun dashboard-insert-heading-icon (heading &optional _shortcut)

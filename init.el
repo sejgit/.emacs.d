@@ -168,7 +168,7 @@
 (require 'init-yasnippet) ; DONE:  add Yasnippets?
 
 (require 'init-registers) ; DONE
-(require 'init-dashboard) ; DONE clean-up 
+(require 'init-dashboard) ; DONE
 (require 'init-dired) ; DONE
 (require 'init-ibuffer) ; DONE
 (require 'init-kill-ring) ; DONE
