@@ -28,6 +28,11 @@
 ;; Visual (UI) configurations.
 ;;
 
+;;; Changelog:
+;;
+;; 2019 05 11 Merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -282,6 +287,4 @@
            ("M-S-<return>" . toggle-frame-fullscreen))
 
 (provide 'init-ui)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-ui.el ends here

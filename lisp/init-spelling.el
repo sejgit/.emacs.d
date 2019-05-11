@@ -59,7 +59,7 @@
          (prog-mode . flyspell-prog-mode)
          (flyspell-mode . (lambda ()
                             (dolist (key '("C-;" "C-," "C-."))
-                              (unbind-key key flyspell-mode-map))))))
+                              (unbind-key key flyspell-mode-map)))))
 :config
 (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
 (define-key flyspell-mouse-map [mouse-3] #'undefined)

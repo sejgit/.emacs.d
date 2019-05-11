@@ -127,7 +127,7 @@
 (require 'init-defuns)
 
 ;; Set-up the user interface
-(require 'init-ui)
+(require 'init-ui) ; DONE
 (require 'init-edit) ; DONE
 (require 'init-highlight) ; DONE
 

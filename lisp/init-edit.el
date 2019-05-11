@@ -1,4 +1,4 @@
-;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
+;; init-edit.el --- Initialize editing configurations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -90,7 +90,7 @@
 (setq line-move-visual t)
 
 (setq-default backup-directory-alist
-        '(("." . ".saves")))    ; don't litter my fs tree
+              '(("." . ".saves")))    ; don't litter my fs tree
 
 (setq vc-make-backup-files t
       backup-by-copying t      ; don't clobber symlinks
@@ -107,7 +107,7 @@
 ;; remove kill buffer with live process prompt
 (setq kill-buffer-query-functions
       (remq 'process-kill-buffer-query-function
-      kill-buffer-query-functions))
+            kill-buffer-query-functions))
 
 (setq-default kill-read-only-ok t)
 
@@ -228,8 +228,7 @@
 
 ;; Rectangle
 (use-package rect
-  :ensure nil
-  :bind (("<C-return>" . rectangle-mark-mode)))
+  :ensure nil)
 
 ;; Automatically reload files was modified by external program
 (use-package autorevert
@@ -237,15 +236,21 @@
   :diminish
   :hook (after-init . global-auto-revert-mode))
 
+;; Quickly follow links
+(use-package ace-link
+  :bind (("H-o" . ace-link-addr))
+  :hook (after-init . ace-link-setup-default))
+
 ;; Pass a URL to a WWW browser
 (use-package browse-url
   :ensure nil
   :defines dired-mode-map
-  :bind (("C-c C-z ." . browse-url-at-point)
-         ("C-c C-z b" . browse-url-of-buffer)
-         ("C-c C-z r" . browse-url-of-region)
-         ("C-c C-z u" . browse-url)
-         ("C-c C-z v" . browse-url-of-file))
+  :bind (:map sej-mode-map
+              ("C-c C-z ." . browse-url-at-point)
+              ("C-c C-z b" . browse-url-of-buffer)
+              ("C-c C-z r" . browse-url-of-region)
+              ("C-c C-z u" . browse-url)
+              ("C-c C-z v" . browse-url-of-file))
   :init
   (with-eval-after-load 'dired
     (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
@@ -268,11 +273,29 @@
 (use-package crux
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-a" . crux-move-beginning-of-line)
+              ("C-c o" . crux-open-with)
               ("C-k" . crux-smart-kill-line)
-              ("C-c C-k" . crux-duplicate-current-line-or-region)
+              ("C-S-RET" . crux-smart-open-line-above)
+              ([(shift return)] . crux-smart-open-line)
+              ("C-c n" . crux-cleanup-buffer-or-region)
+              ("C-c u" . crux-view-url)
+              ("C-c C-d" . crux-delete-file-and-buffer)
               ("s-d" . crux-duplicate-current-line-or-region)
-              ("C-c n" . crux-cleanup-buffer-or-region)))
+              ("C-c C-k" . crux-duplicate-current-line-or-region)
+              ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+              ([remap kill-whole-line] . crux-kill-whole-line)
+              ("C-<backspace>" . crux-kill-line-backwards))
+  :config
+  (crux-with-region-or-buffer indent-region)
+  (crux-with-region-or-buffer untabify)
+  (crux-with-region-or-line comment-or-uncomment-region)
+  (crux-with-region-or-point-to-eol kill-ring-save)
+  (crux-reopen-as-root-mode))
+
+(use-package mwim
+  :bind (:map sej-mode-map
+              ("C-a" . mwim-beginning)
+              ("C-e" . mwim-end))) ; better than crux
 
 ;; underscore -> upcase -> camelcase conversion
 (use-package string-inflection
@@ -284,25 +307,22 @@
 
 ;; Jump to things in Emacs tree-style
 (use-package avy
-  :bind (("C-:" . avy-goto-char)
-         ("C-'" . avy-goto-char-2)
-         ("M-g f" . avy-goto-line)
-         ("M-g w" . avy-goto-word-1)
-         ;; ("C-<return>" . avy-goto-word-1)
-         ("s-." . avy-goto-word-0)
-         ("M-g e" . avy-goto-word-0))
+  :bind (:map sej-mode-map
+              ("C-:" . avy-goto-char)
+              ("C-'" . avy-goto-char-2)
+              ("M-g f" . avy-goto-line)
+              ("M-g w" . avy-goto-word-1)
+              ;; ("C-<return>" . avy-goto-word-1)
+              ("s-." . avy-goto-word-0)
+              ("M-g e" . avy-goto-word-0))
   :hook (after-init . avy-setup-default)
   :config (setq avy-background t))
 
 ;; Kill text between the point and the character CHAR
 (use-package avy-zap
-  :bind (("M-z" . avy-zap-to-char-dwim)
-         ("M-Z" . avy-zap-up-to-char-dwim)))
-
-;; Quickly follow links
-(use-package ace-link
-  :bind (("H-o" . ace-link-addr))
-  :hook (after-init . ace-link-setup-default))
+  :bind (:map sej-mode-map
+              ("M-z" . avy-zap-to-char-dwim)
+              ("M-Z" . avy-zap-up-to-char-dwim)))
 
 ;; Minor mode to aggressively keep your code always indented
 (use-package aggressive-indent
@@ -372,26 +392,27 @@
   :hook (after-init . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
-(electric-layout-mode t)
-(electric-indent-mode t)
-;; Ignore electric indentation for python and yaml
-(defun electric-indent-ignore-mode (char)
-  "Ignore electric indentation for 'python-mode'.  CHAR is input character."
-  (if (or (equal major-mode 'python-mode)
-          (equal major-mode 'yaml-mode))
-      'no-indent
-    nil))
-(add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+  (electric-layout-mode t)
+  (electric-indent-mode t)
+  ;; Ignore electric indentation for python and yaml
+  (defun electric-indent-ignore-mode (char)
+    "Ignore electric indentation for 'python-mode'.  CHAR is input character."
+    (if (or (equal major-mode 'python-mode)
+            (equal major-mode 'yaml-mode))
+        'no-indent
+      nil))
+  (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
 
 
 ;; Edit multiple regions in the same way simultaneously
 (use-package iedit
   :defines desktop-minor-mode-table
-  :bind (("A-;" . iedit-mode)
-         ("C-x r RET" . iedit-rectangle-mode)
-         :map isearch-mode-map ("A-;" . iedit-mode-from-isearch)
-         :map esc-map ("A-;" . iedit-execute-last-modification)
-         :map help-map ("A-;" . iedit-mode-toggle-on-function))
+  :bind ((:map sej-mode-map
+               ("A-;" . iedit-mode)
+               ("C-x r RET" . iedit-rectangle-mode))
+         (:map isearch-mode-map ("A-;" . iedit-mode-from-isearch))
+         (:map esc-map ("A-;" . iedit-execute-last-modification))
+         (:map help-map ("A-;" . iedit-mode-toggle-on-function)))
   :config
   ;; Avoid restoring `iedit-mode'
   (with-eval-after-load 'desktop
@@ -400,20 +421,22 @@
 
 ;; Increase selected region by semantic units
 (use-package expand-region
-  :bind ("C-=" . er/expand-region))
+  :bind (:map sej-mode-map
+              ("C-=" . er/expand-region)))
 
 ;; Multiple cursors
 (use-package multiple-cursors
-  :bind (("C-S-c C-S-c"   . mc/edit-lines)
-         ("C->"           . mc/mark-next-like-this)
-         ("C-<"           . mc/mark-previous-like-this)
-         ("C-c C-<"       . mc/mark-all-like-this)
-         ("C-M->"         . mc/skip-to-next-like-this)
-         ("C-M-<"         . mc/skip-to-previous-like-this)
-         ("s-<mouse-1>"   . mc/add-cursor-on-click)
-         ("C-S-<mouse-1>" . mc/add-cursor-on-click)
-         :map mc/keymap
-         ("C-|" . mc/vertical-align-with-space)))
+  :bind ((:map sej-mode-map
+               ("C-S-c C-S-c"   . mc/edit-lines)
+               ("C->"           . mc/mark-next-like-this)
+               ("C-<"           . mc/mark-previous-like-this)
+               ("C-c C-<"       . mc/mark-all-like-this)
+               ("C-M->"         . mc/skip-to-next-like-this)
+               ("C-M-<"         . mc/skip-to-previous-like-this)
+               ("s-<mouse-1>"   . mc/add-cursor-on-click)
+               ("C-S-<mouse-1>" . mc/add-cursor-on-click))
+         (:map mc/keymap
+               ("C-|" . mc/vertical-align-with-space))))
 
 ;; Smartly select region, rectangle, multi cursors
 (use-package smart-region
@@ -431,17 +454,19 @@
 ;; Framework for mode-specific buffer indexes
 (use-package imenu
   :ensure nil
-  :bind (("C-." . imenu)))
-
-;; Move to the beginning/end of line or code
-(use-package mwim
-  :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
-         ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+  :bind (:map sej-mode-map
+              ("C-." . imenu)))
 
 ;; Treat undo history as a tree
 (use-package undo-tree
   :diminish
   :hook (after-init . global-undo-tree-mode)
+  :bind (:map sej-mode-map
+              ("C-/" . undo-tree-undo)
+              ("C-?" . undo-tree-redo)
+              ("C-x u" . undo-tree-visualize)
+              ("C-x r u" . undo-tree-save-state-to-register)
+              ("C-x r U" . undo-tree-save-state-from-register))
   :init (setq undo-tree-visualizer-timestamps t
               undo-tree-visualizer-diff t
               undo-tree-enable-undo-in-region nil
@@ -449,23 +474,24 @@
               undo-tree-history-directory-alist
               `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))
   :config
-  ;; FIXME:  `undo-tree-visualizer-diff' is a local variable in *undo-tree* buffer.
-  (defun undo-tree-visualizer-show-diff (&optional node)
-    ;; show visualizer diff display
-    (setq-local undo-tree-visualizer-diff t)
-    (let ((buff (with-current-buffer undo-tree-visualizer-parent-buffer
-                  (undo-tree-diff node)))
-          (display-buffer-mark-dedicated 'soft)
-          win)
-      (setq win (split-window))
-      (set-window-buffer win buff)
-      (shrink-window-if-larger-than-buffer win)))
+  ;; ;; FIXME:  `undo-tree-visualizer-diff' is a local variable in *undo-tree* buffer.
+  ;; (defun undo-tree-visualizer-show-diff (&optional node)
+  ;;   ;; show visualizer diff display
+  ;;   (setq-local undo-tree-visualizer-diff t)
+  ;;   (let ((buff (with-current-buffer undo-tree-visualizer-parent-buffer
+  ;;                 (undo-tree-diff node)))
+  ;;         (display-buffer-mark-dedicated 'soft)
+  ;;         win)
+  ;;     (setq win (split-window))
+  ;;     (set-window-buffer win buff)
+  ;;     (shrink-window-if-larger-than-buffer win)))
 
-  (defun undo-tree-visualizer-hide-diff ()
-    ;; hide visualizer diff display
-    (setq-local undo-tree-visualizer-diff nil)
-    (let ((win (get-buffer-window undo-tree-diff-buffer-name)))
-      (when win (with-selected-window win (kill-buffer-and-window))))))
+  ;; (defun undo-tree-visualizer-hide-diff ()
+  ;;   ;; hide visualizer diff display
+  ;;   (setq-local undo-tree-visualizer-diff nil)
+  ;;   (let ((win (get-buffer-window undo-tree-diff-buffer-name)))
+  ;; (when win (with-selected-window win (kill-buffer-and-window)))))
+  )
 
 (use-package goto-chg
   :ensure t
@@ -496,8 +522,8 @@
   :hook (prog-mode . origami-mode)
   :init (setq origami-show-fold-header t)
   :bind (:map origami-mode-map
-              ("C-`" . hydra-origami/body))
-  ;; TODO conflict with sej/push-mark-no-activate
+              ("A-`" . hydra-origami/body))
+  ;; DONE conflict with sej/push-mark-no-activate
   :config
   (face-spec-reset-face 'origami-fold-header-face)
 
@@ -532,13 +558,11 @@ _o_: only show current
   :hook (after-init . fancy-narrow-mode))
 
 (use-package ethan-wspace
-  :demand t
   :commands global-ethan-wspace-mode
-  :config
-  (global-ethan-wspace-mode 1)
-  :bind ("C-c w" . ethan-wspace-clean-all)
-  ;; TODO conflict with hydra-frame-window-body
-  :diminish ethan-wspace-mode)
+  :diminish ethan-wspace-mode
+  :hook (after-init . global-ethan-wspace-mode)
+  :bind ("A-w" . ethan-wspace-clean-all))
+;; DONE conflict with hydra-frame-window-body
 
 ;; dtrt-indent to automatically set the right indent for other people's files
 (use-package dtrt-indent
