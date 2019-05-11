@@ -83,10 +83,6 @@
   (require 'init-const)
   (require 'init-custom))
 
-;; replacement for the Emacs built-in command comment-dwim which includes more features
-(use-package comment-dwim-2
-  :bind ("C-;" . comment-dwim-2))       ; moved from std M-;
-
 ;; for TRYing out a package in current Emacs instance
 (use-package try)
 

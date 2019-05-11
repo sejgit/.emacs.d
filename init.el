@@ -134,34 +134,6 @@
 (require 'init-window) ; DONE
 (require 'init-frame-cmds) ; DONE
 
-;; (require 'init-appearance) ; TODO: merge
-;; (require 'init-completion) ; DONE
-;; (require 'init-custom) ; DONE: not needed
-;; (require 'init-dashboard) ; DONE
-;; (require 'init-deft) ; DONE
-;; (require 'init-dired) ; DONE
-;; (require 'init-flycheck) ; DONE
-;; (require 'init-frame-cmds) ; DONE
-;; (require 'init-git) ; DONE did not move full-screen routines
-;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-;; (require 'init-languages) ; DONE
-;; (require 'init-lisp) ; DONE
-;; (require 'init-misc-defuns) ; DONE: merged -> init-defuns
-;; (require 'init-misc-filetypes) ; DONE
-;; (require 'init-misc-pkgs) ; DONE: merge with init-utils
-;; (require 'init-org) ; DONE: merged then replace centaur
-;; (require 'init-projectile) ; DONE
-;; (require 'init-registers) ; DONE
-;; (require 'init-shell) ; DONE: test
-;; (require 'init-spelling) ; DONE
-;; (require 'init-templates) ; DONE
-;; (require 'init-tramp) ; DONE: integrated
-;; (require 'init-view) ; DONE: take from remanants of init-utils
-;; (require 'init-writing) ; DONE take last of init-utils
-;; (require 'init+bindings) ; DONE integrated & merged with ui/edit
-;; (require 'init+settings) ; DONE merged with basic
-
-
 (require 'init-ivy) ; DONE: decide if ivy or helm
 ;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
 (require 'init-company) ; DONE
@@ -184,9 +156,6 @@
 ;; (require 'init-calendar) ; DONE: not used leave commented
 ;; (require 'init-elfeed) ; DONE: not used leave commented
 
-
-;;(require 'init-utils) ; DONE: merged then deleted
-;;(require 'init-markdown) ; DONE: merged to writing then deleted
 (require 'init-writing) ; DONE: take last of init-utils
 (require 'init-spelling) ; DONE
 (require 'init-view) ; DONE: take from remanants of init-utils

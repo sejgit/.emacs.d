@@ -289,7 +289,7 @@
          ("M-g f" . avy-goto-line)
          ("M-g w" . avy-goto-word-1)
          ;; ("C-<return>" . avy-goto-word-1)
-         ;; ("s-." . avy-goto-word-0)
+         ("s-." . avy-goto-word-0)
          ("M-g e" . avy-goto-word-0))
   :hook (after-init . avy-setup-default)
   :config (setq avy-background t))
@@ -303,11 +303,6 @@
 (use-package ace-link
   :bind (("H-o" . ace-link-addr))
   :hook (after-init . ace-link-setup-default))
-
-;; Jump to Chinese characters
-(use-package ace-pinyin
-  :diminish
-  :hook (after-init . ace-pinyin-global-mode))
 
 ;; Minor mode to aggressively keep your code always indented
 (use-package aggressive-indent
@@ -347,17 +342,13 @@
 
 ;; An all-in-one comment command to rule them all
 (use-package comment-dwim-2
-  :bind ([remap comment-dwim] . comment-dwim-2)) ;
-;; :bind ("C-;" . comment-dwim-2)       ; moved from std M-;
+  :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
 
 ;; Drag stuff (lines, words, region, etc...) around
 (use-package drag-stuff
   :diminish
   :commands drag-stuff-define-keys
   :hook (after-init . drag-stuff-global-mode)
-  ;;   :bind (:map sej-mode-map
-  ;;               ("M-<down>" . drag-stuff-down)
-  ;;               ("M-<up>" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
   (drag-stuff-define-keys))
@@ -396,11 +387,11 @@
 ;; Edit multiple regions in the same way simultaneously
 (use-package iedit
   :defines desktop-minor-mode-table
-  :bind (("C-;" . iedit-mode)
+  :bind (("A-;" . iedit-mode)
          ("C-x r RET" . iedit-rectangle-mode)
-         :map isearch-mode-map ("C-;" . iedit-mode-from-isearch)
-         :map esc-map ("C-;" . iedit-execute-last-modification)
-         :map help-map ("C-;" . iedit-mode-toggle-on-function))
+         :map isearch-mode-map ("A-;" . iedit-mode-from-isearch)
+         :map esc-map ("A-;" . iedit-execute-last-modification)
+         :map help-map ("A-;" . iedit-mode-toggle-on-function))
   :config
   ;; Avoid restoring `iedit-mode'
   (with-eval-after-load 'desktop
@@ -428,21 +419,6 @@
 (use-package smart-region
   :hook (after-init . smart-region-on))
 
-;; On-the-fly spell checker
-(use-package flyspell
-  :ensure nil
-  :diminish
-  :if (executable-find "aspell")
-  :hook (((text-mode outline-mode) . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)
-         (flyspell-mode . (lambda ()
-                            (dolist (key '("C-;" "C-," "C-."))
-                              (unbind-key key flyspell-mode-map)))))
-  :init
-  (setq flyspell-issue-message-flag nil)
-  (setq ispell-program-name "aspell")
-  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together")))
-
 ;; Hungry deletion
 (use-package hungry-delete
   :diminish
@@ -461,17 +437,6 @@
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
-
-;; Windows-scroll commands
-(use-package pager
-  :bind (([remap scroll-up-command] . pager-page-down)
-         ([next]   . pager-page-down)
-         ([remap scroll-down-command] . pager-page-up)
-         ([prior]  . pager-page-up)
-         ([M-up]   . pager-row-up)
-         ([M-kp-8] . pager-row-up)
-         ([M-down] . pager-row-down)
-         ([M-kp-2] . pager-row-down)))
 
 ;; Treat undo history as a tree
 (use-package undo-tree
@@ -526,19 +491,13 @@
   (setq c-subword-mode t)
   (global-subword-mode t))
 
-;; Hideshow
-(use-package hideshow
-  :ensure nil
-  :diminish hs-minor-mode
-  :bind (:map hs-minor-mode-map
-              ("C-`" . hs-toggle-hiding)))
-
 ;; Flexible text folding
 (use-package origami
   :hook (prog-mode . origami-mode)
   :init (setq origami-show-fold-header t)
   :bind (:map origami-mode-map
               ("C-`" . hydra-origami/body))
+  ;; TODO conflict with sej/push-mark-no-activate
   :config
   (face-spec-reset-face 'origami-fold-header-face)
 
@@ -567,6 +526,7 @@ _o_: only show current
     ("R" origami-reset)))
 
 ;; Narrow/Widen
+;; C-x n prefix
 (use-package fancy-narrow
   :diminish
   :hook (after-init . fancy-narrow-mode))
@@ -577,6 +537,7 @@ _o_: only show current
   :config
   (global-ethan-wspace-mode 1)
   :bind ("C-c w" . ethan-wspace-clean-all)
+  ;; TODO conflict with hydra-frame-window-body
   :diminish ethan-wspace-mode)
 
 ;; dtrt-indent to automatically set the right indent for other people's files

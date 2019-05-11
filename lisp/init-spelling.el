@@ -55,45 +55,50 @@
         ("C-<f8>" . flyspell-mode)
         ("M-<f8>" . flyspell-check-next-highlighted-word)
         ("S-<f8>" . ispell-region))
-  :hook (text-mode . flyspell-mode)
-  :config
-  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
-  (define-key flyspell-mouse-map [mouse-3] #'undefined)
+  :hook (((text-mode outline-mode) . flyspell-mode)
+         (prog-mode . flyspell-prog-mode)
+         (flyspell-mode . (lambda ()
+                            (dolist (key '("C-;" "C-," "C-."))
+                              (unbind-key key flyspell-mode-map))))))
+:config
+(define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+(define-key flyspell-mouse-map [mouse-3] #'undefined)
 
-  (setq ispell-personal-dictionary "~/sej.ispell")
+(setq ispell-personal-dictionary "~/sej.ispell")
 
-  ;; Mostly taken from
-  ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
-  (when (executable-find "aspell")
-    (setq ispell-program-name (executable-find "aspell")) ;; "/usr/local/bin/aspell"
-    (setq ispell-extra-args
-          (list "--sug-mode=ultra" ;; ultra|fast|normal|bad-spellers
-                "--lang=en_CA"
-                "--ignore=4")))
+;; Mostly taken from
+;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
+(when (executable-find "aspell")
+  (setq ispell-program-name (executable-find "aspell")) ;; "/usr/local/bin/aspell"
+  (setq ispell-extra-args
+        (list "--sug-mode=ultra" ;; ultra|fast|normal|bad-spellers
+              "--lang=en_CA"
+              "--ignore=4"
+              "--run-together")))
 
-  ;; hunspell
-  (when (executable-find "hunspell")
-    (setq ispell-program-name (executable-find "hunspell"))
-    (setq ispell-really-hunspell t)
-    (setq ispell-extra-args '("-d en_CA"
-                              "-p ~/.flydict")))
+;; hunspell
+(when (executable-find "hunspell")
+  (setq ispell-program-name (executable-find "hunspell"))
+  (setq ispell-really-hunspell t)
+  (setq ispell-extra-args '("-d en_CA"
+                            "-p ~/.flydict")))
 
-  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
-  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+(add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+(add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+(add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+(add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
 
-  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
-                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
-                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+(setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+                                ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+                                ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-  (defun flyspell-check-next-highlighed-word ()
-    "Custom function to spell check next highlighted word"
-    (interactive)
-    (flyspell-goto-next-error)
-    (ispell-word))
-  (setq flyspell-issue-welcome-flag nil)
-  (setq-default ispell-list-command "list"))
+(defun flyspell-check-next-highlighed-word ()
+  "Custom function to spell check next highlighted word"
+  (interactive)
+  (flyspell-goto-next-error)
+  (ispell-word))
+(setq flyspell-issue-welcome-flag nil)
+(setq-default ispell-list-command "list"))
 
 ;; PowerThesaurus
 (use-package powerthesaurus
