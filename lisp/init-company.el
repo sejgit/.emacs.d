@@ -33,21 +33,43 @@
 (eval-when-compile
   (require 'init-custom))
 
+(setq hippie-expand-try-functions-list
+      '(try-complete-file-name-partially
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line
+        try-expand-line-all-buffers
+        try-complete-lisp-symbol-partially
+        try-compelete-lisp-symbol))
+
 (use-package company
   :diminish company-mode
-  :defines (company-dabbrev-ignore-case company-dabbrev-downcase)
+  :defines
+  sej-mode-map
+  company-dabbrev-ignore-case
+  company-dabbrev-downcase
+  company-dabbrev-code-modes
+  company-dabbrev-code-ignore-case
   :commands company-abort
-  :bind (("M-/" . company-complete)
+  :bind (
          ("<backtab>" . company-yasnippet)
+         :map sej-mode-map
+         (("C-<tab>" . company-complete)
+          ("M-<tab>" . company-complete))
          :map company-active-map
-         ("C-p" . company-select-previous)
-         ("C-n" . company-select-next)
-         ("<tab>" . company-complete-common-or-cycle)
-         ("<backtab>" . my-company-yasnippet)
-         ;; ("C-c C-y" . my-company-yasnippet)
+         (("C-n" . company-select-next)
+          ("C-p" . company-select-previous)
+          ("C-d" . company-show-doc-buffer)
+          ("C-l" . company-show-location)
+          ("<tab>" . company-complete))
          :map company-search-map
-         ("C-p" . company-select-previous)
-         ("C-n" . company-select-next))
+         (("C-p" . company-select-previous)
+          ("C-n" . company-select-next)))
   :hook (after-init . global-company-mode)
   :init
   (defun my-company-yasnippet ()
@@ -155,7 +177,33 @@
       :hook (global-company-mode . company-quickhelp-mode)
       :init (setq company-quickhelp-delay 0.8))))
 
-(provide 'init-company)
+(use-package company-quickhelp
+  :after (company)
+  :hook (company-mode . company-quickhelp-mode)
+  :config (setq company-quickhelp-delay 1))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set up statistics for company completions
+(use-package company-statistics
+  :hook (after-init . company-statistics-mode))
+
+(use-package company-try-hard
+  :commands company-try-hard
+  :bind ("C-\\" . company-try-hard)
+  :config
+  (bind-keys :map company-active-map
+             ("C-\\" . company-try-hard)))
+
+(use-package smart-tab
+  :diminish ""
+  :defines
+  smart-tab-using-hippie-expand
+  :init
+  (setq smart-tab-using-hippie-expand t)
+  :config
+  (global-smart-tab-mode 1)
+  (add-to-list 'smart-tab-disabled-major-modes 'mu4e-compose-mode)
+  (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
+  (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
+
+(provide 'init-company)
 ;;; init-company.el ends here

@@ -119,7 +119,7 @@
 
 ;; Preferences
 (require 'init-basic)
-(require 'init-bindings) ; 
+(require 'init-bindings) ; TODO redundancy
 ;;(sej-mode -1) ; off for now
 
 ;; Personal functions
@@ -128,14 +128,14 @@
 
 ;; Set-up the user interface
 (require 'init-ui)
-(require 'init-edit)
-;; (require 'init-appearance) ; sej
-;; (require 'init-highlight)
-;; (require 'init-window)
+(require 'init-edit) ; DONE
+(require 'init-highlight) ; DONE
+
+(require 'init-window) ; DONE
 (require 'init-frame-cmds) ; DONE
 
 ;; (require 'init-appearance) ; TODO: merge
-;; (require 'init-completion) ; TODO need to merge with init-company
+;; (require 'init-completion) ; DONE
 ;; (require 'init-custom) ; DONE: not needed
 ;; (require 'init-dashboard) ; DONE
 ;; (require 'init-deft) ; DONE
@@ -164,8 +164,7 @@
 
 (require 'init-ivy) ; DONE: decide if ivy or helm
 ;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-(require 'init-company) ; TODO merge with below
-;; (require 'init-completion) ; TODO need to merge with init-company
+(require 'init-company) ; DONE
 (require 'init-yasnippet) ; DONE:  add Yasnippets?
 
 (require 'init-registers) ; DONE
@@ -192,7 +191,6 @@
 (require 'init-spelling) ; DONE
 (require 'init-view) ; DONE: take from remanants of init-utils
 
-(require 'init-misc-pkgs) ; DONE: merged with init-utils
 (require 'init-templates) ; DONE
 (require 'init-misc-filetypes) ; DONE
 
@@ -206,14 +204,13 @@
 (require 'init-dap) ; DONE
 
 (require 'init-lsp)
-(require 'init-lisp) ; DONE 
+(require 'init-lisp) ; DONE
 
 (require 'init-c) ; DONE
 (require 'init-python) ; DONE
 (require 'init-web) ; DONE
 (require 'init-misc-languages) ; DONE
+(require 'init-misc-pkgs) ; DONE: merged with init-utils
 
 
 ;;; init.el ends here
-
-

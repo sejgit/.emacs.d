@@ -348,6 +348,7 @@
 ;; An all-in-one comment command to rule them all
 (use-package comment-dwim-2
   :bind ([remap comment-dwim] . comment-dwim-2)) ;
+;; :bind ("C-;" . comment-dwim-2)       ; moved from std M-;
 
 ;; Drag stuff (lines, words, region, etc...) around
 (use-package drag-stuff
@@ -569,6 +570,27 @@ _o_: only show current
 (use-package fancy-narrow
   :diminish
   :hook (after-init . fancy-narrow-mode))
+
+(use-package ethan-wspace
+  :demand t
+  :commands global-ethan-wspace-mode
+  :config
+  (global-ethan-wspace-mode 1)
+  :bind ("C-c w" . ethan-wspace-clean-all)
+  :diminish ethan-wspace-mode)
+
+;; dtrt-indent to automatically set the right indent for other people's files
+(use-package dtrt-indent
+  :defer 2
+  :diminish
+  :config
+  ;; (setq dtrt-indent-active-mode-line-info "")
+  )
+
+(use-package aggressive-indent
+  :hook (after-init . global-aggressive-indent-mode)
+  :config
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
 
 ;; ;; simplified access to the system clipboard in Emacs
 ;; (use-package simpleclip

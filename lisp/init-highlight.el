@@ -1,9 +1,9 @@
 ;; init-highlight.el --- Initialize highlighting configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -27,6 +27,11 @@
 ;;
 ;; Highlighting configurations.
 ;;
+
+;;; ChangeLog:
+;;
+;; 2019 05 08 Initialize & Merge
+
 
 ;;; Code:
 
@@ -56,6 +61,16 @@
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . (lambda () (symbol-overlay-mode -1)))
          (iedit-mode-end . symbol-overlay-mode)))
+
+(use-package dimmer
+  :defer 5
+  :config
+  (setq dimmer-fraction 0.20)
+  (dimmer-mode))
+
+;; hightlight-numbers in a special way
+(use-package highlight-numbers
+  :hook (prog-mode . highlight-numbers-mode))
 
 ;; Highlight matching parens
 (use-package paren
@@ -111,18 +126,17 @@
     (remove-overlays (point-min) (point-max) 'ovrainbow t))
   (advice-add #'rainbow-turn-off :after #'my-rainbow-clear-overlays))
 
-;; Highlight brackets according to their depth
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-
 ;; Highlight TODO and similar keywords in comments and strings
 (use-package hl-todo
   :custom-face (hl-todo ((t (:box t :inherit))))
   :bind (:map hl-todo-mode-map
               ([C-f3] . hl-todo-occur)
+              ("C-c t o" . hl-todo-occur)
+              ("H-o" . hl-todo-occur)
               ("C-c t p" . hl-todo-previous)
+              ("H-p" . hl-todo-previous)
               ("C-c t n" . hl-todo-next)
-              ("C-c t o" . hl-todo-occur))
+              ("H-n" . hl-todo-next))
   :hook (after-init . global-hl-todo-mode)
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
@@ -242,7 +256,29 @@
                  goto-last-change))
     (advice-add cmd :after #'my-recenter-and-pulse)))
 
-(provide 'init-highlight)
+;; Highlight the cursor whenever the window scrolls
+(use-package beacon
+  :defer 5
+  :diminish beacon-mode
+  :config
+  (beacon-mode 1))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; rainbow-delimiters-mode - multicoloured brackets
+(use-package rainbow-delimiters
+  :diminish rainbow-delimiters-mode
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :config
+  (custom-set-faces
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "red" :height 1.0))))
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "orange" :height 1.0))))
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "yellow" :height 1.0))))
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "green" :height 1.0))))
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "blue" :height 1.0))))
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "violet" :height 1.0))))
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "purple" :height 1.0))))
+   '(rainbow-delimiters-depth-8-face ((t (:foreground "gray" :height 1.0))))
+   '(rainbow-delimiters-unmatched-face ((t (:background "cyan" :height 1.0))))
+   ))
+
+(provide 'init-highlight)
 ;;; init-highlight.el ends here

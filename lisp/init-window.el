@@ -1,9 +1,9 @@
 ;; init-window.el --- Initialize window configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -27,6 +27,11 @@
 ;;
 ;; Window configurations.
 ;;
+
+;;; Changelog:
+;;
+;; 2019 05 08 Initialize & Merge
+
 
 ;;; Code:
 
@@ -121,6 +126,20 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         *  /\
     ("q" nil "quit"))
   (add-to-list 'aw-dispatch-alist '(?w hydra-frame-window/body) t)
   (bind-key "C-c w" #'hydra-frame-window/body))
+
+(use-package golden-ratio
+  :hook (after-init . golden-ratio-mode)
+  :defines sej-mode-map
+  :diminish golden-ratio-mode
+  :config
+  (setq golden-ratio-auto-scale t)
+  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
+
+  (defun sej/helm-alive-p ()
+    (if (boundp 'helm-alive-p)
+        (symbol-value 'helm-alive-p)))
+
+  (add-to-list 'golden-ratio-inhibit-functions 'sej/helm-alive-p) )
 
 ;; Enforce rules for popups
 (defvar shackle--popup-window-list nil) ; all popup windows
@@ -219,6 +238,4 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         *  /\
           (tabulated-list-mode :align 'below))))
 
 (provide 'init-window)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-window.el ends here

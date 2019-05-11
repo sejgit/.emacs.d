@@ -13,9 +13,9 @@
 ;;            remove zenburn-theme ::used from pragmatic Emacs
 ;;            change from req-package to use-package
 ;; 2017 01 10 add swiper to M-s from pragmatic Emacs
-;;	          add crux to move to biginning of line intelligently
-;;	          add avy for efficient movement through search
-;;	          move swiper to own file & add ivy-dired-recent-dirs()
+;;            add crux to move to biginning of line intelligently
+;;            add avy for efficient movement through search
+;;            move swiper to own file & add ivy-dired-recent-dirs()
 ;; 2017 01 16 add drag-stuff to move highlighted region around
 ;;            add beacon mode to highlight cursor when moved
 ;; 2017 03 30 move magit & pyenv-mode-auto to init-python.el
@@ -54,43 +54,21 @@
 
 ;;; Code:
 
-;; replacement for the Emacs built-in command comment-dwim which includes more features
-(use-package comment-dwim-2
-  :ensure t
-  :bind ("C-;" . comment-dwim-2))       ; moved from std M-;
-
 ;; for TRYing out a package in current Emacs instance
-(use-package try
-  :ensure t)
-
-;; moving around paredit style
-(use-package paredit
-  :ensure t)
-
-;; highlighting and moving around todos and similar keywords
-(use-package hl-todo
-  :ensure t
-  :hook (after-init . global-hl-todo-mode)
-  :bind (:map hl-todo-mode-map
-	            ("H-p" . hl-todo-previous)
-	            ("H-n" . hl-todo-next)
-	            ("H-o" . hl-todo-occur)))
+(use-package try)
 
 (use-package which-key
-  :ensure t
-  :demand t
   :hook (after-init . which-key-mode)
   :commands which-key-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("C-h C-m" . which-key-show-major-mode)
+              ("C-h C-m" . which-key-show-major-mode)
               ("C-h C-k" . which-key-show-top-level))
   :config
   (which-key-setup-minibuffer))
 
 ;; undo tree mode to improve undo features remove C-/ in my keymap for use with dabbrev
 (use-package undo-tree
-  :ensure t
   :defines sej-mode-map
   :diminish undo-tree-mode
   :hook (after-init . global-undo-tree-mode)
@@ -99,15 +77,14 @@
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-auto-save-history t)
   (setq undo-tree-history-directory-alist
-	      (quote (("" . "~/.local/emacs/undo_hist")))))
+        (quote (("" . "~/.local/emacs/undo_hist")))))
 
 ;; expand selection region larger & smaller
 (use-package expand-region
-  :ensure t
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("s-=" . er/expand-region)
-	            ("s--" . er/contract-region)))
+              ("s-=" . er/expand-region)
+              ("s--" . er/contract-region)))
 
 ;; vlf lets you handle very large files for viewing
 (use-package vlf-setup
@@ -116,56 +93,49 @@
 
 ;; midnight mode to clear buffers at midnight
 (use-package midnight
-  :ensure t
   :defer 60
   :config
   (customize-set-variable 'midnight-mode t))
 
 ;; google-this
 (use-package google-this
-  :ensure t
   :diminish google-this-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("C-c g" . google-this)
-	            ("s-g" . google-this))
+              ("C-c g" . google-this)
+              ("s-g" . google-this))
   :config
   (google-this-mode 1))
 
 ;; writable grep buffer and apply the changes to files
 (use-package wgrep
-  :ensure t
   :defer 5
   :init
   (setq-default grep-highlight-matches t
-		            grep-scroll-output t)
+                grep-scroll-output t)
   :config
   (when (eq system-type 'darwin)
     (setq-default locate-command "which")
     (setq exec-path (append exec-path '("/usr/local/bin"))))
 
   (when (executable-find "ag")
-    (use-package ag
-      :ensure t)
-    (use-package wgrep-ag
-      :ensure t)
+    (use-package ag)
+    (use-package wgrep-ag)
     (setq-default ag-highlight-search t)
     (define-key sej-mode-map (kbd "M-?") 'ag-project)))
 
 ;; helpful is an improved help-fns & help-fns+
 (use-package helpful
-  :ensure t
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ;;("C-h f" . helpful-function)
-	            ("C-h c" . helpful-command)
-	            ("C-h M" . helpful-macro)
-	            ("C-h v" . helpful-variable)))
+              ;;("C-h f" . helpful-function)
+              ("C-h c" . helpful-command)
+              ("C-h M" . helpful-macro)
+              ("C-h v" . helpful-variable)))
 
 ;; operate on current line if region undefined
 ;; mostly for region-cut & yank
 (use-package whole-line-or-region
-  :ensure t
   :defer 5
   :config
   (whole-line-or-region-global-mode t))

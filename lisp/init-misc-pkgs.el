@@ -38,9 +38,9 @@
 ;;            remove zenburn-theme ::used from pragmatic Emacs
 ;;            change from req-package to use-package
 ;; 2017 01 10 add swiper to M-s from pragmatic Emacs
-;;	          add crux to move to biginning of line intelligently
-;;	          add avy for efficient movement through search
-;;	          move swiper to own file & add ivy-dired-recent-dirs()
+;;            add crux to move to biginning of line intelligently
+;;            add avy for efficient movement through search
+;;            move swiper to own file & add ivy-dired-recent-dirs()
 ;; 2017 01 16 add drag-stuff to move highlighted region around
 ;;            add beacon mode to highlight cursor when moved
 ;; 2017 03 30 move magit & pyenv-mode-auto to init-python.el
@@ -97,9 +97,9 @@
 (use-package hl-todo
   :hook (after-init . global-hl-todo-mode)
   :bind (:map hl-todo-mode-map
-	            ("H-p" . hl-todo-previous)
-	            ("H-n" . hl-todo-next)
-	            ("H-o" . hl-todo-occur)))
+              ("H-p" . hl-todo-previous)
+              ("H-n" . hl-todo-next)
+              ("H-o" . hl-todo-occur)))
 
 (use-package which-key
   :diminish which-key-mode
@@ -107,7 +107,7 @@
   :commands which-key-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("C-h C-m" . which-key-show-major-mode)
+              ("C-h C-m" . which-key-show-major-mode)
               ("C-h C-k" . which-key-show-top-level))
   :config
   (which-key-setup-minibuffer))
@@ -122,14 +122,14 @@
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-auto-save-history t)
   (setq undo-tree-history-directory-alist
-	      (quote (("" . "~/.local/emacs/undo_hist")))))
+        (quote (("" . "~/.local/emacs/undo_hist")))))
 
 ;; expand selection region larger & smaller
 (use-package expand-region
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("s-=" . er/expand-region)
-	            ("s--" . er/contract-region)))
+              ("s-=" . er/expand-region)
+              ("s--" . er/contract-region)))
 
 ;; vlf lets you handle very large files for viewing
 (use-package vlf-setup
@@ -147,8 +147,8 @@
   :diminish google-this-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ("C-c g" . google-this)
-	            ("s-g" . google-this))
+              ("C-c g" . google-this)
+              ("s-g" . google-this))
   :config
   (google-this-mode 1))
 
@@ -161,7 +161,7 @@
   :defer 5
   :init
   (setq-default grep-highlight-matches t
-		            grep-scroll-output t
+                grep-scroll-output t
                 wgrep-auto-save-buffer t
                 wgrep-change-readonly-file t)
   :config
@@ -224,19 +224,6 @@
   :bind (("C-h M-m" . discover-my-major)
          ("C-h M-M" . discover-my-mode)))
 
-;; A Simmple and cool pomodoro timer
-(use-package pomidor
-  :bind ("<f12>" . pomidor)
-  :init (setq alert-default-style (if sys/macp 'osx-notifier 'libnotify))
-  :config
-  (when sys/macp
-    (setq pomidor-play-sound-file
-          (lambda (file)
-            (start-process "my-pomidor-play-sound"
-                           nil
-                           "afplay"
-                           file)))))
-
 ;; Persistent the scratch buffer
 (use-package persistent-scratch
   :preface
@@ -259,10 +246,10 @@
 (use-package helpful
   :defines sej-mode-map
   :bind (:map sej-mode-map
-	            ;;("C-h f" . helpful-function)
-	            ("C-h c" . helpful-command)
-	            ("C-h M" . helpful-macro)
-	            ("C-h v" . helpful-variable)))
+              ;;("C-h f" . helpful-function)
+              ("C-h c" . helpful-command)
+              ("C-h M" . helpful-macro)
+              ("C-h v" . helpful-variable)))
 
 ;; operate on current line if region undefined
 ;; mostly for region-cut & yank
@@ -284,7 +271,3 @@
 
 (provide 'init-misc-pkgs)
 ;;; init-misc-pkgs.el ends here
-
-
-
-
