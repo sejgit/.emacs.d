@@ -1,4 +1,4 @@
-;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
+;;; init-package.el --- Initialize package configurations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -78,43 +78,40 @@
 (use-package bind-key)
 
 ;; Extensions
-(use-package paradox
-  :init
-  (setq paradox-execute-asynchronously t)
-  (setq paradox-github-token t)
-  (setq paradox-display-star-count nil)
+;; (use-package paradox
+;;   :init
+;;   (setq paradox-execute-asynchronously t)
+;;   (setq paradox-github-token t)
+;;   (setq paradox-display-star-count nil)
 
-  (defalias #'upgrade-packages #'paradox-upgrade-packages)
+;;   (defalias #'upgrade-packages #'paradox-upgrade-packages)
 
-  ;; Replace default `list-packages'
-  (defadvice list-packages (before my-list-packages activate)
-    (paradox-enable)))
+;;   ;; Replace default `list-packages'
+;;   (defadvice list-packages (before my-list-packages activate)
+;;     (paradox-enable)))
 
 ;; The EMACS environment variable being set to the binary path of emacs.
 (setenv "EMACS"
         (file-truename (expand-file-name invocation-name invocation-directory)))
 
-;; load files from init.d
 ;; check OS type
 (when
     sys/win32p
-     (progn
-       (message "Microsoft Windows")
-       ;;see if we can get some speed improvements
-       (use-package auto-compile
-         :ensure t
-         :demand t
-         :config
-         (progn
-           (auto-compile-on-load-mode)
-           (auto-compile-on-save-mode)))
+  (progn
+    (message "Microsoft Windows")
+    ;;see if we can get some speed improvements
+    (use-package auto-compile
+      :demand t
+      :config
+      (progn
+        (auto-compile-on-load-mode)
+        (auto-compile-on-save-mode)))
 
-       ;; set exec-path for latex installation
-       (setq exec-path (append exec-path '("C:/Users/NZ891R/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64")) )
+    ;; set exec-path for latex installation
+    (setq exec-path (append exec-path sej-latex-directory))
 
-       ;; load AutoHotkey mode
-       (load-library "xahk-mode")))
+    ;; load AutoHotkey mode
+    (load-library "xahk-mode")))
 
 (provide 'init-package)
 ;;; init-package.el ends here
-

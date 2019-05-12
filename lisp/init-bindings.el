@@ -1,4 +1,4 @@
-;;; init+bindings.el --- Emacs general key-bindings.	-*- lexical-binding: t -*-
+;;; init+bindings.el --- Emacs general key-bindings.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -117,7 +117,7 @@
     ;; set up the keyboard for right is osx normal
     ;; left side is Hyper Super Alt Meta
 
-    (if (boundp 'mac-carbon-version-string)
+    (if (boundp 'mac-carbon-version-string) ;; using mac-port?
         ( progn
           ;; for emacs-mac-port
           (setq mac-right-command-modifier 'none)

@@ -1,4 +1,4 @@
-;;; init.el --- SeJ Emacs configurations.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -108,78 +108,77 @@
 (setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
 
 ;; Constants
-(require 'init-const)
+(require 'init-const) ; DONE
 
 ;; Custom group definition
-(require 'init-custom)
+(require 'init-custom) ; DONE
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
-(require 'init-package)
+(require 'init-package) ; DONE
 
 ;; Preferences
-(require 'init-basic) ;
-(require 'init-bindings) ;
-;;(sej-mode -1) ; off for now
+(require 'init-basic) ; DONE
+(require 'init-bindings) ; DONE
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
-(require 'init-defuns)
+(require 'init-defuns) ;
 
 ;; Set-up the user interface
-(require 'init-ui) ; DONE
+(require 'init-ui) ;
 (require 'init-edit) ;
-(require 'init-highlight) ; DONE
+(require 'init-highlight) ;
 
 (require 'init-window) ;
-(require 'init-frame-cmds) ; DONE
+(require 'init-frame-cmds) ;
 
-(require 'init-ivy) ; DONE: decide if ivy or helm
+(require 'init-ivy) ;
 ;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-(require 'init-company) ; DONE
-(require 'init-yasnippet) ; DONE:  add Yasnippets?
+(require 'init-company) ;
+(require 'init-yasnippet) ; :  add Yasnippets?
 
-(require 'init-registers) ; DONE
-(require 'init-dashboard) ; DONE
-(require 'init-dired) ; DONE
-(require 'init-ibuffer) ; DONE
-(require 'init-kill-ring) ; DONE
-(require 'init-deft) ; DONE
+(require 'init-registers) ;
+(require 'init-dashboard) ;
+(require 'init-dired) ;
+(require 'init-ibuffer) ;
+(require 'init-kill-ring) ;
+(require 'init-deft) ;
 
-(require 'init-persp) ; DONE
+(require 'init-persp) ;
 (require 'init-treemacs) ; TODO keybindings
 
-(require 'init-eshell) ; DONE
-(require 'init-shell) ; DONE
+(require 'init-eshell) ;
+(require 'init-shell) ;
 
 (require 'init-org) ; TODO: get back to python3.6/3.7 issue
-;; (require 'init-calendar) ; DONE: not used leave commented
-;; (require 'init-elfeed) ; DONE: not used leave commented
+;; (require 'init-calendar) ; not used leave commented
+;; (require 'init-elfeed) ;  not used leave commented
 
-(require 'init-writing) ; DONE: take last of init-utils
-(require 'init-spelling) ; DONE
-(require 'init-view) ; DONE: take from remanants of init-utils
+(require 'init-writing) ;
+(require 'init-spelling) ;
+(require 'init-view) ;
 
-(require 'init-templates) ; DONE
-(require 'init-misc-filetypes) ; DONE
+(require 'init-templates) ;
+(require 'init-misc-filetypes) ;
 
 ;; Programming
-(require 'init-tramp) ; DONE
-(require 'init-vcs) ; DONE merged with my init-git except popup
-(require 'init-prog) ; DONE some more merge from mine
+(require 'init-tramp) ;
+(require 'init-vcs) ;
+(require 'init-prog) ;  some more merge from mine
 
-(require 'init-flycheck) ; DONE
-(require 'init-projectile) ; DONE
-(require 'init-dap) ; DONE
+(require 'init-flycheck) ;
+(require 'init-projectile) ;
+(require 'init-dap) ;
 
 (require 'init-lsp)
-(require 'init-lisp) ; DONE
+(require 'init-lisp) ;
 
-(require 'init-c) ; DONE
-(require 'init-python) ; DONE
-(require 'init-web) ; DONE
-(require 'init-misc-languages) ; DONE
-(require 'init-misc-pkgs) ; DONE: merged with init-utils
+(require 'init-c) ;
+(require 'init-python) ;
+(require 'init-web) ;
+(require 'init-misc-languages) ;
+(require 'init-misc-pkgs) ;
 
 
 ;;; init.el ends here

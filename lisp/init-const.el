@@ -1,4 +1,4 @@
-;; init-const.el --- Define constants.	-*- lexical-binding: t -*-
+;; init-const.el --- Define constants.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -86,4 +86,3 @@
 
 (provide 'init-const)
 ;;; init-const.el ends here
-

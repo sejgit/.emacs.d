@@ -1,4 +1,4 @@
-;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
+;; init-custom.el --- Define customizations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -93,6 +93,10 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   "Filename for the Org Capture Project Journal"
   :type 'string)
 
+(defcustom sej-latex-directory "~/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64"
+  "Directory for Latex"
+  :type 'string)
+
 ;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -110,17 +114,16 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; Put personal configurations to override defaults here.
 ;; place to hold specific & secret stuff ~/.ssh is best
 (add-hook 'after-init-hook
-            (progn
+          (progn
             (let ((file
                    (expand-file-name "custom-post.el" user-emacs-directory)))
               (if (file-exists-p file)
                   (load file)))
-              (let ((file
-                (expand-file-name "custom-post.el" "~/.ssh/")))
-               (if (file-exists-p file)
-                   (load file)))
-              ))
+            (let ((file
+                   (expand-file-name "custom-post.el" "~/.ssh/")))
+              (if (file-exists-p file)
+                  (load file)))
+            ))
 
 (provide 'init-custom)
 ;;; init-custom.el ends here
-

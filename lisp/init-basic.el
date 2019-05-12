@@ -1,4 +1,4 @@
-;; init-basic.el --- Initialize basic configurations.	-*- lexical-binding: t -*-
+;; init-basic.el --- Initialize basic configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -41,9 +41,9 @@
 ;; Environment
 (when sys/win32p
   (setenv "PATH"
-            (mapconcat
-             #'identity exec-path path-separator))
-    (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
+          (mapconcat
+           #'identity exec-path path-separator))
+  (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
 
 (when (or sys/mac-x-p sys/linux-x-p)
   (use-package exec-path-from-shell
@@ -95,9 +95,3 @@
 
 (provide 'init-basic)
 ;;; init-basic.el ends here
-
-
-
-
-
-
