@@ -123,7 +123,7 @@
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
-(require 'init-defuns) ;
+(require 'init-defuns) ; DONE
 
 ;; Set-up the user interface
 (require 'init-ui) ;

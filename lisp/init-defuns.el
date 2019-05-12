@@ -1,4 +1,4 @@
-;; init-defuns.el --- Define functions.	-*- lexical-binding: t -*-
+;; init-defuns.el --- Define functions. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -52,7 +52,7 @@
   (require 'init-custom))
 
 ;; from https://gist.github.com/the-kenny/267162
-(when (eq system-type 'darwin)
+(when sys/macp
   (defun copy-from-osx ()
     "For copying from osx."
     (shell-command-to-string "pbpaste"))
@@ -78,7 +78,6 @@
     "Retrieve the URL of the current Safari page as a string."
     (org-trim (shell-command-to-string
                "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
-
   )
 
 ;; as name suggests ; defined as C-c b in above keymappings
@@ -233,16 +232,16 @@ output as per `sej/exec'. Otherwise, return nil."
           (shell-command "git pull")
           (message "Update finished. Restart Emacs to complete the process."))
       (message "\"%s\" doesn't exist." dir))))
-(defalias 'sej-update-config 'update-config)
+(defalias 'sej/update-config 'update-config)
 
 (declare-function upgrade-packages 'init-package)
-(defalias 'sej-update-packages 'upgrade-packages)
+(defalias 'sej/update-packages 'upgrade-packages)
 (defun update-sej()
   "Update confgiurations and packages."
   (interactive)
   (update-config)
   (upgrade-packages nil))
-(defalias 'sej-update 'update-sej)
+(defalias 'sej/update 'update-sej)
 
 (defun update-all()
   "Update dotfiles, org files, Emacs confgiurations and packages, ."
@@ -250,7 +249,7 @@ output as per `sej/exec'. Otherwise, return nil."
   (update-sej)
   (update-org)
   (update-dotfiles))
-(defalias 'sej-update-all 'update-all)
+(defalias 'sej/update-all 'update-all)
 
 (defun update-dotfiles ()
   "Update the dotfiles to the latest version."
@@ -264,7 +263,7 @@ output as per `sej/exec'. Otherwise, return nil."
           (shell-command "git pull")
           (message "Update finished."))
       (message "\"%s\" doesn't exist." dir))))
-(defalias 'sej-update-dotfiles 'update-dotfiles)
+(defalias 'sej/update-dotfiles 'update-dotfiles)
 
 (defun update-org ()
   "Update Org files to the latest version."
@@ -277,7 +276,7 @@ output as per `sej/exec'. Otherwise, return nil."
           (shell-command "git pull")
           (message "Update finished."))
       (message "\"%s\" doesn't exist." dir))))
-(defalias 'sej-update-org 'update-org)
+(defalias 'sej/update-org 'update-org)
 
 ;; Save a file as utf-8
 (defun save-buffer-as-utf8 (coding-system)
