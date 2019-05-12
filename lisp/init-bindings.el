@@ -110,32 +110,34 @@
     (w32-register-hot-key [A-])
     (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
     ))
+
  (sys/macp ; OSX
   (progn
     (message "Mac OSX")
     ;; set up the keyboard for right is osx normal
     ;; left side is Hyper Super Alt Meta
 
-    ;; for regular Emacs port
-    (setq ns-right-command-modifier 'none)
-    (setq ns-right-option-modifier 'none)
-    (setq ns-function-modifier 'hyper)
-    (setq ns-control-modifier 'control)
-    (setq ns-right-control-modifier 'super)
-    (setq ns-option-modifier 'alt)
-    (setq ns-command-modifier 'meta)
+    (if (boundp 'mac-carbon-version-string)
+        ( progn
+          ;; for emacs-mac-port
+          (setq mac-right-command-modifier 'none)
+          (setq mac-right-option-modifier 'none)
+          (setq mac-function-modifier 'hyper)
+          (setq mac-control-modifier 'control)
+          (setq mac-right-control-modifier 'super)
+          (setq mac-option-modifier 'alt)
+          (setq mac-command-modifier 'meta))
+      ( progn
+        ;; for regular Emacs port
+        (setq ns-right-command-modifier 'none)
+        (setq ns-right-option-modifier 'none)
+        (setq ns-function-modifier 'hyper)
+        (setq ns-control-modifier 'control)
+        (setq ns-right-control-modifier 'super)
+        (setq ns-option-modifier 'alt)
+        (setq ns-command-modifier 'meta)
+        ))))
 
-    ;; for emacs-mac-port
-    (setq mac-right-command-modifier 'none)
-    (setq mac-right-option-modifier 'none)
-    (setq mac-function-modifier 'hyper)
-    (setq mac-control-modifier 'control)
-    (setq mac-right-control-modifier 'super)
-    (setq mac-option-modifier 'alt)
-    (setq mac-command-modifier 'meta)
-    ;; keybinding to toggle full screen mode
-    ;;(global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
-    ))
  (linuxp ; linux
   (progn
     (message "Linux")
@@ -240,8 +242,14 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (define-key sej-mode-map (kbd "H-s") 'shell)
 (define-key sej-mode-map (kbd "<f2>") 'shell)
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-(define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
-(define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others)
+(if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
+    (progn
+      (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
+      (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
+  (progn
+    (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
+    (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
+  )
 (define-key sej-mode-map (kbd "H-e") 'eshell)
 (define-key sej-mode-map (kbd "H-f") 'helm-flycheck) ;;defined here for ref
 (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
@@ -253,11 +261,12 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
 
-;; use super for action type stuff
 ;; some lisp stuff from Getting Started with Emacs Lisp
 (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
 (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
-(define-key sej-mode-map (kbd "<A-return>") 'eval-buffer) ;; H-ret issues with mac
+(define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+
+;; use super for action type stuff
 (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
 (define-key sej-mode-map (kbd "s-b") 'helm-mini) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
@@ -292,10 +301,10 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (define-key sej-mode-map (kbd "s-k") 'windmove-up)
 (define-key sej-mode-map (kbd "s-j") 'windmove-down)
 ;; Make windmove work in org-mode:
-(add-hook 'org-shiftup-final-hook 'windmove-up)
-(add-hook 'org-shiftleft-final-hook 'windmove-left)
-(add-hook 'org-shiftdown-final-hook 'windmove-down)
-(add-hook 'org-shiftright-final-hook 'windmove-right)
+;; (add-hook 'org-shiftup-final-hook 'windmove-up)
+;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
+;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
+;; (add-hook 'org-shiftright-final-hook 'windmove-right)
 
 ;;init-frame-cmds bindings here for convenience
 (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
@@ -316,7 +325,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
 (define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
-(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next)
+(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
 (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
 (setq-default bs-default-configuration "all-intern-last")
 (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer) ; defined below

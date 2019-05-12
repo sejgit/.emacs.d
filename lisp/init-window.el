@@ -101,12 +101,11 @@
   (defhydra hydra-frame-window (:color red :hint none)
     "
 ^Frame^                 ^Window^      ^Window Size^^^^     ^Text Zoom^
-^^──────────────────────^^────────────^^──────────^^^^─────^^───────────────         (__)
-_0_: delete             _t_oggle        ^ ^ _k_ ^ ^            _+_                   (oo)
-_1_: delete others      _s_wap          _h_ ^+^ _l_            _=_             /------\\/
-_2_: new                _d_elete        ^ ^ _j_ ^ ^            _-_            / |    ||
-_F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         *  /\\-----/\\  ~~  C-c w/C-x o w
-"
+^^──────────────────────^^────────────^^──────────^^^^─────^^───────────────
+_0_: delete             _t_oggle        ^ ^ _k_ ^ ^            _+_
+_1_: delete others      _s_wap          _h_ ^+^ _l_            _=_
+_2_: new                _d_elete        ^ ^ _j_ ^ ^            _-_
+_F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
     ("0" delete-frame :exit t)
     ("1" delete-other-frames :exit t)
     ("2" make-frame  :exit t)
@@ -132,6 +131,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         *  /\
   :defines sej-mode-map
   :diminish golden-ratio-mode
   :config
+  (add-to-list 'golden-ratio-extra-commands 'ace-window)
   (setq golden-ratio-auto-scale t)
   (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
 

@@ -40,8 +40,8 @@
 (when (version< emacs-version "25.1")
   (error "This requires Emacs 25.1 and above!"))
 
-;; debugger on
-(setq debug-on-error t)
+;; debugger
+(setq debug-on-error nil)
 (setq debug-on-quit nil)
 
 (defvar emacs-start-time (current-time)
@@ -118,8 +118,8 @@
 (require 'init-package)
 
 ;; Preferences
-(require 'init-basic)
-(require 'init-bindings) ; TODO redundancy
+(require 'init-basic) ;
+(require 'init-bindings) ;
 ;;(sej-mode -1) ; off for now
 
 ;; Personal functions
@@ -128,10 +128,10 @@
 
 ;; Set-up the user interface
 (require 'init-ui) ; DONE
-(require 'init-edit) ; DONE
+(require 'init-edit) ;
 (require 'init-highlight) ; DONE
 
-(require 'init-window) ; DONE
+(require 'init-window) ;
 (require 'init-frame-cmds) ; DONE
 
 (require 'init-ivy) ; DONE: decide if ivy or helm
