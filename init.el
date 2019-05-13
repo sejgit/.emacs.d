@@ -126,27 +126,26 @@
 (require 'init-defuns) ; DONE
 
 ;; Set-up the user interface
-(require 'init-ui) ;
-(require 'init-edit) ;
-(require 'init-highlight) ;
+(require 'init-ui) ; DONE
+(require 'init-edit) ; DONE
+(require 'init-highlight) ; DONE
 
-(require 'init-window) ;
-(require 'init-frame-cmds) ;
+(require 'init-window) ; DONE
+(require 'init-frame-cmds) ; DONE
 
-(require 'init-ivy) ;
-;; (require 'init-ido-ivy-helm) ; TODO decide if ivy or helm
-(require 'init-company) ;
-(require 'init-yasnippet) ; :  add Yasnippets?
+(require 'init-ivy) ; DONE
+;; (require 'init-helm) ; TODO keep in case decide helm over ivy
+(require 'init-company) ; DONE
+(require 'init-yasnippet) ; DONE
 
-(require 'init-registers) ;
-(require 'init-dashboard) ;
-(require 'init-dired) ;
-(require 'init-ibuffer) ;
-(require 'init-kill-ring) ;
-(require 'init-deft) ;
+(require 'init-registers) ; DONE
+(require 'init-dashboard) ; DONE
+(require 'init-dired) ; DONE
+(require 'init-ibuffer) ; DONE
+(require 'init-kill-ring) ; DONE
+(require 'init-deft) ; DONE
 
-(require 'init-persp) ;
-(require 'init-treemacs) ; TODO keybindings
+(require 'init-persp) ; DONE
 
 (require 'init-eshell) ;
 (require 'init-shell) ;

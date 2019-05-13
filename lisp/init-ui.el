@@ -1,4 +1,4 @@
-;; init-ui.el --- Initialize ui configurations.	-*- lexical-binding: t -*-
+;; init-ui.el --- Initialize ui configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 

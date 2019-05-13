@@ -28,6 +28,11 @@
 ;; Kill ring configurations.
 ;;
 
+;;; Changelog:
+;;
+;; 2019 05 12 Merge
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -41,13 +46,13 @@
 
 ;; Kill & Mark things easily
 (use-package easy-kill-extras
-  :bind (([remap kill-ring-save] . easy-kill)
-         ([remap mark-sexp] . easy-mark-sexp)
-         ([remap mark-word] . easy-mark-word)
+  :bind (([remap kill-ring-save] . easy-kill) ; M-w
+         ([remap mark-sexp] . easy-mark-sexp) ; C-M-spc
+         ([remap mark-word] . easy-mark-word) ; M-@
 
          ;; Integrate `zap-to-char'
-         ([remap zap-to-char] . easy-mark-to-char)
-         ([remap zap-up-to-char] . easy-mark-up-to-char)
+         ([remap zap-to-char] . easy-mark-to-char) ; M-z
+         ([remap zap-up-to-char] . easy-mark-up-to-char) ; none
 
          ;; Integrate `expand-region'
          :map easy-kill-base-map
@@ -74,6 +79,4 @@
                           (?T string-up-to-char-backward ""))))
 
 (provide 'init-kill-ring)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-kill-ring.el ends here

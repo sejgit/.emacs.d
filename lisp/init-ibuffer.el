@@ -1,4 +1,4 @@
-;; init-buffer.el --- Initialize ibuffer configurations.	-*- lexical-binding: t -*-
+;; init-buffer.el --- Initialize ibuffer configurations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -42,7 +42,8 @@
               all-the-icons-auto-mode-match?
               all-the-icons-faicon)
   :commands ibuffer-find-file
-  :bind ("C-x C-b" . ibuffer)
+  :bind (:map sej-mode-map
+              ("C-x C-b" . ibuffer))
   :config
   (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
 
@@ -99,8 +100,3 @@
 
 (provide 'init-ibuffer)
 ;;; init-ibuffer.el ends here
-
-
-
-
-

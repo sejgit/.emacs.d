@@ -54,6 +54,16 @@
 (define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
 (define-key sej-mode-map (kbd "s-<S-right>") 'sej/frame-resize-r2)
 
+;;set frame full height and full wide
+;;and position at screen left
+(defun sej/frame-resize-full ()
+  "Set frame full height and 1/2 wide, position at screen left."
+  (interactive)
+  (set-frame-position (selected-frame) 0 0)
+  (set-frame-size (selected-frame)  (display-pixel-width)
+                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+  )
+
 ;;set frame full height and 1/2 wide
 ;;and position at screen left
 (defun sej/frame-resize-l ()
@@ -61,7 +71,7 @@
   (interactive)
   (set-frame-position (selected-frame) 0 0)
   (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
 ;;set frame full height and 1/2 wide
@@ -72,7 +82,7 @@
   (interactive)
   (set-frame-position (selected-frame) 0 0)
   (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
 ;;set frame full height and 1/2 wide
@@ -82,7 +92,7 @@
   (interactive)
   (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
   (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
 ;;set frame full height and 1/2 wide
@@ -93,11 +103,9 @@
   (interactive)
   (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
   (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-		              (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
+                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
 
 (provide 'init-frame-cmds)
 ;;; init-frame-cmds.el ends here
-
-

@@ -44,7 +44,7 @@
   :defines ivy-sort-functions-alist
   :commands (get-current-persp persp-contain-buffer-p)
   :hook ((after-init . persp-mode)
-         (emacs-startup . toggle-frame-maximized))
+         (emacs-startup . sej/frame-resize-full))
   :init
   (setq persp-keymap-prefix (kbd "C-x p"))
   (setq persp-nil-name "default")

@@ -247,12 +247,6 @@
               ("C-h M" . helpful-macro)
               ("C-h v" . helpful-variable)))
 
-;; operate on current line if region undefined
-;; mostly for region-cut & yank
-(use-package whole-line-or-region
-  :defer 5
-  :hook (after-init . whole-line-or-region-global-mode))
-
 ;; Misc
 (use-package copyit)                    ; copy path, url, etc.
 (use-package daemons)                   ; system services/daemons

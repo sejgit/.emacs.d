@@ -307,11 +307,13 @@ USAGE: (unbind-from-modi-map \"key f\")."
 ;; (add-hook 'org-shiftright-final-hook 'windmove-right)
 
 ;;init-frame-cmds bindings here for convenience
+(define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
 (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
 (define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
 (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
 (define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
 
+(define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
 (define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
 (define-key sej-mode-map (kbd "s-S-<left>") 'sej/frame-resize-l2)
 (define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
@@ -319,8 +321,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
 
 
 ;; File & buffer finding
-(define-key sej-mode-map (kbd "C-x C-M-f") 'find-file-in-project)
-(define-key sej-mode-map (kbd "C-x C-M-f") 'find-file-in-project)
+(define-key sej-mode-map (kbd "C-x M-f") 'counsel-projectile-find-file)
 (define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)

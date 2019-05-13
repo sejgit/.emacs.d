@@ -216,7 +216,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
           ("*Paradox Report*" :size 0.3 :align 'below :autoclose t)
           ("*quickrun*" :select t :size 15 :align 'below)
           ("*tldr*" :align 'below :autoclose t)
-          ("*Youdao Dictionary*" :size 0.3 :align 'below :autoclose t)
           ("*Finder*" :select t :size 0.3 :align 'below :autoclose t)
           ("^\\*elfeed-entry" :regexp t :size 0.7 :align 'below :autoclose t)
 

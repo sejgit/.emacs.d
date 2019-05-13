@@ -43,8 +43,7 @@
   :defines (projectile-completion-system magit-completing-read-function)
   :commands swiper-isearch
   :bind (("C-s" . swiper)
-         ("s-f" . swiper-isearch)
-         ("C-S-s" . swiper-all)
+         ("C-S" . swiper-all)
 
          ("C-c C-r" . ivy-resume)
          ("C-c v p" . ivy-push-view)
@@ -88,11 +87,6 @@
          ("C-c c u" . counsel-unicode-char)
          ("C-c c w" . counsel-colors-web)
          ("C-c c z" . counsel-fzf)
-
-         ;; Find counsel commands quickly
-         ("<f6>" . (lambda ()
-                     (interactive)
-                     (counsel-M-x "^counsel ")))
 
          :map ivy-minibuffer-map
          ("C-w" . ivy-yank-word)
@@ -213,7 +207,7 @@
                    (replace-regexp-in-string "^.*Swiper: " ""
                                              (thing-at-point 'line t)))))))
       (ivy-quit-and-run
-       (counsel-rg text default-directory))))
+        (counsel-rg text default-directory))))
   (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg swiper-map)
 
   (with-eval-after-load 'rg
@@ -277,12 +271,12 @@
   ;; Display world clock using Ivy
   (use-package counsel-world-clock
     :bind (:map counsel-mode-map
-                ("C-c c k" . counsel-world-clock)))
+                ("C-c s K" . counsel-world-clock)))
 
   ;; Tramp ivy interface
   (use-package counsel-tramp
     :bind (:map counsel-mode-map
-                ("C-c c v" . counsel-tramp)))
+                ("C-c s v" . counsel-tramp)))
 
   ;; More friendly display transformer for Ivy
   (use-package ivy-rich

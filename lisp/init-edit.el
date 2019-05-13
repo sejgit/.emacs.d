@@ -84,7 +84,6 @@
       visible-bell t)
 (show-paren-mode t)
 
-
 ;; Add proper word wrapping
 (global-visual-line-mode t)
 (setq line-move-visual t)
@@ -238,7 +237,8 @@
 
 ;; Quickly follow links
 (use-package ace-link
-  :bind (("H-o" . ace-link-addr))
+  :bind (:map sej-mode-map
+              ("H-o" . ace-link-addr))
   :hook (after-init . ace-link-setup-default))
 
 ;; Pass a URL to a WWW browser

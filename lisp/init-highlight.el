@@ -72,14 +72,6 @@
 (use-package highlight-numbers
   :hook (prog-mode . highlight-numbers-mode))
 
-;; Highlight matching parens
-(use-package paren
-  :ensure nil
-  :hook (after-init . show-paren-mode)
-  :config
-  (setq show-paren-when-point-inside-paren t)
-  (setq show-paren-when-point-in-periphery t))
-
 ;; Highlight indentions
 (when (display-graphic-p)
   (use-package highlight-indent-guides
@@ -268,17 +260,23 @@
   :diminish rainbow-delimiters-mode
   :hook (prog-mode . rainbow-delimiters-mode)
   :config
-  (custom-set-faces
-   '(rainbow-delimiters-depth-1-face ((t (:foreground "red" :height 1.0))))
-   '(rainbow-delimiters-depth-2-face ((t (:foreground "orange" :height 1.0))))
-   '(rainbow-delimiters-depth-3-face ((t (:foreground "yellow" :height 1.0))))
-   '(rainbow-delimiters-depth-4-face ((t (:foreground "green" :height 1.0))))
-   '(rainbow-delimiters-depth-5-face ((t (:foreground "blue" :height 1.0))))
-   '(rainbow-delimiters-depth-6-face ((t (:foreground "violet" :height 1.0))))
-   '(rainbow-delimiters-depth-7-face ((t (:foreground "purple" :height 1.0))))
-   '(rainbow-delimiters-depth-8-face ((t (:foreground "gray" :height 1.0))))
-   '(rainbow-delimiters-unmatched-face ((t (:background "cyan" :height 1.0))))
-   ))
+  (require 'cl-lib)
+  (require 'color)
+  (cl-loop
+   for index from 1 to rainbow-delimiters-max-face-count
+   do
+   (let ((face (intern (format "rainbow-delimiters-depth-%d-face" index))))
+     (cl-callf color-saturate-name (face-foreground face) 30)))
+  (set-face-attribute 'rainbow-delimiters-unmatched-face nil
+                      :foreground 'unspecified
+                      :inherit 'error
+                      :strike-through t))
+
+(use-package mic-paren
+  :hook (prog-mode . paren-activate)
+  :config
+  (setq paren-highlight-offscreen t)
+  )
 
 (provide 'init-highlight)
 ;;; init-highlight.el ends here
