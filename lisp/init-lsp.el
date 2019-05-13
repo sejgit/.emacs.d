@@ -120,7 +120,7 @@
            (let ((filename (or (->> info caddr (alist-get :file))
                                buffer-file-name)))
              (setq buffer-file-name filename)
-             (pcase centaur-lsp
+             (pcase sej-lsp
                ('eglot
                 (and (fboundp 'eglot) (eglot)))
                ('lsp-mode
@@ -130,7 +130,7 @@
                      (lsp))))))
          (put ',intern-pre 'function-documentation
               (format "Enable `%s' in the buffer of org source block (%s)."
-                      centaur-lsp (upcase ,lang)))
+                      sej-lsp (upcase ,lang)))
 
          (if (fboundp ',edit-pre)
              (advice-add ',edit-pre :after ',intern-pre)

@@ -109,7 +109,7 @@
         (auto-compile-on-save-mode)))
 
     ;; set exec-path for latex installation
-    (setq exec-path (append exec-path sej-latex-directory))
+    (setq exec-path (append exec-path (list sej-latex-directory)))
 
     ;; load AutoHotkey mode
     (load-library "xahk-mode")))

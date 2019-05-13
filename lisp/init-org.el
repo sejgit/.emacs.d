@@ -40,7 +40,7 @@
 ;; 2018 04 02 add poporg for editing comments in org-mode popup window
 ;; 2018 07 22 correct mold project documents moved for journal.org
 ;; 2018 09 28 tips from ohai
-;; 2019 04 30 integration of centaur ideas
+;; 2019 04 30 merge
 
 ;;; Code:
 

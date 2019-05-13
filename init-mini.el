@@ -1,11 +1,11 @@
-;;; init-mini.el --- Centaur Emacs minimal configurations.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-mini.el --- SeJ Emacs minimal configurations.	-*- lexical-binding: t no-byte-compile: t; -*-
 
-;; Copyright (C) 2018-2019 Vincent Zhang
+;; Copyright (C) 2018-2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; URL: https://github.com/seagle0128/.emacs.d
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
 ;; Version: 1.0.0
-;; Keywords: .emacs.d centaur
+;; Keywords: .emacs.d sejgit
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -27,8 +27,13 @@
 
 ;;; Commentary:
 ;;
-;; Centaur Emacs minimal configurations for debugging purpose.
+;; SeJ Emacs minimal configurations for debugging purpose.
 ;;
+
+;;; Changelog:
+;;
+;; 2019 05 13 Merge
+
 
 ;;; Code:
 
@@ -117,7 +122,6 @@
 
 ;; Keybindings
 (global-set-key (kbd "C-.") #'imenu)
-(global-set-key (kbd "<C-return>") #'rectangle-mark-mode)
 
 (defun revert-current-buffer ()
   "Revert the current buffer."
@@ -134,5 +138,6 @@
             (local-set-key (kbd "C-c C-c") #'eval-defun)
             (local-set-key (kbd "C-c C-b") #'eval-buffer)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Init-mini.el ends here
+

@@ -1,4 +1,4 @@
-;;; init-calendar.el --- Initialize calendar configurations.	-*- lexical-binding: t -*-
+;;; init-calendar.el --- Initialize calendar configurations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -58,8 +58,8 @@
                (list
                 (when org-agenda-files
                   (cfw:org-create-source "YellowGreen"))
-                (when (bound-and-true-p centaur-ical)
-                  (cfw:ical-create-source "gcal" centaur-ical "IndianRed")))))
+                (when (bound-and-true-p sej-ical)
+                  (cfw:ical-create-source "gcal" sej-ical "IndianRed")))))
       (cfw:open-calendar-buffer)))
   (defalias 'sej-open-calendar 'open-calendar))
 

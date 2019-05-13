@@ -37,7 +37,7 @@
 ;; 2018 10 10 move out LSP to init-languages.el will move more out later
 ;; 2018 10 10 move out arduino, html to init-languages
 ;; 2018 10 15 move out c & java script to init-languages
-;; 2019 05 07 merge with centaur
+;; 2019 05 07 merge
 
 
 ;;; Table of contents
