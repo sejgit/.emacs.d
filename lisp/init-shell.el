@@ -1,4 +1,4 @@
-;; init-shell.el --- Initialize shell configurations.	-*- lexical-binding: t -*-
+;; init-shell.el --- Initialize shell configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -135,7 +135,7 @@
 ;; things that invoke $EDITOR will use the current Emacs
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
-	       (eshell-mode . with-editor-export-editor)))
+         (eshell-mode . with-editor-export-editor)))
 
 ;; set up any SSH or GPG keychains that the Keychain tool has set up for us
 (use-package keychain-environment
@@ -164,7 +164,7 @@
 (defun sej/kill-process-buffer-on-exit ()
   "Function to kill buffer on exit."
   (set-process-sentinel (get-buffer-process (current-buffer))
-			                  #'sej/shell-kill-buffer-sentinel))
+                        #'sej/shell-kill-buffer-sentinel))
 
 (dolist (hook '(ielm-mode-hook term-exec-hook comint-exec-hook))
   (add-hook hook 'sej/kill-process-buffer-on-exit))
@@ -178,7 +178,7 @@
   "Suppress the annoying 'History item : NNN' messages from shell history isearch."
   (let ((old-message (symbol-function 'message)))
     (unwind-protect
-	      (progn (fset 'message 'ignore) ad-do-it)
+        (progn (fset 'message 'ignore) ad-do-it)
       (fset 'message old-message))))
 
 (provide 'init-shell)

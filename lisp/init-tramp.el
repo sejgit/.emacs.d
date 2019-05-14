@@ -48,7 +48,7 @@
   tramp-default-user
   tramp-default-host
   :init
-  (if (eq system-type 'darwin)
+  (if sys/macp
       (setq
        tramp-default-method "ssh"
        password-cache-expiry nil)
@@ -80,7 +80,6 @@
   )
 
 (use-package pass
-  :ensure t
   :defer 7)
 
 (provide 'init-tramp)

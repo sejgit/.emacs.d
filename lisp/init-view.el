@@ -1,4 +1,4 @@
-;;; init-view.el --- init file for view packages.	-*- lexical-binding: t -*-
+;;; init-view.el --- init file for view packages. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -62,9 +62,9 @@
 
 (use-package doc-view
   :bind (:map doc-view-mode-map (("j" . doc-view-next-line-or-next-page)
-				 ("k" . doc-view-previous-line-or-previous-page)
-				 ;; use 'q' to kill the buffer, not just hide it
-				 ("q" . kill-this-buffer))))
+                                 ("k" . doc-view-previous-line-or-previous-page)
+                                 ;; use 'q' to kill the buffer, not just hide it
+                                 ("q" . kill-this-buffer))))
 
 (require 'ps-print)
 (when (executable-find "ps2pdf")

@@ -1,4 +1,4 @@
-;;; init-writing.el --- Initialize writing utilities.	-*- lexical-binding: t -*-
+;;; init-writing.el --- Initialize writing utilities. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -176,9 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 ;; Elasticsearch uses asciidoc everywhere for documentation
-(use-package adoc-mode
-  :ensure t
-  )
+(use-package adoc-mode)
 
 ;; skeletons are a kind of yasnippet but they don't mess with keybindings
 (define-skeleton sej/org-header
@@ -215,6 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
   :hook (after-init . abbrev-mode)
   :diminish abbrev-mode
   :config
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+        "~/.emacs.d/abbrev_defs")    ;; definitions from...
   (define-abbrev-table
     'global-abbrev-table
     '(("<sej" "stephenearljenkins" nil 0)))
@@ -265,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
 (define-key sej-mode-map (kbd "C-c s n") 'number-rectangle)
 
 (use-package define-word
-  :ensure t
   :bind (("H-d" . define-word-at-point)
          ("H-D" . define-word)))
 

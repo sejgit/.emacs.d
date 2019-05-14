@@ -1,4 +1,4 @@
-;;; init-templates.el --- templates for auto-insertion.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-templates.el --- templates for auto-insertion. -*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -39,7 +39,6 @@
 ;;; Code:
 
 (use-package autoinsert
-  :ensure t
   :hook (find-file . auto-insert)
   :defines
   auto-insert-query

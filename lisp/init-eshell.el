@@ -1,4 +1,4 @@
-;; init-eshell.el --- Initialize eshell configurations.	-*- lexical-binding: t -*-
+;; init-eshell.el --- Initialize eshell configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -53,7 +53,7 @@
                            (eshell/alias "ll" "ls -l")
                            (eshell/alias "la" "ls -al"))))
   :bind (:map sej-mode-map
-	            ("H-e" . eshell)
+              ("H-e" . eshell)
               ("C-c e" . eshell))
   :preface
 
@@ -147,15 +147,15 @@
     (interactive)
     (save-current-buffer
       (dolist (buffer (buffer-list t))
-	      (set-buffer buffer)
-	      (when (eq major-mode 'eshell-mode)
-	        (eshell-truncate-buffer)))))
+        (set-buffer buffer)
+        (when (eq major-mode 'eshell-mode)
+          (eshell-truncate-buffer)))))
 
   ;; After being idle for 5 seconds, truncate all the eshell-buffers if
   ;; needed. If this needs to be canceled, you can run `(cancel-timer
   ;; eos/eshell-truncate-timer)'
   (setq sej/eshell-truncate-timer
-	      (run-with-idle-timer 5 t #'sej/truncate-eshell-buffers))
+        (run-with-idle-timer 5 t #'sej/truncate-eshell-buffers))
 
   (defun eshell/cds ()
     "Change directory to the project's root."
@@ -164,16 +164,16 @@
   (defun eshell/d (&rest args)
     (dired (pop args) "."))
 
-  
+
   :config
 
   (require 'em-smart)
   (setq eshell-glob-case-insensitive nil
-	      eshell-error-if-no-glob nil
-	      eshell-scroll-to-bottom-on-input nil
-	      eshell-where-to-jump 'begin
-	      eshell-review-quick-commands nil
-	      eshell-smart-space-goes-to-end t)
+        eshell-error-if-no-glob nil
+        eshell-scroll-to-bottom-on-input nil
+        eshell-where-to-jump 'begin
+        eshell-review-quick-commands nil
+        eshell-smart-space-goes-to-end t)
   ;; Initialize "smart" mode
   ;;(add-hook 'eshell-mode-hook #'eshell-smart-initialize)
   (setenv "PAGER" "cat")
@@ -183,18 +183,18 @@
   (require 'em-term)
 
   (setq eshell-cmpl-cycle-completions nil
-	      ;; auto truncate after 12k lines
-	      eshell-buffer-maximum-lines 12000
-	      ;; history size
-	      eshell-history-size 500
-	      ;; buffer shorthand -> echo foo > #'buffer
-	      eshell-buffer-shorthand t
-	      ;; my prompt is easy enough to see
-	      eshell-highlight-prompt nil
-	      ;; treat 'echo' like shell echo
-	      eshell-plain-echo-behavior t
-	      ;; add -lh to the `ls' flags
-	      eshell-ls-initial-args "-lh")
+        ;; auto truncate after 12k lines
+        eshell-buffer-maximum-lines 12000
+        ;; history size
+        eshell-history-size 500
+        ;; buffer shorthand -> echo foo > #'buffer
+        eshell-buffer-shorthand t
+        ;; my prompt is easy enough to see
+        eshell-highlight-prompt nil
+        ;; treat 'echo' like shell echo
+        eshell-plain-echo-behavior t
+        ;; add -lh to the `ls' flags
+        eshell-ls-initial-args "-lh")
 
   ;;  Display extra information for prompt
   ;; See: https://github.com/kaihaosw/eshell-prompt-extras
@@ -234,7 +234,7 @@
       ;; Don't ask, just save
       (setq eshell-save-history-on-exit t))
 
-  
+
   (defun eshell/magit ()
     "Function to open magit-status for the current directory."
     (interactive)

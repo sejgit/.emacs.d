@@ -62,7 +62,7 @@
                 winner-undo
                 widget-forward)
     :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
-    :bind (("<f2>" . open-dashboard)
+    :bind (("<f6>" . open-dashboard)
            (:map sej-mode-map
                  ("C-c s d" . open-dashboard))
            (:map dashboard-mode-map
@@ -292,7 +292,7 @@ Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
        "e"
        (lambda (&rest ignore) (jump-to-register (car el)))
        (format "%c - %s" (car el) (register-describe-oneline (car el)))))
-    
+
     (defun dashboard-insert-buttons ()
       "Insert buttions after the banner."
       (interactive)

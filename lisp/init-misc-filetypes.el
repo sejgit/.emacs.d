@@ -1,4 +1,4 @@
-;;; init-misc-filetypes.el --- settings for miscellaneous filetypes.	-*- lexical-binding: t -*-
+;;; init-misc-filetypes.el --- settings for miscellaneous filetypes.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 

@@ -308,12 +308,12 @@
 ;; Jump to things in Emacs tree-style
 (use-package avy
   :bind (:map sej-mode-map
-              ("C-:" . avy-goto-char)
               ("C-'" . avy-goto-char-2)
+              ("C-:" . avy-goto-char)
               ("M-g f" . avy-goto-line)
               ("M-g w" . avy-goto-word-1)
               ;; ("C-<return>" . avy-goto-word-1)
-              ("s-." . avy-goto-word-0)
+              ("s-'" . avy-goto-word-0)
               ("M-g e" . avy-goto-word-0))
   :hook (after-init . avy-setup-default)
   :config (setq avy-background t))

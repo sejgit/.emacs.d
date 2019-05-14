@@ -147,23 +147,23 @@
 
 (require 'init-persp) ; DONE
 
-(require 'init-eshell) ;
-(require 'init-shell) ;
+(require 'init-eshell) ; DONE
+(require 'init-shell) ; DONE
 
 (require 'init-org) ; TODO: get back to python3.6/3.7 issue
 ;; (require 'init-calendar) ; not used leave commented
 ;; (require 'init-elfeed) ;  not used leave commented
 
-(require 'init-writing) ;
-(require 'init-spelling) ;
-(require 'init-view) ;
+(require 'init-writing) ; DONE
+(require 'init-spelling) ; DONE
+(require 'init-view) ; DONE
 
-(require 'init-templates) ;
-(require 'init-misc-filetypes) ;
+(require 'init-templates) ; DONE
+(require 'init-misc-filetypes) ; DONE
 
 ;; Programming
-(require 'init-tramp) ;
-(require 'init-vcs) ;
+(require 'init-tramp) ; DONE
+(require 'init-vcs) ; DONE
 (require 'init-prog) ;  some more merge from mine
 
 (require 'init-flycheck) ;
