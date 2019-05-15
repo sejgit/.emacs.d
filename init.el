@@ -168,7 +168,7 @@
 
 (require 'init-flycheck) ; DONE
 (require 'init-projectile) ;
-(require 'init-dap) ;
+(require 'init-dap) ; DONE
 
 (require 'init-lsp)
 (require 'init-lisp) ;
