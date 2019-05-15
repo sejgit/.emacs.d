@@ -108,18 +108,6 @@
   :config
   (which-key-setup-minibuffer))
 
-;; undo tree mode to improve undo features remove C-/ in my keymap for use with dabbrev
-(use-package undo-tree
-  :defines sej-mode-map
-  :diminish undo-tree-mode
-  :hook (after-init . global-undo-tree-mode)
-  :bind (:map sej-mode-map ("C-/" . undo-tree-undo))
-  :config
-  (setq undo-tree-visualizer-timestamps t)
-  (setq undo-tree-auto-save-history t)
-  (setq undo-tree-history-directory-alist
-        (quote (("" . "~/.local/emacs/undo_hist")))))
-
 ;; expand selection region larger & smaller
 (use-package expand-region
   :defines sej-mode-map

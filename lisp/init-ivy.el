@@ -521,11 +521,7 @@
              ((ivy-rich-file-icon)
               (counsel-projectile-find-dir-transformer))
              :delimiter "\t")
-            treemacs-projectile
-            (:columns
-             ((ivy-rich-file-icon)
-              (ivy-rich-candidate))
-             :delimiter "\t")))))
+            ))))
 
 (provide 'init-ivy)
 ;;; init-ivy.el ends here

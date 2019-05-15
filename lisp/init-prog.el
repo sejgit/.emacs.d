@@ -1,4 +1,4 @@
-;; init-prog.el --- Initialize programming configurations.	-*- lexical-binding: t -*-
+;; init-prog.el --- Initialize programming configurations.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -76,11 +76,12 @@
 ;; Jump to definition via `ag'/`rg'/`grep'
 (use-package dumb-jump
   :functions dumb-jump-hydra/body
-  :bind (("M-g o" . dumb-jump-go-other-window)
-         ("M-g j" . dumb-jump-go)
-         ("M-g i" . dumb-jump-go-prompt)
-         ("M-g x" . dumb-jump-go-prefer-external)
-         ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :bind (:map sej-mode-map
+              ("M-g o" . dumb-jump-go-other-window)
+              ("M-g j" . dumb-jump-go)
+              ("M-g i" . dumb-jump-go-prompt)
+              ("M-g x" . dumb-jump-go-prefer-external)
+              ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :hook (after-init . dumb-jump-mode)
   :config
   (setq dumb-jump-prefer-searcher 'ag)
@@ -112,8 +113,9 @@ _x_: Go external other window
 
 ;; Run commands quickly
 (use-package quickrun
-  :bind (("C-<f5>" . quickrun)
-         ("C-c x" . quickrun)))
+  :bind (:map sej-mode-map
+              ("C-<f5>" . quickrun)
+              ("C-c x" . quickrun)))
 
 (use-package cask-mode)
 (use-package csharp-mode)

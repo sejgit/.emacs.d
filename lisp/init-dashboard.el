@@ -101,14 +101,8 @@
       "Open the *dashboard* buffer and jump to the first widget."
       (interactive)
       ;; Check if need to recover layout
-      (if (> (length (window-list-1))
-             ;; exclude `treemacs' window
-             (if (and (fboundp 'treemacs-current-visibility)
-                      (eq (treemacs-current-visibility) 'visible))
-                 2
-               1))
+      (if (> (length (window-list-1)))
           (setq dashboard-recover-layout-p t))
-
       (delete-other-windows)
 
       ;; Refresh dashboard buffer

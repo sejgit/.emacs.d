@@ -1,6 +1,6 @@
 ;; init-flycheck.el --- Initialize flycheck.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 
+;; Copyright (C) 2019
 
 ;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/sejgit/.emacs.d
@@ -62,18 +62,14 @@
         (if help (message "%s" help))))))
 
 (use-package flycheck
-  :config
-  )
-
-(use-package flycheck
   :diminish flycheck-mode
   :defines sej-mode-map
   :hook (after-init . global-flycheck-mode)
   :bind
   (:map sej-mode-map
-	      ("s-[" . flycheck-previous-error)
-	      ("s-]" . flycheck-next-error)
-	      ("C-c f" . flycheck-list-errors)
+        ("s-[" . flycheck-previous-error)
+        ("s-]" . flycheck-next-error)
+        ("C-c f" . flycheck-list-errors)
         ("s-f" . flycheck-list-errors)        )
   :config
   (global-flycheck-mode 1)
@@ -81,7 +77,7 @@
     (push-mark))
 
   (setq flycheck-indication-mode 'right-fringe
-	      flycheck-check-syntax-automatically '(save mode-enabled))
+        flycheck-check-syntax-automatically '(save mode-enabled))
   (custom-set-faces
    '(flycheck-error ((((class color)) (:underline "Red"))))
    '(flycheck-warning ((((class color)) (:underline "Orange")))))
@@ -90,12 +86,12 @@
   (setq flycheck-python-flake8-executable "flake8")
   (setq flycheck-flake8-maximum-line-length 79)
   (setq flycheck-highlighting-mode 'lines)
-  (progn	  (set-face-attribute 'flycheck-warning nil
-				                        :inherit 'warning
-				                        :underline nil)
-		        (set-face-attribute 'flycheck-error nil
-				                        :inherit 'error
-				                        :underline nil)))
+  (progn    (set-face-attribute 'flycheck-warning nil
+                                :inherit 'warning
+                                :underline nil)
+            (set-face-attribute 'flycheck-error nil
+                                :inherit 'error
+                                :underline nil)))
 (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
 
 ;; Display Flycheck errors in GUI tooltips
@@ -105,7 +101,7 @@
           :hook (flycheck-mode . flycheck-posframe-mode)
           :config (add-to-list 'flycheck-posframe-inhibit-functions
                                #'(lambda () (bound-and-true-p company-backend))))
-      
+
       (use-package flycheck-pos-tip
         :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
         :hook (global-flycheck-mode . flycheck-pos-tip-mode)
@@ -121,10 +117,9 @@
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 (use-package helm-flycheck
-  :bind
-  (:map sej-mode-map
-	      ("C-c s h" . helm-flycheck)
-	      ("H-f" . helm-flycheck)))
+  :bind (:map sej-mode-map
+              ("C-c s h" . helm-flycheck)
+              ("H-f" . helm-flycheck)))
 
 (provide 'init-flycheck)
 ;;; init-flycheck.el ends here

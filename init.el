@@ -164,9 +164,9 @@
 ;; Programming
 (require 'init-tramp) ; DONE
 (require 'init-vcs) ; DONE
-(require 'init-prog) ;  some more merge from mine
+(require 'init-prog) ; DONE
 
-(require 'init-flycheck) ;
+(require 'init-flycheck) ; DONE
 (require 'init-projectile) ;
 (require 'init-dap) ;
 
