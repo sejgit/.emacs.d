@@ -51,7 +51,8 @@
   :config
   (use-package modern-cpp-font-lock
     :diminish
-    :init (modern-c++-font-lock-global-mode t)))
+    :hook (c++-mode modern-c++-font-lock-mode)))
 
 (provide 'init-c)
 ;;; init-c.el ends here
+
