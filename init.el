@@ -167,17 +167,17 @@
 (require 'init-prog) ; DONE
 
 (require 'init-flycheck) ; DONE
-(require 'init-projectile) ;
+(require 'init-projectile) ; DONE
 (require 'init-dap) ; DONE
 
-(require 'init-lsp)
-(require 'init-lisp) ;
+(require 'init-lsp) ; DONE
+(require 'init-lisp) ; DONE
 
-(require 'init-c) ;
-(require 'init-python) ;
-(require 'init-web) ;
-(require 'init-misc-languages) ;
-(require 'init-misc-pkgs) ;
+(require 'init-c) ; DONE
+(require 'init-python) ; DONE
+(require 'init-web) ; DONE
+(require 'init-misc-languages) ; DONE
+(require 'init-misc-pkgs) ; DONE
 
 
 ;;; init.el ends here

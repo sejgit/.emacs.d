@@ -1,4 +1,4 @@
-;; init-python.el --- Initialize python configurations.	-*- lexical-binding: t -*-
+;; init-python.el --- Initialize python configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -54,17 +54,17 @@
   :interpreter "python"
   :bind (:map python-mode-map
               ("<backtab>" . python-back-indent)
-			        ("<f9>" . py-insert-debug))
+              ("<f9>" . py-insert-debug))
   :hook ((python-mode . flycheck-mode)
          (python-mode . (lambda ()
-		                      (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
+                          (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
          )
   :mode (("\\.py$" . python-mode)
          ("\\.cpy$" . python-mode)
          ("\\.vpy$" . python-mode))
   :init
   ;;(setq python-shell-interpreter "ipython"
-	;;	    python-shell-interpreter-args "--simple-prompt -i")
+  ;;      python-shell-interpreter-args "--simple-prompt -i")
   :config
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
@@ -77,7 +77,7 @@
   (setq-default flycheck-flake8rc "~/.config/flake8rc")
   (setq python-check-command "flake8")
   (setq tab-width 2)
-  
+
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
 
@@ -103,29 +103,24 @@
 
 ;; major mode for editing pip requirement files
 (use-package pip-requirements
-  :ensure t
   :defer t)
 
 ;; virtualenv api in Emacs
 (use-package python-environment
-  :ensure t
   :defer t)
 
 ;; file comparison
 (use-package ediff
-  :ensure t
   :defer t
   :config
   (setq ediff-shell (getenv "$SHELL"))
   (setq-default ediff-split-window-function
-		            (quote split-window-vertically)))
+                (quote split-window-vertically)))
 
 (use-package pyvenv
-  :ensure t
   :hook (pyvenv-post-activate . pyvenv-restart-python))
 
 (use-package company-jedi
-  :ensure t
   :after company
   :config (add-to-list 'company-backends 'company-jedi))
 

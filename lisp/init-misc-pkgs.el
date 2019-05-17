@@ -197,7 +197,7 @@
 
 ;; Docker
 (use-package docker
-  :bind ("C-c d" . docker)
+  :bind ("C-c D" . docker)
   :init (setq docker-image-run-arguments '("-i" "-t" "--rm")))
 
 ;; Tramp

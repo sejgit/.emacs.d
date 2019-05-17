@@ -1,4 +1,4 @@
-;; init-lsp.el --- Initialize LSP configurations.	-*- lexical-binding: t -*-
+;; init-lsp.el --- Initialize LSP configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 

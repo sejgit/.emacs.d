@@ -1,4 +1,4 @@
-;;; init-projectile.el --- Projectile configurations.	-*- lexical-binding: t -*-
+;;; init-projectile.el --- Projectile configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -51,8 +51,8 @@
   :defines sej-mode-map
   ;;  :diminish projectile-mode
   :bind (:map sej-mode-map
-	            ("s-P" . projectile-command-map)
-	            ("C-c p" . projectile-command-map))
+              ("s-P" . projectile-command-map)
+              ("C-c p" . projectile-command-map))
   :hook (after-init . projectile-mode)
   :init
   (setq projectile-mode-line-prefix "")
@@ -80,14 +80,11 @@
 
   )
 
-(use-package helm-ag
-  :ensure t)
+(use-package helm-ag)
 
-(use-package grep
-  :ensure t)
+(use-package grep)
 
 (use-package emr
-  :ensure t
   ;; Just hit M-RET to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
               ("M-RET" . emr-show-refactor-menu))

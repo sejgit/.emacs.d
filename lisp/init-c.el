@@ -1,4 +1,4 @@
-;; init-c.el --- Initialize c configurations.	-*- lexical-binding: t -*-
+;; init-c.el --- Initialize c configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -55,4 +55,3 @@
 
 (provide 'init-c)
 ;;; init-c.el ends here
-
