@@ -1,4 +1,4 @@
-;;; init-org --- Stephen's Emacs Org-mode configuration.	-*- lexical-binding: t -*-
+;;; init-org --- Stephen's Emacs Org-mode configuration.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -66,18 +66,18 @@
   which-function
   :mode ("\\.org$" . org-mode)
   :hook ((org-mode . flyspell-mode)
-	       (org-mode . writegood-mode))
+         (org-mode . writegood-mode))
   :bind (:map sej-mode-map
-	            ("<f1>" . org-mode)
-	            ("C-c l" . org-store-link)
-	            ("C-c c" . org-capture)
-	            ("C-c a" . org-agenda)
-	            :map org-mode-map
-	            ("C-M-\\" . org-indent-region)
-	            ("S-<left>" . org-shiftleft)
-	            ("S-<right>" . org-shiftright)
-	            ("C-x c o h" . helm-org-headlines)
-	            )
+              ("<f1>" . org-mode)
+              ("C-c l" . org-store-link)
+              ("C-c c" . org-capture)
+              ("C-c a" . org-agenda)
+              :map org-mode-map
+              ("C-M-\\" . org-indent-region)
+              ("S-<left>" . org-shiftleft)
+              ("S-<right>" . org-shiftright)
+              ("C-x c o h" . helm-org-headlines)
+              )
   :config
   (setq org-directory sej-org-directory)
   (defconst org-file-inbox (concat org-directory "/inbox.org"))
@@ -88,26 +88,26 @@
   (defconst org-file-code (concat org-directory "/snippets.org"))
   (setq org-replace-disputed-keys t
         org-default-notes-file org-file-notes
-	      org-capture-bookmark t
-	      org-refile-use-outline-path 'file
-	      org-log-done 'note
-	      org-log-done t
-	      org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
-			                      (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
-			                      (sequence "|" "CANCELED(x)"))
-	      org-todo-keyword-faces '(("TODO" . org-warning)
-				                         ("WAITING" . (:foreground "blue" :weight bold))
-				                         ("DONE" . (:foreground "green" :weight bold))
-				                         ("DELIGATE" . (:foreground "blue" :weight bold))
-				                         ("VERIFIED" . (:foreground "green" :weight bold))
-				                         ("CANCELED" . (:foreground "grey" :weight bold)))
-	      org-confirm-babel-evaluate nil
-	      org-src-fontify-natively t
-	      org-src-tab-acts-natively t
-	      org-src-window-setup 'current-window
-	      org-startup-folded nil
-	      )
-  
+        org-capture-bookmark t
+        org-refile-use-outline-path 'file
+        org-log-done 'note
+        org-log-done t
+        org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
+                            (sequence "|" "CANCELED(x)"))
+        org-todo-keyword-faces '(("TODO" . org-warning)
+                                 ("WAITING" . (:foreground "blue" :weight bold))
+                                 ("DONE" . (:foreground "green" :weight bold))
+                                 ("DELIGATE" . (:foreground "blue" :weight bold))
+                                 ("VERIFIED" . (:foreground "green" :weight bold))
+                                 ("CANCELED" . (:foreground "grey" :weight bold)))
+        org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-src-window-setup 'current-window
+        org-startup-folded nil
+        )
+
   (define-skeleton org-skeleton
     "Header info for a emacs-org file."
     "Title: "
@@ -119,10 +119,10 @@
     "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
     "-----\n\n")
   (global-set-key [C-S-f4] 'org-skeleton)
-  
+
   (setq sej-project-org-capture-list (list
                                       "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
-  
+
   (setq org-capture-templates (append
                                '(
                                  ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
@@ -137,19 +137,19 @@
 
   ;; org-mode agenda options
   (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
-	      org-refile-targets '((org-file-gtd :maxlevel . 3)
-			                       (org-file-someday :maxlevel . 1))
-	      org-agenda-window-setup (quote current-window) ;open agenda in current window
-	      org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-	      org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
-	      org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
-	      org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-	      org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
-	      (quote
-	       ((agenda deadline-up priority-down)
-	        (todo priority-down category-keep)
-	        (tags priority-down category-keep)
-	        (search category-keep))))
+        org-refile-targets '((org-file-gtd :maxlevel . 3)
+                             (org-file-someday :maxlevel . 1))
+        org-agenda-window-setup (quote current-window) ;open agenda in current window
+        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
+        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
+        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+        (quote
+         ((agenda deadline-up priority-down)
+          (todo priority-down category-keep)
+          (tags priority-down category-keep)
+          (search category-keep))))
 
   (defun sej/org-capture-get-src-block-string (major-mode)
     "Given a major mode symbol, return the associated org-src block
@@ -163,21 +163,21 @@ E.g. tuareg-mode will return 'ocaml', python-mode 'python', etc..."
   (defun sej/org-capture-code-snippet (f)
     (with-current-buffer (find-buffer-visiting f)
       (let ((code-snippet (buffer-substring-no-properties (mark) (- (point) 1)))
-	          (func-name (which-function))
-	          (file-name (buffer-file-name))
-	          (line-number (line-number-at-pos (region-beginning)))
-	          (org-src-mode (sej/org-capture-get-src-block-string major-mode)))
-	      (format
-	       "file:%s::%s
+            (func-name (which-function))
+            (file-name (buffer-file-name))
+            (line-number (line-number-at-pos (region-beginning)))
+            (org-src-mode (sej/org-capture-get-src-block-string major-mode)))
+        (format
+         "file:%s::%s
 In ~%s~:
 #+BEGIN_SRC %s
 %s
 #+END_SRC"
-	       file-name
-	       line-number
-	       func-name
-	       org-src-mode
-	       code-snippet))))
+         file-name
+         line-number
+         func-name
+         org-src-mode
+         code-snippet))))
 
   )
 
@@ -259,5 +259,3 @@ In ~%s~:
 
 (provide 'init-org)
 ;;; init-org.el ends here
-
-

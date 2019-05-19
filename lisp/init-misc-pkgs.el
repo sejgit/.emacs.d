@@ -154,7 +154,9 @@
     (setq exec-path (append exec-path '("/usr/local/bin"))))
 
   (when (executable-find "ag")
-    (use-package ag)
+    (use-package ag
+      :config
+      (setq ag-executable (executable-find "ag")))
     (use-package wgrep-ag)
     (setq-default ag-highlight-search t)
     (define-key sej-mode-map (kbd "M-?") 'ag-project)))

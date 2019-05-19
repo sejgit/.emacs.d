@@ -150,7 +150,7 @@
 (require 'init-eshell) ; DONE
 (require 'init-shell) ; DONE
 
-(require 'init-org) ; TODO: get back to python3.6/3.7 issue
+(require 'init-org) ;
 ;; (require 'init-calendar) ; not used leave commented
 ;; (require 'init-elfeed) ;  not used leave commented
 
