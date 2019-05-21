@@ -65,16 +65,5 @@
   (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
   (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
-;;
-;; BASH (SH-MODE)
-;;
-
-;; you also need bash-language-server installed and on your PATH
-;; npm install -g bash-language-server
-(use-package company-shell
-  :after company
-  :config
-  (push 'company-shell company-backends))
-
 (provide 'init-misc-languages)
 ;;; init-misc-languages.el ends here

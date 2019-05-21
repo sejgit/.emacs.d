@@ -205,5 +205,12 @@
   (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
   (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
 
+;; you also need bash-language-server installed and on your PATH
+;; npm install -g bash-language-server
+(use-package company-shell
+  :after company
+  :config
+  (push 'company-shell company-backends))
+
 (provide 'init-company)
 ;;; init-company.el ends here
