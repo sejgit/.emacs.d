@@ -75,6 +75,7 @@
 
 ;; Jump to definition via `ag'/`rg'/`grep'
 (use-package dumb-jump
+  :defines sej-mode-map
   :functions dumb-jump-hydra/body
   :bind (:map sej-mode-map
               ("M-g o" . dumb-jump-go-other-window)

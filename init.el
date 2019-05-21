@@ -41,8 +41,8 @@
   (error "This requires Emacs 25.1 and above!"))
 
 ;; debugger
-(setq debug-on-error nil)
-(setq debug-on-quit nil)
+;; (setq debug-on-error nil)
+;; (setq debug-on-quit nil)
 
 (defvar emacs-start-time (current-time)
   "Time Emacs was started.")

@@ -1,4 +1,4 @@
-;;; init-spelling.el --- Initialize emacs spelling settings.	-*- lexical-binding: t -*-
+;;; init-spelling.el --- Initialize emacs spelling settings.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -47,6 +47,9 @@
 
 ;; main spelling package
 (use-package flyspell
+  :functions
+  flyspell-correct-word
+  flyspell-goto-next-error
   :defines
   sej-mode-map
   :bind
@@ -70,22 +73,22 @@
 
   (setq ispell-personal-dictionary "~/sej.ispell")
 
-  ;; Mostly taken from
-  ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
-  (when (executable-find "aspell")
-    (setq ispell-program-name (executable-find "aspell")) ;; "/usr/local/bin/aspell"
-    (setq ispell-extra-args
-          (list "--sug-mode=ultra" ;; ultra|fast|normal|bad-spellers
-                "--lang=en_CA"
-                "--ignore=4"
-                "--run-together")))
+  ;; ;; Mostly taken from
+  ;; ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
+  ;; (when (executable-find "aspell")
+  ;;   (setq ispell-program-name (executable-find "aspell")) ;; "/usr/local/bin/aspell"
+  ;;   (setq ispell-extra-args
+  ;;         (list "--sug-mode=ultra" ;; ultra|fast|normal|bad-spellers
+  ;;               "--lang=en_CA"
+  ;;               "--ignore=4"
+  ;;               "--run-together")))
 
-  ;; hunspell
-  (when (executable-find "hunspell")
-    (setq ispell-program-name (executable-find "hunspell"))
-    (setq ispell-really-hunspell t)
-    (setq ispell-extra-args '("-d en_CA"
-                              "-p ~/.flydict")))
+  ;; ;; hunspell
+  ;; (when (executable-find "hunspell")
+  ;;   (setq ispell-program-name (executable-find "hunspell"))
+  ;;   (setq ispell-really-hunspell t)
+  ;;   (setq ispell-extra-args '("-d en_CA"
+  ;; "-p ~/.flydict")))
 
   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))

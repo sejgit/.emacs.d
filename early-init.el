@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Vincent Zhang <stephenearljenkins@gmail.com>
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
@@ -46,5 +46,5 @@
 (setq scroll-bar-mode nil)
 (modify-all-frames-parameters '((vertical-scroll-bars)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; early-init.el ends here
