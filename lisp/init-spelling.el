@@ -57,7 +57,6 @@
         ("<f8>" . ispell-word)
         ("s-," . ispell-word)
         ("C-<f8>" . flyspell-mode)
-        ("C-<f8>" . flyspell-mode)
         ("M-<f8>" . flyspell-check-next-highlighted-word)
         ("S-<f8>" . ispell-region)
         ("s-." . ispell-region)
@@ -82,13 +81,15 @@
                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-(defun flyspell-check-next-highlighed-word ()
-  "Custom function to spell check next highlighted word"
-  (interactive)
-  (flyspell-goto-next-error)
-  (ispell-word))
-(setq flyspell-issue-welcome-flag nil)
-(setq-default ispell-list-command "list"))
+  (ispell-change-dictionary "canadian")
+
+  (defun flyspell-check-next-highlighed-word ()
+    "Custom function to spell check next highlighted word"
+    (interactive)
+    (flyspell-goto-next-error)
+    (ispell-word))
+  (setq flyspell-issue-welcome-flag nil)
+  (setq-default ispell-list-command "list"))
 
 ;; PowerThesaurus
 (use-package powerthesaurus

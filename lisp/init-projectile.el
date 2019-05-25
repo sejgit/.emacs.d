@@ -53,7 +53,8 @@
   :bind (:map sej-mode-map
               ("s-P" . projectile-command-map)
               ("C-c p" . projectile-command-map))
-  :hook (after-init . projectile-mode)
+  :hook ((after-init . projectile-mode)
+         (projectile-find-file . switch-to-next-buffer))
   :init
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)
