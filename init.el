@@ -107,6 +107,9 @@
 ;; figure out current hostname
 (setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
 
+;; allow exit without asking to kill processes
+(setq confirm-kill-processes nil)
+
 ;; Constants
 (require 'init-const) ; DONE
 

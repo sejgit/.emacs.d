@@ -93,7 +93,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   "Filename for the Org Capture Project Journal"
   :type 'string)
 
-(defcustom sej-latex-directory "~/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64"
+(defcustom sej-latex-directory "~/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64/"
   "Directory for Latex"
   :type 'string)
 

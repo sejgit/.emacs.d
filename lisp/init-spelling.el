@@ -73,23 +73,6 @@
 
   (setq ispell-personal-dictionary "~/sej.ispell")
 
-  ;; ;; Mostly taken from
-  ;; ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
-  ;; (when (executable-find "aspell")
-  ;;   (setq ispell-program-name (executable-find "aspell")) ;; "/usr/local/bin/aspell"
-  ;;   (setq ispell-extra-args
-  ;;         (list "--sug-mode=ultra" ;; ultra|fast|normal|bad-spellers
-  ;;               "--lang=en_CA"
-  ;;               "--ignore=4"
-  ;;               "--run-together")))
-
-  ;; ;; hunspell
-  ;; (when (executable-find "hunspell")
-  ;;   (setq ispell-program-name (executable-find "hunspell"))
-  ;;   (setq ispell-really-hunspell t)
-  ;;   (setq ispell-extra-args '("-d en_CA"
-  ;; "-p ~/.flydict")))
-
   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
@@ -99,13 +82,13 @@
                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-  (defun flyspell-check-next-highlighed-word ()
-    "Custom function to spell check next highlighted word"
-    (interactive)
-    (flyspell-goto-next-error)
-    (ispell-word))
-  (setq flyspell-issue-welcome-flag nil)
-  (setq-default ispell-list-command "list"))
+(defun flyspell-check-next-highlighed-word ()
+  "Custom function to spell check next highlighted word"
+  (interactive)
+  (flyspell-goto-next-error)
+  (ispell-word))
+(setq flyspell-issue-welcome-flag nil)
+(setq-default ispell-list-command "list"))
 
 ;; PowerThesaurus
 (use-package powerthesaurus
