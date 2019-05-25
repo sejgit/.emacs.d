@@ -68,7 +68,7 @@
   (add-to-list 'projectile-globally-ignored-files ".DS_Store")
   ;; always ignore .class files
   (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
-  (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/"))
+  (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/" "~/gdrive/"))
 
   ;; Use the faster searcher to handle project files: ripgrep `rg'.
   (when (executable-find "rg")
