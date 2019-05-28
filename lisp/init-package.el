@@ -77,6 +77,14 @@
 (use-package diminish)
 (use-package bind-key)
 
+(use-package benchmark-init
+  :demand t
+  :config
+  (benchmark-init/activate)
+  ;; To disable collection of benchmark data after init is done.
+  ;;(add-hook 'after-init-hook 'benchmark-init/deactivate)
+  )
+
 ;; Extensions
 (use-package paradox
   :init
@@ -116,5 +124,3 @@
 
 (provide 'init-package)
 ;;; init-package.el ends here
-
-

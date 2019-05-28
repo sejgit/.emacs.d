@@ -179,83 +179,82 @@ In ~%s~:
          org-src-mode
          code-snippet))))
 
+  (use-package org-bullets
+    :hook (org-mode . org-bullets-mode)
+    :config (org-bullets-mode 1))
+
+  (use-package org-fancy-priorities
+    :diminish
+    :defines org-fancy-priorities-list
+    :hook (org-mode . org-fancy-priorities-mode)
+    :config
+    (unless (char-displayable-p ?❗)
+      (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+
+  ;; Babel
+  (setq org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
+
+  (defvar load-language-list '((emacs-lisp . t)
+                               (perl . t)
+                               (python . t)
+                               (ruby . t)
+                               (js . t)
+                               (css . t)
+                               (sass . t)
+                               (C . t)
+                               (java . t)
+                               (plantuml . t)))
+
+  ;; ob-sh renamed to ob-shell since 26.1.
+  (if emacs/>=26p
+      (cl-pushnew '(shell . t) load-language-list)
+    (cl-pushnew '(sh . t) load-language-list))
+
+  (use-package ob-go
+    :init (cl-pushnew '(go . t) load-language-list))
+
+  (use-package ob-rust
+    :init (cl-pushnew '(rust . t) load-language-list))
+
+  (use-package ob-ipython
+    :disabled ;; turnoff for now with python3.6 issue
+    :if (executable-find "jupyter")     ; DO NOT remove
+    :init (cl-pushnew '(ipython . t) load-language-list))
+
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               load-language-list)
+
+  ;; Rich text clipboard
+  (use-package org-rich-yank
+    :bind (:map org-mode-map
+                ("C-M-y" . org-rich-yank)))
+
+  ;; Table of contents
+  (use-package toc-org
+    :hook (org-mode . toc-org-mode))
+
+  ;; Preview
+  (use-package org-preview-html
+    :diminish org-preview-html-mode)
+
+  (use-package org-dashboard)
+
+  (use-package poporg
+    :ensure t
+    :bind (:map sej-mode-map
+                ("C-c s o" . poporg-dwim)))
+
+  (use-package org-projectile-helm
+    :ensure t
+    :bind (:map sej-mode-map
+                ("C-c s c" . org-projectile-capture-for-current-project))
+    :config
+    (progn
+      (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
+      (push (org-projectile-project-todo-entry) org-capture-templates)))
   )
-
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
-  :config (org-bullets-mode 1))
-
-(use-package org-fancy-priorities
-  :diminish
-  :defines org-fancy-priorities-list
-  :hook (org-mode . org-fancy-priorities-mode)
-  :config
-  (unless (char-displayable-p ?❗)
-    (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
-
-;; Babel
-(setq org-confirm-babel-evaluate nil
-      org-src-fontify-natively t
-      org-src-tab-acts-natively t)
-
-(defvar load-language-list '((emacs-lisp . t)
-                             (perl . t)
-                             (python . t)
-                             (ruby . t)
-                             (js . t)
-                             (css . t)
-                             (sass . t)
-                             (C . t)
-                             (java . t)
-                             (plantuml . t)))
-
-;; ob-sh renamed to ob-shell since 26.1.
-(if emacs/>=26p
-    (cl-pushnew '(shell . t) load-language-list)
-  (cl-pushnew '(sh . t) load-language-list))
-
-(use-package ob-go
-  :init (cl-pushnew '(go . t) load-language-list))
-
-(use-package ob-rust
-  :init (cl-pushnew '(rust . t) load-language-list))
-
-(use-package ob-ipython
-  :disabled ;; turnoff for now with python3.6 issue
-  :if (executable-find "jupyter")     ; DO NOT remove
-  :init (cl-pushnew '(ipython . t) load-language-list))
-
-(org-babel-do-load-languages 'org-babel-load-languages
-                             load-language-list)
-
-;; Rich text clipboard
-(use-package org-rich-yank
-  :bind (:map org-mode-map
-              ("C-M-y" . org-rich-yank)))
-
-;; Table of contents
-(use-package toc-org
-  :hook (org-mode . toc-org-mode))
-
-;; Preview
-(use-package org-preview-html
-  :diminish org-preview-html-mode)
-
-(use-package org-dashboard)
-
-(use-package poporg
-  :ensure t
-  :bind (:map sej-mode-map
-              ("C-c s o" . poporg-dwim)))
-
-(use-package org-projectile-helm
-  :ensure t
-  :bind (:map sej-mode-map
-              ("C-c s c" . org-projectile-capture-for-current-project))
-  :config
-  (progn
-    (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
-    (push (org-projectile-project-todo-entry) org-capture-templates)))
 
 (provide 'init-org)
 ;;; init-org.el ends here

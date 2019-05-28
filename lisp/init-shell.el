@@ -96,9 +96,6 @@
     (add-hook 'shell-mode-hook
               (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))))
 
-;; Multi term
-(use-package multi-term)
-
 ;; Shell Pop
 (use-package shell-pop
   :bind ([f9] . shell-pop)
