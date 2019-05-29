@@ -80,7 +80,7 @@
   )
 
 (use-package pass
-  :defer 7)
+  :commands pass)
 
 (provide 'init-tramp)
 ;;; init-tramp.el ends here
