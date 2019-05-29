@@ -1,4 +1,4 @@
-;;; init-deft.el --- Initialize Emacs deft.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-deft.el --- Initialize Emacs deft.	-*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 

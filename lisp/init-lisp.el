@@ -1,4 +1,4 @@
-;;; init-lisp.el --- elisp setups.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-lisp.el --- elisp setups.	-*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 

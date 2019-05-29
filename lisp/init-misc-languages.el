@@ -1,4 +1,4 @@
-;;; init-misc-languages.el ---  Miscellaneous language setup.	-*- lexical-binding: t no-byte-compile: t; -*-
+;;; init-misc-languages.el ---  Miscellaneous language setup.	-*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
