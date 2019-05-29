@@ -440,7 +440,8 @@
 
 ;; Smartly select region, rectangle, multi cursors
 (use-package smart-region
-  :hook (after-init . smart-region-on))
+  :bind ([remap set-mark-command] . smart-region)
+  :config (smart-region-on))
 
 ;; Hungry deletion
 (use-package hungry-delete
@@ -460,7 +461,8 @@
 ;; Treat undo history as a tree
 (use-package undo-tree
   :diminish
-  :hook (after-init . global-undo-tree-mode)
+  :defer 10
+  :config (global-undo-tree-mode)
   :bind (:map sej-mode-map
               ("C-/" . undo-tree-undo)
               ("C-?" . undo-tree-redo)
@@ -472,35 +474,14 @@
               undo-tree-enable-undo-in-region nil
               undo-tree-auto-save-history nil
               undo-tree-history-directory-alist
-              `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))
-  :config
-  ;; ;; FIXME:  `undo-tree-visualizer-diff' is a local variable in *undo-tree* buffer.
-  ;; (defun undo-tree-visualizer-show-diff (&optional node)
-  ;;   ;; show visualizer diff display
-  ;;   (setq-local undo-tree-visualizer-diff t)
-  ;;   (let ((buff (with-current-buffer undo-tree-visualizer-parent-buffer
-  ;;                 (undo-tree-diff node)))
-  ;;         (display-buffer-mark-dedicated 'soft)
-  ;;         win)
-  ;;     (setq win (split-window))
-  ;;     (set-window-buffer win buff)
-  ;;     (shrink-window-if-larger-than-buffer win)))
-
-  ;; (defun undo-tree-visualizer-hide-diff ()
-  ;;   ;; hide visualizer diff display
-  ;;   (setq-local undo-tree-visualizer-diff nil)
-  ;;   (let ((win (get-buffer-window undo-tree-diff-buffer-name)))
-  ;; (when win (with-selected-window win (kill-buffer-and-window)))))
-  )
+              `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
 
 (use-package goto-chg
-  :ensure t
   :defines sej-mode-map
   :bind ("C-," . goto-last-change))
 
 ;; redefine M-< and M-> for some modes
 (use-package beginend               ; smart M-< & M->
-  :ensure t
   :defer 2
   :config
   (beginend-global-mode)

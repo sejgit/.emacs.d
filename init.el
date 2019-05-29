@@ -46,6 +46,7 @@
 
 (defvar emacs-start-time (current-time)
   "Time Emacs was started.")
+(message "Emacs start")
 
 ;; Turn off mouse interface early in startup to avoid momentary display
 (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
@@ -111,76 +112,119 @@
 (setq confirm-kill-processes nil)
 
 ;; Constants
+(message "init-const")
 (require 'init-const) ; DONE
 
 ;; Custom group definition
+(message "init-custom")
 (require 'init-custom) ; DONE
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
+(message "init-package")
 (require 'init-package) ; DONE
 
 ;; Preferences
+(message "init-basic")
 (require 'init-basic) ; DONE
+(message "init-bindings")
 (require 'init-bindings) ; DONE
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
+(message "init-defuns")
 (require 'init-defuns) ; DONE
 
 ;; Set-up the user interface
+(message "init-ui")
 (require 'init-ui) ; DONE
+(message "init-edit")
 (require 'init-edit) ; DONE
+(message "init-highlight")
 (require 'init-highlight) ; DONE
 
-(require 'init-window) ; DONE
+(message "init-window")
+(require 'init-window); DONE
+(message "init-frame-cmds")
 (require 'init-frame-cmds) ; DONE
 
+(message "init-ivy")
 (require 'init-ivy) ; DONE
+;; (message "init-helm")
 ;; (require 'init-helm) ; TODO keep in case decide helm over ivy
+(message "init-company")
 (require 'init-company) ; DONE
+(message "init-yasnippet")
 (require 'init-yasnippet) ; DONE
 
+(message "init-registers")
 (require 'init-registers) ; DONE
+(message "init-dashboard")
 (require 'init-dashboard) ; DONE
+(message "init-dired")
 (require 'init-dired) ; DONE
+(message "init-ibuffer")
 (require 'init-ibuffer) ; DONE
+(message "init-kill-ring")
 (require 'init-kill-ring) ; DONE
+(message "init-deft")
 (require 'init-deft) ; DONE
 
+(message "init-persp")
 (require 'init-persp) ; DONE
 
+(message "init-eshell")
 (require 'init-eshell) ; DONE
+(message "init-shell")
 (require 'init-shell) ; DONE
 
+(message "init-org")
 (require 'init-org) ;
 ;; (require 'init-calendar) ; not used leave commented
 ;; (require 'init-elfeed) ;  not used leave commented
 
+(message "init-writing")
 (require 'init-writing) ; DONE
+(message "init-spelling")
 (require 'init-spelling) ; DONE
+(message "init-view")
 (require 'init-view) ; DONE
 
+(message "init-templates")
 (require 'init-templates) ; DONE
+(message "init-misc-filetypes")
 (require 'init-misc-filetypes) ; DONE
 
 ;; Programming
+(message "init-tramp")
 (require 'init-tramp) ; DONE
+(message "init-vcs")
 (require 'init-vcs) ; DONE
+(message "init-prog")
 (require 'init-prog) ; DONE
 
+(message "init-flycheck")
 (require 'init-flycheck) ; DONE
+(message "init-projectile")
 (require 'init-projectile) ; DONE
+(message "init-dap")
 (require 'init-dap) ; DONE
 
+(message "init-lsp")
 (require 'init-lsp) ; DONE
+(message "init-lisp")
 (require 'init-lisp) ; DONE
 
+(message "init-c")
 (require 'init-c) ; DONE
+(message "init-python")
 (require 'init-python) ; DONE
+(message "init-web")
 (require 'init-web) ; DONE
+(message "init-misc-languages")
 (require 'init-misc-languages) ; DONE
+(message "init-misc-pkgs")
 (require 'init-misc-pkgs) ; DONE
 
-
+(message "init.el ends here")
 ;;; init.el ends here
