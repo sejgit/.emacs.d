@@ -48,6 +48,15 @@
   "Time Emacs was started.")
 (message "Emacs start")
 
+;; Use a hook so the message doesn't get clobbered by other messages.
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
 ;; Turn off mouse interface early in startup to avoid momentary display
 (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
@@ -57,6 +66,7 @@
 (setq inhibit-startup-message t)
 
 ;; Speed up startup
+(message "Optimize")
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 (setq gc-cons-threshold 80000000)
@@ -64,7 +74,7 @@
           (lambda ()
             "Restore defalut values after init."
             (setq file-name-handler-alist default-file-name-handler-alist)
-            (setq gc-cons-threshold 800000)
+            (setq gc-cons-threshold 2000000)
             (if (boundp 'after-focus-change-function)
                 (add-function :after after-focus-change-function
                               (lambda ()
@@ -74,6 +84,7 @@
 
 ;; Load path
 ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
+(message "Load Path")
 (defun update-load-path (&rest _)
   "Update `load-path'."
   (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
@@ -90,6 +101,7 @@
 
 (update-load-path)
 
+(message "First Sets")
 ;; turn on syntax highlightng for all buffers
 (global-font-lock-mode t)
 
@@ -118,6 +130,30 @@
 ;; Custom group definition
 (message "init-custom")
 (require 'init-custom) ; DONE
+
+;; add my custom hook
+(defvar sej/after-init-hook nil
+  "Hook called after emacs-init and some time.")
+
+(defvar sej/idle-timer 15
+  "Var to set time in seconds for idle timer.")
+(when sys/macp
+  (setq sej/idle-timer 1))
+
+(defun sej/run-my-after-init-hook ()
+  "Function to define when to run my startup hooks"
+  (interactive)
+  (message "set-up my hooks")
+  (run-with-idle-timer sej/idle-timer nil
+                       (lambda ()
+                         (message "start running my hooks")
+                         (run-hooks 'sej/after-init-hook)
+                         (message "done running my hooks")
+                         )))
+
+(add-hook 'after-init-hook 'sej/run-my-after-init-hook)
+;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
+(add-hook 'emacs-startup-hook 'sej/frame-resize-full)
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here

@@ -49,12 +49,12 @@
 (use-package projectile
   :diminish
   :defines sej-mode-map
-  ;;  :diminish projectile-mode
-  :bind (:map sej-mode-map
-              ("s-P" . projectile-command-map)
-              ("C-c p" . projectile-command-map))
-  :hook ((after-init . projectile-mode)
-         (projectile-find-file . switch-to-next-buffer))
+  ;; :bind (:map sej-mode-map
+  :bind-keymap (  ("s-P" . projectile-command-map)
+                  ("C-c p" . projectile-command-map))
+  ;; :hook ((after-init . projectile-mode)
+  ;; (projectile-find-file . switch-to-next-buffer) ;; added for buffer-switch not working from dashboard
+  ;; )
   :init
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)

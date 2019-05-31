@@ -89,14 +89,6 @@
 ;; moving around paredit style
 (use-package paredit)
 
-;; highlighting and moving around todos and similar keywords
-(use-package hl-todo
-  :hook (after-init . global-hl-todo-mode)
-  :bind (:map hl-todo-mode-map
-              ("H-p" . hl-todo-previous)
-              ("H-n" . hl-todo-next)
-              ("H-o" . hl-todo-occur)))
-
 (use-package which-key
   :diminish which-key-mode
   :hook (after-init . which-key-mode)
@@ -138,7 +130,8 @@
 
 ;; `find-dired' alternative using `fd'
 (when (executable-find "fd")
-  (use-package fd-dired))
+  (use-package fd-dired
+    :commands fd-dired))
 
 ;; writable grep buffer and apply the changes to files
 (use-package wgrep
@@ -155,43 +148,45 @@
 
   (when (executable-find "ag")
     (use-package ag
+      :commands ag
+      :bind (:map sej-mode-map
+                  ("M-?" . ag-project))
       :config
       (setq ag-executable (executable-find "ag")))
     (use-package wgrep-ag)
-    (setq-default ag-highlight-search t)
-    (define-key sej-mode-map (kbd "M-?") 'ag-project)))
+    (setq-default ag-highlight-search t)))
 
-;; `ripgrep'
-(when (executable-find "rg")
-  (use-package rg
-    :defines projectile-command-map
-    :hook (after-init . rg-enable-default-bindings)
-    :config
-    (setq rg-group-result t)
-    (setq rg-show-columns t)
+;; ;; `ripgrep'
+;; (when (executable-find "rg")
+;;   (use-package rg
+;;     :defines projectile-command-map
+;;     :hook (after-init . rg-enable-default-bindings)
+;;     :config
+;;     (setq rg-group-result t)
+;;     (setq rg-show-columns t)
 
-    (cl-pushnew '("tmpl" . "*.tmpl") rg-custom-type-aliases)
+;;     (cl-pushnew '("tmpl" . "*.tmpl") rg-custom-type-aliases)
 
-    (with-eval-after-load 'projectile
-      (defalias 'projectile-ripgrep 'rg-project)
-      (bind-key "s R" #'rg-project projectile-command-map))
+;;     (with-eval-after-load 'projectile
+;;       (defalias 'projectile-ripgrep 'rg-project)
+;;       (bind-key "s R" #'rg-project projectile-command-map))
 
-    (with-eval-after-load 'counsel
-      (bind-keys :map rg-global-map
-                 ("c r" . counsel-rg)
-                 ("c s" . counsel-ag)
-                 ("c p" . counsel-pt)
-                 ("c f" . counsel-fzf)))))
+;;     (with-eval-after-load 'counsel
+;;       (bind-keys :map rg-global-map
+;;                  ("c r" . counsel-rg)
+;;                  ("c s" . counsel-ag)
+;;                  ("c p" . counsel-pt)
+;;                  ("c f" . counsel-fzf)))))
 
-;; Edit text for browsers with GhostText or AtomicChrome extension
-(use-package atomic-chrome
-  :hook ((emacs-startup . atomic-chrome-start-server)
-         (atomic-chrome-edit-mode . delete-other-windows))
-  :init (setq atomic-chrome-buffer-open-style 'frame)
-  :config
-  (if (fboundp 'gfm-mode)
-      (setq atomic-chrome-url-major-mode-alist
-            '(("github\\.com" . gfm-mode)))))
+;; ;; Edit text for browsers with GhostText or AtomicChrome extension
+;; (use-package atomic-chrome
+;;   :hook ((emacs-startup . atomic-chrome-start-server)
+;;          (atomic-chrome-edit-mode . delete-other-windows))
+;;   :init (setq atomic-chrome-buffer-open-style 'frame)
+;;   :config
+;;   (if (fboundp 'gfm-mode)
+;;       (setq atomic-chrome-url-major-mode-alist
+;;             '(("github\\.com" . gfm-mode)))))
 
 ;; Open files as another user
 (unless sys/win32p
@@ -203,7 +198,7 @@
   :init (setq docker-image-run-arguments '("-i" "-t" "--rm")))
 
 ;; Tramp
-(use-package docker-tramp)
+;; (use-package docker-tramp)
 
 ;; Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
@@ -238,16 +233,28 @@
               ("C-h v" . helpful-variable)))
 
 ;; Misc
-(use-package copyit)                    ; copy path, url, etc.
-(use-package daemons)                   ; system services/daemons
-(use-package diffview)                  ; side-by-side diff view
-(use-package esup)                      ; Emacs startup profiler
-(use-package focus)                     ; Focus on the current region
-(use-package htmlize)                   ; covert to html
-(use-package list-environment)
-(use-package memory-usage)
-(use-package tldr)
-(use-package ztree)                     ; text mode directory tree. Similar with beyond compare
+(use-package copyit); copy path, url, etc.
+(use-package daemons
+  :commands daemons); system services/daemons
+(use-package diffview
+  :commands (diffview-region
+             diffview-current
+             diffview-message)); side-by-side diff view
+(use-package esup
+  :commands esup); Emacs startup profiler
+(use-package focus); Focus on the current region
+(use-package htmlize
+  :commands (htmlize-file
+             htmlize-region
+             htmlize-buffer)); covert to html
+(use-package list-environment
+  :commands list-environment)
+(use-package memory-usage
+  :commands memory-usage)
+(use-package tldr
+  :commands tldr)
+(use-package ztree
+  :commands ztree); text mode directory tree. Similar with beyond compare
 
 (provide 'init-misc-pkgs)
 ;;; init-misc-pkgs.el ends here

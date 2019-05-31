@@ -56,16 +56,21 @@
 ;; Start server
 (use-package server
   :ensure nil
-  :hook (after-init . server-mode))
+  ;; :defer 2
+  :hook (sej/after-init . server-mode)
+  )
 
 ;; History
 (use-package saveplace
   :ensure nil
-  :hook (after-init . save-place-mode))
+  ;; :defer 2
+  :hook (sej/after-init . save-place-mode)
+  )
 
 (use-package recentf
   :ensure nil
-  :hook (after-init . recentf-mode)
+  ;; :defer 2
+  :hook (sej/after-init . recentf-mode)
   :init
   (setq recentf-max-saved-items 200)
   (setq recentf-exclude '((expand-file-name package-user-dir)
@@ -83,7 +88,8 @@
 
 (use-package savehist
   :ensure nil
-  :hook (after-init . savehist-mode)
+  ;; :defer 2
+  :hook (sej/after-init . savehist-mode)
   :init (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
               history-length 1000
               savehist-additional-variables '(mark-ring

@@ -233,13 +233,14 @@
 (use-package autorevert
   :ensure nil
   :diminish
-  :hook (after-init . global-auto-revert-mode))
+  :hook (sej/after-init . global-auto-revert-mode))
 
 ;; Quickly follow links
 (use-package ace-link
   :bind (:map sej-mode-map
               ("H-o" . ace-link-addr))
-  :hook (after-init . ace-link-setup-default))
+  ;; :hook (sej/after-init . ace-link-setup-default)
+  )
 
 ;; Pass a URL to a WWW browser
 (use-package browse-url
@@ -315,7 +316,7 @@
               ;; ("C-<return>" . avy-goto-word-1)
               ("s-'" . avy-goto-word-0)
               ("M-g e" . avy-goto-word-0))
-  :hook (after-init . avy-setup-default)
+  ;; :hook (after-init . avy-setup-default)
   :config (setq avy-background t))
 
 ;; Kill text between the point and the character CHAR
@@ -358,7 +359,8 @@
          :map isearch-mode-map
          ([remap isearch-query-replace] . anzu-isearch-query-replace)
          ([remap isearch-query-replace-regexp] . anzu-isearch-query-replace-regexp))
-  :hook (after-init . global-anzu-mode))
+  ;; :hook (after-init . global-anzu-mode)
+  )
 
 ;; An all-in-one comment command to rule them all
 (use-package comment-dwim-2
@@ -367,11 +369,14 @@
 ;; Drag stuff (lines, words, region, etc...) around
 (use-package drag-stuff
   :diminish
-  :commands drag-stuff-define-keys
-  :hook (after-init . drag-stuff-global-mode)
+  :bind (:map sej-mode-map
+              ("M-<down>" . drag-stuff-down)
+              ("M-<up>" . drag-stuff-up))
+  ;; :hook (after-init . drag-stuff-global-mode)
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
-  (drag-stuff-define-keys))
+  ;; (drag-stuff-define-keys)
+  )
 
 ;; A saner ediff
 (use-package ediff
@@ -389,7 +394,7 @@
 ;; Automatic parenthesis pairing
 (use-package elec-pair
   :ensure nil
-  :hook (after-init . electric-pair-mode)
+  :hook (prog-mode . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
   (electric-layout-mode t)
@@ -446,7 +451,7 @@
 ;; Hungry deletion
 (use-package hungry-delete
   :diminish
-  :hook (after-init . global-hungry-delete-mode)
+  :hook (sej/after-init . global-hungry-delete-mode)
   :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
 
 ;; Make bindings that stick around
@@ -536,12 +541,12 @@ _o_: only show current
 ;; C-x n prefix
 (use-package fancy-narrow
   :diminish
-  :hook (after-init . fancy-narrow-mode))
+  :bind-keymap ("C-x n" . fancy-narrow-mode-map))
 
 (use-package ethan-wspace
   :commands global-ethan-wspace-mode
   :diminish ethan-wspace-mode
-  :hook (after-init . global-ethan-wspace-mode)
+  ;; :hook (after-init . global-ethan-wspace-mode)
   :bind ("A-w" . ethan-wspace-clean-all))
 ;; DONE conflict with hydra-frame-window-body
 
@@ -554,7 +559,7 @@ _o_: only show current
   )
 
 (use-package aggressive-indent
-  :hook (after-init . global-aggressive-indent-mode)
+  :hook (sej/after-init . global-aggressive-indent-mode)
   :config
   (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
 

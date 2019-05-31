@@ -41,7 +41,7 @@
 ;; Highlight the current line
 (use-package hl-line
   :ensure nil
-  :hook (after-init . global-hl-line-mode))
+  :hook (sej/after-init . global-hl-line-mode))
 
 ;; Highlight symbols
 (use-package symbol-overlay
@@ -129,7 +129,7 @@
               ("H-p" . hl-todo-previous)
               ("C-c t n" . hl-todo-next)
               ("H-n" . hl-todo-next))
-  :hook (after-init . global-hl-todo-mode)
+  :hook (sej/after-init . global-hl-todo-mode)
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
     (cl-pushnew `(,keyword . ,(face-foreground 'error)) hl-todo-keyword-faces))
@@ -175,7 +175,7 @@
 ;; Highlight some operations
 (use-package volatile-highlights
   :diminish
-  :hook (after-init . volatile-highlights-mode))
+  :hook (sej/after-init . volatile-highlights-mode))
 
 ;; Visualize TAB, (HARD) SPACE, NEWLINE
 (use-package whitespace
@@ -248,12 +248,12 @@
                  goto-last-change))
     (advice-add cmd :after #'my-recenter-and-pulse)))
 
-;; Highlight the cursor whenever the window scrolls
-(use-package beacon
-  :defer 5
-  :diminish beacon-mode
-  :config
-  (beacon-mode 1))
+;; ;; Highlight the cursor whenever the window scrolls
+;; (use-package beacon
+;;   :defer 5
+;;   :diminish beacon-mode
+;;   :config
+;;   (beacon-mode 1))
 
 ;; rainbow-delimiters-mode - multicoloured brackets
 (use-package rainbow-delimiters
