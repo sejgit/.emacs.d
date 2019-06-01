@@ -1,4 +1,4 @@
-;; init-window.el --- Initialize window configurations.	-*- lexical-binding: t -*-
+;; init-window.el --- Initialize window configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -41,13 +41,15 @@
 ;; Directional window-selection routines
 (use-package windmove
   :ensure nil
-  :hook (after-init . windmove-default-keybindings))
+  :hook (sej/after-init . windmove-default-keybindings))
 
 ;; Restore old window configurations
 (use-package winner
   :ensure nil
   :commands (winner-undo winner-redo)
-  :hook (after-init . winner-mode)
+  :bind (:map sej-mode-map
+              ("C-c <left>" . winner-undo)
+              ("C-c <right>" . winner-redo))
   :init (setq winner-boring-buffers '("*Completions*"
                                       "*Compile-Log*"
                                       "*inferior-lisp*"
@@ -127,7 +129,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   (bind-key "C-c w" #'hydra-frame-window/body))
 
 (use-package golden-ratio
-  :hook (after-init . golden-ratio-mode)
+  :hook (sej/after-init . golden-ratio-mode)
   :defines sej-mode-map
   :diminish golden-ratio-mode
   :config
@@ -148,7 +150,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 
 (use-package shackle
   :commands shackle-display-buffer
-  :hook (after-init . shackle-mode)
+  :hook (sej/after-init . shackle-mode)
   :config
   (eval-and-compile
     (defun shackle-last-popup-buffer ()

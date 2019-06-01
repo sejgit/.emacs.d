@@ -70,7 +70,7 @@
          :map company-search-map
          (("C-p" . company-select-previous)
           ("C-n" . company-select-next)))
-  :hook (after-init . global-company-mode)
+  :hook (sej/after-init . global-company-mode)
   :init
   (defun my-company-yasnippet ()
     (interactive)
@@ -184,7 +184,7 @@
 
 ;; Set up statistics for company completions
 (use-package company-statistics
-  :hook (after-init . company-statistics-mode))
+  :hook (sej/after-init . company-statistics-mode))
 
 (use-package company-try-hard
   :commands company-try-hard

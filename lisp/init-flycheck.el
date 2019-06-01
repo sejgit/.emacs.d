@@ -64,7 +64,7 @@
 (use-package flycheck
   :diminish flycheck-mode
   :defines sej-mode-map
-  :hook (after-init . global-flycheck-mode)
+  :hook (prog-mode . global-flycheck-mode)
   :bind
   (:map sej-mode-map
         ("s-[" . flycheck-previous-error)

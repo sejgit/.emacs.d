@@ -96,7 +96,7 @@
 
          :map swiper-map
          ("M-%" . swiper-query-replace))
-  :hook ((after-init . ivy-mode)
+  :hook ((sej/after-init . ivy-mode)
          (ivy-mode . counsel-mode))
   :config
   (setq enable-recursive-minibuffers t) ; Allow commands in minibuffers

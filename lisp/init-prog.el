@@ -39,7 +39,7 @@
 ;; e.g. display “lambda” as “λ”
 (use-package prog-mode
   :ensure nil
-  :hook ((after-init . global-prettify-symbols-mode)
+  :hook ((prog-mode . global-prettify-symbols-mode)
          (prog-mode . (lambda ()
                         (setq prettify-symbols-alist
                               '(("lambda" . ?λ)
@@ -83,7 +83,6 @@
               ("M-g i" . dumb-jump-go-prompt)
               ("M-g x" . dumb-jump-go-prefer-external)
               ("M-g z" . dumb-jump-go-prefer-external-other-window))
-  :hook (after-init . dumb-jump-mode)
   :config
   (setq dumb-jump-prefer-searcher 'ag)
   (with-eval-after-load 'ivy
@@ -120,29 +119,13 @@ _x_: Go external other window
 
 (use-package cask-mode)
 (use-package csharp-mode)
-(use-package dockerfile-mode)
-(use-package powershell)
-(use-package vimrc-mode)
+;; (use-package dockerfile-mode)
+;; (use-package vimrc-mode)
 (use-package rmsbolt)                   ; A compiler output viewer
 
 ;; New `conf-toml-mode' in Emacs 26
 (unless (fboundp 'conf-toml-mode)
   (use-package toml-mode))
-
-(use-package editorconfig
-  :diminish editorconfig-mode
-  :hook (after-init . editorconfig-mode))
-
-;; Batch Mode eXtras
-(use-package bmx-mode
-  :after company
-  :diminish bmx-mode
-  :hook (after-init . bmx-mode-setup-defaults))
-
-(use-package fish-mode
-  :hook (fish-mode . (lambda ()
-                       (add-hook 'before-save-hook
-                                 #'fish_indent-before-save))))
 
 (use-package swift-mode
   :config

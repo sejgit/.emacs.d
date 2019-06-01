@@ -41,7 +41,7 @@
 (use-package shell
   :ensure nil
   :commands comint-send-string comint-simple-send comint-strip-ctrl-m
-  :preface
+  :init
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
     (cond
@@ -136,7 +136,7 @@
 
 ;; set up any SSH or GPG keychains that the Keychain tool has set up for us
 (use-package keychain-environment
-  :hook (after-init . keychain-refresh-environment))
+  :hook (sej/after-init . keychain-refresh-environment))
 
 ;; Emacs does not handle less well so use cat
 (setenv "PAGER" "cat")

@@ -56,17 +56,22 @@
 ;; Start server
 (use-package server
   :ensure nil
-  :hook (after-init . server-mode))
+  ;; :defer 2
+  :hook (sej/after-init . server-mode)
+  )
 
 ;; History
 (use-package saveplace
   :ensure nil
-  :hook (after-init . save-place-mode))
+  ;; :defer 2
+  :hook (sej/after-init . save-place-mode)
+  )
 
 (use-package recentf
   :ensure nil
-  :hook (after-init . recentf-mode)
-  :init
+  ;; :defer 2
+  :hook (sej/after-init . recentf-mode)
+  :config
   (setq recentf-max-saved-items 200)
   (setq recentf-exclude '((expand-file-name package-user-dir)
                           ".cache"
@@ -83,15 +88,17 @@
 
 (use-package savehist
   :ensure nil
-  :hook (after-init . savehist-mode)
-  :init (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
-              history-length 1000
-              savehist-additional-variables '(mark-ring
-                                              global-mark-ring
-                                              search-ring
-                                              regexp-search-ring
-                                              extended-command-history)
-              savehist-autosave-interval 300))
+  ;; :defer 2
+  :hook (sej/after-init . savehist-mode)
+  :config
+  (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
+        history-length 1000
+        savehist-additional-variables '(mark-ring
+                                        global-mark-ring
+                                        search-ring
+                                        regexp-search-ring
+                                        extended-command-history)
+        savehist-autosave-interval 300))
 
 (provide 'init-basic)
 ;;; init-basic.el ends here

@@ -37,7 +37,8 @@
 
 (use-package dap-mode
   :diminish
-  :hook ((after-init . dap-mode)
+  :hook (
+         ;; (after-init . dap-mode)
          (dap-mode . dap-ui-mode)
 
          (python-mode . (lambda () (require 'dap-python)))

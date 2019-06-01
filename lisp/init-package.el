@@ -87,6 +87,8 @@
 
 ;; Extensions
 (use-package paradox
+  :functions upgrade-packages
+  :commands list-packages
   :init
   (setq paradox-execute-asynchronously nil)
   (setq paradox-github-token t)

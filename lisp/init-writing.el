@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 ;; for inserting abbreviations
 (use-package abbrev
   :ensure nil
-  :hook (after-init . abbrev-mode)
+  :hook (sej/after-init . abbrev-mode)
   :diminish abbrev-mode
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 ;; 3. Third Item
 ;; 4. Fourth Item
 ;; This function allows you to hit ***C-x r N ***and specify the pattern and starting offset to number lines in rectangular-selection mode:
-(defun number-rectangle (start end format-string from)
+(defun sej/number-rectangle (start end format-string from)
   "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
   (interactive
    (list (region-beginning) (region-end)
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
           (forward-line 1)))
   (goto-char start))
 
-(define-key sej-mode-map (kbd "C-c s n") 'number-rectangle)
+(define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
 
 (use-package define-word
   :bind (("H-d" . define-word-at-point)

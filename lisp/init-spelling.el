@@ -45,6 +45,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'init-const)
+  (require 'init-custom))
+
 ;; main spelling package
 (use-package flyspell
   :functions
@@ -62,10 +66,7 @@
         ("s-." . ispell-region)
         )
   :hook (((text-mode outline-mode) . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)
-         (flyspell-mode . (lambda ()
-                            (dolist (key '("C-;" "C-," "C-."))
-                              (unbind-key key flyspell-mode-map)))))
+         (prog-mode . flyspell-prog-mode))
   :config
   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
   (define-key flyspell-mouse-map [mouse-3] #'undefined)
@@ -81,7 +82,7 @@
                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-  (ispell-change-dictionary "canadian")
+  (setq ispell-dictionary "canadian")
 
   (defun flyspell-check-next-highlighed-word ()
     "Custom function to spell check next highlighted word"
@@ -93,14 +94,13 @@
 
 ;; PowerThesaurus
 (use-package powerthesaurus
-  :ensure t
   :bind (:map sej-mode-map
               ("C-c s t" . powerthesaurus-lookup-word-dwim)
               ("s-|" . powerthesaurus-lookup-word-dwim)))
 
 ;; Word Definition search for non-osx
 (use-package define-word
-  :ensure t
+  :unless sys/macp
   :bind (:map sej-mode-map
               ("C-c s w" . define-word-at-point)
               ("s-\\" . define-word-at-point)))
