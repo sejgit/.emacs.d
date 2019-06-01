@@ -41,7 +41,7 @@
 (use-package shell
   :ensure nil
   :commands comint-send-string comint-simple-send comint-strip-ctrl-m
-  :preface
+  :init
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
     (cond

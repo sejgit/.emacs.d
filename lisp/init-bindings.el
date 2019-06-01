@@ -138,7 +138,7 @@
         (setq ns-command-modifier 'meta)
         ))))
 
- (linuxp ; linux
+ (sys/linuxp ; linux
   (progn
     (message "Linux")
     ;; load-dir init.d
