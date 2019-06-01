@@ -40,8 +40,12 @@
 
 (use-package shell
   :ensure nil
-  :commands comint-send-string comint-simple-send comint-strip-ctrl-m
-  :init
+  :hook (
+         ;; interpret and use ansi color codes in shell output windows
+         (shell-mode . ansi-color-for-comint-mode-on)
+         (shell-mode . n-shell-mode-hook)
+         (shell-mode . set-scroll-conservatively))
+  :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
     (cond
@@ -66,12 +70,6 @@
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
     (setq comint-input-sender 'n-shell-simple-send))
 
-  :hook (
-         ;; interpret and use ansi color codes in shell output windows
-         (shell-mode . ansi-color-for-comint-mode-on)
-         (shell-mode . n-shell-mode-hook)
-         (shell-mode . set-scroll-conservatively))
-  :config
   (setq system-uses-terminfo nil)       ; don't use system term info
 
   (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
@@ -94,7 +92,7 @@
           (remove 'ansi-color-process-output comint-output-filter-functions))
 
     (add-hook 'shell-mode-hook
-              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))))
+              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t))))
 
 ;; Shell Pop
 (use-package shell-pop
@@ -123,20 +121,6 @@
     (add-to-list 'exec-path-from-shell-variables var))
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
-
-(defun sudoec (file)
-  "A nice helper to sudo-edit a (FILE)."
-  (interactive)
-  (find-file (concat "/sudo::" (expand-file-name file))))
-
-;; things that invoke $EDITOR will use the current Emacs
-(use-package with-editor
-  :hook ((shell-mode . with-editor-export-editor)
-         (eshell-mode . with-editor-export-editor)))
-
-;; set up any SSH or GPG keychains that the Keychain tool has set up for us
-(use-package keychain-environment
-  :hook (sej/after-init . keychain-refresh-environment))
 
 ;; Emacs does not handle less well so use cat
 (setenv "PAGER" "cat")
@@ -176,7 +160,21 @@
   (let ((old-message (symbol-function 'message)))
     (unwind-protect
         (progn (fset 'message 'ignore) ad-do-it)
-      (fset 'message old-message))))
+      (fset 'message old-message)))))
+
+(defun sudoec (file)
+  "A nice helper to sudo-edit a (FILE)."
+  (interactive)
+  (find-file (concat "/sudo::" (expand-file-name file))))
+
+;; things that invoke $EDITOR will use the current Emacs
+(use-package with-editor
+  :hook ((shell-mode . with-editor-export-editor)
+         (eshell-mode . with-editor-export-editor)))
+
+;; set up any SSH or GPG keychains that the Keychain tool has set up for us
+(use-package keychain-environment
+  :hook (sej/after-init . keychain-refresh-environment))
 
 (provide 'init-shell)
 ;;; init-shell.el ends here
