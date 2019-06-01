@@ -135,7 +135,7 @@
 (defvar sej/after-init-hook nil
   "Hook called after emacs-init and some time.")
 
-(defvar sej/idle-timer 15
+(defvar sej/idle-timer 5
   "Var to set time in seconds for idle timer.")
 (when sys/macp
   (setq sej/idle-timer 1))
