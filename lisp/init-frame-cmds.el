@@ -1,4 +1,4 @@
-;;; init-frame-cmds.el --- Initialize frame-cmds.	-*- lexical-binding: t; -*-
+;;; init-frame-cmds.el --- Initialize frame-cmds. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -39,7 +39,7 @@
 ;; 2018 09 04 go native for functions removing lisp/files also change name from sej- to sej/
 ;; 2018 10 05 some adds for bindings and a l2 for double-wide w32 extended screens
 ;; 2019 05 03 initialize & merge
-
+;; 2019 06 02 tweak frame-resize-full width to keep on screen
 
 ;;; Code:
 
@@ -60,7 +60,7 @@
   "Set frame full height and 1/2 wide, position at screen left."
   (interactive)
   (set-frame-position (selected-frame) 0 0)
-  (set-frame-size (selected-frame)  (display-pixel-width)
+  (set-frame-size (selected-frame)  (- (display-pixel-width) 25)
                   (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
