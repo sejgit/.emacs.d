@@ -60,7 +60,7 @@
   "Set frame full height and 1/2 wide, position at screen left."
   (interactive)
   (set-frame-position (selected-frame) 0 0)
-  (set-frame-size (selected-frame)  (- (display-pixel-width) 25)
+  (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
                   (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
   )
 
