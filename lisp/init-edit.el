@@ -31,6 +31,7 @@
 ;;; Changelog:
 ;;
 ;; 2019 04 28 merge from init+settings.el
+;; 2019 06 02 add timestamps to after-save-hook & trash-directory
 
 ;;; Code:
 
@@ -100,9 +101,6 @@
       kept-old-versions 2
       version-control t)       ; use versioned backups
 
-;; delete to trash can
-(setq delete-by-moving-to-trash t)
-
 ;; remove kill buffer with live process prompt
 (setq kill-buffer-query-functions
       (remq 'process-kill-buffer-query-function
@@ -155,8 +153,10 @@
 (setq adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
 (setq adaptive-fill-first-line-regexp "^* *$")
 (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
+(if sys/macp (setq trash-directory "~/.Trash"))
 (setq make-backup-files nil)               ; Forbide to make backup files
 (setq auto-save-default nil)               ; Disable auto save
+(add-hook 'before-save-hook 'time-stamp)   ; update time-stamps in files
 
 ;; When popping the mark, continue popping until the cursor actually moves
 ;; Also, if the last command was a copy - skip past all the expand-region cruft.
