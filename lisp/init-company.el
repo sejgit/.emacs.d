@@ -1,4 +1,4 @@
-;; init-company.el --- Initialize company configurations.	-*- lexical-binding: t -*-
+;; init-company.el --- Initialize company configurations. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Vincent Zhang
 

@@ -100,5 +100,8 @@
                                         extended-command-history)
         savehist-autosave-interval 300))
 
+(setq-default locate-command "which")
+(setq exec-path (append exec-path '("/usr/local/bin")))
+
 (provide 'init-basic)
 ;;; init-basic.el ends here

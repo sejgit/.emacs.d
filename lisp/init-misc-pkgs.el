@@ -133,50 +133,28 @@
   (use-package fd-dired
     :commands fd-dired))
 
-;; writable grep buffer and apply the changes to files
-(use-package wgrep
-  :defer 5
-  :init
-  (setq-default grep-highlight-matches t
-                grep-scroll-output t
-                wgrep-auto-save-buffer t
-                wgrep-change-readonly-file t)
-  :config
-  (when (eq system-type 'darwin)
-    (setq-default locate-command "which")
-    (setq exec-path (append exec-path '("/usr/local/bin"))))
+(when (executable-find "ag")
+  (use-package ag
+    :commands ag
+    :bind (:map sej-mode-map
+                ("M-?" . ag-project))
+    :config
+    (setq ag-executable (executable-find "ag")))
+  (setq-default ag-highlight-search t))
 
-  (when (executable-find "ag")
-    (use-package ag
-      :commands ag
-      :bind (:map sej-mode-map
-                  ("M-?" . ag-project))
-      :config
-      (setq ag-executable (executable-find "ag")))
-    (use-package wgrep-ag)
-    (setq-default ag-highlight-search t)))
+;; `ripgrep'
+(when (executable-find "rg")
+  (use-package dead-grep
+    :commands deadgrep
+    :bind (:map sej-mode-map
+                ("" . deadgrep))))
 
-;; ;; `ripgrep'
-;; (when (executable-find "rg")
-;;   (use-package rg
-;;     :defines projectile-command-map
-;;     :hook (after-init . rg-enable-default-bindings)
-;;     :config
-;;     (setq rg-group-result t)
-;;     (setq rg-show-columns t)
-
-;;     (cl-pushnew '("tmpl" . "*.tmpl") rg-custom-type-aliases)
-
-;;     (with-eval-after-load 'projectile
-;;       (defalias 'projectile-ripgrep 'rg-project)
-;;       (bind-key "s R" #'rg-project projectile-command-map))
-
-;;     (with-eval-after-load 'counsel
-;;       (bind-keys :map rg-global-map
-;;                  ("c r" . counsel-rg)
-;;                  ("c s" . counsel-ag)
-;;                  ("c p" . counsel-pt)
-;;                  ("c f" . counsel-fzf)))))
+;; (with-eval-after-load 'counsel
+;;   (bind-keys :map rg-global-map
+;;              ("c r" . counsel-rg)
+;;              ("c s" . counsel-ag)
+;;              ("c p" . counsel-pt)
+;;              ("c f" . counsel-fzf)))
 
 ;; ;; Edit text for browsers with GhostText or AtomicChrome extension
 ;; (use-package atomic-chrome

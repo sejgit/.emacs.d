@@ -62,10 +62,10 @@
   :mode (("\\.py$" . python-mode)
          ("\\.cpy$" . python-mode)
          ("\\.vpy$" . python-mode))
-  :init
-  ;;(setq python-shell-interpreter "ipython"
-  ;;      python-shell-interpreter-args "--simple-prompt -i")
   :config
+  (setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "--simple-prompt -i")
+
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
     "This string is ignored!"

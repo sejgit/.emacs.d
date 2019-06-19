@@ -45,7 +45,11 @@
          (go-mode . (lambda () (require 'dap-go)))
          (java-mode . (lambda () (require 'dap-java)))
          ((c-mode c++-mode objc-mode swift) . (lambda () (require 'dap-lldb)))
-         (php-mode . (lambda () (require 'dap-php)))))
+         (php-mode . (lambda () (require 'dap-php))))
+  :config
+  (setq dap-python-executable (executable-find "python"))
+  (dap-mode 1)
+  (dap-ui-mode 1))
 
 (provide 'init-dap)
 ;;; init-dap.el ends here
