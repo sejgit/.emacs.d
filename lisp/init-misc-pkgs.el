@@ -147,7 +147,8 @@
   (use-package deadgrep
     :commands deadgrep
     :bind (:map sej-mode-map
-                ("" . deadgrep))))
+                ("H-r" . deadgrep)
+                ("C-c s r" . deadgrep))))
 
 ;; (with-eval-after-load 'counsel
 ;;   (bind-keys :map rg-global-map
