@@ -144,7 +144,7 @@
 
 ;; `ripgrep'
 (when (executable-find "rg")
-  (use-package dead-grep
+  (use-package deadgrep
     :commands deadgrep
     :bind (:map sej-mode-map
                 ("" . deadgrep))))
