@@ -44,12 +44,22 @@
 ;;            add my now sej/org-insert-defun
 ;;            make my functions consistent with sej/
 ;; 2018 09 24 add executable functions from ohai
+;; 2019 07 27 add garbage collection fix
 
 ;;; Code:
 
 (eval-when-compile
   (require 'init-const)
   (require 'init-custom))
+
+(defun my-minibuffer-setup-hook ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun my-minibuffer-exit-hook ()
+  (setq gc-cons-threshold 800000))
+
+(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
+(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
 ;; from https://gist.github.com/the-kenny/267162
 (when sys/macp

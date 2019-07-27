@@ -116,7 +116,7 @@
   (after-save . doom-modeline-update-buffer-file-state-icon)
   :init
   (setq doom-modeline-major-mode-color-icon t)
-  (setq doom-modeline-github t)
+  (setq doom-modeline-github nil)
   (setq doom-modeline-indent-info t)
   (setq doom-modeline-persp-name t))
 
