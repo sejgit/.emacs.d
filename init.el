@@ -125,11 +125,11 @@
 
 ;; Constants
 (message "init-const")
-(require 'init-const) ; DONE
+(require 'init-const)
 
 ;; Custom group definition
 (message "init-custom")
-(require 'init-custom) ; DONE
+(require 'init-custom)
 
 ;; add my custom hook
 (defvar sej/after-init-hook nil
@@ -158,61 +158,61 @@
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
 (message "init-package")
-(require 'init-package) ; DONE
+(require 'init-package)
 
 ;; Preferences
 (message "init-basic")
-(require 'init-basic) ; DONE
+(require 'init-basic)
 (message "init-bindings")
-(require 'init-bindings) ; DONE
+(require 'init-bindings)
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
 (message "init-defuns")
-(require 'init-defuns) ; DONE
+(require 'init-defuns)
 
 ;; Set-up the user interface
 (message "init-ui")
-(require 'init-ui) ; DONE
+(require 'init-ui)
 (message "init-edit")
-(require 'init-edit) ; DONE
+(require 'init-edit)
 (message "init-highlight")
-(require 'init-highlight) ; DONE
+(require 'init-highlight)
 
 (message "init-window")
-(require 'init-window); DONE
+(require 'init-window)
 (message "init-frame-cmds")
-(require 'init-frame-cmds) ; DONE
+(require 'init-frame-cmds)
 
 (message "init-ivy")
-(require 'init-ivy) ; DONE
+(require 'init-ivy)
 ;; (message "init-helm")
 ;; (require 'init-helm) ; TODO keep in case decide helm over ivy
 (message "init-company")
-(require 'init-company) ; DONE
+(require 'init-company)
 (message "init-yasnippet")
-(require 'init-yasnippet) ; DONE
+(require 'init-yasnippet)
 
 (message "init-registers")
-(require 'init-registers) ; DONE
+(require 'init-registers)
 (message "init-dashboard")
-(require 'init-dashboard) ; DONE
+(require 'init-dashboard)
 (message "init-dired")
-(require 'init-dired) ; DONE
+(require 'init-dired)
 (message "init-ibuffer")
-(require 'init-ibuffer) ; DONE
+(require 'init-ibuffer)
 (message "init-kill-ring")
-(require 'init-kill-ring) ; DONE
+(require 'init-kill-ring)
 (message "init-deft")
-(require 'init-deft) ; DONE
+(require 'init-deft)
 
 (message "init-persp")
-(require 'init-persp) ; DONE
+(require 'init-persp)
 
 (message "init-eshell")
-(require 'init-eshell) ; DONE
+(require 'init-eshell)
 (message "init-shell")
-(require 'init-shell) ; DONE
+(require 'init-shell)
 
 (message "init-org")
 (require 'init-org) ;
@@ -220,47 +220,47 @@
 ;; (require 'init-elfeed) ;  not used leave commented
 
 (message "init-writing")
-(require 'init-writing) ; DONE
+(require 'init-writing)
 (message "init-spelling")
-(require 'init-spelling) ; DONE
+(require 'init-spelling)
 (message "init-view")
-(require 'init-view) ; DONE
+(require 'init-view)
 
 (message "init-templates")
-(require 'init-templates) ; DONE
+(require 'init-templates)
 (message "init-misc-filetypes")
-(require 'init-misc-filetypes) ; DONE
+(require 'init-misc-filetypes)
 
 ;; Programming
 (message "init-tramp")
-(require 'init-tramp) ; DONE
+(require 'init-tramp)
 (message "init-vcs")
-(require 'init-vcs) ; DONE
+(require 'init-vcs)
 (message "init-prog")
-(require 'init-prog) ; DONE
+(require 'init-prog)
 
 (message "init-flycheck")
-(require 'init-flycheck) ; DONE
+(require 'init-flycheck)
 (message "init-projectile")
-(require 'init-projectile) ; DONE
+(require 'init-projectile)
 (message "init-dap")
-(require 'init-dap) ; DONE
+(require 'init-dap)
 
 (message "init-lsp")
-(require 'init-lsp) ; DONE
+(require 'init-lsp)
 (message "init-lisp")
-(require 'init-lisp) ; DONE
+(require 'init-lisp)
 
 (message "init-c")
-(require 'init-c) ; DONE
+(require 'init-c)
 (message "init-python")
-(require 'init-python) ; DONE
+(require 'init-python)
 (message "init-web")
-(require 'init-web) ; DONE
+(require 'init-web)
 (message "init-misc-languages")
-(require 'init-misc-languages) ; DONE
+(require 'init-misc-languages)
 (message "init-misc-pkgs")
-(require 'init-misc-pkgs) ; DONE
+(require 'init-misc-pkgs)
 
 (message "init.el ends here")
 ;;; init.el ends here

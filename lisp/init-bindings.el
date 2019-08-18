@@ -268,7 +268,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
 
 ;; use super for action type stuff
 (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-(define-key sej-mode-map (kbd "s-b") 'helm-mini) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
 (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
 (define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
