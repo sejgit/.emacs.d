@@ -119,16 +119,6 @@ buffer is not visiting a file."
                          (ido-read-file-name "Find file(as root): ")))
     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-;; line numbers when using goto-line M-g M-g or M-g g
-(defun sej/goto-line-with-feedback ()
-  "Show line numbers temporarily, while prompting for the line number input."
-  (interactive)
-  (unwind-protect
-      (progn
-        (display-line-numbers-mode 1)
-        (with-no-warnings (goto-line (read-number "Goto line: "))))
-    (display-line-numbers-mode -1)))
-
 ;; Offer to create parent directories if they do not exist
 ;; http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
 (defun sej/create-non-existent-directory ()

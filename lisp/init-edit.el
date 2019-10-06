@@ -576,6 +576,10 @@ _o_: only show current
 ;;               ("M-v" . scroll-down-command)
 ;;               )) ;; this last one will help integration with Flycut
 
+(use-package goto-line-preview
+  :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
+         (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
+  )
 
 (provide 'init-edit)
 ;;; init-edit.el ends here

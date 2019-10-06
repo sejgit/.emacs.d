@@ -394,7 +394,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
 
 ;; line numbers when using goto-line M-g M-g or M-g g
 ;; (defined in init-misc-defuns.el)
-(global-set-key [remap goto-line] 'sej/goto-line-with-feedback)
+(global-set-key [remap goto-line] 'goto-line-preview)
 
 
 (provide 'init-bindings)
