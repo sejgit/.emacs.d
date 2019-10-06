@@ -40,6 +40,7 @@
 ;; 2017 12 01 some mods for use-package & removal of autocomplete
 ;; 2018 04 04 adding abo-abo's lispy package for specifically better reading of LISP
 ;; 2018 09 24 some additions from ahai
+;; 2019 10 05 add lispy remove par-edit
 
 ;;; Code:
 
@@ -49,51 +50,8 @@
 
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 
-;; Smartparens for editing within lisp
-(use-package smartparens-config
-  :ensure smartparens
-  :hook ((prog-mode . smartparens-global-mode)
-         (markdown-mode . smartparens-global-mode))
-  :bind (:map smartparens-mode-map
-              ("C-M-a" . sp-beginning-of-sexp)
-              ("C-M-e" . sp-end-of-sexp)
-
-              ;; ("C-<down>" . sp-down-sexp)
-              ;; ("C-<up>" . sp-up-sexp)
-
-              ("C-M-f" . sp-forward-sexp)
-              ("C-M-b" . sp-backward-sexp)
-
-              ("C-M-n" . sp-next-sexp)
-              ("C-M-p" . sp-previous-sexp)
-
-              ("C-S-f" . sp-forward-symbol)
-              ("C-S-b" . sp-backward-symbol)
-
-              ("C-<right>" . sp-forward-slurp-sexp)
-              ("M-<right>" . sp-forward-barf-sexp)
-              ("C-<left>"  . sp-backward-slurp-sexp)
-              ("M-<left>"  . sp-backward-barf-sexp)
-
-              ("C-M-t" . sp-transpose-sexp)
-              ("C-M-k" . sp-kill-sexp)
-              ("C-k"   . sp-kill-hybrid-sexp)
-              ("M-k"   . sp-backward-kill-sexp)
-              ("C-M-w" . sp-copy-sexp)
-              ("C-M-d" . delete-sexp)
-
-              ("M-<backspace>" . backward-kill-word)
-              ("C-<backspace>" . sp-backward-kill-word)
-
-              ("M-[" . sp-backward-unwrap-sexp)
-              ("M-]" . sp-unwrap-sexp)
-
-              ("C-M-<space>" . sp-mark-sexp))
-  :config
-  (require 'smartparens-config)
-  (show-smartparens-global-mode t))
-;;(sp-use-smartparens-bindings)
-
+(use-package lispy
+  :hook (emacs-lisp-mode . lispy-mode))
 
 ;; like rainbow-delimiters in elisp modes
 (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)

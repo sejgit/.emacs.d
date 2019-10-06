@@ -32,6 +32,7 @@
 ;;
 ;; 2019 04 28 merge from init+settings.el
 ;; 2019 06 02 add timestamps to after-save-hook & trash-directory
+;; 2019 10 05 goto-line-preview added
 
 ;;; Code:
 
