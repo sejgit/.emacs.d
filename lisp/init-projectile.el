@@ -81,8 +81,6 @@
 
   )
 
-(use-package helm-ag)
-
 (use-package grep)
 
 (use-package emr

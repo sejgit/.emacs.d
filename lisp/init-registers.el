@@ -44,8 +44,6 @@
 ;;; Code:
 
 ;; this is defined in init+bindings.el (kbd "s-r") 'jump-to-register
-;; use C-x r s (or x)  to save to register
-;; use helm register C-c h C-x r i   or C-c h x (shortcut added in my init-ido-ivy-helm.el)
 (set-register ?b '(file . "~/.ssh/custom-post.el"))
 (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
 (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))

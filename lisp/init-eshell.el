@@ -73,8 +73,7 @@
     (semantic-mode -1)
     (local-set-key (kbd "M-P") 'eshell-previous-prompt)
     (local-set-key (kbd "M-N") 'eshell-next-prompt)
-    (local-set-key (kbd "M-R") 'eshell-previous-matching-input)
-    (local-set-key (kbd "M-r") 'helm-eshell-history))
+    (local-set-key (kbd "M-R") 'eshell-previous-matching-input))
 
   (defun eshell/clear ()
     "Clear the eshell buffer."

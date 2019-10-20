@@ -40,6 +40,7 @@
 ;; 2017 12 01 update for new use-package
 ;; 2018 08 06 helm-flycheck keymap changes
 ;; 2019 05 02 Initialize & Merge
+;; 2019 10 20 Remove HELM portions
 
 
 ;;; Code:
@@ -115,11 +116,6 @@
 
 (use-package flycheck-color-mode-line
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
-
-(use-package helm-flycheck
-  :bind (:map sej-mode-map
-              ("C-c s h" . helm-flycheck)
-              ("H-f" . helm-flycheck)))
 
 (provide 'init-flycheck)
 ;;; init-flycheck.el ends here

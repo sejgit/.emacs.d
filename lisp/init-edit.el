@@ -559,24 +559,6 @@ _o_: only show current
   ;; (setq dtrt-indent-active-mode-line-info "")
   )
 
-(use-package aggressive-indent
-  :hook (sej/after-init . global-aggressive-indent-mode)
-  :config
-  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
-
-;; ;; simplified access to the system clipboard in Emacs
-;; (use-package simpleclip
-;;   :ensure t
-;;   :hook (after-init . simpleclip-mode)
-;;   :bind (:map sej-mode-map
-;;               ("s-x" . simpleclip-cut)
-;;               ("s-c" . simpleclip-copy)
-;;               ("s-v" . simpleclip-paste)
-;;               ("C-S-v" . scroll-down-command)
-;;               ("H-v" . scroll-down-command)
-;;               ("M-v" . scroll-down-command)
-;;               )) ;; this last one will help integration with Flycut
-
 (use-package goto-line-preview
   :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
          (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))

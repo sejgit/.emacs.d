@@ -76,7 +76,6 @@
               ("C-M-\\" . org-indent-region)
               ("S-<left>" . org-shiftleft)
               ("S-<right>" . org-shiftright)
-              ("C-x c o h" . helm-org-headlines)
               )
   :config
   (setq org-directory sej-org-directory)
@@ -246,14 +245,6 @@ In ~%s~:
     :bind (:map sej-mode-map
                 ("C-c s o" . poporg-dwim)))
 
-  (use-package org-projectile-helm
-    :ensure t
-    :bind (:map sej-mode-map
-                ("C-c s c" . org-projectile-capture-for-current-project))
-    :config
-    (progn
-      (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
-      (push (org-projectile-project-todo-entry) org-capture-templates)))
   )
 
 (provide 'init-org)

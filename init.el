@@ -33,7 +33,7 @@
 ;;; Changelog
 ;;
 ;; 2019 04 28 Merge from old .emacs.d
-
+;; 2019 10 20 remove helm stuff
 
 ;;; Code:
 
@@ -186,8 +186,7 @@
 
 (message "init-ivy")
 (require 'init-ivy)
-;; (message "init-helm")
-;; (require 'init-helm) ; TODO keep in case decide helm over ivy
+
 (message "init-company")
 (require 'init-company)
 (message "init-yasnippet")

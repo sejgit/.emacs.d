@@ -135,13 +135,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config
   (add-to-list 'golden-ratio-extra-commands 'ace-window)
   (setq golden-ratio-auto-scale t)
-  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
+  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window))
 
-  (defun sej/helm-alive-p ()
-    (if (boundp 'helm-alive-p)
-        (symbol-value 'helm-alive-p)))
-
-  (add-to-list 'golden-ratio-inhibit-functions 'sej/helm-alive-p) )
 
 ;; Enforce rules for popups
 (defvar shackle--popup-window-list nil) ; all popup windows

@@ -237,7 +237,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
   )
 
 ;; use hyper (fn on osx) for mode type bindings
-(define-key sej-mode-map (kbd "H-a") 'helm-ag)
+(define-key sej-mode-map (kbd "H-a") 'counsel-ag)
 (define-key sej-mode-map (kbd "<f1>") 'org-mode)
 (define-key sej-mode-map (kbd "H-s") 'shell)
 (define-key sej-mode-map (kbd "<f2>") 'shell)
@@ -251,13 +251,14 @@ USAGE: (unbind-from-modi-map \"key f\")."
     (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
   )
 (define-key sej-mode-map (kbd "H-e") 'eshell)
-(define-key sej-mode-map (kbd "H-f") 'helm-flycheck) ;;defined here for ref
+(define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
 (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
 (define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
+
 (define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
 
