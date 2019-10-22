@@ -33,7 +33,7 @@
 ;;; Changelog
 ;;
 ;; 2019 04 28 Merge from old .emacs.d
-;; 2019 10 20 remove helm stuff
+;; 2019 10 20 remove helm stuff; remove most messages
 
 ;;; Code:
 
@@ -66,7 +66,6 @@
 (setq inhibit-startup-message t)
 
 ;; Speed up startup
-(message "Optimize")
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 (setq gc-cons-threshold 80000000)
@@ -84,7 +83,6 @@
 
 ;; Load path
 ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
-(message "Load Path")
 (defun update-load-path (&rest _)
   "Update `load-path'."
   (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
@@ -101,7 +99,6 @@
 
 (update-load-path)
 
-(message "First Sets")
 ;; turn on syntax highlightng for all buffers
 (global-font-lock-mode t)
 
@@ -124,11 +121,9 @@
 (setq confirm-kill-processes nil)
 
 ;; Constants
-(message "init-const")
 (require 'init-const)
 
 ;; Custom group definition
-(message "init-custom")
 (require 'init-custom)
 
 ;; add my custom hook
@@ -157,108 +152,67 @@
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
-(message "init-package")
 (require 'init-package)
 
 ;; Preferences
-(message "init-basic")
 (require 'init-basic)
-(message "init-bindings")
 (require 'init-bindings)
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
-(message "init-defuns")
 (require 'init-defuns)
 
 ;; Set-up the user interface
-(message "init-ui")
 (require 'init-ui)
-(message "init-edit")
 (require 'init-edit)
-(message "init-highlight")
 (require 'init-highlight)
 
-(message "init-window")
 (require 'init-window)
-(message "init-frame-cmds")
 (require 'init-frame-cmds)
 
-(message "init-ivy")
 (require 'init-ivy)
 
-(message "init-company")
 (require 'init-company)
-(message "init-yasnippet")
 (require 'init-yasnippet)
 
-(message "init-registers")
 (require 'init-registers)
-(message "init-dashboard")
 (require 'init-dashboard)
-(message "init-dired")
 (require 'init-dired)
-(message "init-ibuffer")
 (require 'init-ibuffer)
-(message "init-kill-ring")
 (require 'init-kill-ring)
-(message "init-deft")
 (require 'init-deft)
 
-(message "init-persp")
 (require 'init-persp)
 
-(message "init-eshell")
 (require 'init-eshell)
-(message "init-shell")
 (require 'init-shell)
 
-(message "init-org")
 (require 'init-org) ;
 ;; (require 'init-calendar) ; not used leave commented
 ;; (require 'init-elfeed) ;  not used leave commented
 
-(message "init-writing")
 (require 'init-writing)
-(message "init-spelling")
 (require 'init-spelling)
-(message "init-view")
 (require 'init-view)
 
-(message "init-templates")
 (require 'init-templates)
-(message "init-misc-filetypes")
 (require 'init-misc-filetypes)
 
 ;; Programming
-(message "init-tramp")
 (require 'init-tramp)
-(message "init-vcs")
 (require 'init-vcs)
-(message "init-prog")
 (require 'init-prog)
 
-(message "init-flycheck")
 (require 'init-flycheck)
-(message "init-projectile")
 (require 'init-projectile)
-(message "init-dap")
-(require 'init-dap)
 
-(message "init-lsp")
 (require 'init-lsp)
-(message "init-lisp")
 (require 'init-lisp)
 
-(message "init-c")
 (require 'init-c)
-(message "init-python")
 (require 'init-python)
-(message "init-web")
 (require 'init-web)
-(message "init-misc-languages")
 (require 'init-misc-languages)
-(message "init-misc-pkgs")
 (require 'init-misc-pkgs)
 
 (message "init.el ends here")
