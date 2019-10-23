@@ -34,6 +34,7 @@
 ;;
 ;; 2019 04 28 Merge from old .emacs.d
 ;; 2019 10 20 remove helm stuff; remove most messages
+;; 2019 10 22 start to tangle in init-org.org
 
 ;;; Code:
 
@@ -154,9 +155,12 @@
 ;; Without this comment Emacs25 adds (package-initialize) here
 (require 'init-package)
 
+;; org-tangle
+(org-babel-load-file (concat user-emacs-directory "init-org.org"))
+
 ;; Preferences
-(require 'init-basic)
-(require 'init-bindings)
+;; (require 'init-basic) ; org-tangle
+;; (require 'init-bindings) ; org-tangle TODO
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
