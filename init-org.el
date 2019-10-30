@@ -1,23 +1,250 @@
+(defconst sej-homepage
+  "https://github.com/sejgit/.emacs.d"
+  "The Github page of SeJ Emacs.")
+
+(defconst sys/win32p
+  (eq system-type 'windows-nt)
+  "Are we running on a WinTel system?")
+
+(defconst sys/linuxp
+  (eq system-type 'gnu/linux)
+  "Are we running on a GNU/Linux system?")
+
+(defconst sys/macp
+  (eq system-type 'darwin)
+  "Are we running on a Mac system?")
+
+(defconst sys/mac-x-p
+  (and (display-graphic-p) sys/macp)
+  "Are we running under X on a Mac system?")
+
+(defconst sys/linux-x-p
+  (and (display-graphic-p) sys/linuxp)
+  "Are we running under X on a GNU/Linux system?")
+
+(defconst sys/cygwinp
+  (eq system-type 'cygwin)
+  "Are we running on a Cygwin system?")
+
+(defconst sys/rootp
+  (string-equal "root" (getenv "USER"))
+  "Are you using ROOT user?")
+
+(defconst emacs/>=25p
+  (>= emacs-major-version 25)
+  "Emacs is 25 or above.")
+
+(defconst emacs/>=26p
+  (>= emacs-major-version 26)
+  "Emacs is 26 or above.")
+
+(defconst emacs/>=27p
+  (>= emacs-major-version 27)
+  "Emacs is 27 or above.")
+
+(defconst emacs/>=25.2p
+  (or emacs/>=26p
+      (and (= emacs-major-version 25) (>= emacs-minor-version 2)))
+  "Emacs is 25.2 or above.")
+
 (eval-when-compile
-  (require 'init-const)
-  (require 'init-custom))
+  (require 'init-const))
+
+(defgroup sej nil
+  "SeJ Emacs customizations."
+  :group 'convenience)
+
+(defcustom sej-full-name "Stephen Jenkins"
+  "Set user full name."
+  :type 'string)
+
+(defcustom sej-mail-address "stephenearljenkins@gmail.com"
+  "Set user email address."
+  :type 'string)
+
+(defcustom sej-proxy "localhost:80"
+  "Set network proxy."
+  :type 'string)
+
+(defcustom sej-theme 'default
+  "Set color theme."
+  :type '(choice
+          (const :tag "Default theme" default)
+          (const :tag "Classic theme" classic)
+          (const :tag "Doom theme" doom)
+          (const :tag "Dark theme" dark)
+          (const :tag "Light theme" light)
+          (const :tag "Daylight theme" daylight)
+          symbol))
+
+(defcustom sej-dashboard t
+  "Use dashboard at startup or not.
+If Non-nil, use dashboard, otherwise will restore previous session."
+  :type 'boolean)
+
+(defcustom sej-lsp 'lsp-mode
+  "Set language server."
+  :type '(choice
+          (const :tag "LSP Mode" 'lsp-mode)
+          (const :tag "eglot" 'eglot)
+          nil))
+
+(defcustom sej-benchmark nil
+  "Enable the init benchmark or not."
+  :type 'boolean)
+
+(defcustom sej-org-directory "~/gdrive/todo"
+  "Set org directory"
+  :type 'string)
+
+(defcustom sej-project-org-capture-text "Project"
+  "Text for the Label for the Org Capture Project journal"
+  :type 'string)
+
+(defcustom sej-project-org-capture-file "~/exampleproject/journal.org"
+  "Filename for the Org Capture Project Journal"
+  :type 'string)
+
+(defcustom sej-latex-directory "~/AppData/Local/Programs/MiKTeX 2.9/miktex/bin/x64/"
+  "Directory for Latex"
+  :type 'string)
+
+;; Load `custom-file'
+;; If it doesn't exist, copy from the template, then load it.
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
+(let ((custom-template-file
+       (expand-file-name "custom-template.el" user-emacs-directory)))
+  (if (and (file-exists-p custom-template-file)
+           (not (file-exists-p custom-file)))
+      (copy-file custom-template-file custom-file)))
+
+(if (file-exists-p custom-file)
+    (load custom-file))
+
+;; Load `custom-post.el'
+;; Put personal configurations to override defaults here.
+;; place to hold specific & secret stuff ~/.ssh is best
+(add-hook 'after-init-hook
+          (progn
+            (let ((file
+                   (expand-file-name "custom-post.el" user-emacs-directory)))
+              (if (file-exists-p file)
+                  (load file)))
+            (let ((file
+                   (expand-file-name "custom-post.el" "~/.ssh/")))
+              (if (file-exists-p file)
+                  (load file)))
+            ))
+
+;; add my custom hook
+(defvar sej/after-init-hook nil
+  "Hook called after emacs-init and some time.")
+
+(defvar sej/idle-timer 5
+  "Var to set time in seconds for idle timer.")
+(when sys/macp
+  (setq sej/idle-timer 1))
+
+(defun sej/run-my-after-init-hook ()
+  "Function to define when to run my startup hooks"
+  (interactive)
+  (message "set-up my hooks")
+  (run-with-idle-timer sej/idle-timer nil
+                       (lambda ()
+                         (message "start running my hooks")
+                         (run-hooks 'sej/after-init-hook)
+                         (message "done running my hooks")
+                         )))
+
+(add-hook 'after-init-hook 'sej/run-my-after-init-hook)
+;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
+(add-hook 'emacs-startup-hook 'sej/frame-resize-full)
+
+(defun my-save-selected-packages (&optional value)
+  "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
+  (when value
+    (setq package-selected-packages value)))
+(advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
+
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+
+(setq load-prefer-newer t)
+
+;; Initialize packages
+(unless (bound-and-true-p package--initialized) ; To avoid warnings in 27
+  (setq package-enable-at-startup nil)          ; To prevent initializing twice
+  (package-initialize))
+
+;; Setup `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+;; Should set before loading `use-package'
+(eval-and-compile
+  (setq use-package-always-ensure t)
+  (setq use-package-always-defer t)
+  (setq use-package-expand-minimally t)
+  (setq use-package-enable-imenu-support t))
+
+(eval-when-compile
+  (require 'use-package))
+
+;; Required by `use-package'
+(use-package diminish)
+(use-package bind-key)
+
+(use-package benchmark-init
+  :demand t
+  :config
+  (benchmark-init/activate)
+  ;; To disable collection of benchmark data after init is done.
+  ;;(add-hook 'after-init-hook 'benchmark-init/deactivate)
+  )
+
+;; check OS type
+(when
+    sys/win32p
+  (progn
+    (message "Microsoft Windows")
+    ;;see if we can get some speed improvements
+    (use-package auto-compile
+      :demand t
+      :config
+      (progn
+        (auto-compile-on-load-mode)
+        (auto-compile-on-save-mode)))
+
+    ;; set exec-path for latex installation
+    (setq exec-path (append (list sej-latex-directory "/mingw64/bin/") exec-path))
+
+    ;; load AutoHotkey mode
+    (load-library "xahk-mode")))
 
 (when sys/win32p
-  (setenv "PATH"
-          (mapconcat
-           #'identity exec-path path-separator))
-  (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
+    (setenv "PATH"
+            (mapconcat
+             #'identity exec-path path-separator))
+    (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
 
-(when (or sys/mac-x-p sys/linux-x-p)
-  (use-package exec-path-from-shell
-    :init
-    (setq exec-path-from-shell-check-startup-files nil)
-    (setq exec-path-from-shell-variables '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
-    (setq exec-path-from-shell-arguments '("-l"))
-    (exec-path-from-shell-initialize))
-  (setq exec-path (append exec-path '("/usr/local/bin"))))
+  (when (or sys/mac-x-p sys/linux-x-p)
+    (use-package exec-path-from-shell
+      :init
+      (setq exec-path-from-shell-check-startup-files nil)
+      (setq exec-path-from-shell-variables '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
+      (setq exec-path-from-shell-arguments '("-l"))
+      (exec-path-from-shell-initialize))
+    (setq exec-path (append exec-path '("/usr/local/bin"))))
 
-(setq-default locate-command "which")
+  (setq-default locate-command "which")
+
+;; The EMACS environment variable being set to the binary path of emacs.
+(setenv "EMACS"
+        (file-truename (expand-file-name invocation-name invocation-directory)))
 
 (use-package server
   :ensure nil
@@ -162,7 +389,6 @@
 
 (global-set-key (kbd "RET") 'newline-and-indent)
 
-;; Neat bindings for C-x 8 ; put some Alt bindins there for fun as well
 (global-set-key (kbd "C-x 8 l") (λ (insert "\u03bb")))
 (global-set-key (kbd "A-L") (λ (insert "\u03bb")))
 (global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
@@ -176,6 +402,13 @@
 (global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
 (global-set-key (kbd "A-V") (λ (insert "✓")))
 
+;; Transpose stuff with M-t
+(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
+(global-set-key (kbd "M-t l") 'transpose-lines)
+(global-set-key (kbd "M-t w") 'transpose-words)
+(global-set-key (kbd "M-t s") 'transpose-sexps)
+(global-set-key (kbd "M-t p") 'transpose-params)
+
 ;; unset C- and M- digit keys
 (dotimes (n 10)
   (global-unset-key (kbd (format "C-%d" n)))
@@ -188,6 +421,8 @@
 (define-key sej-mode-map (kbd "H-s") 'shell)
 (define-key sej-mode-map (kbd "<f2>") 'shell)
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
+
+
 (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
     (progn
       (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
@@ -319,13 +554,6 @@
 
 ;; Align your code in a pretty way.
 (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
-
-;; Transpose stuff with M-t
-(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
-(global-set-key (kbd "M-t l") 'transpose-lines)
-(global-set-key (kbd "M-t w") 'transpose-words)
-(global-set-key (kbd "M-t s") 'transpose-sexps)
-(global-set-key (kbd "M-t p") 'transpose-params)
 
 ;; push and jump to mark functions
 ;; (defined in init-misc-defuns.el)

@@ -41,6 +41,7 @@
 ;; 2018 07 22 correct mold project documents moved for journal.org
 ;; 2018 09 28 tips from ohai
 ;; 2019 04 30 merge
+;; 2019 10 29 adds from zzamboni.org beautifying Orgmode
 
 ;;; Code:
 
@@ -66,7 +67,8 @@
   which-function
   :mode ("\\.org$" . org-mode)
   :hook ((org-mode . flyspell-mode)
-         (org-mode . writegood-mode))
+         (org-mode . writegood-mode)
+         (org-mode . visual-line-mode))
   :bind (:map sej-mode-map
               ("<f1>" . org-mode)
               ("C-c l" . org-store-link)
@@ -86,6 +88,7 @@
   (defconst org-file-notes (concat org-directory "/notes.org"))
   (defconst org-file-code (concat org-directory "/snippets.org"))
   (setq org-replace-disputed-keys t
+        org-hide-emphasis-markers t
         org-default-notes-file org-file-notes
         org-capture-bookmark t
         org-refile-use-outline-path 'file
@@ -106,6 +109,45 @@
         org-src-window-setup 'current-window
         org-startup-folded nil
         )
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  (let* ((variable-tuple
+          (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+         (base-font-color     (face-foreground 'default nil 'default))
+         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
+    (custom-theme-set-faces
+     'user
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+
+  (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
   (define-skeleton org-skeleton
     "Header info for a emacs-org file."
@@ -139,7 +181,7 @@
         org-refile-targets '((org-file-gtd :maxlevel . 3)
                              (org-file-someday :maxlevel . 1))
         org-agenda-window-setup (quote current-window) ;open agenda in current window
-        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
+        org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
         org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
         org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
@@ -218,8 +260,8 @@ In ~%s~:
     :init (cl-pushnew '(rust . t) load-language-list))
 
   (use-package ob-ipython
-    :disabled ;; turnoff for now with python3.6 issue
-    :if (executable-find "jupyter")     ; DO NOT remove
+    :disabled                       ;; turnoff for now with python3.6 issue
+    :if (executable-find "jupyter") ; DO NOT remove
     :init (cl-pushnew '(ipython . t) load-language-list))
 
   (org-babel-do-load-languages 'org-babel-load-languages

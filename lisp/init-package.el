@@ -31,7 +31,7 @@
 ;;; Changelog
 ;;
 ;; 2019 04 28 Init & merge
-
+;; 2019 10 29 remove Paradox
 
 ;;; Code:
 
@@ -83,22 +83,6 @@
   (benchmark-init/activate)
   ;; To disable collection of benchmark data after init is done.
   ;;(add-hook 'after-init-hook 'benchmark-init/deactivate)
-  )
-
-;; Extensions
-(use-package paradox
-  :functions upgrade-packages
-  :commands list-packages
-  :init
-  (setq paradox-execute-asynchronously nil)
-  (setq paradox-github-token t)
-  (setq paradox-display-star-count nil)
-
-  (defalias #'upgrade-packages #'paradox-upgrade-packages)
-
-  ;; Replace default `list-packages'
-  (defadvice list-packages (before my-list-packages activate)
-    (paradox-enable))
   )
 
 ;; The EMACS environment variable being set to the binary path of emacs.

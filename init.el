@@ -127,40 +127,40 @@
 ;; Custom group definition
 (require 'init-custom)
 
-;; add my custom hook
-(defvar sej/after-init-hook nil
-  "Hook called after emacs-init and some time.")
+;; ;; add my custom hook ; org-tangle
+;; (defvar sej/after-init-hook nil
+;;   "Hook called after emacs-init and some time.")
 
-(defvar sej/idle-timer 5
-  "Var to set time in seconds for idle timer.")
-(when sys/macp
-  (setq sej/idle-timer 1))
+;; (defvar sej/idle-timer 5
+;;   "Var to set time in seconds for idle timer.")
+;; (when sys/macp
+;;   (setq sej/idle-timer 1))
 
-(defun sej/run-my-after-init-hook ()
-  "Function to define when to run my startup hooks"
-  (interactive)
-  (message "set-up my hooks")
-  (run-with-idle-timer sej/idle-timer nil
-                       (lambda ()
-                         (message "start running my hooks")
-                         (run-hooks 'sej/after-init-hook)
-                         (message "done running my hooks")
-                         )))
+;; (defun sej/run-my-after-init-hook ()
+;;   "Function to define when to run my startup hooks"
+;;   (interactive)
+;;   (message "set-up my hooks")
+;;   (run-with-idle-timer sej/idle-timer nil
+;;                        (lambda ()
+;;                          (message "start running my hooks")
+;;                          (run-hooks 'sej/after-init-hook)
+;;                          (message "done running my hooks")
+;;                          )))
 
-(add-hook 'after-init-hook 'sej/run-my-after-init-hook)
-;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
-(add-hook 'emacs-startup-hook 'sej/frame-resize-full)
+;; (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
+;; ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
+;; (add-hook 'emacs-startup-hook 'sej/frame-resize-full)
 
 ;; Packages
 ;; Without this comment Emacs25 adds (package-initialize) here
-(require 'init-package)
+;; (require 'init-package) ;org-tangle
 
-;; org-tangle
+;; org-tangle load-file
 (org-babel-load-file (concat user-emacs-directory "init-org.org"))
 
 ;; Preferences
 ;; (require 'init-basic) ; org-tangle
-;; (require 'init-bindings) ; org-tangle TODO
+;; (require 'init-bindings) ; org-tangle
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
