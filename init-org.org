@@ -346,10 +346,12 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ** Set OS specific modifiers
 *** MAC OS Apple keyboard
     - caps lock is control (through karabiner)
-      make Fn key do Hyper
-      make LControl key do RControl (karabiner) & Super (emacs)
-      make opt/alt key do alt
-      make cmd key do Meta
+      Fn key do Hyper
+      LControl key do RControl (karabiner) which is Super (emacs)
+      left opt/alt key do emacs Alt modifier
+      right opt/alt key do regular alt key
+      left and right command(apple) key do Meta
+      karabiner.json backup files in dotfiles under .config directory
 *** PC keyboard
     - CapsLock::LControl through AutoHotkeys
       scroll lock do hyper (tab to scroll lock using AutoHotkeys)
