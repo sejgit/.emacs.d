@@ -288,24 +288,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
         savehist-autosave-interval 300))
 
 (cond
- (sys/win32p ; Microsoft Windows
-  (progn
-    (message "Microsoft Windows")
-    (setq
-     w32-pass-lwindow-to-system t
-     w32-recognize-altgr nil
-     W32-enable-caps-lock nil
-     w32-pass-rwindow-to-system nil
-     w32-rwindow-modifier 'meta
-     w32-apps-modifier 'super
-     w32-pass-alt-to-system t
-     w32-alt-is-meta t
-     w32-scroll-lock-modifier 'hyper
-     w32-enable-num-lock nil)
-    (w32-register-hot-key [A-])
-    (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
-    ))
-
  (sys/macp ; OSX
   (progn
     (message "Mac OSX")
@@ -328,8 +310,27 @@ If Non-nil, use dashboard, otherwise will restore previous session."
         (setq ns-right-control-modifier 'super)
         (setq ns-option-modifier 'alt)
         (setq ns-command-modifier 'meta)
-        ))))
+        )))))
 
+(cond
+ (sys/win32p ; Microsoft Windows
+  (progn
+    (message "Microsoft Windows")
+    (setq w32-pass-lwindow-to-system t
+          w32-recognize-altgr nil
+          W32-enable-caps-lock nil
+          w32-pass-rwindow-to-system nil
+          w32-rwindow-modifier 'meta
+          w32-apps-modifier 'super
+          w32-pass-alt-to-system t
+          w32-alt-is-meta t
+          w32-scroll-lock-modifier 'hyper
+          w32-enable-num-lock nil)
+    (w32-register-hot-key [A-])
+    (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
+    )))
+
+(cond
  (sys/linuxp ; linux
   (progn
     (message "Linux")
@@ -389,6 +390,12 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (global-set-key (kbd "RET") 'newline-and-indent)
 
+;; unset C- and M- digit keys
+(dotimes (n 10)
+  (global-unset-key (kbd (format "C-%d" n)))
+  (global-unset-key (kbd (format "M-%d" n)))
+  )
+
 (global-set-key (kbd "C-x 8 l") (λ (insert "\u03bb")))
 (global-set-key (kbd "A-L") (λ (insert "\u03bb")))
 (global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
@@ -402,124 +409,12 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
 (global-set-key (kbd "A-V") (λ (insert "✓")))
 
-;; Transpose stuff with M-t
 (global-unset-key (kbd "M-t")) ;; which used to be transpose-words
 (global-set-key (kbd "M-t l") 'transpose-lines)
 (global-set-key (kbd "M-t w") 'transpose-words)
 (global-set-key (kbd "M-t s") 'transpose-sexps)
 (global-set-key (kbd "M-t p") 'transpose-params)
 
-;; unset C- and M- digit keys
-(dotimes (n 10)
-  (global-unset-key (kbd (format "C-%d" n)))
-  (global-unset-key (kbd (format "M-%d" n)))
-  )
-
-;; use hyper (fn on osx) for mode type bindings
-(define-key sej-mode-map (kbd "H-a") 'counsel-ag)
-(define-key sej-mode-map (kbd "<f1>") 'org-mode)
-(define-key sej-mode-map (kbd "H-s") 'shell)
-(define-key sej-mode-map (kbd "<f2>") 'shell)
-(define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-
-
-(if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
-    (progn
-      (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
-      (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
-  (progn
-    (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
-    (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
-  )
-(define-key sej-mode-map (kbd "H-e") 'eshell)
-(define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
-(define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
-(define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
-(define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-(define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
-
-;; some lisp stuff from Getting Started with Emacs Lisp
-(define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
-(define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
-(define-key sej-mode-map (kbd "<A-return>") 'eval-region)
-
-;; use super for action type stuff
-(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-(define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
-(define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
-(define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-w") 'delete-frame)
-
-(define-key sej-mode-map (kbd "s-0") 'delete-window)
-(define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
-(define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
-(define-key sej-mode-map (kbd "s-3") 'split-window-right)
-(define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
-(define-key sej-mode-map (kbd "s-5") 'make-frame-command)
-(define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
-(define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
-                                       (save-excursion
-                                         (other-window 1)
-                                         (quit-window))))
-
-;; wind move built in package (default bindins are S-<cursor>)
-;;  (windmove-default-keybindings)) ;; Shift + direction
-;; winner-mode is to undo & redo windows with C-c left and C-c right
-(when (fboundp 'winner-mode)
-  (winner-mode t))
-(define-key sej-mode-map (kbd "s-h") 'windmove-left)
-(define-key sej-mode-map (kbd "s-l") 'windmove-right)
-(define-key sej-mode-map (kbd "s-k") 'windmove-up)
-(define-key sej-mode-map (kbd "s-j") 'windmove-down)
-;; Make windmove work in org-mode:
-;; (add-hook 'org-shiftup-final-hook 'windmove-up)
-;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
-;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
-;; (add-hook 'org-shiftright-final-hook 'windmove-right)
-
-;;init-frame-cmds bindings here for convenience
-(define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
-(define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
-(define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
-(define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
-(define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
-
-(define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
-(define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
-(define-key sej-mode-map (kbd "s-S-<left>") 'sej/frame-resize-l2)
-(define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
-(define-key sej-mode-map (kbd "s-S-<right>") 'sej/frame-resize-r2)
-
-
-;; File & buffer finding
-(define-key sej-mode-map (kbd "C-x M-f") 'counsel-projectile-find-file)
-(define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
-(define-key sej-mode-map (kbd "s-y") 'bury-buffer)
-(define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
-(define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
-(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
-(define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
-(setq-default bs-default-configuration "all-intern-last")
-(define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer) ; defined below
-(define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer) ; defined below
-(define-key sej-mode-map (kbd "C-c <tab>") 'sej/indent-buffer) ; defined below
-
-;; toggle two most recent buffers
-(fset 'quick-switch-buffer [?\C-x ?b return])
-(define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
-
-;; general keybindings
 (define-key global-map (kbd "C-h C-h") nil)
 (define-key sej-mode-map (kbd "C-h C-h") nil)
 
@@ -570,3 +465,105 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; line numbers when using goto-line M-g M-g or M-g g
 ;; (defined in init-misc-defuns.el)
 (global-set-key [remap goto-line] 'goto-line-preview)
+
+(define-key sej-mode-map (kbd "H-a") 'counsel-ag)
+(define-key sej-mode-map (kbd "<f1>") 'org-mode)
+(define-key sej-mode-map (kbd "H-s") 'shell)
+(define-key sej-mode-map (kbd "<f2>") 'shell)
+(define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
+
+(define-key sej-mode-map (kbd "H-e") 'eshell)
+(define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
+(define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
+(define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
+(define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
+(define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
+(define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
+(define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
+
+(define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
+(define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
+
+
+(if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
+    (progn
+      (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
+      (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
+  (progn
+    (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
+    (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
+  )
+
+(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
+(define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
+(define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
+(define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
+(define-key sej-mode-map (kbd "s-w") 'delete-frame)
+
+(define-key sej-mode-map (kbd "s-0") 'delete-window)
+(define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
+(define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
+(define-key sej-mode-map (kbd "s-3") 'split-window-right)
+(define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
+(define-key sej-mode-map (kbd "s-5") 'make-frame-command)
+(define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
+(define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
+                                       (save-excursion
+                                         (other-window 1)
+                                         (quit-window))))
+
+;; wind move built in package (default bindins are S-<cursor>)
+;;  (windmove-default-keybindings)) ;; Shift + direction
+;; winner-mode is to undo & redo windows with C-c left and C-c right
+(when (fboundp 'winner-mode)
+  (winner-mode t))
+(define-key sej-mode-map (kbd "s-h") 'windmove-left)
+(define-key sej-mode-map (kbd "s-l") 'windmove-right)
+(define-key sej-mode-map (kbd "s-k") 'windmove-up)
+(define-key sej-mode-map (kbd "s-j") 'windmove-down)
+;; Make windmove work in org-mode:
+;; (add-hook 'org-shiftup-final-hook 'windmove-up)
+;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
+;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
+;; (add-hook 'org-shiftright-final-hook 'windmove-right)
+
+
+
+;;init-frame-cmds bindings here for convenience
+(define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
+(define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
+(define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
+(define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
+
+(define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
+(define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "s-S-<left>") 'sej/frame-resize-l2)
+(define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
+(define-key sej-mode-map (kbd "s-S-<right>") 'sej/frame-resize-r2)
+
+(define-key sej-mode-map (kbd "C-x M-f") 'counsel-projectile-find-file)
+(define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
+(define-key sej-mode-map (kbd "s-y") 'bury-buffer)
+(define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
+(define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
+(define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
+(setq-default bs-default-configuration "all-intern-last")
+(define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer) ; defined below
+(define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer) ; defined below
+(define-key sej-mode-map (kbd "C-c <tab>") 'sej/indent-buffer) ; defined below
+
+;; toggle two most recent buffers
+(fset 'quick-switch-buffer [?\C-x ?b return])
+(define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
+
+(define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
+(define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
+(define-key sej-mode-map (kbd "<A-return>") 'eval-region)
