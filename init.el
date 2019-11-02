@@ -66,66 +66,67 @@
 ;; No splash screen
 (setq inhibit-startup-message t)
 
-;; Speed up startup
-(defvar default-file-name-handler-alist file-name-handler-alist)
+;;;;;; Set garbage collection threshold
+;; From https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(setq gc-cons-threshold-original gc-cons-threshold)
+(setq gc-cons-threshold (* 1024 1024 1024 100))
+
+;;;;;; Set file-name-handler-alist
+;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(setq file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
-(setq gc-cons-threshold 80000000)
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            "Restore defalut values after init."
-            (setq file-name-handler-alist default-file-name-handler-alist)
-            (setq gc-cons-threshold 2000000)
-            (if (boundp 'after-focus-change-function)
-                (add-function :after after-focus-change-function
-                              (lambda ()
-                                (unless (frame-focus-state)
-                                  (garbage-collect))))
-              (add-hook 'focus-out-hook 'garbage-collect))))
 
-;; Load path
-;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
-(defun update-load-path (&rest _)
-  "Update `load-path'."
-  (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
-  (push (expand-file-name "lisp" user-emacs-directory) load-path))
+;;;;;; Set deferred timer to reset them
+(run-with-idle-timer
+ 5 nil
+ (lambda ()
+   (setq gc-cons-threshold gc-cons-threshold-original)
+   (setq file-name-handler-alist file-name-handler-alist-original)))
 
-(defun add-subdirs-to-load-path (&rest _)
-  "Add subdirectories to `load-path'."
-  (let ((default-directory
-          (expand-file-name "site-lisp" user-emacs-directory)))
-    (normal-top-level-add-subdirs-to-load-path)))
+;; ;; Load path
+;; ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
+;; (defun update-load-path (&rest _)
+;;   "Update `load-path'."
+;;   (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
+;;   (push (expand-file-name "lisp" user-emacs-directory) load-path))
 
-(advice-add #'package-initialize :after #'update-load-path)
-(advice-add #'package-initialize :after #'add-subdirs-to-load-path)
+;; (defun add-subdirs-to-load-path (&rest _)
+;;   "Add subdirectories to `load-path'."
+;;   (let ((default-directory
+;;           (expand-file-name "site-lisp" user-emacs-directory)))
+;;     (normal-top-level-add-subdirs-to-load-path)))
 
-(update-load-path)
+;; (advice-add #'package-initialize :after #'update-load-path)
+;; (advice-add #'package-initialize :after #'add-subdirs-to-load-path)
 
-;; turn on syntax highlightng for all buffers
-(global-font-lock-mode t)
+;; (update-load-path)
 
-;; raise the maximum number of logs in the *Messages* buffer
-(setq message-log-max 16384)
+;; ;; turn on syntax highlightng for all buffers
+;; (global-font-lock-mode t)
 
-;; wait a bit longer than the default 0.5s before assuming Emacs is idle
-(setq idle-update-delay 2)
+;; ;; raise the maximum number of logs in the *Messages* buffer
+;; (setq message-log-max 16384)
 
-;; make gnutls a bit safer
-(setq gnutls-min-prime-bits 4096)
+;; ;; wait a bit longer than the default 0.5s before assuming Emacs is idle
+;; (setq idle-update-delay 2)
 
-;; remove irritating 'got redefined' messages
-(setq ad-redefinition-action 'accept)
+;; ;; make gnutls a bit safer
+;; (setq gnutls-min-prime-bits 4096)
 
-;; figure out current hostname
-(setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
+;; ;; remove irritating 'got redefined' messages
+;; (setq ad-redefinition-action 'accept)
 
-;; allow exit without asking to kill processes
-(setq confirm-kill-processes nil)
+;; ;; figure out current hostname
+;; (setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
+
+;; ;; allow exit without asking to kill processes
+;; (setq confirm-kill-processes nil)
 
 ;; Constants
-(require 'init-const)
+;; (require 'init-const) ; org-tangle
 
 ;; Custom group definition
-(require 'init-custom)
+;; (require 'init-custom) ; org-tangle
 
 ;; ;; add my custom hook ; org-tangle
 ;; (defvar sej/after-init-hook nil
@@ -164,7 +165,7 @@
 
 ;; Personal functions
 ;;   merge of init-funcs & init-misc-defuns
-(require 'init-defuns)
+;; (require 'init-defuns) ; org-tangle
 
 ;; Set-up the user interface
 (require 'init-ui)

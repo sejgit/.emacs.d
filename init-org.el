@@ -1,3 +1,42 @@
+;; Load path
+;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
+(defun update-load-path (&rest _)
+  "Update `load-path'."
+  (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
+  (push (expand-file-name "lisp" user-emacs-directory) load-path))
+
+(defun add-subdirs-to-load-path (&rest _)
+  "Add subdirectories to `load-path'."
+  (let ((default-directory
+          (expand-file-name "site-lisp" user-emacs-directory)))
+    (normal-top-level-add-subdirs-to-load-path)))
+
+(advice-add #'package-initialize :after #'update-load-path)
+(advice-add #'package-initialize :after #'add-subdirs-to-load-path)
+
+(update-load-path)
+
+;; turn on syntax highlightng for all buffers
+(global-font-lock-mode t)
+
+;; raise the maximum number of logs in the *Messages* buffer
+(setq message-log-max 16384)
+
+;; wait a bit longer than the default 0.5s before assuming Emacs is idle
+(setq idle-update-delay 2)
+
+;; make gnutls a bit safer
+(setq gnutls-min-prime-bits 4096)
+
+;; remove irritating 'got redefined' messages
+(setq ad-redefinition-action 'accept)
+
+;; figure out current hostname
+(setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
+
+;; allow exit without asking to kill processes
+(setq confirm-kill-processes nil)
+
 (defconst sej-homepage
   "https://github.com/sejgit/.emacs.d"
   "The Github page of SeJ Emacs.")
