@@ -168,7 +168,7 @@
 ;; (require 'init-defuns) ; org-tangle
 
 ;; Set-up the user interface
-(require 'init-ui)
+;; (require 'init-ui) ; org-tangle
 (require 'init-edit)
 (require 'init-highlight)
 

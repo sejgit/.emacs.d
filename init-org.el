@@ -265,21 +265,21 @@ If Non-nil, use dashboard, otherwise will restore previous session."
     (load-library "xahk-mode")))
 
 (when sys/win32p
-    (setenv "PATH"
-            (mapconcat
-             #'identity exec-path path-separator))
-    (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
+  (setenv "PATH"
+          (mapconcat
+           #'identity exec-path path-separator))
+  (add-to-list 'exec-path "c:/msys64/mingw64/bin"))
 
-  (when (or sys/mac-x-p sys/linux-x-p)
-    (use-package exec-path-from-shell
-      :init
-      (setq exec-path-from-shell-check-startup-files nil)
-      (setq exec-path-from-shell-variables '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
-      (setq exec-path-from-shell-arguments '("-l"))
-      (exec-path-from-shell-initialize))
-    (setq exec-path (append exec-path '("/usr/local/bin"))))
+(when (or sys/mac-x-p sys/linux-x-p)
+  (use-package exec-path-from-shell
+    :init
+    (setq exec-path-from-shell-check-startup-files nil)
+    (setq exec-path-from-shell-variables '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
+    (setq exec-path-from-shell-arguments '("-l"))
+    (exec-path-from-shell-initialize))
+  (setq exec-path (append exec-path '("/usr/local/bin"))))
 
-  (setq-default locate-command "which")
+(setq-default locate-command "which")
 
 ;; The EMACS environment variable being set to the binary path of emacs.
 (setenv "EMACS"
@@ -380,46 +380,46 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   "Keymap for 'sej-mode'.")
 
   ;;;###autoload
-  (define-minor-mode sej-mode
-    "A minor mode so that my key settings override annoying major modes."
-    ;; If init-value is not set to t, this mode does not get enabled in
-    ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-    ;; More info: http://emacs.stackexchange.com/q/16693/115
-    :init-value t
-    :lighter " sej"
-    :keymap sej-mode-map)
+(define-minor-mode sej-mode
+  "A minor mode so that my key settings override annoying major modes."
+  ;; If init-value is not set to t, this mode does not get enabled in
+  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+  ;; More info: http://emacs.stackexchange.com/q/16693/115
+  :init-value t
+  :lighter " sej"
+  :keymap sej-mode-map)
 
   ;;;###autoload
-  (define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
+(define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
 
-  ;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-  ;; The keymaps in `emulation-mode-map-alists' take precedence over
-  ;; `minor-mode-map-alist'
-  (add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; The keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
 
-  ;; Turn off the minor mode in the minibuffer
-  (defun turn-off-sej-mode ()
-    "Turn off sej-mode."
-    (sej-mode -1))
-  (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
+;; Turn off the minor mode in the minibuffer
+(defun turn-off-sej-mode ()
+  "Turn off sej-mode."
+  (sej-mode -1))
+(add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
 
-  (defmacro bind-to-sej-map (key fn)
-    "Bind to KEY (as FN) a function to the `sej-mode-map'.
+(defmacro bind-to-sej-map (key fn)
+  "Bind to KEY (as FN) a function to the `sej-mode-map'.
   USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
-    `(define-key sej-mode-map (kbd ,key) ,fn))
+  `(define-key sej-mode-map (kbd ,key) ,fn))
 
-  ;; http://emacs.stackexchange.com/a/12906/115
-  (defun unbind-from-sej-map (key)
-    "Unbind from KEY the function from the 'sej-mode-map'.
+;; http://emacs.stackexchange.com/a/12906/115
+(defun unbind-from-sej-map (key)
+  "Unbind from KEY the function from the 'sej-mode-map'.
   USAGE: (unbind-from-modi-map \"key f\")."
-    (interactive "kUnset key from sej-mode-map: ")
-    (define-key sej-mode-map (kbd (key-description key)) nil)
-    (message "%s" (format "Unbound %s key from the %s."
-                          (propertize (key-description key)
-                                      'face 'font-lock-function-name-face)
-                          (propertize "sej-mode-map"
-                                      'face 'font-lock-function-name-face))))
-  ;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
+  (interactive "kUnset key from sej-mode-map: ")
+  (define-key sej-mode-map (kbd (key-description key)) nil)
+  (message "%s" (format "Unbound %s key from the %s."
+                        (propertize (key-description key)
+                                    'face 'font-lock-function-name-face)
+                        (propertize "sej-mode-map"
+                                    'face 'font-lock-function-name-face))))
+;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
 
 (defmacro λ (&rest body)
   "Shorthand for interactive lambdas (BODY)."
@@ -606,3 +606,473 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
 (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
 (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+
+(defun sej/minibuffer-setup-hook ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun sej/minibuffer-exit-hook ()
+  (setq gc-cons-threshold gc-cons-threshold-original))
+
+(add-hook 'minibuffer-setup-hook #'sej/minibuffer-setup-hook)
+(add-hook 'minibuffer-exit-hook #'sej/minibuffer-exit-hook)
+
+(when sys/macp
+  (defun sej/copy-from-osx ()
+    "For copying from osx."
+    (shell-command-to-string "pbpaste"))
+
+  (defun sej/paste-to-osx (text &optional push)
+    "For copying to osx TEXT with optional PUSH."
+    (let ((process-connection-type nil))
+      (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+        (process-send-string proc text)
+        (process-send-eof proc))))
+
+  (setq interprogram-cut-function 'sej/paste-to-osx)
+  (setq interprogram-paste-function 'sej/copy-from-osx)
+
+  ;; from jcs (Irreal) blog to copy url from safari and paste at point
+  (defun sej/insert-url ()
+    "Insert URL of current browser page into Emacs buffer."
+    (interactive)
+    (insert (sej/retrieve-url)))
+
+  ;; from jcs (Irreal) blog helper function from above
+  (defun sej/retrieve-url ()
+    "Retrieve the URL of the current Safari page as a string."
+    (org-trim (shell-command-to-string
+               "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+  )
+
+(defun sej/create-scratch-buffer nil
+  "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
+  (interactive)
+  (let ((n 0)
+        bufname)
+    (while (progn
+             (setq bufname (concat "*scratch"
+                                   (if (= n 0) "" (int-to-string n))
+                                   "*"))
+             (setq n (1+ n))
+             (get-buffer bufname)))
+    (switch-to-buffer (get-buffer-create bufname))
+    (emacs-lisp-mode)
+    ))
+(defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
+
+(defun sej/sudo-edit (&optional arg)
+  "Edit currently visited file as root.
+With a prefix ARG prompt for a file to visit.
+Will also prompt for a file to visit if current
+buffer is not visiting a file."
+  (interactive "P")
+  (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:"
+                         (ido-read-file-name "Find file(as root): ")))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+(defun sej/create-non-existent-directory ()
+  "Ask to make directory for file if it does not exist."
+  (let ((parent-directory (file-name-directory buffer-file-name)))
+    (when (and (not (file-exists-p parent-directory))
+               (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
+      (make-directory parent-directory t))))
+
+(add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
+
+(defun sej/save-macro (name)
+  "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
+  (interactive "SName of the macro :")
+  (kmacro-name-last-macro name)
+  (find-file user-init-file)
+  (goto-char (point-max))
+  (newline)
+  (insert-kbd-macro name)
+  (newline)
+  (switch-to-buffer nil))
+
+(defun sej/push-mark-no-activate ()
+  "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
+  (interactive)
+  (push-mark (point) t nil)
+  (message "Pushed mark to ring"))
+
+(defun sej/exec (command)
+  "Run a shell command and return its output as a string, whitespace trimmed."
+  (interactive)
+  (s-trim (shell-command-to-string command)))
+
+(defun sej/exec-with-rc (command &rest args)
+  "Run a shell command and return a list containing two values: its return
+code and its whitespace trimmed output."
+  (interactive)
+  (with-temp-buffer
+    (list (apply 'call-process command nil (current-buffer) nil args)
+          (s-trim (buffer-string)))))
+
+(defun sej/is-exec (command)
+  "Returns true if `command' is an executable on the system search path."
+  (interactive)
+  (f-executable? (s-trim (shell-command-to-string (s-concat "which " command)))))
+
+(defun sej/resolve-exec (command)
+  "If `command' is an executable on the system search path, return its absolute path.
+Otherwise, return nil."
+  (interactive)
+  (-let [path (s-trim (shell-command-to-string (s-concat "which " command)))]
+    (when (f-executable? path) path)))
+
+(defun sej/exec-if-exec (command args)
+  "If `command' satisfies `sej/is-exec', run it with `args' and return its
+output as per `sej/exec'. Otherwise, return nil."
+  (interactive)
+  (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
+
+(defun sej/indent-buffer ()
+  (interactive)
+  (indent-region (point-min) (point-max)))
+
+(defun sej/dos2unix ()
+  "Convert the current buffer to UNIX file format."
+  (interactive)
+  (set-buffer-file-coding-system 'undecided-unix nil))
+
+(defun sej/unix2dos ()
+  "Convert the current buffer to DOS file format."
+  (interactive)
+  (set-buffer-file-coding-system 'undecided-dos nil))
+
+(defun sej/save-buffer-as-utf8 (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (revert-buffer-with-coding-system coding-system)
+  (set-buffer-file-coding-system 'utf-8)
+  (save-buffer))
+
+(defun sej/revert-this-buffer ()
+  "Revert the current buffer."
+  (interactive)
+  (unless (minibuffer-window-active-p (selected-window))
+    (text-scale-increase 0)
+    (widen)
+    (if (and (fboundp 'fancy-narrow-active-p)
+             (fancy-narrow-active-p))
+        (fancy-widen))
+    (revert-buffer t t)
+    (message "Reverted this buffer.")))
+(bind-key "<f5>" #'sej/revert-this-buffer)
+(if sys/mac-x-p
+    (bind-key "s-r" #'sej/revert-this-buffer))
+
+(defun browse-homepage ()
+  "Browse the Github page of SeJ Emacs."
+  (interactive)
+  (browse-url sejgit-homepage))
+
+(defun sej/update-config ()
+  "Update git tracked Emacs configurations to the latest version."
+  (interactive)
+  (let ((dir (expand-file-name user-emacs-directory)))
+    (if (file-exists-p dir)
+        (progn
+          (message "Updating Emacs configurations...")
+          (cd dir)
+          (shell-command "git pull")
+          (message "Update finished. Restart Emacs to complete the process."))
+      (message "\"%s\" doesn't exist." dir))))
+
+(defun sej/update-dotfiles ()
+  "Update the dotfiles to the latest version."
+  (interactive)
+  (let ((dir (or (getenv "DOTFILES")
+                 (expand-file-name "~/dotfiles/"))))
+    (if (file-exists-p dir)
+        (progn
+          (message "Updating dotfiles...")
+          (cd dir)
+          (shell-command "git pull")
+          (message "Update finished."))
+      (message "\"%s\" doesn't exist." dir))))
+
+(defun sej/update-org ()
+  "Update Org files to the latest version."
+  (interactive)
+  (let ((dir (expand-file-name "~/org/")))
+    (if (file-exists-p dir)
+        (progn
+          (message "Updating org files...")
+          (cd dir)
+          (shell-command "git pull")
+          (message "Update finished."))
+      (message "\"%s\" doesn't exist." dir))))
+
+(defun sej/update-all()
+  "Update dotfiles, org files, Emacs confgiurations and packages, ."
+  (interactive)
+  (sej/update-config)
+  (sej/update-dotfiles)
+  (sej/update-org))
+
+(defun sej/recompile-elpa ()
+  "Recompile packages in elpa directory. Useful if you switch Emacs versions."
+  (interactive)
+  (if (fboundp 'async-byte-recompile-directory)
+      (async-byte-recompile-directory package-user-dir)
+    (byte-recompile-directory package-user-dir 0 t)))
+
+;; Recompile site-lisp directory
+(defun sej/recompile-site-lisp ()
+  "Recompile packages in site-lisp directory."
+  (interactive)
+  (let ((dir (locate-user-emacs-file "site-lisp")))
+    (if (fboundp 'async-byte-recompile-directory)
+        (async-byte-recompile-directory dir)
+      (byte-recompile-directory dir 0 t))))
+
+(defun sej/proxy-http-show ()
+  "Show http/https proxy."
+  (interactive)
+  (if url-proxy-services
+      (message "Current HTTP proxy is \"%s\"" sej-proxy)
+    (message "No proxy")))
+
+(defun sej/proxy-http-enable ()
+  "Enable http/https proxy."
+  (interactive)
+  (setq url-proxy-services `(("http" . ,sej-proxy)
+                             ("https" . ,sej-proxy)
+                             ("no_proxy" . "^\\(localhost\\|192.168.*\\|10.*\\)")))
+  (setq url-http-proxy-basic-auth-storage sej-url-http-proxy-basic-auth-storage)
+  (sej/proxy-http-show))
+
+(defun sej/proxy-http-disable ()
+  "Disable http/https proxy."
+  (interactive)
+  (setq url-proxy-services nil)
+  (setq url-http-proxy-basic-auth-storage nil)
+  (sej/proxy-http-show))
+
+(defun sej/proxy-http-toggle ()
+  "Toggle http/https proxy."
+  (interactive)
+  (if url-proxy-services
+      (sej/proxy-http-disable)
+    (sej/proxy-http-enable)))
+
+(defvar socks-noproxy)
+(defvar socks-server)
+(defun sej/proxy-socks-enable ()
+  "Enable Socks proxy."
+  (interactive)
+  (setq url-gateway-method 'socks)
+  (setq socks-noproxy '("localhost"))
+  (setq socks-server '("Default server" "127.0.0.1" 1086 5))
+  (message "Enable socks proxy."))
+
+(defun sej/proxy-socks-disable ()
+  "Disable Socks proxy."
+  (interactive)
+  (setq url-gateway-method 'native)
+  (setq socks-noproxy nil)
+  (message "Disable socks proxy."))
+
+(setq frame-title-format '("SeJ Emacs - %b"))
+(setq icon-title-format frame-title-format)
+
+(when sys/mac-x-p
+  (use-package ns-auto-titlebar
+    :config
+
+    (add-to-list 'default-frame-alist '(ns-appearance . dark))
+    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+    (add-hook 'after-load-theme-hook
+              (lambda ()
+                (let ((bg (frame-parameter nil 'background-mode)))
+                  (set-frame-parameter nil 'ns-appearance bg)
+                  (setcdr (assq 'ns-appearance default-frame-alist) bg))))
+    (ns-auto-titlebar-mode)))
+
+(defvar after-load-theme-hook nil
+  "Hook run after a color theme is loaded using `load-theme'.")
+(defun run-after-load-theme-hook (&rest _)
+  "Run `after-load-theme-hook'."
+  (run-hooks 'after-load-theme-hook))
+(advice-add #'load-theme :after #'run-after-load-theme-hook)
+
+(defun standardize-theme (theme)
+  "Standardize THEME."
+  (pcase theme
+    ('default 'doom-Iosvkem)
+    ('classic 'doom-molokai)
+    ('doom 'doom-peacock)
+    ('dark 'doom-Iosvkem)
+    ('light 'doom-one-light)
+    ('daylight 'doom-tomorrow-day)
+    (_ theme)))
+
+(defun is-doom-theme-p (theme)
+  "Check whether the THEME is a doom theme. THEME is a symbol."
+  (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
+
+(defun sej/load-theme (theme)
+  "Set color THEME."
+  (interactive
+   (list
+    (intern (completing-read "Load theme: "
+                             '(default classic dark light daylight)))))
+  (let ((theme (standardize-theme theme)))
+    (mapc #'disable-theme custom-enabled-themes)
+    (load-theme theme t)))
+
+(if (is-doom-theme-p sej-theme)
+    (progn
+      (use-package doom-themes
+        :init (sej/load-theme sej-theme)
+        :config
+        ;; Enable flashing mode-line on errors
+        (doom-themes-visual-bell-config)
+        ;; Corrects (and improves) org-mode's native fontification.
+        (doom-themes-org-config))
+
+      ;; Make certain buffers grossly incandescent
+      (use-package solaire-mode
+        :functions persp-load-state-from-file
+        :hook (((after-change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
+               (minibuffer-setup . solaire-mode-in-minibuffer)
+               (after-load-theme . solaire-mode-swap-bg))
+        :config
+        (solaire-mode-swap-bg)
+        (advice-add #'persp-load-state-from-file
+                    :after #'solaire-mode-restore-persp-mode-buffers)))
+  (progn
+    (ignore-errors
+      (sej/load-theme sej-theme))))
+
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
+  (after-save . doom-modeline-update-buffer-file-name)
+  (after-save . doom-modeline-update-buffer-file-state-icon)
+  :init
+  (setq doom-modeline-major-mode-color-icon t)
+  (setq doom-modeline-github nil)
+  (setq doom-modeline-indent-info t)
+  (setq doom-modeline-persp-name t))
+
+(defun mode-line-height ()
+  "Get current height of mode-line."
+  (- (elt (window-pixel-edges) 3)
+     (elt (window-inside-pixel-edges) 3)))
+
+(use-package hide-mode-line
+  :hook (((completion-list-mode
+           completion-in-region-mode
+           neotree-mode
+           treemacs-mode)
+          . hide-mode-line-mode)))
+
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :custom-face
+  ;; Reset colors since they are too dark in `doom-themes'
+  (all-the-icons-silver ((((background dark)) :foreground "#716E68")
+                         (((background light)) :foreground "#716E68")))
+  (all-the-icons-lsilver ((((background dark)) :foreground "#B9B6AA")
+                          (((background light)) :foreground "#7F7869")))
+  (all-the-icons-dsilver ((((background dark)) :foreground "#838484")
+                          (((background light)) :foreground "#838484")))
+  :init
+  (unless (or sys/win32p (member "all-the-icons" (font-family-list)))
+    (all-the-icons-install-fonts t))
+  :config
+  (add-to-list 'all-the-icons-icon-alist
+               '("\\.go$" all-the-icons-fileicon "go" :face all-the-icons-blue))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(go-mode all-the-icons-fileicon "go" :face all-the-icons-blue))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(help-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1 :face all-the-icons-purple))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(Info-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1))
+  (add-to-list 'all-the-icons-icon-alist
+               '("NEWS$" all-the-icons-faicon "newspaper-o" :height 0.9 :v-adjust -0.2))
+  (add-to-list 'all-the-icons-icon-alist
+               '("Cask\\'" all-the-icons-fileicon "elisp" :height 1.0 :face all-the-icons-blue))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(cask-mode all-the-icons-fileicon "elisp" :height 1.0 :face all-the-icons-blue))
+  (add-to-list 'all-the-icons-icon-alist
+               '(".*\\.ipynb\\'" all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(ein:notebooklist-mode all-the-icons-faicon "book" :face all-the-icons-orange))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(ein:notebook-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(ein:notebook-multilang-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
+  (add-to-list 'all-the-icons-icon-alist
+               '("\\.epub\\'" all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(nov-mode all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
+
+(if (fboundp 'display-line-numbers-mode)
+    (use-package display-line-numbers
+      :ensure nil
+      :hook (prog-mode . display-line-numbers-mode))
+  (use-package linum-off
+    :demand
+    :defines linum-format
+    :hook (after-init . global-linum-mode)
+    :config
+    (setq linum-format "%4d ")
+
+    ;; Highlight current line number
+    (use-package hlinum
+      :defines linum-highlight-in-all-buffersp
+      :hook (global-linum-mode . hlinum-activate)
+      :custom-face (linum-highlight-face
+                    ((t `(
+                          :inherit default
+                          :background nil
+                          :foreground nil
+                          ))))
+      :init
+      (setq linum-highlight-in-all-buffersp t))))
+
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+(setq mouse-wheel-progressive-speed nil)
+(setq scroll-step 1
+      scroll-margin 0
+      scroll-conservatively 100000)
+
+(use-package time
+  :ensure nil
+  :unless (display-graphic-p)
+  :hook (after-init . display-time-mode)
+  :init
+  (setq display-time-24hr-format t)
+  (setq display-time-day-and-date t))
+
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-echo-area-message t)
+
+(size-indication-mode 1)
+(blink-cursor-mode -1)
+(setq track-eol t)                      ; Keep cursor at end of lines. Require line-move-visual is nil.
+(setq line-move-visual nil)
+(setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
+
+;; Don't open a file in a new frame
+(when (boundp 'ns-pop-up-frames)
+  (setq ns-pop-up-frames nil))
+
+;; Don't use GTK+ tooltip
+(when (boundp 'x-gtk-use-system-tooltips)
+  (setq x-gtk-use-system-tooltips nil))
+
+(when sys/mac-x-p
+  (setq ns-use-native-fullscreen nil))
+(bind-keys ("C-<f11>" . toggle-frame-fullscreen)
+           ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
+           ("S-s-<return>" . toggle-frame-fullscreen)
+           ("M-S-<return>" . toggle-frame-fullscreen))
