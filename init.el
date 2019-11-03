@@ -169,7 +169,7 @@
 
 ;; Set-up the user interface
 ;; (require 'init-ui) ; org-tangle
-(require 'init-edit)
+;; (require 'init-edit) ; org-tangle
 (require 'init-highlight)
 
 (require 'init-window)
