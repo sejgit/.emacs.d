@@ -1282,7 +1282,8 @@
        (setq x-gtk-use-system-tooltips nil))
    #+END_SRC
 
-** fullscreen
+** frames
+*** fullscreen
    - WORKAROUND: To address blank screen issue with child-frame in fullscreen
    #+BEGIN_SRC emacs-lisp
      (when sys/mac-x-p
@@ -1292,6 +1293,67 @@
                 ("S-s-<return>" . toggle-frame-fullscreen)
                 ("M-S-<return>" . toggle-frame-fullscreen))
    #+END_SRC
+** buffers & windows
+*** autorevert
+    - Automatically reload files when modified by external program if not modified
+    #+BEGIN_SRC emacs-lisp
+      (use-package autorevert
+        :ensure nil
+        :diminish
+        :hook (sej/after-init . global-auto-revert-mode))
+    #+END_SRC
+
+*** buffer-move
+    - buffer-move to swap buffers between windows
+#+BEGIN_SRC emacs-lisp
+      (use-package buffer-move)
+#+END_SRC
+
+*** ace-window
+    - for selecting a window to switch to
+    #+BEGIN_SRC emacs-lisp
+      (use-package ace-window
+        :bind (:map sej-mode-map
+                    ("M-o" . ace-window)
+                    ("C-x M-o" . ace-swap-window))
+        :config
+        (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+    #+END_SRC
+
+** scratch buffer
+*** scratch buffer set-up
+    - initial message
+    - bury don't kill scratch
+    #+BEGIN_SRC emacs-lisp
+      (setq initial-scratch-message "")
+      (defadvice kill-buffer (around kill-buffer-around-advice activate)
+        "Bury the *scratch* buffer, but never kill it."
+        (let ((buffer-to-kill (ad-get-arg 0)))
+          (if (equal buffer-to-kill "*scratch*")
+              (bury-buffer)
+            ad-do-it)))
+    #+END_SRC
+
+*** sej/create-scratch-buffer
+    - as name suggests
+      defined as C-c b in above keymappings
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/create-scratch-buffer nil
+        "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
+        (interactive)
+        (let ((n 0)
+              bufname)
+          (while (progn
+                   (setq bufname (concat "*scratch"
+                                         (if (= n 0) "" (int-to-string n))
+                                         "*"))
+                   (setq n (1+ n))
+                   (get-buffer bufname)))
+          (switch-to-buffer (get-buffer-create bufname))
+          (emacs-lisp-mode)
+          ))
+      (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
+    #+END_SRC
 ** indentation
 *** indentation settings
     #+BEGIN_SRC emacs-lisp
@@ -1374,77 +1436,6 @@
         (indent-region (point-min) (point-max)))
     #+END_SRC
 
-** url actions
-*** ace-link
-    - Quickly follow links
-    #+BEGIN_SRC emacs-lisp
-      (use-package ace-link
-        :bind (:map sej-mode-map
-                    ("H-o" . ace-link-addr))
-        ;; :hook (sej/after-init . ace-link-setup-default)
-        )
-    #+END_SRC
-
-*** browse-url
-    - Pass a URL to a WWW browser
-    #+BEGIN_SRC emacs-lisp
-      (use-package browse-url
-        :ensure nil
-        :defines dired-mode-map
-        :bind (:map sej-mode-map
-                    ("C-c C-z ." . browse-url-at-point)
-                    ("C-c C-z b" . browse-url-of-buffer)
-                    ("C-c C-z r" . browse-url-of-region)
-                    ("C-c C-z u" . browse-url)
-                    ("C-c C-z v" . browse-url-of-file))
-        :init
-        (with-eval-after-load 'dired
-          (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
-    #+END_SRC
-
-*** goto-addr
-    - Click to browse URL or to send to e-mail address
-    #+BEGIN_SRC emacs-lisp
-      (use-package goto-addr
-        :ensure nil
-        :hook ((text-mode . goto-address-mode)
-               (prog-mode . goto-address-prog-mode)))
-    #+END_SRC
-
-** scratch buffer
-*** scratch buffer set-up
-    - initial message
-    - bury don't kill scratch
-    #+BEGIN_SRC emacs-lisp
-      (setq initial-scratch-message "")
-      (defadvice kill-buffer (around kill-buffer-around-advice activate)
-        "Bury the *scratch* buffer, but never kill it."
-        (let ((buffer-to-kill (ad-get-arg 0)))
-          (if (equal buffer-to-kill "*scratch*")
-              (bury-buffer)
-            ad-do-it)))
-    #+END_SRC
-
-*** sej/create-scratch-buffer
-    - as name suggests
-      defined as C-c b in above keymappings
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/create-scratch-buffer nil
-        "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
-        (interactive)
-        (let ((n 0)
-              bufname)
-          (while (progn
-                   (setq bufname (concat "*scratch"
-                                         (if (= n 0) "" (int-to-string n))
-                                         "*"))
-                   (setq n (1+ n))
-                   (get-buffer bufname)))
-          (switch-to-buffer (get-buffer-create bufname))
-          (emacs-lisp-mode)
-          ))
-      (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-    #+END_SRC
 ** history packages
 *** saveplace
     - wait until sej/after-init
@@ -1494,7 +1485,226 @@
               savehist-autosave-interval 300))
     #+END_SRC
 
-** TBD from init-edit.el
+** movement
+*** crux
+    - smart moving to beginning of line or to beginning of text on line
+    #+BEGIN_SRC emacs-lisp
+      (use-package crux
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c o" . crux-open-with)
+                    ("C-k" . crux-smart-kill-line)
+                    ("C-S-RET" . crux-smart-open-line-above)
+                    ([(shift return)] . crux-smart-open-line)
+                    ("C-c n" . crux-cleanup-buffer-or-region)
+                    ("C-c u" . crux-view-url)
+                    ("C-c C-d" . crux-delete-file-and-buffer)
+                    ("s-d" . crux-duplicate-current-line-or-region)
+                    ("C-c C-k" . crux-duplicate-current-line-or-region)
+                    ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+                    ([remap kill-whole-line] . crux-kill-whole-line)
+                    ("C-<backspace>" . crux-kill-line-backwards))
+        :config
+        (crux-with-region-or-buffer indent-region)
+        (crux-with-region-or-buffer untabify)
+        (crux-with-region-or-line comment-or-uncomment-region)
+        (crux-with-region-or-point-to-eol kill-ring-save)
+        (crux-reopen-as-root-mode))
+    #+END_SRC
+
+*** mwim
+    - better than crux for C-e mwim-end
+    #+BEGIN_SRC emacs-lisp
+      (use-package mwim
+        :bind (:map sej-mode-map
+                    ("C-a" . mwim-beginning)
+                    ("C-e" . mwim-end))) ; better than crux
+    #+END_SRC
+
+*** avy
+    - Jump to things in Emacs tree-style
+#+BEGIN_SRC emacs-lisp
+      (use-package avy
+        :bind (:map sej-mode-map
+                    ("C-'" . avy-goto-char-2)
+                    ("C-:" . avy-goto-char)
+                    ("M-g f" . avy-goto-line)
+                    ("M-g w" . avy-goto-word-1)
+                    ;; ("C-<return>" . avy-goto-word-1)
+                    ("s-'" . avy-goto-word-0)
+                    ("M-g e" . avy-goto-word-0))
+        ;; :hook (after-init . avy-setup-default)
+        :config (setq avy-background t))
+#+END_SRC
+
+*** goto-chg
+    - goto the last changes made in buffer
+#+BEGIN_SRC emacs-lisp
+  (use-package goto-chg
+    :defines sej-mode-map
+    :bind ("C-," . goto-last-change))
+#+END_SRC
+
+*** beginend
+    - smart moves redefining M-< and M-> for some modes
+#+BEGIN_SRC emacs-lisp
+  (use-package beginend               ; smart M-< & M->
+    :defer 2
+    :config
+    (beginend-global-mode)
+    )
+#+END_SRC
+
+*** subword
+    - Handling capitalized subwords in a nomenclature
+#+BEGIN_SRC emacs-lisp
+  (use-package subword
+    :ensure nil
+    :diminish
+    :hook ((prog-mode . subword-mode)
+           (minibuffer-setup . subword-mode))
+    :config
+    ;; this makes forward-word & backward-word understand snake & camel case
+    (setq c-subword-mode t)
+    (global-subword-mode t))
+#+END_SRC
+
+*** string inflection
+    - underscore -> upcase -> camelcase conversion
+    #+BEGIN_SRC emacs-lisp
+      (use-package string-inflection
+        :bind (:map sej-mode-map
+                    ("M-u" . string-inflection-all-cycle)))
+#+END_SRC
+
+** regions
+*** avy-zap
+    - Kill text between the point and the character CHAR
+#+BEGIN_SRC emacs-lisp
+      (use-package avy-zap
+        :bind (:map sej-mode-map
+                    ("M-z" . avy-zap-to-char-dwim)
+                    ("M-Z" . avy-zap-up-to-char-dwim)))
+#+END_SRC
+
+*** delsel
+    - Do not delete selection if you insert
+    #+BEGIN_SRC emacs-lisp
+      (use-package delsel
+        :ensure nil
+        :config (setq-default delete-selection-mode nil))
+    #+END_SRC
+
+*** rect
+    - Rectangle
+    #+BEGIN_SRC emacs-lisp
+      (use-package rect
+        :ensure nil)
+    #+END_SRC
+
+*** drag-stuff
+    - Drag stuff (lines, words, region, etc...) around
+#+BEGIN_SRC emacs-lisp
+  (use-package drag-stuff
+    :diminish
+    :bind (:map sej-mode-map
+                ("M-<down>" . drag-stuff-down)
+                ("H-n" . drag-stuff-down)
+                ("M-<up>" . drag-stuff-up)
+                ("H-p" . drag-stuff-up))
+    ;; :hook (after-init . drag-stuff-global-mode)
+    :config
+    (add-to-list 'drag-stuff-except-modes 'org-mode)
+    ;; (drag-stuff-define-keys)
+    )
+#+END_SRC
+
+*** expand-region
+    - Increase selected region by semantic units
+#+BEGIN_SRC emacs-lisp
+  (use-package expand-region
+    :bind (:map sej-mode-map
+                ("C-=" . er/expand-region)))
+#+END_SRC
+
+*** smart-region
+    - Smartly select region, rectangle, multi cursors
+#+BEGIN_SRC emacs-lisp
+  (use-package smart-region
+    :bind ([remap set-mark-command] . smart-region)
+    :config (smart-region-on))
+#+END_SRC
+
+*** hungary-delete
+    - Hungry deletion
+#+BEGIN_SRC emacs-lisp
+  (use-package hungry-delete
+    :diminish
+    :hook (sej/after-init . global-hungry-delete-mode)
+    :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
+#+END_SRC
+
+** search
+*** re-builder
+    - set built in regex helper to string format
+    #+BEGIN_SRC emacs-lisp
+      (use-package re-builder
+        :ensure nil
+        :config (setq reb-re-syntax 'string))
+    #+END_SRC
+
+*** anzu
+    - Display incremental search stats in the modeline.
+#+BEGIN_SRC emacs-lisp
+  (use-package anzu
+    :diminish
+    :bind (([remap query-replace] . anzu-query-replace)
+           ([remap query-replace-regexp] . anzu-query-replace-regexp)
+           :map isearch-mode-map
+           ([remap isearch-query-replace] . anzu-isearch-query-replace)
+           ([remap isearch-query-replace-regexp] . anzu-isearch-query-replace-regexp))
+    :hook (after-init . global-anzu-mode)
+    )
+#+END_SRC
+
+** url actions
+*** ace-link
+    - Quickly follow links
+    #+BEGIN_SRC emacs-lisp
+      (use-package ace-link
+        :bind (:map sej-mode-map
+                    ("H-o" . ace-link-addr))
+        ;; :hook (sej/after-init . ace-link-setup-default)
+        )
+    #+END_SRC
+
+*** browse-url
+    - Pass a URL to a WWW browser
+    #+BEGIN_SRC emacs-lisp
+      (use-package browse-url
+        :ensure nil
+        :defines dired-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c C-z ." . browse-url-at-point)
+                    ("C-c C-z b" . browse-url-of-buffer)
+                    ("C-c C-z r" . browse-url-of-region)
+                    ("C-c C-z u" . browse-url)
+                    ("C-c C-z v" . browse-url-of-file))
+        :init
+        (with-eval-after-load 'dired
+          (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
+    #+END_SRC
+
+*** goto-addr
+    - Click to browse URL or to send to e-mail address
+    #+BEGIN_SRC emacs-lisp
+      (use-package goto-addr
+        :ensure nil
+        :hook ((text-mode . goto-address-mode)
+               (prog-mode . goto-address-prog-mode)))
+    #+END_SRC
+
+** un-catagorized
 *** general edit settings
     #+BEGIN_SRC emacs-lisp
       ;; Set the default formatting styles for various C based modes
@@ -1626,305 +1836,153 @@
       (setq sentence-end-double-space nil)
     #+END_SRC
 
-*** delsel
-    - Do not delete selection if you insert
-    #+BEGIN_SRC emacs-lisp
-      (use-package delsel
-        :ensure nil
-        :config (setq-default delete-selection-mode nil))
-    #+END_SRC
-
-*** rect
-    - Rectangle
-    #+BEGIN_SRC emacs-lisp
-      (use-package rect
-        :ensure nil)
-    #+END_SRC
-
-*** re-builder
-    - set built in regex helper to string format
-    #+BEGIN_SRC emacs-lisp
-      (use-package re-builder
-        :ensure nil
-        :config (setq reb-re-syntax 'string))
-    #+END_SRC
-
-*** autorevert
-    - Automatically reload files when modified by external program if not modified
-    #+BEGIN_SRC emacs-lisp
-      (use-package autorevert
-        :ensure nil
-        :diminish
-        :hook (sej/after-init . global-auto-revert-mode))
-    #+END_SRC
-
-*** ace-window
-    - for selecting a window to switch to
-    #+BEGIN_SRC emacs-lisp
-      (use-package ace-window
-        :bind (:map sej-mode-map
-                    ("M-o" . ace-window)
-                    ("C-x M-o" . ace-swap-window))
-        :config
-        (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-    #+END_SRC
-
-*** crux
-    - smart moving to beginning of line or to beginning of text on line
-    #+BEGIN_SRC emacs-lisp
-      (use-package crux
-        :defines sej-mode-map
-        :bind (:map sej-mode-map
-                    ("C-c o" . crux-open-with)
-                    ("C-k" . crux-smart-kill-line)
-                    ("C-S-RET" . crux-smart-open-line-above)
-                    ([(shift return)] . crux-smart-open-line)
-                    ("C-c n" . crux-cleanup-buffer-or-region)
-                    ("C-c u" . crux-view-url)
-                    ("C-c C-d" . crux-delete-file-and-buffer)
-                    ("s-d" . crux-duplicate-current-line-or-region)
-                    ("C-c C-k" . crux-duplicate-current-line-or-region)
-                    ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
-                    ([remap kill-whole-line] . crux-kill-whole-line)
-                    ("C-<backspace>" . crux-kill-line-backwards))
-        :config
-        (crux-with-region-or-buffer indent-region)
-        (crux-with-region-or-buffer untabify)
-        (crux-with-region-or-line comment-or-uncomment-region)
-        (crux-with-region-or-point-to-eol kill-ring-save)
-        (crux-reopen-as-root-mode))
-    #+END_SRC
-
-*** mwim
-    - better than crux for C-e mwim-end
-    #+BEGIN_SRC emacs-lisp
-      (use-package mwim
-        :bind (:map sej-mode-map
-                    ("C-a" . mwim-beginning)
-                    ("C-e" . mwim-end))) ; better than crux
-    #+END_SRC
-
-*** string inflection
-    - underscore -> upcase -> camelcase conversion
-    #+BEGIN_SRC emacs-lisp
-      (use-package string-inflection
-        :bind (:map sej-mode-map
-                    ("M-u" . string-inflection-all-cycle)))
+*** undo-tree
+    - Treat undo history as a tree
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :diminish
+    :defer 10
+    :config (global-undo-tree-mode)
+    :bind (:map sej-mode-map
+                ("C-/" . undo-tree-undo)
+                ("C-?" . undo-tree-redo)
+                ("C-x u" . undo-tree-visualize)
+                ("C-x r u" . undo-tree-save-state-to-register)
+                ("C-x r U" . undo-tree-save-state-from-register))
+    :init (setq undo-tree-visualizer-timestamps t
+                undo-tree-visualizer-diff t
+                undo-tree-enable-undo-in-region nil
+                undo-tree-auto-save-history nil
+                undo-tree-history-directory-alist
+                `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
 #+END_SRC
 
-*** buffer-move
-    - buffer-move to swap buffers between windows
+*** iedit
+    - Edit multiple regions in the same way simultaneously
 #+BEGIN_SRC emacs-lisp
-      (use-package buffer-move)
+  (use-package iedit
+    :defines desktop-minor-mode-table
+    :bind ((:map sej-mode-map
+                 ("A-;" . iedit-mode)
+                 ("C-x r RET" . iedit-rectangle-mode))
+           (:map isearch-mode-map ("A-;" . iedit-mode-from-isearch))
+           (:map esc-map ("A-;" . iedit-execute-last-modification))
+           (:map help-map ("A-;" . iedit-mode-toggle-on-function)))
+    :config
+    ;; Avoid restoring `iedit-mode'
+    (with-eval-after-load 'desktop
+      (add-to-list 'desktop-minor-mode-table
+                   '(iedit-mode nil))))
 #+END_SRC
 
-*** avy
-    - Jump to things in Emacs tree-style
+*** multiple cursors
+    - Multiple cursors
 #+BEGIN_SRC emacs-lisp
-      (use-package avy
-        :bind (:map sej-mode-map
-                    ("C-'" . avy-goto-char-2)
-                    ("C-:" . avy-goto-char)
-                    ("M-g f" . avy-goto-line)
-                    ("M-g w" . avy-goto-word-1)
-                    ;; ("C-<return>" . avy-goto-word-1)
-                    ("s-'" . avy-goto-word-0)
-                    ("M-g e" . avy-goto-word-0))
-        ;; :hook (after-init . avy-setup-default)
-        :config (setq avy-background t))
+  (use-package multiple-cursors
+    :bind ((:map sej-mode-map
+                 ("C-S-c C-S-c"   . mc/edit-lines)
+                 ("C->"           . mc/mark-next-like-this)
+                 ("C-<"           . mc/mark-previous-like-this)
+                 ("C-c C-<"       . mc/mark-all-like-this)
+                 ("C-M->"         . mc/skip-to-next-like-this)
+                 ("C-M-<"         . mc/skip-to-previous-like-this)
+                 ("s-<mouse-1>"   . mc/add-cursor-on-click)
+                 ("C-S-<mouse-1>" . mc/add-cursor-on-click))
+           (:map mc/keymap
+                 ("C-|" . mc/vertical-align-with-space))))
+#+END_SRC
 
-      ;; Kill text between the point and the character CHAR
-      (use-package avy-zap
-        :bind (:map sej-mode-map
-                    ("M-z" . avy-zap-to-char-dwim)
-                    ("M-Z" . avy-zap-up-to-char-dwim)))
+*** hydra
+    - Make bindings that stick around
+#+BEGIN_SRC emacs-lisp
+  (use-package hydra)
+#+END_SRC
 
-      ;; Display incremental search stats in the modeline.
-      (use-package anzu
-        :diminish
-        :bind (([remap query-replace] . anzu-query-replace)
-               ([remap query-replace-regexp] . anzu-query-replace-regexp)
-               :map isearch-mode-map
-               ([remap isearch-query-replace] . anzu-isearch-query-replace)
-               ([remap isearch-query-replace-regexp] . anzu-isearch-query-replace-regexp))
-        ;; :hook (after-init . global-anzu-mode)
-        )
+*** imenu
+    - Framework for mode-specific buffer indexes
+#+BEGIN_SRC emacs-lisp
+  (use-package imenu
+    :ensure nil
+    :bind (:map sej-mode-map
+                ("C-." . imenu)))
+#+END_SRC
 
-      ;; An all-in-one comment command to rule them all
-      (use-package comment-dwim-2
-        :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+*** origami
+    - Flexible text folding
+#+BEGIN_SRC emacs-lisp
+  (use-package origami
+    :hook (prog-mode . origami-mode)
+    :init (setq origami-show-fold-header t)
+    :bind (:map origami-mode-map
+                ("A-`" . hydra-origami/body))
+    ;; DONE conflict with sej/push-mark-no-activate
+    :config
+    (face-spec-reset-face 'origami-fold-header-face)
 
-      ;; Drag stuff (lines, words, region, etc...) around
-      (use-package drag-stuff
-        :diminish
-        :bind (:map sej-mode-map
-                    ("M-<down>" . drag-stuff-down)
-                    ("H-n" . drag-stuff-down)
-                    ("M-<up>" . drag-stuff-up)
-                    ("H-p" . drag-stuff-up))
-        ;; :hook (after-init . drag-stuff-global-mode)
-        :config
-        (add-to-list 'drag-stuff-except-modes 'org-mode)
-        ;; (drag-stuff-define-keys)
-        )
+    (when sej-lsp
+      ;; Support LSP
+      (use-package lsp-origami
+        :hook (origami-mode . (lambda ()
+                                (if lsp-mode
+                                    (lsp-origami-mode))))))
 
-      ;; A saner ediff
-      (use-package ediff
-        :ensure nil
-        :hook(;; show org ediffs unfolded
-              (ediff-prepare-buffer . outline-show-all)
-              ;; restore window layout when done
-              (ediff-quit . winner-undo))
-        :config
-        (setq ediff-diff-options "-w")
-        (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-        (setq ediff-split-window-function 'split-window-horizontally)
-        (setq ediff-merge-split-window-function 'split-window-horizontally))
-
-      ;; Automatic parenthesis pairing
-      (use-package elec-pair
-        :ensure nil
-        :hook (prog-mode . electric-pair-mode)
-        :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
-        :config
-        (electric-layout-mode t)
-        (electric-indent-mode t)
-        ;; Ignore electric indentation for python and yaml
-        (defun electric-indent-ignore-mode (char)
-          "Ignore electric indentation for 'python-mode'.  CHAR is input character."
-          (if (or (equal major-mode 'python-mode)
-                  (equal major-mode 'yaml-mode))
-              'no-indent
-            nil))
-        (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
-
-
-      ;; Edit multiple regions in the same way simultaneously
-      (use-package iedit
-        :defines desktop-minor-mode-table
-        :bind ((:map sej-mode-map
-                     ("A-;" . iedit-mode)
-                     ("C-x r RET" . iedit-rectangle-mode))
-               (:map isearch-mode-map ("A-;" . iedit-mode-from-isearch))
-               (:map esc-map ("A-;" . iedit-execute-last-modification))
-               (:map help-map ("A-;" . iedit-mode-toggle-on-function)))
-        :config
-        ;; Avoid restoring `iedit-mode'
-        (with-eval-after-load 'desktop
-          (add-to-list 'desktop-minor-mode-table
-                       '(iedit-mode nil))))
-
-      ;; Increase selected region by semantic units
-      (use-package expand-region
-        :bind (:map sej-mode-map
-                    ("C-=" . er/expand-region)))
-
-      ;; Multiple cursors
-      (use-package multiple-cursors
-        :bind ((:map sej-mode-map
-                     ("C-S-c C-S-c"   . mc/edit-lines)
-                     ("C->"           . mc/mark-next-like-this)
-                     ("C-<"           . mc/mark-previous-like-this)
-                     ("C-c C-<"       . mc/mark-all-like-this)
-                     ("C-M->"         . mc/skip-to-next-like-this)
-                     ("C-M-<"         . mc/skip-to-previous-like-this)
-                     ("s-<mouse-1>"   . mc/add-cursor-on-click)
-                     ("C-S-<mouse-1>" . mc/add-cursor-on-click))
-               (:map mc/keymap
-                     ("C-|" . mc/vertical-align-with-space))))
-
-      ;; Smartly select region, rectangle, multi cursors
-      (use-package smart-region
-        :bind ([remap set-mark-command] . smart-region)
-        :config (smart-region-on))
-
-      ;; Hungry deletion
-      (use-package hungry-delete
-        :diminish
-        :hook (sej/after-init . global-hungry-delete-mode)
-        :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
-
-      ;; Make bindings that stick around
-      (use-package hydra)
-
-      ;; Framework for mode-specific buffer indexes
-      (use-package imenu
-        :ensure nil
-        :bind (:map sej-mode-map
-                    ("C-." . imenu)))
-
-      ;; Treat undo history as a tree
-      (use-package undo-tree
-        :diminish
-        :defer 10
-        :config (global-undo-tree-mode)
-        :bind (:map sej-mode-map
-                    ("C-/" . undo-tree-undo)
-                    ("C-?" . undo-tree-redo)
-                    ("C-x u" . undo-tree-visualize)
-                    ("C-x r u" . undo-tree-save-state-to-register)
-                    ("C-x r U" . undo-tree-save-state-from-register))
-        :init (setq undo-tree-visualizer-timestamps t
-                    undo-tree-visualizer-diff t
-                    undo-tree-enable-undo-in-region nil
-                    undo-tree-auto-save-history nil
-                    undo-tree-history-directory-alist
-                    `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
-
-      (use-package goto-chg
-        :defines sej-mode-map
-        :bind ("C-," . goto-last-change))
-
-      ;; redefine M-< and M-> for some modes
-      (use-package beginend               ; smart M-< & M->
-        :defer 2
-        :config
-        (beginend-global-mode)
-        )
-
-      ;; Handling capitalized subwords in a nomenclature
-      (use-package subword
-        :ensure nil
-        :diminish
-        :hook ((prog-mode . subword-mode)
-               (minibuffer-setup . subword-mode))
-        :config
-        ;; this makes forward-word & backward-word understand snake & camel case
-        (setq c-subword-mode t)
-        (global-subword-mode t))
-
-      ;; Flexible text folding
-      (use-package origami
-        :hook (prog-mode . origami-mode)
-        :init (setq origami-show-fold-header t)
-        :bind (:map origami-mode-map
-                    ("A-`" . hydra-origami/body))
-        ;; DONE conflict with sej/push-mark-no-activate
-        :config
-        (face-spec-reset-face 'origami-fold-header-face)
-
-        (when sej-lsp
-          ;; Support LSP
-          (use-package lsp-origami
-            :hook (origami-mode . (lambda ()
-                                    (if lsp-mode
-                                        (lsp-origami-mode))))))
-
-        (defhydra hydra-origami (:color blue :hint none)
-          "
-      ^Node^                     ^Other^
-      ^^─────────────────────────^^────────────
-      _:_: toggle recursively    _u_: undo
-      _a_: toggle all            _r_: redo
-      _t_: toggle current        _R_: reset
-      _o_: only show current
+    (defhydra hydra-origami (:color blue :hint none)
       "
-          (":" origami-recursively-toggle-node)
-          ("a" origami-toggle-all-nodes)
-          ("t" origami-toggle-node)
-          ("o" origami-show-only-node)
-          ("u" origami-undo)
-          ("r" origami-redo)
-          ("R" origami-reset)))
+  ^Node^                     ^Other^
+  ^^─────────────────────────^^────────────
+  _:_: toggle recursively    _u_: undo
+  _a_: toggle all            _r_: redo
+  _t_: toggle current        _R_: reset
+  _o_: only show current
+  "
+      (":" origami-recursively-toggle-node)
+      ("a" origami-toggle-all-nodes)
+      ("t" origami-toggle-node)
+      ("o" origami-show-only-node)
+      ("u" origami-undo)
+      ("r" origami-redo)
+      ("R" origami-reset)))
+#+END_SRC
 
-    #+END_SRC
+*** comment-dwim-2
+    - An all-in-one comment command to rule them all
+#+BEGIN_SRC emacs-lisp
+  (use-package comment-dwim-2
+    :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+#+END_SRC
+
+*** ediff
+    A saner ediff
+#+BEGIN_SRC emacs-lisp
+  (use-package ediff
+    :ensure nil
+    :hook(;; show org ediffs unfolded
+          (ediff-prepare-buffer . outline-show-all)
+          ;; restore window layout when done
+          (ediff-quit . winner-undo))
+    :config
+    (setq ediff-diff-options "-w")
+    (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+    (setq ediff-split-window-function 'split-window-horizontally)
+    (setq ediff-merge-split-window-function 'split-window-horizontally))
+#+END_SRC
+
+*** elec-pair
+    - Automatic parenthesis pairing
+#+BEGIN_SRC emacs-lisp
+  (use-package elec-pair
+    :ensure nil
+    :hook (prog-mode . electric-pair-mode)
+    :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+    :config
+    (electric-layout-mode t)
+    (electric-indent-mode t)
+    ;; Ignore electric indentation for python and yaml
+    (defun electric-indent-ignore-mode (char)
+      "Ignore electric indentation for 'python-mode'.  CHAR is input character."
+      (if (or (equal major-mode 'python-mode)
+              (equal major-mode 'yaml-mode))
+          'no-indent
+        nil))
+    (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+#+END_SRC
