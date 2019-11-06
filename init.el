@@ -170,9 +170,9 @@
 ;; Set-up the user interface
 ;; (require 'init-ui) ; org-tangle
 ;; (require 'init-edit) ; org-tangle
-(require 'init-highlight)
+;; (require 'init-highlight) ; org-tangle
 
-(require 'init-window)
+(require 'init-window)                  ; org-tangle
 (require 'init-frame-cmds)
 
 (require 'init-ivy)
