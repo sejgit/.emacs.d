@@ -578,20 +578,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
         (process-send-eof proc))))
 
   (setq interprogram-cut-function 'sej/paste-to-osx)
-  (setq interprogram-paste-function 'sej/copy-from-osx)
-
-  ;; from jcs (Irreal) blog to copy url from safari and paste at point
-  (defun sej/insert-url ()
-    "Insert URL of current browser page into Emacs buffer."
-    (interactive)
-    (insert (sej/retrieve-url)))
-
-  ;; from jcs (Irreal) blog helper function from above
-  (defun sej/retrieve-url ()
-    "Retrieve the URL of the current Safari page as a string."
-    (org-trim (shell-command-to-string
-               "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
-  )
+  (setq interprogram-paste-function 'sej/copy-from-osx))
 
 (defun sej/sudo-edit (&optional arg)
   "Edit currently visited file as root.
@@ -660,43 +647,6 @@ Otherwise, return nil."
 output as per `sej/exec'. Otherwise, return nil."
   (interactive)
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
-
-(defun sej/dos2unix ()
-  "Convert the current buffer to UNIX file format."
-  (interactive)
-  (set-buffer-file-coding-system 'undecided-unix nil))
-
-(defun sej/unix2dos ()
-  "Convert the current buffer to DOS file format."
-  (interactive)
-  (set-buffer-file-coding-system 'undecided-dos nil))
-
-(defun sej/save-buffer-as-utf8 (coding-system)
-  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-  (interactive "zCoding system for visited file (default nil):")
-  (revert-buffer-with-coding-system coding-system)
-  (set-buffer-file-coding-system 'utf-8)
-  (save-buffer))
-
-(defun sej/revert-this-buffer ()
-  "Revert the current buffer."
-  (interactive)
-  (unless (minibuffer-window-active-p (selected-window))
-    (text-scale-increase 0)
-    (widen)
-    (if (and (fboundp 'fancy-narrow-active-p)
-             (fancy-narrow-active-p))
-        (fancy-widen))
-    (revert-buffer t t)
-    (message "Reverted this buffer.")))
-(bind-key "<f5>" #'sej/revert-this-buffer)
-(if sys/mac-x-p
-    (bind-key "s-r" #'sej/revert-this-buffer))
-
-(defun browse-homepage ()
-  "Browse the Github page of SeJ Emacs."
-  (interactive)
-  (browse-url sejgit-homepage))
 
 (defun sej/update-config ()
   "Update git tracked Emacs configurations to the latest version."
@@ -805,22 +755,6 @@ output as per `sej/exec'. Otherwise, return nil."
   (setq socks-noproxy nil)
   (message "Disable socks proxy."))
 
-(setq frame-title-format '("SeJ Emacs - %b"))
-(setq icon-title-format frame-title-format)
-
-(when sys/mac-x-p
-  (use-package ns-auto-titlebar
-    :config
-
-    (add-to-list 'default-frame-alist '(ns-appearance . dark))
-    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (let ((bg (frame-parameter nil 'background-mode)))
-                  (set-frame-parameter nil 'ns-appearance bg)
-                  (setcdr (assq 'ns-appearance default-frame-alist) bg))))
-    (ns-auto-titlebar-mode)))
-
 (defvar after-load-theme-hook nil
   "Hook run after a color theme is loaded using `load-theme'.")
 (defun run-after-load-theme-hook (&rest _)
@@ -839,10 +773,6 @@ output as per `sej/exec'. Otherwise, return nil."
     ('daylight 'doom-tomorrow-day)
     (_ theme)))
 
-(defun is-doom-theme-p (theme)
-  "Check whether the THEME is a doom theme. THEME is a symbol."
-  (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
-
 (defun sej/load-theme (theme)
   "Set color THEME."
   (interactive
@@ -852,6 +782,10 @@ output as per `sej/exec'. Otherwise, return nil."
   (let ((theme (standardize-theme theme)))
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme t)))
+
+(defun is-doom-theme-p (theme)
+  "Check whether the THEME is a doom theme. THEME is a symbol."
+  (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
 
 (if (is-doom-theme-p sej-theme)
     (progn
@@ -876,6 +810,110 @@ output as per `sej/exec'. Otherwise, return nil."
   (progn
     (ignore-errors
       (sej/load-theme sej-theme))))
+
+(setq frame-title-format '("SeJ Emacs - %b"))
+(setq icon-title-format frame-title-format)
+
+(when sys/mac-x-p
+  (use-package ns-auto-titlebar
+    :config
+
+    (add-to-list 'default-frame-alist '(ns-appearance . dark))
+    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+    (add-hook 'after-load-theme-hook
+              (lambda ()
+                (let ((bg (frame-parameter nil 'background-mode)))
+                  (set-frame-parameter nil 'ns-appearance bg)
+                  (setcdr (assq 'ns-appearance default-frame-alist) bg))))
+    (ns-auto-titlebar-mode)))
+
+(when sys/mac-x-p
+  (setq ns-use-native-fullscreen nil))
+(bind-keys ("C-<f11>" . toggle-frame-fullscreen)
+           ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
+           ("S-s-<return>" . toggle-frame-fullscreen)
+           ("M-S-<return>" . toggle-frame-fullscreen))
+
+(defun sej/dos2unix ()
+  "Convert the current buffer to UNIX file format."
+  (interactive)
+  (set-buffer-file-coding-system 'undecided-unix nil))
+
+(defun sej/unix2dos ()
+  "Convert the current buffer to DOS file format."
+  (interactive)
+  (set-buffer-file-coding-system 'undecided-dos nil))
+
+(defun sej/save-buffer-as-utf8 (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (revert-buffer-with-coding-system coding-system)
+  (set-buffer-file-coding-system 'utf-8)
+  (save-buffer))
+
+(defun sej/revert-this-buffer ()
+  "Revert the current buffer."
+  (interactive)
+  (unless (minibuffer-window-active-p (selected-window))
+    (text-scale-increase 0)
+    (widen)
+    (if (and (fboundp 'fancy-narrow-active-p)
+             (fancy-narrow-active-p))
+        (fancy-widen))
+    (revert-buffer t t)
+    (message "Reverted this buffer.")))
+(bind-key "<f5>" #'sej/revert-this-buffer)
+(if sys/mac-x-p
+    (bind-key "s-r" #'sej/revert-this-buffer))
+
+(defun browse-homepage ()
+  "Browse the Github page of SeJ Emacs."
+  (interactive)
+  (browse-url sejgit-homepage))
+
+(defun sej/quit-and-kill-auxiliary-windows ()
+  "Kill buffer and its window on quitting"
+  (local-set-key (kbd "q") 'kill-buffer-and-window))
+(add-hook 'special-mode 'sej/quit-and-kill-auxiliary-windows)
+(add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
+
+(use-package autorevert
+  :ensure nil
+  :diminish
+  :hook (sej/after-init . global-auto-revert-mode))
+
+(use-package buffer-move)
+
+(setq initial-scratch-message "")
+(defadvice kill-buffer (around kill-buffer-around-advice activate)
+  "Bury the *scratch* buffer, but never kill it."
+  (let ((buffer-to-kill (ad-get-arg 0)))
+    (if (equal buffer-to-kill "*scratch*")
+        (bury-buffer)
+      ad-do-it)))
+
+(defun sej/create-scratch-buffer nil
+  "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
+  (interactive)
+  (let ((n 0)
+        bufname)
+    (while (progn
+             (setq bufname (concat "*scratch"
+                                   (if (= n 0) "" (int-to-string n))
+                                   "*"))
+             (setq n (1+ n))
+             (get-buffer bufname)))
+    (switch-to-buffer (get-buffer-create bufname))
+    (emacs-lisp-mode)
+    ))
+(defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
+
+(use-package ace-window
+  :bind (:map sej-mode-map
+              ("M-o" . ace-window)
+              ("C-x M-o" . ace-swap-window))
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -1005,51 +1043,6 @@ output as per `sej/exec'. Otherwise, return nil."
 ;; Don't use GTK+ tooltip
 (when (boundp 'x-gtk-use-system-tooltips)
   (setq x-gtk-use-system-tooltips nil))
-
-(when sys/mac-x-p
-  (setq ns-use-native-fullscreen nil))
-(bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-           ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
-           ("S-s-<return>" . toggle-frame-fullscreen)
-           ("M-S-<return>" . toggle-frame-fullscreen))
-
-(use-package autorevert
-  :ensure nil
-  :diminish
-  :hook (sej/after-init . global-auto-revert-mode))
-
-(use-package buffer-move)
-
-(use-package ace-window
-  :bind (:map sej-mode-map
-              ("M-o" . ace-window)
-              ("C-x M-o" . ace-swap-window))
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-
-(setq initial-scratch-message "")
-(defadvice kill-buffer (around kill-buffer-around-advice activate)
-  "Bury the *scratch* buffer, but never kill it."
-  (let ((buffer-to-kill (ad-get-arg 0)))
-    (if (equal buffer-to-kill "*scratch*")
-        (bury-buffer)
-      ad-do-it)))
-
-(defun sej/create-scratch-buffer nil
-  "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
-  (interactive)
-  (let ((n 0)
-        bufname)
-    (while (progn
-             (setq bufname (concat "*scratch"
-                                   (if (= n 0) "" (int-to-string n))
-                                   "*"))
-             (setq n (1+ n))
-             (get-buffer bufname)))
-    (switch-to-buffer (get-buffer-create bufname))
-    (emacs-lisp-mode)
-    ))
-(defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
 
 (setq-default tab-width 2
               indent-tabs-mode nil
@@ -1267,6 +1260,16 @@ output as per `sej/exec'. Otherwise, return nil."
          ([remap isearch-query-replace-regexp] . anzu-isearch-query-replace-regexp))
   :hook (after-init . global-anzu-mode)
   )
+
+(when sys/macp
+  (defun sej/retrieve-url ()
+    "Retrieve the URL of the current Safari page as a string."
+    (org-trim (shell-command-to-string
+               "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+  (defun sej/insert-url ()
+    "Insert URL of current browser page into Emacs buffer."
+    (interactive)
+    (insert (sej/retrieve-url))))
 
 (use-package ace-link
   :bind (:map sej-mode-map

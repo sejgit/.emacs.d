@@ -687,7 +687,7 @@
      (add-hook 'minibuffer-exit-hook #'sej/minibuffer-exit-hook)
    #+END_SRC
 
-** sej/clipboard functions
+** sej/copy-from-osx, sej/copy-to-osx
    - https://gist.github.com/the-kenny/267162
    #+BEGIN_SRC emacs-lisp
      (when sys/macp
@@ -703,20 +703,7 @@
              (process-send-eof proc))))
 
        (setq interprogram-cut-function 'sej/paste-to-osx)
-       (setq interprogram-paste-function 'sej/copy-from-osx)
-
-       ;; from jcs (Irreal) blog to copy url from safari and paste at point
-       (defun sej/insert-url ()
-         "Insert URL of current browser page into Emacs buffer."
-         (interactive)
-         (insert (sej/retrieve-url)))
-
-       ;; from jcs (Irreal) blog helper function from above
-       (defun sej/retrieve-url ()
-         "Retrieve the URL of the current Safari page as a string."
-         (org-trim (shell-command-to-string
-                    "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
-       )
+       (setq interprogram-paste-function 'sej/copy-from-osx))
    #+END_SRC
 
 ** sej/sudo-edit
@@ -809,67 +796,6 @@
      output as per `sej/exec'. Otherwise, return nil."
        (interactive)
        (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
-   #+END_SRC
-
-** sej/dos2unix
-   - convert the current buffer to UNIX file format
-   - not bound
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/dos2unix ()
-       "Convert the current buffer to UNIX file format."
-       (interactive)
-       (set-buffer-file-coding-system 'undecided-unix nil))
-   #+END_SRC
-
-** sej/unix2dos
-   - convert the current buffer to DOS file format
-   - not bound
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/unix2dos ()
-       "Convert the current buffer to DOS file format."
-       (interactive)
-       (set-buffer-file-coding-system 'undecided-dos nil))
-   #+END_SRC
-
-** sej/save-buffer-as-utf8
-   - revert a buffer with coding-system and save as utf-8
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/save-buffer-as-utf8 (coding-system)
-       "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-       (interactive "zCoding system for visited file (default nil):")
-       (revert-buffer-with-coding-system coding-system)
-       (set-buffer-file-coding-system 'utf-8)
-       (save-buffer))
-   #+END_SRC
-
-** sej/revert-this-buffer
-   - revert-buffer without asking
-     bound to <f5> todo: merge with C-r revert-buffer
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/revert-this-buffer ()
-       "Revert the current buffer."
-       (interactive)
-       (unless (minibuffer-window-active-p (selected-window))
-         (text-scale-increase 0)
-         (widen)
-         (if (and (fboundp 'fancy-narrow-active-p)
-                  (fancy-narrow-active-p))
-             (fancy-widen))
-         (revert-buffer t t)
-         (message "Reverted this buffer.")))
-     (bind-key "<f5>" #'sej/revert-this-buffer)
-     (if sys/mac-x-p
-         (bind-key "s-r" #'sej/revert-this-buffer))
-   #+END_SRC
-
-** sej/browse-homepage
-   - Browse my github homepage
-     not bound
-   #+BEGIN_SRC emacs-lisp
-     (defun browse-homepage ()
-       "Browse the Github page of SeJ Emacs."
-       (interactive)
-       (browse-url sejgit-homepage))
    #+END_SRC
 
 ** update functions
@@ -1050,27 +976,9 @@
     #+END_SRC
 
 * ui & edit settings
-** frames
-*** settings frames
-   #+BEGIN_SRC emacs-lisp
-     (setq frame-title-format '("SeJ Emacs - %b"))
-     (setq icon-title-format frame-title-format)
-
-     (when sys/mac-x-p
-       (use-package ns-auto-titlebar
-         :config
-
-         (add-to-list 'default-frame-alist '(ns-appearance . dark))
-         (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-         (add-hook 'after-load-theme-hook
-                   (lambda ()
-                     (let ((bg (frame-parameter nil 'background-mode)))
-                       (set-frame-parameter nil 'ns-appearance bg)
-                       (setcdr (assq 'ns-appearance default-frame-alist) bg))))
-         (ns-auto-titlebar-mode)))
-   #+END_SRC
-
 ** themes
+*** sej/load-theme
+    - functions to set-up menu of standard themes to load
    #+BEGIN_SRC emacs-lisp
      (defvar after-load-theme-hook nil
        "Hook run after a color theme is loaded using `load-theme'.")
@@ -1090,10 +998,6 @@
          ('daylight 'doom-tomorrow-day)
          (_ theme)))
 
-     (defun is-doom-theme-p (theme)
-       "Check whether the THEME is a doom theme. THEME is a symbol."
-       (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
-
      (defun sej/load-theme (theme)
        "Set color THEME."
        (interactive
@@ -1103,6 +1007,14 @@
        (let ((theme (standardize-theme theme)))
          (mapc #'disable-theme custom-enabled-themes)
          (load-theme theme t)))
+#+END_SRC
+
+*** doom themes
+    - load doom-themes package if selected theme is of the doom family
+#+BEGIN_SRC emacs-lisp
+     (defun is-doom-theme-p (theme)
+       "Check whether the THEME is a doom theme. THEME is a symbol."
+       (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
 
      (if (is-doom-theme-p sej-theme)
          (progn
@@ -1128,6 +1040,166 @@
          (ignore-errors
            (sej/load-theme sej-theme))))
    #+END_SRC
+
+** frames
+*** settings frames
+   #+BEGIN_SRC emacs-lisp
+     (setq frame-title-format '("SeJ Emacs - %b"))
+     (setq icon-title-format frame-title-format)
+
+     (when sys/mac-x-p
+       (use-package ns-auto-titlebar
+         :config
+
+         (add-to-list 'default-frame-alist '(ns-appearance . dark))
+         (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+         (add-hook 'after-load-theme-hook
+                   (lambda ()
+                     (let ((bg (frame-parameter nil 'background-mode)))
+                       (set-frame-parameter nil 'ns-appearance bg)
+                       (setcdr (assq 'ns-appearance default-frame-alist) bg))))
+         (ns-auto-titlebar-mode)))
+   #+END_SRC
+*** fullscreen
+   - WORKAROUND: To address blank screen issue with child-frame in fullscreen
+   #+BEGIN_SRC emacs-lisp
+     (when sys/mac-x-p
+       (setq ns-use-native-fullscreen nil))
+     (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
+                ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
+                ("S-s-<return>" . toggle-frame-fullscreen)
+                ("M-S-<return>" . toggle-frame-fullscreen))
+   #+END_SRC
+
+** buffers
+*** sej/dos2unix
+    - convert the current buffer to UNIX file format
+    - not bound
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/dos2unix ()
+        "Convert the current buffer to UNIX file format."
+        (interactive)
+        (set-buffer-file-coding-system 'undecided-unix nil))
+    #+END_SRC
+
+*** sej/unix2dos
+    - convert the current buffer to DOS file format
+    - not bound
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/unix2dos ()
+        "Convert the current buffer to DOS file format."
+        (interactive)
+        (set-buffer-file-coding-system 'undecided-dos nil))
+    #+END_SRC
+
+*** sej/save-buffer-as-utf8
+    - revert a buffer with coding-system and save as utf-8
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/save-buffer-as-utf8 (coding-system)
+        "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+        (interactive "zCoding system for visited file (default nil):")
+        (revert-buffer-with-coding-system coding-system)
+        (set-buffer-file-coding-system 'utf-8)
+        (save-buffer))
+    #+END_SRC
+
+*** sej/revert-this-buffer
+    - revert-buffer without asking
+      bound to <f5> todo: merge with C-r revert-buffer
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/revert-this-buffer ()
+        "Revert the current buffer."
+        (interactive)
+        (unless (minibuffer-window-active-p (selected-window))
+          (text-scale-increase 0)
+          (widen)
+          (if (and (fboundp 'fancy-narrow-active-p)
+                   (fancy-narrow-active-p))
+              (fancy-widen))
+          (revert-buffer t t)
+          (message "Reverted this buffer.")))
+      (bind-key "<f5>" #'sej/revert-this-buffer)
+      (if sys/mac-x-p
+          (bind-key "s-r" #'sej/revert-this-buffer))
+    #+END_SRC
+
+*** sej/browse-homepage
+    - Browse my github homepage
+      not bound
+    #+BEGIN_SRC emacs-lisp
+      (defun browse-homepage ()
+        "Browse the Github page of SeJ Emacs."
+        (interactive)
+        (browse-url sejgit-homepage))
+    #+END_SRC
+
+*** sej/quit-and-kill-auxiliary-windows
+#+BEGIN_SRC emacs-lisp
+(defun sej/quit-and-kill-auxiliary-windows ()
+  "Kill buffer and its window on quitting"
+  (local-set-key (kbd "q") 'kill-buffer-and-window))
+(add-hook 'special-mode 'sej/quit-and-kill-auxiliary-windows)
+(add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
+#+END_SRC
+*** autorevert
+    - Automatically reload files when modified by external program if not modified
+    #+BEGIN_SRC emacs-lisp
+      (use-package autorevert
+        :ensure nil
+        :diminish
+        :hook (sej/after-init . global-auto-revert-mode))
+    #+END_SRC
+
+*** buffer-move
+    - buffer-move to swap buffers between windows
+#+BEGIN_SRC emacs-lisp
+      (use-package buffer-move)
+#+END_SRC
+
+*** scratch buffer set-up
+    - initial message
+    - bury don't kill scratch
+    #+BEGIN_SRC emacs-lisp
+      (setq initial-scratch-message "")
+      (defadvice kill-buffer (around kill-buffer-around-advice activate)
+        "Bury the *scratch* buffer, but never kill it."
+        (let ((buffer-to-kill (ad-get-arg 0)))
+          (if (equal buffer-to-kill "*scratch*")
+              (bury-buffer)
+            ad-do-it)))
+    #+END_SRC
+
+*** sej/create-scratch-buffer
+    - as name suggests
+      defined as C-c b in above keymappings
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/create-scratch-buffer nil
+        "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
+        (interactive)
+        (let ((n 0)
+              bufname)
+          (while (progn
+                   (setq bufname (concat "*scratch"
+                                         (if (= n 0) "" (int-to-string n))
+                                         "*"))
+                   (setq n (1+ n))
+                   (get-buffer bufname)))
+          (switch-to-buffer (get-buffer-create bufname))
+          (emacs-lisp-mode)
+          ))
+      (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
+    #+END_SRC
+** windows
+*** ace-window
+    - for selecting a window to switch to
+    #+BEGIN_SRC emacs-lisp
+      (use-package ace-window
+        :bind (:map sej-mode-map
+                    ("M-o" . ace-window)
+                    ("C-x M-o" . ace-swap-window))
+        :config
+        (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+    #+END_SRC
 
 ** mode-line
    #+BEGIN_SRC emacs-lisp
@@ -1282,78 +1354,6 @@
        (setq x-gtk-use-system-tooltips nil))
    #+END_SRC
 
-** frames
-*** fullscreen
-   - WORKAROUND: To address blank screen issue with child-frame in fullscreen
-   #+BEGIN_SRC emacs-lisp
-     (when sys/mac-x-p
-       (setq ns-use-native-fullscreen nil))
-     (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-                ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
-                ("S-s-<return>" . toggle-frame-fullscreen)
-                ("M-S-<return>" . toggle-frame-fullscreen))
-   #+END_SRC
-** buffers & windows
-*** autorevert
-    - Automatically reload files when modified by external program if not modified
-    #+BEGIN_SRC emacs-lisp
-      (use-package autorevert
-        :ensure nil
-        :diminish
-        :hook (sej/after-init . global-auto-revert-mode))
-    #+END_SRC
-
-*** buffer-move
-    - buffer-move to swap buffers between windows
-#+BEGIN_SRC emacs-lisp
-      (use-package buffer-move)
-#+END_SRC
-
-*** ace-window
-    - for selecting a window to switch to
-    #+BEGIN_SRC emacs-lisp
-      (use-package ace-window
-        :bind (:map sej-mode-map
-                    ("M-o" . ace-window)
-                    ("C-x M-o" . ace-swap-window))
-        :config
-        (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-    #+END_SRC
-
-** scratch buffer
-*** scratch buffer set-up
-    - initial message
-    - bury don't kill scratch
-    #+BEGIN_SRC emacs-lisp
-      (setq initial-scratch-message "")
-      (defadvice kill-buffer (around kill-buffer-around-advice activate)
-        "Bury the *scratch* buffer, but never kill it."
-        (let ((buffer-to-kill (ad-get-arg 0)))
-          (if (equal buffer-to-kill "*scratch*")
-              (bury-buffer)
-            ad-do-it)))
-    #+END_SRC
-
-*** sej/create-scratch-buffer
-    - as name suggests
-      defined as C-c b in above keymappings
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/create-scratch-buffer nil
-        "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
-        (interactive)
-        (let ((n 0)
-              bufname)
-          (while (progn
-                   (setq bufname (concat "*scratch"
-                                         (if (= n 0) "" (int-to-string n))
-                                         "*"))
-                   (setq n (1+ n))
-                   (get-buffer bufname)))
-          (switch-to-buffer (get-buffer-create bufname))
-          (emacs-lisp-mode)
-          ))
-      (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-    #+END_SRC
 ** indentation
 *** indentation settings
     #+BEGIN_SRC emacs-lisp
@@ -1668,6 +1668,20 @@
 #+END_SRC
 
 ** url actions
+*** sej/insert-url
+    - from jcs (Irreal) blog to copy url from safari and paste at point
+#+BEGIN_SRC emacs-lisp
+     (when sys/macp
+       (defun sej/retrieve-url ()
+         "Retrieve the URL of the current Safari page as a string."
+         (org-trim (shell-command-to-string
+                    "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+       (defun sej/insert-url ()
+         "Insert URL of current browser page into Emacs buffer."
+         (interactive)
+         (insert (sej/retrieve-url))))
+#+END_SRC
+
 *** ace-link
     - Quickly follow links
     #+BEGIN_SRC emacs-lisp
