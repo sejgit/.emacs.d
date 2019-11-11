@@ -173,7 +173,7 @@
 ;; (require 'init-highlight) ; org-tangle
 
 ;; (require 'init-window) ; org-tangle
-(require 'init-frame-cmds)
+;; (require 'init-frame-cmds); org-tangle
 
 (require 'init-ivy)
 

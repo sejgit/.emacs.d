@@ -266,12 +266,7 @@
    (sys/macp
     (use-package counsel-osx-app
       :bind (:map counsel-mode-map
-                  ("C-<f6>" . counsel-osx-app)))))
-
-  ;; Display world clock using Ivy
-  (use-package counsel-world-clock
-    :bind (:map counsel-mode-map
-                ("C-c s K" . counsel-world-clock)))
+                  ("C-c s a>" . counsel-osx-app)))))
 
   ;; Tramp ivy interface
   (use-package counsel-tramp
