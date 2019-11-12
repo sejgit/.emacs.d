@@ -175,7 +175,7 @@
 ;; (require 'init-window) ; org-tangle
 ;; (require 'init-frame-cmds); org-tangle
 
-(require 'init-ivy)
+;; (require 'init-ivy); org-tangle
 
 (require 'init-company)
 (require 'init-yasnippet)
@@ -212,7 +212,7 @@
 (require 'init-projectile)
 
 (require 'init-lsp)
-(require 'init-lisp)
+;; (require 'init-lisp) ; tangle
 
 (require 'init-c)
 (require 'init-python)

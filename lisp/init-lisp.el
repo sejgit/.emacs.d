@@ -53,18 +53,15 @@
 (use-package lispy
   :hook (emacs-lisp-mode . lispy-mode))
 
-;; like rainbow-delimiters in elisp modes
-(add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
-
 ;; we don't want this minor mode to be shown in the minibuffer, however
+;; we use eldoc to show the signature of the function at point in the minibuffer
 (use-package eldoc
-  :defer t
-  :diminish
-  eldoc-mode
-  :hook  ;; we use eldoc to show the signature of the function at point in the minibuffer
+  :diminish eldoc-mode
+  :hook
   ((emacs-lisp-mode . eldoc-mode)
-   (ielm-mode-hook . eldoc-mode)
-   (lisp-interaction-mode-hook . eldoc-mode))
+   (ielm-mode . eldoc-mode)
+   (lisp-interaction-mode . eldoc-mode)
+   (eval-expression-minibuffer-setup . eldoc-mode))
   :config
   (setq eldoc-idle-delay 0.1))
 
