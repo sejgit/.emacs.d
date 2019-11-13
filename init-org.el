@@ -335,6 +335,31 @@ If Non-nil, use dashboard, otherwise will restore previous session."
     ;; load-dir init.d
     )))
 
+(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
+(global-set-key (kbd "M-t l") 'transpose-lines)
+(global-set-key (kbd "M-t w") 'transpose-words)
+(global-set-key (kbd "M-t s") 'transpose-sexps)
+(global-set-key (kbd "M-t p") 'transpose-params)
+
+(defmacro λ (&rest body)
+  "Shorthand for interactive lambdas (BODY)."
+  `(lambda ()
+     (interactive)
+     ,@body))
+
+(global-set-key (kbd "C-x 8 l") (λ (insert "\u03bb")))
+(global-set-key (kbd "A-L") (λ (insert "\u03bb")))
+(global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
+(global-set-key (kbd "A-T") (λ (insert "™")))
+(global-set-key (kbd "C-x 8 C") (λ (insert "©")))
+(global-set-key (kbd "A-C") (λ (insert "©")))
+(global-set-key (kbd "C-x 8 >") (λ (insert "→")))
+(global-set-key (kbd "A->") (λ (insert "→")))
+(global-set-key (kbd "C-x 8 8") (λ (insert "∞")))
+(global-set-key (kbd "A-8") (λ (insert "∞")))
+(global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
+(global-set-key (kbd "A-V") (λ (insert "✓")))
+
 (defvar sej-mode-map (make-sparse-keymap)
   "Keymap for 'sej-mode'.")
 
@@ -380,12 +405,12 @@ If Non-nil, use dashboard, otherwise will restore previous session."
                                     'face 'font-lock-function-name-face))))
 ;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
 
-(defmacro λ (&rest body)
-  "Shorthand for interactive lambdas (BODY)."
-  `(lambda ()
-     (interactive)
-     ,@body))
+(define-key global-map (kbd "C-h C-h") nil)
+(define-key sej-mode-map (kbd "C-h C-h") nil)
 
+
+(define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
+(define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
 (global-set-key (kbd "RET") 'newline-and-indent)
 
 ;; unset C- and M- digit keys
@@ -393,38 +418,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   (global-unset-key (kbd (format "C-%d" n)))
   (global-unset-key (kbd (format "M-%d" n)))
   )
-
-(global-set-key (kbd "C-x 8 l") (λ (insert "\u03bb")))
-(global-set-key (kbd "A-L") (λ (insert "\u03bb")))
-(global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
-(global-set-key (kbd "A-T") (λ (insert "™")))
-(global-set-key (kbd "C-x 8 C") (λ (insert "©")))
-(global-set-key (kbd "A-C") (λ (insert "©")))
-(global-set-key (kbd "C-x 8 >") (λ (insert "→")))
-(global-set-key (kbd "A->") (λ (insert "→")))
-(global-set-key (kbd "C-x 8 8") (λ (insert "∞")))
-(global-set-key (kbd "A-8") (λ (insert "∞")))
-(global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
-(global-set-key (kbd "A-V") (λ (insert "✓")))
-
-(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
-(global-set-key (kbd "M-t l") 'transpose-lines)
-(global-set-key (kbd "M-t w") 'transpose-words)
-(global-set-key (kbd "M-t s") 'transpose-sexps)
-(global-set-key (kbd "M-t p") 'transpose-params)
-
-(define-key global-map (kbd "C-h C-h") nil)
-(define-key sej-mode-map (kbd "C-h C-h") nil)
-
-(define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
-(define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
-(define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
-
-(define-key sej-mode-map (kbd "C-;") 'comment-dwim-2) ; defined in init-misc-packages
-(define-key sej-mode-map (kbd "M-/") 'hippie-expand)
-
-                                        ;       (define-key sej-mode-map (kbd "C-+") 'text-scale-increase)
-                                        ;      (define-key sej-mode-map (kbd "C--") 'text-scale-decrease)
 
 (define-key sej-mode-map (kbd "C-x g") 'magit-status)
 
@@ -436,6 +429,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;;scroll window up/down by one line
 (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
 (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+
 (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
 
 ;;added tips from steve drunken blog 10 specific ways to improve productivity
@@ -448,20 +442,21 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; number lines with rectangle defined in init-writing.el
 (define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
 
-;; line numbers when using goto-line M-g M-g or M-g g
-;; (defined in init-misc-defuns.el)
-(global-set-key [remap goto-line] 'goto-line-preview)
-
 (define-key sej-mode-map (kbd "H-a") 'counsel-ag)
+
 (define-key sej-mode-map (kbd "<f1>") 'org-mode)
+
 (define-key sej-mode-map (kbd "H-s") 'shell)
 (define-key sej-mode-map (kbd "<f2>") 'shell)
+(define-key sej-mode-map (kbd "H-e") 'eshell)
+
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
-(define-key sej-mode-map (kbd "H-e") 'eshell)
 (define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
+
 (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
+
 (define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
@@ -480,44 +475,14 @@ If Non-nil, use dashboard, otherwise will restore previous session."
     (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
   )
 
-(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-(define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
 (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
-(define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
+
 (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
+
 (define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-w") 'delete-frame)
-
-(define-key sej-mode-map (kbd "s-0") 'delete-window)
-(define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
-(define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
-(define-key sej-mode-map (kbd "s-3") 'split-window-right)
-(define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
-(define-key sej-mode-map (kbd "s-5") 'make-frame-command)
-(define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
-(define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
-                                       (save-excursion
-                                         (other-window 1)
-                                         (quit-window))))
-
-;; wind move built in package (default bindins are S-<cursor>)
-;;  (windmove-default-keybindings)) ;; Shift + direction
-;; winner-mode is to undo & redo windows with C-c left and C-c right
-(when (fboundp 'winner-mode)
-  (winner-mode t))
-(define-key sej-mode-map (kbd "s-h") 'windmove-left)
-(define-key sej-mode-map (kbd "s-l") 'windmove-right)
-(define-key sej-mode-map (kbd "s-k") 'windmove-up)
-(define-key sej-mode-map (kbd "s-j") 'windmove-down)
-;; Make windmove work in org-mode:
-;; (add-hook 'org-shiftup-final-hook 'windmove-up)
-;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
-;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
-;; (add-hook 'org-shiftright-final-hook 'windmove-right)
 
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."
@@ -733,7 +698,12 @@ output as per `sej/exec'. Otherwise, return nil."
     (ignore-errors
       (sej/load-theme sej-theme))))
 
+(define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
+(define-key sej-mode-map (kbd "s-5") 'make-frame-command)
+(define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
+
 ;;added tips from pragmatic emacs
+(define-key sej-mode-map (kbd "s-w") 'delete-frame)
 (define-key sej-mode-map (kbd "C-x w") 'delete-frame)
 
 (setq frame-title-format '("SeJ Emacs - %b"))
@@ -816,12 +786,19 @@ output as per `sej/exec'. Otherwise, return nil."
 (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
            ("C-s-f" . toggle-frame-fullscreen))
 
+(define-key sej-mode-map (kbd "s-s") 'save-buffer)
+(define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs)
+
 (define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
+
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
+
 (define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+
 (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
 (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
+
 (setq-default bs-default-configuration "all-intern-last")
 
 ;;added tips from pragmatic emacs
@@ -931,6 +908,17 @@ buffer is not visiting a file."
 (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer)
 (define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer)
 
+(define-key sej-mode-map (kbd "s-0") 'delete-window)
+(define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
+(define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
+(define-key sej-mode-map (kbd "s-3") 'split-window-right)
+
+(define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
+                                       (save-excursion
+                                         (other-window 1)
+                                         (quit-window))))
+(define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
+
 (use-package ace-window
   :functions (hydra-frame-window/body my-aw-window<)
   :bind (([remap other-window] . ace-window)
@@ -1000,7 +988,20 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 
 (use-package windmove
   :ensure nil
-  :hook (sej/after-init . windmove-default-keybindings))
+  :hook (sej/after-init . windmove-default-keybindings)
+  :bind (("s-h" . windmove-left)
+         ("s-l" . windmove-right)
+         ("s-k" . windmove-up)
+         ("s-j" . windmove-down) )
+  :config
+  (when (fboundp 'winner-mode)
+    (winner-mode t))
+  ;; Make windmove work in org-mode:
+  ;; (add-hook 'org-shiftup-final-hook 'windmove-up)
+  ;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
+  ;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
+  ;; (add-hook 'org-shiftright-final-hook 'windmove-right)
+  )
 
 (use-package winner
   :ensure nil
@@ -1188,36 +1189,31 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   (add-to-list 'all-the-icons-mode-icon-alist
                '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
 
-(if (fboundp 'display-line-numbers-mode)
-    (use-package display-line-numbers
-      :ensure nil
-      :hook (prog-mode . display-line-numbers-mode))
-  (use-package linum-off
-    :demand
-    :defines linum-format
-    :hook (after-init . global-linum-mode)
-    :config
-    (setq linum-format "%4d ")
+(use-package display-line-numbers
+  :ensure nil
+  :hook ((after-init . global-linum-mode)
+         (prog-mode . display-line-numbers-mode))
+  :config     (setq linum-format "%4d "))
 
-    ;; Highlight current line number
-    (use-package hlinum
-      :defines linum-highlight-in-all-buffersp
-      :hook (global-linum-mode . hlinum-activate)
-      :custom-face (linum-highlight-face
-                    ((t `(
-                          :inherit default
-                          :background nil
-                          :foreground nil
-                          ))))
-      :init
-      (setq linum-highlight-in-all-buffersp t))))
+(use-package linum-off
+  :demand)
+
+(use-package hlinum
+  :defines linum-highlight-in-all-buffersp
+  :hook (global-linum-mode . hlinum-activate)
+  :custom-face (linum-highlight-face
+                ((t `(
+                      :inherit default
+                      :background nil
+                      :foreground nil
+                      ))))
+  :init
+  (setq linum-highlight-in-all-buffersp t))
 
 (use-package goto-line-preview
   :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
          (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
-  :config
-  (global-set-key [remap goto-line] 'goto-line-preview)
-  )
+  :bind ([remap goto-line] . goto-line-preview))
 
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
 (setq mouse-wheel-progressive-speed nil)
@@ -1237,9 +1233,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-echo-area-message t)
-
-;; turn on abbreviation translations
-(abbrev-mode)
 
 ;; Set the default formatting styles for various C based modes
 (setq c-default-style
@@ -1420,79 +1413,16 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :bind (:map sej-mode-map
               ("C-." . imenu)))
 
-(use-package origami
-  :hook (prog-mode . origami-mode)
-  :init (setq origami-show-fold-header t)
-  :bind (:map origami-mode-map
-              ("A-`" . hydra-origami/body))
-  ;; DONE conflict with sej/push-mark-no-activate
-  :config
-  (face-spec-reset-face 'origami-fold-header-face)
-
-  (when sej-lsp
-    ;; Support LSP
-    (use-package lsp-origami
-      :hook (origami-mode . (lambda ()
-                              (if lsp-mode
-                                  (lsp-origami-mode))))))
-
-  (defhydra hydra-origami (:color blue :hint none)
-    "
-^Node^                     ^Other^
-^^─────────────────────────^^────────────
-_:_: toggle recursively    _u_: undo
-_a_: toggle all            _r_: redo
-_t_: toggle current        _R_: reset
-_o_: only show current
-"
-    (":" origami-recursively-toggle-node)
-    ("a" origami-toggle-all-nodes)
-    ("t" origami-toggle-node)
-    ("o" origami-show-only-node)
-    ("u" origami-undo)
-    ("r" origami-redo)
-    ("R" origami-reset)))
-
-(use-package comment-dwim-2
-  :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
-
-(use-package ediff
-  :ensure nil
-  :hook(;; show org ediffs unfolded
-        (ediff-prepare-buffer . outline-show-all)
-        ;; restore window layout when done
-        (ediff-quit . winner-undo))
-  :config
-  (setq ediff-diff-options "-w")
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-merge-split-window-function 'split-window-horizontally))
-
-(use-package elec-pair
-  :ensure nil
-  :hook (prog-mode . electric-pair-mode)
-  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
-  :config
-  (electric-layout-mode t)
-  (electric-indent-mode t)
-  ;; Ignore electric indentation for python and yaml
-  (defun electric-indent-ignore-mode (char)
-    "Ignore electric indentation for 'python-mode'.  CHAR is input character."
-    (if (or (equal major-mode 'python-mode)
-            (equal major-mode 'yaml-mode))
-        'no-indent
-      nil))
-  (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
-
 (use-package ivy
   :diminish
   :hook (sej/after-init . ivy-mode)
-  :bind (("C-c C-r" . ivy-resume)
-         ("C-c v p" . ivy-push-view)
-         ("C-c v o" . ivy-pop-view)
-         ("C-c v ." . ivy-switch-view)
-         :map ivy-minibuffer-map
-         ("M-j" . ivy-yank-word))
+  :bind ( ("s-b" . ivy-switch-buffer)
+          ("C-c C-r" . ivy-resume)
+          ("C-c v p" . ivy-push-view)
+          ("C-c v o" . ivy-pop-view)
+          ("C-c v ." . ivy-switch-view)
+          :map ivy-minibuffer-map
+          ("M-j" . ivy-yank-word))
   :config (ivy-mode)
   (setq enable-recursive-minibuffers t) ; Allow commands in minibuffers
 
@@ -2456,6 +2386,37 @@ _o_: only show current
   :config
   (setq paren-highlight-offscreen t))
 
+(use-package comment-dwim-2
+  :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+
+(use-package ediff
+  :ensure nil
+  :hook(;; show org ediffs unfolded
+        (ediff-prepare-buffer . outline-show-all)
+        ;; restore window layout when done
+        (ediff-quit . winner-undo))
+  :config
+  (setq ediff-diff-options "-w")
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-split-window-function 'split-window-horizontally)
+  (setq ediff-merge-split-window-function 'split-window-horizontally))
+
+(use-package elec-pair
+  :ensure nil
+  :hook (prog-mode . electric-pair-mode)
+  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+  :config
+  (electric-layout-mode t)
+  (electric-indent-mode t)
+  ;; Ignore electric indentation for python and yaml
+  (defun electric-indent-ignore-mode (char)
+    "Ignore electric indentation for 'python-mode'.  CHAR is input character."
+    (if (or (equal major-mode 'python-mode)
+            (equal major-mode 'yaml-mode))
+        'no-indent
+      nil))
+  (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+
 (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
 (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
 (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
@@ -2509,6 +2470,10 @@ _o_: only show current
                   (delete-file (concat buffer-file-name "c"))))))
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
+;; turn on abbreviation translations
+(abbrev-mode)
+
+(define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
       '(try-complete-file-name-partially
         try-expand-dabbrev
@@ -2665,3 +2630,412 @@ _o_: only show current
   :after company
   :config
   (push 'company-shell company-backends))
+
+(use-package yasnippet
+  :diminish yas-minor-mode
+  :hook (sej/after-init . yas-global-mode)
+  :bind (:map yas-minor-mode-map
+              ("<tab>" . nil)
+              ("TAB" . nil)
+              ("<A-tab>" . yas-expand)
+              :map yas-keymap
+              ("<tab>" . nil)
+              ("TAB" . nil)
+              ("M-n" . yas-next-field-or-maybe-expand)
+              ("M-p" . yas-prev-field))
+  :config (use-package yasnippet-snippets))
+
+(use-package auto-yasnippet
+  :after yasnippet
+  :bind (("H-w" . aya-create)
+         ("H-y" . aya-expand)
+         ("C-o" . aya-open-line)))
+
+(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
+      ; (kbd "C-x r j") is build in global
+(set-register ?b '(file . "~/.ssh/custom-post.el"))
+(set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
+(set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
+(set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
+(set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
+(set-register ?d '(file . "~/.emacs.d/lisp/"))
+(set-register ?i '(file . "~/.emacs.d/init.el"))
+
+(when sej-dashboard
+  (use-package dashboard
+    :diminish (dashboard-mode page-break-lines-mode)
+    :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
+    :functions (all-the-icons-faicon
+                all-the-icons-material
+                open-custom-file
+                persp-get-buffer-or-null
+                persp-load-state-from-file
+                persp-switch-to-buffer
+                winner-undo
+                widget-forward)
+    :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
+    :bind (("<f6>" . open-dashboard)
+           (:map sej-mode-map
+                 ("C-c s d" . open-dashboard))
+           (:map dashboard-mode-map
+                 ("H" . browse-homepage)
+                 ("R" . restore-session)
+                 ("L" . persp-load-state-from-file)
+                 ("S" . open-custom-file)
+                 ("U" . sej-update)
+                 ("q" . quit-dashboard)
+                 ("C-p" . widget-backward)
+                 ("C-n" . widget-forward)
+                 ("<up>" . widget-backward)
+                 ("<down>" . widget-forward)
+                 ("<tab>" . widget-forward)
+                 ("C-i" . widget-forward)
+                 ("<backtab>" . widget-backward)
+                 ))
+    :hook (dashboard-mode . (lambda ()
+                              (setq-local frame-title-format "")
+                              (setq-local tab-width 1)))
+    :init (dashboard-setup-startup-hook)
+    :config
+    ;; (setq dashboard-banner-logo-title "SeJ EMACS")
+    (setq dashboard-startup-banner nil)
+    (setq dashboard-center-content nil)
+    (setq dashboard-show-shortcuts t)
+    (setq dashboard-items '((recents  . 15)
+                            (bookmarks . 15)
+                            (projects . 10)
+                            (registers . 10)))
+
+    (defvar dashboard-recover-layout-p nil
+      "Wether recovers the layout.")
+
+    (defun open-dashboard ()
+      "Open the *dashboard* buffer and jump to the first widget."
+      (interactive)
+      ;; Check if need to recover layout
+      (if (> (length (window-list-1)))
+          (setq dashboard-recover-layout-p t))
+      (delete-other-windows)
+
+      ;; Refresh dashboard buffer
+      (if (get-buffer dashboard-buffer-name)
+          (kill-buffer dashboard-buffer-name))
+      (dashboard-insert-startupify-lists)
+      (switch-to-buffer dashboard-buffer-name)
+
+      ;; Jump to the first section
+      (goto-char (point-min))
+      (dashboard-goto-recent-files))
+
+    (defun restore-session ()
+      "Restore last session."
+      (interactive)
+      (when (bound-and-true-p persp-mode)
+        (message "Restoring session...")
+        (condition-case-unless-debug err
+            (persp-load-state-from-file)
+          (error
+           (message "Error: Unable to restore last session -- %s" err)))
+        (when (persp-get-buffer-or-null persp-special-last-buffer)
+          (persp-switch-to-buffer persp-special-last-buffer))))
+
+    (defun quit-dashboard ()
+      "Quit dashboard window."
+      (interactive)
+      (quit-window t)
+      (when (and dashboard-recover-layout-p
+                 (bound-and-true-p winner-mode))
+        (winner-undo)
+        (setq dashboard-recover-layout-p nil)))
+
+    (defun dashboard-goto-recent-files ()
+      "Go to recent files."
+      (interactive)
+      (funcall (local-key-binding "r")))
+
+    (defun dashboard-goto-projects ()
+      "Go to projects."
+      (interactive)
+      (funcall (local-key-binding "p")))
+
+    (defun dashboard-goto-bookmarks ()
+      "Go to bookmarks."
+      (interactive)
+      (funcall (local-key-binding "m")))
+
+    (defun dashboard-goto-registers ()
+      "Go to registers."
+      (interactive)
+      (funcall (local-key-binding "e")))
+
+    ;; Add heading icons
+    (defun dashboard-insert-heading-icon (heading &optional _shortcut)
+      (when (display-graphic-p)
+        ;; Load `all-the-icons' if it's unavailable
+        (unless (featurep 'all-the-icons)
+          (require 'all-the-icons nil t))
+
+        (insert (cond
+                 ((string-equal heading "Recent Files:")
+                  (all-the-icons-octicon "file-text" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                 ((string-equal heading "Bookmarks:")
+                  (all-the-icons-octicon "bookmark" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                 ((string-equal heading "Registers:")
+                  (all-the-icons-octicon "clippy" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                 ((string-equal heading "Projects:")
+                  (all-the-icons-octicon "file-directory" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))))
+        (insert " ")))
+    (advice-add #'dashboard-insert-heading :before #'dashboard-insert-heading-icon)
+
+    ;; Add file icons
+    ;; MUST redefine the sections because of the macro `dashboard-insert-section-list'
+    (defmacro dashboard-insert-section-list (section-name list action &rest rest)
+      "Insert into SECTION-NAME a LIST of items, expanding ACTION and passing REST to widget creation."
+      `(when (car ,list)
+         (mapc (lambda (el)
+                 (let ((widget nil))
+                   (insert "\n    ")
+                   (when (display-graphic-p)
+                     (insert (if-let ((path (car (last (split-string ,@rest " - ")))))
+                                 (if (file-directory-p path)
+                                     (cond
+                                      ((and (fboundp 'tramp-tramp-file-p)
+                                            (tramp-tramp-file-p default-directory))
+                                       (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
+                                      ((file-symlink-p path)
+                                       (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
+                                      ((all-the-icons-dir-is-submodule path)
+                                       (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
+                                      ((file-exists-p (format "%s/.git" path))
+                                       (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
+                                      (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
+                                           (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
+                                   (all-the-icons-icon-for-file (file-name-nondirectory path)))
+                               (all-the-icons-octicon "clippy" :height 1.0 :v-adjust 0.01)
+                               ))
+                     (insert "\t"))
+                   (setq widget
+                         (widget-create 'push-button
+                                        :action ,action
+                                        :mouse-face 'highlight
+                                        :button-prefix ""
+                                        :button-suffix ""
+                                        :format "%[%t%]"
+                                        ,@rest))))
+               ,list)))
+
+    (defmacro dashboard-insert-shortcut (shortcut-char
+                                         search-label
+                                         &optional no-next-line)
+      "Insert a shortcut SHORTCUT-CHAR for a given SEARCH-LABEL.
+Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
+      `(progn
+         (eval-when-compile (defvar dashboard-mode-map))
+         (let ((sym (make-symbol (format "Jump to \"%s\"" ,search-label))))
+           (fset sym (lambda ()
+                       (interactive)
+                       (unless (search-forward ,search-label (point-max) t)
+                         (search-backward ,search-label (point-min) t))
+                       ,@(unless no-next-line
+                           '((forward-line 1)))
+                       (back-to-indentation)
+                       (if (display-graphic-p) (widget-forward 1))))
+           (eval-after-load 'dashboard
+             (define-key dashboard-mode-map ,shortcut-char sym)))))
+
+    ;; Recentf
+    (defun dashboard-insert-recents (list-size)
+      "Add the list of LIST-SIZE items from recently edited files."
+      (recentf-mode)
+      (dashboard-insert-section
+       "Recent Files:"
+       recentf-list
+       list-size
+       "r"
+       `(lambda (&rest ignore) (find-file-existing ,el))
+       (abbreviate-file-name el)))
+
+    ;; Bookmarks
+    (defun dashboard-insert-bookmarks (list-size)
+      "Add the list of LIST-SIZE items of bookmarks."
+      (require 'bookmark)
+      (dashboard-insert-section
+       "Bookmarks:"
+       (dashboard-subseq (bookmark-all-names)
+                         0 list-size)
+       list-size
+       "m"
+       `(lambda (&rest ignore) (bookmark-jump ,el))
+       (let ((file (bookmark-get-filename el)))
+         (if file
+             (format "%s - %s" el (abbreviate-file-name file))
+           el))))
+
+    ;; Projectile
+    (defun dashboard-insert-projects (list-size)
+      "Add the list of LIST-SIZE items of projects."
+      (require 'projectile)
+      (projectile-load-known-projects)
+      (dashboard-insert-section
+       "Projects:"
+       (dashboard-subseq (projectile-relevant-known-projects)
+                         0 list-size)
+       list-size
+       "p"
+       `(lambda (&rest ignore) (projectile-switch-project-by-name ,el))
+       (abbreviate-file-name el)))
+
+    ;;
+    ;; Registers
+    ;;
+    (defun dashboard-insert-registers (list-size)
+      "Add the list of LIST-SIZE items of registers."
+      (require 'register)
+      (dashboard-insert-section
+       "Registers:"
+       register-alist
+       list-size
+       "e"
+       (lambda (&rest ignore) (jump-to-register (car el)))
+       (format "%c - %s" (car el) (register-describe-oneline (car el)))))
+
+    (defun dashboard-insert-buttons ()
+      "Insert buttions after the banner."
+      (interactive)
+      (with-current-buffer (get-buffer dashboard-buffer-name)
+        (let ((inhibit-read-only t))
+          (goto-char (point-min))
+          (search-forward dashboard-banner-logo-title nil t)
+
+          (insert "")
+          (widget-create 'url-link
+                         :tag (concat
+                               (if (display-graphic-p)
+                                   (concat
+                                    (all-the-icons-octicon "mark-github"
+                                                           :height 1.1
+                                                           :v-adjust 0.0
+                                                           :face 'font-lock-keyword-face)
+                                    (propertize " " 'face 'variable-pitch)))
+                               (propertize "Homepage" 'face 'font-lock-keyword-face))
+                         :help-echo "Browse homepage"
+                         :mouse-face 'highlight
+                         sej-homepage)
+          (insert " ")
+          (widget-create 'push-button
+                         :help-echo "Restore previous session"
+                         :action (lambda (&rest _) (restore-session))
+                         :mouse-face 'highlight
+                         :tag (concat
+                               (if (display-graphic-p)
+                                   (concat
+                                    (all-the-icons-material "restore"
+                                                            :height 1.35
+                                                            :v-adjust -0.24
+                                                            :face 'font-lock-keyword-face)
+                                    (propertize " " 'face 'variable-pitch)))
+                               (propertize "Session" 'face 'font-lock-keyword-face)))
+          (insert " ")
+          (widget-create 'file-link
+                         :tag (concat
+                               (if (display-graphic-p)
+                                   (concat
+                                    (all-the-icons-octicon "tools"
+                                                           :height 1.1
+                                                           :v-adjust 0.0
+                                                           :face 'font-lock-keyword-face)
+                                    (propertize " " 'face 'variable-pitch)))
+                               (propertize "Settings" 'face 'font-lock-keyword-face))
+                         :help-echo "Open custom file"
+                         :mouse-face 'highlight
+                         custom-file)
+          (insert " ")
+          (widget-create 'push-button
+                         :help-echo "Update SeJ Emacs"
+                         :action (lambda (&rest _) (sej-update))
+                         :mouse-face 'highlight
+                         :tag (concat
+                               (if (display-graphic-p)
+                                   (concat
+                                    (all-the-icons-material "update"
+                                                            :height 1.35
+                                                            :v-adjust -0.24
+                                                            :face 'font-lock-keyword-face)
+                                    (propertize " " 'face 'variable-pitch)))
+                               (propertize "Update" 'face 'font-lock-keyword-face)))
+          (insert " ")
+          (widget-create 'push-button
+                         :help-echo "Help (?/h)"
+                         :action (lambda (&rest _) (hydra-dashboard/body))
+                         :mouse-face 'highlight
+                         :tag (concat
+                               (if (display-graphic-p)
+                                   (all-the-icons-faicon "question"
+                                                         :height 1.2
+                                                         :v-adjust -0.1
+                                                         :face 'font-lock-string-face)
+                                 (propertize "?" 'face 'font-lock-string-face))))
+          (insert "\n")
+
+          (insert (concat
+                   (propertize (format "%d packages loaded in %s"
+                                       (length package-activated-list) (emacs-init-time))
+                               'face 'font-lock-comment-face)))
+          (insert "\n")
+          )))
+    (add-hook 'dashboard-mode-hook #'dashboard-insert-buttons)
+
+    (defun dashboard-insert-footer ()
+      "Insert footer of dashboard."
+      (interactive)
+      (with-current-buffer (get-buffer dashboard-buffer-name)
+        (let ((inhibit-read-only t))
+          (goto-char (point-max))
+
+          (insert "\n\n")
+          (insert " ")
+          (insert (propertize
+                   (format "SeJ, %s" (format-time-string "%Y"))
+                   'face font-lock-doc-face))
+          (insert "\n"))))
+    (add-hook 'dashboard-mode-hook #'dashboard-insert-footer)
+
+    (defhydra hydra-dashboard (:color red :hint none)
+      "
+^Head^               ^Section^            ^Item^                  ^Dashboard^
+^^───────────────────^^───────────────────^^──────────────────────^^───────────────
+_U_pdate             _r_: Recent Files    _RET_: Open             _<f2>_: Open
+_H_omePage           _m_: Bookmarks       _<tab>_/_C-i_: Next       _Q_: Quit
+_R_ecover session    _p_: Projects        _<backtab>_: Previous
+_L_ist sessions      _e_: Registers       _C-n_: Next line
+_S_ettings                                _C-p_: Previous Line
+"
+      ("<tab>" widget-forward)
+      ("C-i" widget-forward)
+      ("<backtab>" widget-backward)
+      ("RET" widget-button-press :exit t)
+      ("g" dashboard-refresh-buffer :exit t)
+      ("r" dashboard-goto-recent-files)
+      ("p" dashboard-goto-projects)
+      ("m" dashboard-goto-bookmarks)
+      ("e" dashboard-goto-registers)
+      ("H" browse-homepage :exit t)
+      ("R" restore-session :exit t)
+      ("L" persp-load-state-from-file :exit t)
+      ("S" open-custom-file :exit t)
+      ("U" sej-update :exit t)
+      ("C-n" next-line)
+      ("C-p" previous-line)
+      ("<f2>" open-dashboard :exit t)
+      ("Q" quit-dashboard :exit t)
+      ("q" nil "quit")
+      ("C-g" nil "quit"))
+    (bind-keys :map dashboard-mode-map
+               ("h" . hydra-dashboard/body)
+               ("?" . hydra-dashboard/body))))
+
+;; display ^L page breaks as tidy horizontal lines
+(use-package page-break-lines
+  :config
+  (setq global-page-break-lines-mode t)
+  )

@@ -181,7 +181,7 @@
 ;; (require 'init-yasnippet); org-tangle
 
 ;; (require 'init-registers); org-tangle
-(require 'init-dashboard)
+;; (require 'init-dashboard); org-tangle
 (require 'init-dired)
 (require 'init-ibuffer)
 (require 'init-kill-ring)
