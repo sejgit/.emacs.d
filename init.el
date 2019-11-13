@@ -177,7 +177,7 @@
 
 ;; (require 'init-ivy); org-tangle
 
-(require 'init-company)
+;; (require 'init-company);org-tangle
 (require 'init-yasnippet)
 
 (require 'init-registers)
