@@ -178,9 +178,9 @@
 ;; (require 'init-ivy); org-tangle
 
 ;; (require 'init-company);org-tangle
-(require 'init-yasnippet)
+;; (require 'init-yasnippet); org-tangle
 
-(require 'init-registers)
+;; (require 'init-registers); org-tangle
 (require 'init-dashboard)
 (require 'init-dired)
 (require 'init-ibuffer)

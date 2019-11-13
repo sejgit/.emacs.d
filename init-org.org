@@ -12,6 +12,8 @@
 - <2019-11-11 Mon> init-ivy.el tangled
 - <2019-11-11 Mon> init-lisp.el tangled
 - <2019-11-12 Tue> init-company.el tangled
+- <2019-11-13 Wed> init-yasnippet.el tangled
+- <2019-11-13 Wed> init-registers.el tangled
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -340,7 +342,7 @@
        (setq x-gtk-use-system-tooltips nil))
    #+END_SRC
 
-* general bindings
+* general key-bindings
 ** Set OS specific modifiers
 *** MAC OS Apple keyboard
     - caps lock is control (through karabiner)
@@ -417,68 +419,7 @@
           )))
     #+END_SRC
 
-** sej-mode & map set-up
-   - Below is taken from stackexchange (Emacs)
-     Main use is to have my key bindings have the highest priority
-   https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-   #+BEGIN_SRC emacs-lisp
-     (defvar sej-mode-map (make-sparse-keymap)
-       "Keymap for 'sej-mode'.")
-
-       ;;;###autoload
-     (define-minor-mode sej-mode
-       "A minor mode so that my key settings override annoying major modes."
-       ;; If init-value is not set to t, this mode does not get enabled in
-       ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-       ;; More info: http://emacs.stackexchange.com/q/16693/115
-       :init-value t
-       :lighter " sej"
-       :keymap sej-mode-map)
-
-       ;;;###autoload
-     (define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
-
-     ;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-     ;; The keymaps in `emulation-mode-map-alists' take precedence over
-     ;; `minor-mode-map-alist'
-     (add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
-
-     ;; Turn off the minor mode in the minibuffer
-     (defun turn-off-sej-mode ()
-       "Turn off sej-mode."
-       (sej-mode -1))
-     (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
-
-     (defmacro bind-to-sej-map (key fn)
-       "Bind to KEY (as FN) a function to the `sej-mode-map'.
-       USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
-       `(define-key sej-mode-map (kbd ,key) ,fn))
-
-     ;; http://emacs.stackexchange.com/a/12906/115
-     (defun unbind-from-sej-map (key)
-       "Unbind from KEY the function from the 'sej-mode-map'.
-       USAGE: (unbind-from-modi-map \"key f\")."
-       (interactive "kUnset key from sej-mode-map: ")
-       (define-key sej-mode-map (kbd (key-description key)) nil)
-       (message "%s" (format "Unbound %s key from the %s."
-                             (propertize (key-description key)
-                                         'face 'font-lock-function-name-face)
-                             (propertize "sej-mode-map"
-                                         'face 'font-lock-function-name-face))))
-     ;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
-   #+END_SRC
-
-** shorthand for interactive lambdas
-   #+BEGIN_SRC emacs-lisp
-     (defmacro λ (&rest body)
-       "Shorthand for interactive lambdas (BODY)."
-       `(lambda ()
-          (interactive)
-          ,@body))
-   #+END_SRC
-
-** keybindings
-*** global keybindings
+** keybindings global
 **** general items RET and C- M- digit keys
      #+BEGIN_SRC emacs-lisp
        (global-set-key (kbd "RET") 'newline-and-indent)
@@ -517,122 +458,181 @@
        (global-set-key (kbd "M-t p") 'transpose-params)
      #+END_SRC
 
-*** sej-mode-map bindings
-**** general sej-mode-map bindings
+**** shorthand for interactive lambdas
      #+BEGIN_SRC emacs-lisp
-       (define-key global-map (kbd "C-h C-h") nil)
-       (define-key sej-mode-map (kbd "C-h C-h") nil)
-
-       (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
-       (define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
-       (define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
-
-       (define-key sej-mode-map (kbd "C-;") 'comment-dwim-2) ; defined in init-misc-packages
-       (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
-
-                                               ;       (define-key sej-mode-map (kbd "C-+") 'text-scale-increase)
-                                               ;      (define-key sej-mode-map (kbd "C--") 'text-scale-decrease)
-
-       (define-key sej-mode-map (kbd "C-x g") 'magit-status)
-
-       ;; Zap to char
-       (define-key sej-mode-map (kbd "M-z") 'zap-to-char)
-       (define-key sej-mode-map (kbd "s-z") (lambda (char) (interactive "cZap to char backwards: ") (zap-to-char -1 char))) ;
-       (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
-
-       ;;scroll window up/down by one line
-       (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
-       (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
-       (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
-
-       ;;added tips from steve drunken blog 10 specific ways to improve productivity
-       (define-key sej-mode-map (kbd "C-x C-m") 'execute-extended-command)
-       (define-key sej-mode-map (kbd "C-c C-m") 'execute-extended-command)
-
-       ;; Align your code in a pretty way.
-       (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
-
-       ;; number lines with rectangle defined in init-writing.el
-       (define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
-
-       ;; line numbers when using goto-line M-g M-g or M-g g
-       ;; (defined in init-misc-defuns.el)
-       (global-set-key [remap goto-line] 'goto-line-preview)
-     #+END_SRC
-**** hyper modifier
-     - use hyper (fn on osx) for mode type bindings
-     #+BEGIN_SRC emacs-lisp
-       (define-key sej-mode-map (kbd "H-a") 'counsel-ag)
-       (define-key sej-mode-map (kbd "<f1>") 'org-mode)
-       (define-key sej-mode-map (kbd "H-s") 'shell)
-       (define-key sej-mode-map (kbd "<f2>") 'shell)
-       (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-
-       (define-key sej-mode-map (kbd "H-e") 'eshell)
-       (define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
-       (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
-       (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
-       (define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
-       (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
-       (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
-       (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-       (define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
-       (define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
-
-
-       (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
-           (progn
-             (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
-             (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
-         (progn
-           (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
-           (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
-         )
+       (defmacro λ (&rest body)
+         "Shorthand for interactive lambdas (BODY)."
+         `(lambda ()
+            (interactive)
+            ,@body))
      #+END_SRC
 
-**** super modifier
-     - use super for action type stuff
-     #+BEGIN_SRC emacs-lisp
-       (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-       (define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
-       (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
-       (define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
-       (define-key sej-mode-map (kbd "s-w") 'delete-frame)
+** keybindings sej-mode-map
+*** sej-mode-map set-up
+    - Below is taken from stackexchange (Emacs)
+      Main use is to have my key bindings have the highest priority
+    https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+    #+BEGIN_SRC emacs-lisp
+      (defvar sej-mode-map (make-sparse-keymap)
+        "Keymap for 'sej-mode'.")
 
-       (define-key sej-mode-map (kbd "s-0") 'delete-window)
-       (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
-       (define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
-       (define-key sej-mode-map (kbd "s-3") 'split-window-right)
-       (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
-       (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
-       (define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
-       (define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
-                                              (save-excursion
-                                                (other-window 1)
-                                                (quit-window))))
+        ;;;###autoload
+      (define-minor-mode sej-mode
+        "A minor mode so that my key settings override annoying major modes."
+        ;; If init-value is not set to t, this mode does not get enabled in
+        ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+        ;; More info: http://emacs.stackexchange.com/q/16693/115
+        :init-value t
+        :lighter " sej"
+        :keymap sej-mode-map)
 
-       ;; wind move built in package (default bindins are S-<cursor>)
-       ;;  (windmove-default-keybindings)) ;; Shift + direction
-       ;; winner-mode is to undo & redo windows with C-c left and C-c right
-       (when (fboundp 'winner-mode)
-         (winner-mode t))
-       (define-key sej-mode-map (kbd "s-h") 'windmove-left)
-       (define-key sej-mode-map (kbd "s-l") 'windmove-right)
-       (define-key sej-mode-map (kbd "s-k") 'windmove-up)
-       (define-key sej-mode-map (kbd "s-j") 'windmove-down)
-       ;; Make windmove work in org-mode:
-       ;; (add-hook 'org-shiftup-final-hook 'windmove-up)
-       ;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
-       ;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
-       ;; (add-hook 'org-shiftright-final-hook 'windmove-right)
-     #+END_SRC
+        ;;;###autoload
+      (define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
+
+      ;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+      ;; The keymaps in `emulation-mode-map-alists' take precedence over
+      ;; `minor-mode-map-alist'
+      (add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
+
+      ;; Turn off the minor mode in the minibuffer
+      (defun turn-off-sej-mode ()
+        "Turn off sej-mode."
+        (sej-mode -1))
+      (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
+
+      (defmacro bind-to-sej-map (key fn)
+        "Bind to KEY (as FN) a function to the `sej-mode-map'.
+        USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
+        `(define-key sej-mode-map (kbd ,key) ,fn))
+
+      ;; http://emacs.stackexchange.com/a/12906/115
+      (defun unbind-from-sej-map (key)
+        "Unbind from KEY the function from the 'sej-mode-map'.
+        USAGE: (unbind-from-modi-map \"key f\")."
+        (interactive "kUnset key from sej-mode-map: ")
+        (define-key sej-mode-map (kbd (key-description key)) nil)
+        (message "%s" (format "Unbound %s key from the %s."
+                              (propertize (key-description key)
+                                          'face 'font-lock-function-name-face)
+                              (propertize "sej-mode-map"
+                                          'face 'font-lock-function-name-face))))
+      ;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
+    #+END_SRC
+
+*** general sej-mode-map bindings
+    #+BEGIN_SRC emacs-lisp
+      (define-key global-map (kbd "C-h C-h") nil)
+      (define-key sej-mode-map (kbd "C-h C-h") nil)
+
+      (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
+      (define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
+      (define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
+
+      (define-key sej-mode-map (kbd "C-;") 'comment-dwim-2) ; defined in init-misc-packages
+      (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
+
+                                              ;       (define-key sej-mode-map (kbd "C-+") 'text-scale-increase)
+                                              ;      (define-key sej-mode-map (kbd "C--") 'text-scale-decrease)
+
+      (define-key sej-mode-map (kbd "C-x g") 'magit-status)
+
+      ;; Zap to char
+      (define-key sej-mode-map (kbd "M-z") 'zap-to-char)
+      (define-key sej-mode-map (kbd "s-z") (lambda (char) (interactive "cZap to char backwards: ") (zap-to-char -1 char))) ;
+      (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
+
+      ;;scroll window up/down by one line
+      (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
+      (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+      (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
+
+      ;;added tips from steve drunken blog 10 specific ways to improve productivity
+      (define-key sej-mode-map (kbd "C-x C-m") 'execute-extended-command)
+      (define-key sej-mode-map (kbd "C-c C-m") 'execute-extended-command)
+
+      ;; Align your code in a pretty way.
+      (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
+
+      ;; number lines with rectangle defined in init-writing.el
+      (define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
+
+      ;; line numbers when using goto-line M-g M-g or M-g g
+      ;; (defined in init-misc-defuns.el)
+      (global-set-key [remap goto-line] 'goto-line-preview)
+    #+END_SRC
+*** hyper modifier
+    - use hyper (fn on osx) for mode type bindings
+    #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "H-a") 'counsel-ag)
+      (define-key sej-mode-map (kbd "<f1>") 'org-mode)
+      (define-key sej-mode-map (kbd "H-s") 'shell)
+      (define-key sej-mode-map (kbd "<f2>") 'shell)
+      (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
+
+      (define-key sej-mode-map (kbd "H-e") 'eshell)
+      (define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
+      (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
+      (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
+      (define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
+      (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
+      (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
+      (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
+
+      (define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
+      (define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
+
+
+      (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
+          (progn
+            (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
+            (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
+        (progn
+          (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
+          (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
+        )
+    #+END_SRC
+
+*** super modifier
+    - use super for action type stuff
+    #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "s-b") 'ivy-switch-buffer) ;; defined here only
+      (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
+      (define-key sej-mode-map (kbd "s-s") 'save-buffer) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
+      (define-key sej-mode-map (kbd "s-w") 'delete-frame)
+
+      (define-key sej-mode-map (kbd "s-0") 'delete-window)
+      (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
+      (define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
+      (define-key sej-mode-map (kbd "s-3") 'split-window-right)
+      (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
+      (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
+      (define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
+      (define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
+                                             (save-excursion
+                                               (other-window 1)
+                                               (quit-window))))
+
+      ;; wind move built in package (default bindins are S-<cursor>)
+      ;;  (windmove-default-keybindings)) ;; Shift + direction
+      ;; winner-mode is to undo & redo windows with C-c left and C-c right
+      (when (fboundp 'winner-mode)
+        (winner-mode t))
+      (define-key sej-mode-map (kbd "s-h") 'windmove-left)
+      (define-key sej-mode-map (kbd "s-l") 'windmove-right)
+      (define-key sej-mode-map (kbd "s-k") 'windmove-up)
+      (define-key sej-mode-map (kbd "s-j") 'windmove-down)
+      ;; Make windmove work in org-mode:
+      ;; (add-hook 'org-shiftup-final-hook 'windmove-up)
+      ;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
+      ;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
+      ;; (add-hook 'org-shiftright-final-hook 'windmove-right)
+    #+END_SRC
 
 * general defuns
 ** sej/create-non-existent-directory
@@ -1587,9 +1587,6 @@
 * text manipulation
 ** text manipulation settings
    #+BEGIN_SRC emacs-lisp
-     ;; turn on abbreviation translations
-     (abbrev-mode)
-
      ;; Set the default formatting styles for various C based modes
      (setq c-default-style
            '((awk-mode . "awk")
@@ -1790,85 +1787,6 @@
                     ("C-." . imenu)))
     #+END_SRC
 
-*** origami
-    - Flexible text folding
-    #+BEGIN_SRC emacs-lisp
-      (use-package origami
-        :hook (prog-mode . origami-mode)
-        :init (setq origami-show-fold-header t)
-        :bind (:map origami-mode-map
-                    ("A-`" . hydra-origami/body))
-        ;; DONE conflict with sej/push-mark-no-activate
-        :config
-        (face-spec-reset-face 'origami-fold-header-face)
-
-        (when sej-lsp
-          ;; Support LSP
-          (use-package lsp-origami
-            :hook (origami-mode . (lambda ()
-                                    (if lsp-mode
-                                        (lsp-origami-mode))))))
-
-        (defhydra hydra-origami (:color blue :hint none)
-          "
-      ^Node^                     ^Other^
-      ^^─────────────────────────^^────────────
-      _:_: toggle recursively    _u_: undo
-      _a_: toggle all            _r_: redo
-      _t_: toggle current        _R_: reset
-      _o_: only show current
-      "
-          (":" origami-recursively-toggle-node)
-          ("a" origami-toggle-all-nodes)
-          ("t" origami-toggle-node)
-          ("o" origami-show-only-node)
-          ("u" origami-undo)
-          ("r" origami-redo)
-          ("R" origami-reset)))
-    #+END_SRC
-
-*** comment-dwim-2
-    - An all-in-one comment command to rule them all
-    #+BEGIN_SRC emacs-lisp
-      (use-package comment-dwim-2
-        :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
-    #+END_SRC
-
-*** ediff
-    A saner ediff
-    #+BEGIN_SRC emacs-lisp
-      (use-package ediff
-        :ensure nil
-        :hook(;; show org ediffs unfolded
-              (ediff-prepare-buffer . outline-show-all)
-              ;; restore window layout when done
-              (ediff-quit . winner-undo))
-        :config
-        (setq ediff-diff-options "-w")
-        (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-        (setq ediff-split-window-function 'split-window-horizontally)
-        (setq ediff-merge-split-window-function 'split-window-horizontally))
-    #+END_SRC
-
-*** elec-pair
-    - Automatic parenthesis pairing
-    #+BEGIN_SRC emacs-lisp
-      (use-package elec-pair
-        :ensure nil
-        :hook (prog-mode . electric-pair-mode)
-        :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
-        :config
-        (electric-layout-mode t)
-        (electric-indent-mode t)
-        ;; Ignore electric indentation for python and yaml
-        (defun electric-indent-ignore-mode (char)
-          "Ignore electric indentation for 'python-mode'.  CHAR is input character."
-          (if (or (equal major-mode 'python-mode)
-                  (equal major-mode 'yaml-mode))
-              'no-indent
-            nil))
-        (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
-    #+END_SRC
 ** search
 *** ivy
     - better mini-buffer completion
@@ -3063,6 +2981,50 @@
         (setq paren-highlight-offscreen t))
     #+END_SRC
 * programming
+** general
+*** comment-dwim-2
+    - An all-in-one comment command to rule them all
+    #+BEGIN_SRC emacs-lisp
+      (use-package comment-dwim-2
+        :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+    #+END_SRC
+
+*** ediff
+    A saner ediff
+    #+BEGIN_SRC emacs-lisp
+      (use-package ediff
+        :ensure nil
+        :hook(;; show org ediffs unfolded
+              (ediff-prepare-buffer . outline-show-all)
+              ;; restore window layout when done
+              (ediff-quit . winner-undo))
+        :config
+        (setq ediff-diff-options "-w")
+        (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+        (setq ediff-split-window-function 'split-window-horizontally)
+        (setq ediff-merge-split-window-function 'split-window-horizontally))
+    #+END_SRC
+
+*** elec-pair
+    - Automatic parenthesis pairing
+    #+BEGIN_SRC emacs-lisp
+      (use-package elec-pair
+        :ensure nil
+        :hook (prog-mode . electric-pair-mode)
+        :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+        :config
+        (electric-layout-mode t)
+        (electric-indent-mode t)
+        ;; Ignore electric indentation for python and yaml
+        (defun electric-indent-ignore-mode (char)
+          "Ignore electric indentation for 'python-mode'.  CHAR is input character."
+          (if (or (equal major-mode 'python-mode)
+                  (equal major-mode 'yaml-mode))
+              'no-indent
+            nil))
+        (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+    #+END_SRC
+
 ** lisp
 *** lisp settings
     - some lisp stuff from Getting Started with Emacs Lisp
@@ -3162,6 +3124,13 @@
       (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
     #+END_SRC
 ** completion
+*** abbrev
+    - abbreviations and completions
+#+BEGIN_SRC emacs-lisp
+     ;; turn on abbreviation translations
+     (abbrev-mode)
+#+END_SRC
+
 *** hippie-expand settings
 #+BEGIN_SRC emacs-lisp
 (setq hippie-expand-try-functions-list
@@ -3345,4 +3314,37 @@
     :after company
     :config
     (push 'company-shell company-backends))
+#+END_SRC
+*** yasnippet
+    - short-cut completions
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :diminish yas-minor-mode
+    :hook (sej/after-init . yas-global-mode)
+    :bind (:map yas-minor-mode-map
+                ("<tab>" . nil)
+                ("TAB" . nil)
+                ("<A-tab>" . yas-expand)
+                :map yas-keymap
+                ("<tab>" . nil)
+                ("TAB" . nil)
+                ("M-n" . yas-next-field-or-maybe-expand)
+                ("M-p" . yas-prev-field))
+    :config (use-package yasnippet-snippets))
+#+END_SRC
+** files & projects
+*** registers
+    - Registers allow you to jump to a file or other location quickly.
+      Use C-x r j or s-r followed by the letter of the register
+      (i for init.el, r for this file) to jump to it.
+#+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
+      ; (kbd "C-x r j") is build in global
+(set-register ?b '(file . "~/.ssh/custom-post.el"))
+(set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
+(set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
+(set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
+(set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
+(set-register ?d '(file . "~/.emacs.d/lisp/"))
+(set-register ?i '(file . "~/.emacs.d/init.el"))
 #+END_SRC
