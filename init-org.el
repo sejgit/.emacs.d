@@ -426,10 +426,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "s-z") (lambda (char) (interactive "cZap to char backwards: ") (zap-to-char -1 char))) ;
 (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
 
-;;scroll window up/down by one line
-(define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
-(define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
-
 (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
 
 ;;added tips from steve drunken blog 10 specific ways to improve productivity
@@ -442,8 +438,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; number lines with rectangle defined in init-writing.el
 (define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
 
-(define-key sej-mode-map (kbd "H-a") 'counsel-ag)
-
 (define-key sej-mode-map (kbd "<f1>") 'org-mode)
 
 (define-key sej-mode-map (kbd "H-s") 'shell)
@@ -452,7 +446,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
-(define-key sej-mode-map (kbd "H-f") 'flycheck-list-errors) ;;defined here for ref
+(define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
 
 (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
@@ -461,19 +455,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-(define-key sej-mode-map (kbd "C-h SPC") 'helm-all-mark-rings) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-SPC") 'helm-all-mark-rings) ;; defined here for ref
-
-
-(if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
-    (progn
-      (define-key sej-mode-map (kbd "H-h") (lambda () (interactive) (mac-send-action 'hide)))
-      (define-key sej-mode-map (kbd "H-H") (lambda () (interactive) (mac-send-action 'hide-other))))
-  (progn
-    (define-key sej-mode-map (kbd "H-h") 'ns-do-hide-emacs)
-    (define-key sej-mode-map (kbd "H-H") 'ns-do-hide-others))
-  )
 
 (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
 
@@ -709,6 +690,10 @@ output as per `sej/exec'. Otherwise, return nil."
 (setq frame-title-format '("SeJ Emacs - %b"))
 (setq icon-title-format frame-title-format)
 
+;; Don't open a file in a new frame
+(when (boundp 'ns-pop-up-frames)
+  (setq ns-pop-up-frames nil))
+
 (when sys/mac-x-p
   (use-package ns-auto-titlebar
     :config
@@ -720,11 +705,17 @@ output as per `sej/exec'. Otherwise, return nil."
                 (let ((bg (frame-parameter nil 'background-mode)))
                   (set-frame-parameter nil 'ns-appearance bg)
                   (setcdr (assq 'ns-appearance default-frame-alist) bg))))
-    (ns-auto-titlebar-mode)))
+    (ns-auto-titlebar-mode))
 
-;; Don't open a file in a new frame
-(when (boundp 'ns-pop-up-frames)
-  (setq ns-pop-up-frames nil))
+  (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
+      (progn
+        (define-key sej-mode-map (kbd "s-h") (lambda () (interactive) (mac-send-action 'hide)))
+        )
+    (progn
+      (define-key sej-mode-map (kbd "s-h") 'ns-do-hide-emacs)
+      )
+    )
+  )
 
 (define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
 (define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
@@ -919,6 +910,10 @@ buffer is not visiting a file."
                                          (quit-window))))
 (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
 
+;;scroll window up/down by one line
+(define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
+(define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+
 (use-package ace-window
   :functions (hydra-frame-window/body my-aw-window<)
   :bind (([remap other-window] . ace-window)
@@ -989,10 +984,10 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 (use-package windmove
   :ensure nil
   :hook (sej/after-init . windmove-default-keybindings)
-  :bind (("s-h" . windmove-left)
-         ("s-l" . windmove-right)
-         ("s-k" . windmove-up)
-         ("s-j" . windmove-down) )
+  :bind (("H-h" . windmove-left)
+         ("H-l" . windmove-right)
+         ("H-k" . windmove-up)
+         ("H-j" . windmove-down) )
   :config
   (when (fboundp 'winner-mode)
     (winner-mode t))
@@ -1454,6 +1449,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
          ([remap dired] . counsel-dired)
          ("C-x C-r" . counsel-recentf)
          ("C-x j" . counsel-mark-ring)
+         ("C-h SPC" . helm-all-mark-rings)
+         ("H-SPC" . helm-all-mark-rings)
 
          ("C-c L" . counsel-load-library)
          ("C-c P" . counsel-package)
@@ -1463,6 +1460,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
          ("C-c i" . counsel-git)
          ("C-c j" . counsel-git-grep)
          ("C-c k" . counsel-ag)
+         ("H-a"   . counsel-ag)
          ("C-c l" . counsel-locate)
          ("C-c r" . counsel-rg)
          ("C-c z" . counsel-fzf)
@@ -1472,13 +1470,13 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
          ("C-c c a" . counsel-apropos)
          ("C-c c e" . counsel-colors-emacs)
          ("C-c c f" . counsel-find-library)
-         ("C-c c g" . counsel-grep)
          ("C-c c h" . counsel-command-history)
          ("C-c c i" . counsel-git)
          ("C-c c j" . counsel-git-grep)
          ("C-c c l" . counsel-locate)
          ("C-c c m" . counsel-minibuffer-history)
          ("C-c c o" . counsel-outline)
+         ("C-c c g" . counsel-grep)
          ("C-c c p" . counsel-pt)
          ("C-c c r" . counsel-rg)
          ("C-c c s" . counsel-ag)
@@ -2651,6 +2649,69 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
          ("H-y" . aya-expand)
          ("C-o" . aya-open-line)))
 
+(use-package ibuffer
+  :ensure nil
+  :functions (all-the-icons-icon-for-file
+              all-the-icons-icon-for-mode
+              all-the-icons-auto-mode-match?
+              all-the-icons-faicon)
+  :commands ibuffer-find-file
+  :bind (:map sej-mode-map
+              ("C-x C-b" . ibuffer))
+  :config
+  (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
+
+  ;; Display buffer icons on GUI
+  (when (display-graphic-p)
+    ;; To be correctly aligned, the size of the name field must be equal to that
+    ;; of the icon column below, plus 1 (for the tab I inserted)
+    (define-ibuffer-column icon (:name "   ")
+      (let ((icon (if (and (buffer-file-name)
+                           (all-the-icons-auto-mode-match?))
+                      (all-the-icons-icon-for-file (file-name-nondirectory (buffer-file-name)) :v-adjust -0.05)
+                    (all-the-icons-icon-for-mode major-mode :v-adjust -0.05))))
+        (if (symbolp icon)
+            (setq icon (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0))
+          icon)))
+
+    (let ((tab-width 1))
+      (setq ibuffer-formats '((mark modified read-only locked
+                                    ;; Here you may adjust by replacing :right with :center or :left
+                                    ;; According to taste, if you want the icon further from the name
+                                    " " (icon 1 -1 :left :elide) "\t" (name 18 18 :left :elide)
+                                    " " (size 9 -1 :right)
+                                    " " (mode 16 16 :left :elide) " " filename-and-process)
+                              (mark " " (name 16 -1) " " filename)))))
+
+  (with-eval-after-load 'counsel
+    (defun my-ibuffer-find-file ()
+      (interactive)
+      (let ((default-directory (let ((buf (ibuffer-current-buffer)))
+                                 (if (buffer-live-p buf)
+                                     (with-current-buffer buf
+                                       default-directory)
+                                   default-directory))))
+        (counsel-find-file default-directory)))
+    (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
+
+  ;; Group ibuffer's list by project root
+  (use-package ibuffer-projectile
+    :functions all-the-icons-octicon ibuffer-do-sort-by-alphabetic
+    :hook ((ibuffer . (lambda ()
+                        (ibuffer-projectile-set-filter-groups)
+                        (unless (eq ibuffer-sorting-mode 'alphabetic)
+                          (ibuffer-do-sort-by-alphabetic)))))
+    :config
+    (setq ibuffer-projectile-prefix
+          (if (display-graphic-p)
+              (concat
+               (all-the-icons-octicon "file-directory"
+                                      :face ibuffer-filter-group-name-face
+                                      :v-adjust -0.05
+                                      :height 1.25)
+               " ")
+            "Project: "))))
+
 (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
       ; (kbd "C-x r j") is build in global
 (set-register ?b '(file . "~/.ssh/custom-post.el"))
@@ -3034,8 +3095,120 @@ _S_ettings                                _C-p_: Previous Line
                ("h" . hydra-dashboard/body)
                ("?" . hydra-dashboard/body))))
 
-;; display ^L page breaks as tidy horizontal lines
 (use-package page-break-lines
   :config
   (setq global-page-break-lines-mode t)
   )
+
+;; Directory operations
+(use-package dired
+  :ensure nil
+  :bind (:map dired-mode-map
+              ("C-c C-p" . wdired-change-to-wdired-mode))
+  :config
+  ;; Always delete and copy recursively
+  (setq dired-recursive-deletes 'always)
+  (setq dired-recursive-copies 'always)
+
+  (when sys/macp
+    ;; Suppress the warning: `ls does not support --dired'.
+    (setq dired-use-ls-dired nil)
+
+    ;; Use GNU ls as `gls' from `coreutils' if available.
+    ;; Prefer g-prefixed coreutils version of standard utilities when available
+    (when (executable-find "gls")
+      (setq insert-directory-program (executable-find "gls")
+            dired-use-ls-dired t) ))
+
+  ;; Show directory first
+  (setq dired-listing-switches "-alh --group-directories-first"))
+
+(use-package dired-quick-sort
+  :bind (:map dired-mode-map
+              ("S" . hydra-dired-quick-sort/body)))
+
+(use-package all-the-icons-dired
+  :diminish
+  :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :config
+  (defun my-all-the-icons-dired--display ()
+    "Display the icons of files without colors in a dired buffer."
+
+    ;; Fix: not display icons after dired commands (e.g insert-subdir, create-directory)
+    ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
+    (all-the-icons-dired--reset)
+
+    (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
+      (setq-local all-the-icons-dired-displayed t)
+      (let ((inhibit-read-only t)
+            (remote-p (and (fboundp 'tramp-tramp-file-p)
+                           (tramp-tramp-file-p default-directory))))
+        (save-excursion
+          (setq-local tab-width 1)
+          (goto-char (point-min))
+          (while (not (eobp))
+            (when (dired-move-to-filename nil)
+              (insert "\t")
+              (let ((file (dired-get-filename 'verbatim t)))
+                (unless (member file '("." ".."))
+                  (let ((filename (dired-get-filename nil t)))
+                    (if (file-directory-p filename)
+                        (let ((icon
+                               (cond
+                                (remote-p
+                                 (all-the-icons-octicon "file-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                ((file-symlink-p filename)
+                                 (all-the-icons-octicon "file-symlink-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                ((all-the-icons-dir-is-submodule filename)
+                                 (all-the-icons-octicon "file-submodule" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                ((file-exists-p (format "%s/.git" filename))
+                                 (all-the-icons-octicon "repo" :height 1.1 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust ))
+                                (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
+                                     (apply (car matcher) (list (cadr matcher) :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust)))))))
+                          (insert icon))
+                      (insert (all-the-icons-icon-for-file file :v-adjust -0.05))))
+                  (insert "\t"))))
+            (forward-line 1))))))
+  (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
+
+(use-package dired-aux :ensure nil)
+
+(use-package dired-x
+  :ensure nil
+  :demand
+  :config
+  (let ((cmd (cond
+              (sys/mac-x-p "open")
+              (sys/linux-x-p "xdg-open")
+              (sys/win32p "start")
+              (t ""))))
+    (setq dired-guess-shell-alist-user
+          `(("\\.pdf\\'" ,cmd)
+            ("\\.docx\\'" ,cmd)
+            ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
+            ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
+            ("\\.\\(?:xcf\\)\\'" ,cmd)
+            ("\\.csv\\'" ,cmd)
+            ("\\.tex\\'" ,cmd)
+            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
+            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
+            ("\\.html?\\'" ,cmd)
+            ("\\.md\\'" ,cmd))))
+
+  (setq dired-omit-files
+        (concat dired-omit-files
+                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
+
+(use-package quick-preview
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c q" . quick-preview-at-point)
+              :map dired-mode-map
+              ("Q" . quick-preview-at-point)))
+
+(use-package browse-at-remote
+  :bind ("C-c s b" . browse-at-remote))
+
+(use-package diredfl
+  :init (diredfl-global-mode 1))

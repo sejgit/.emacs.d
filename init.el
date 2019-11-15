@@ -182,7 +182,7 @@
 
 ;; (require 'init-registers); org-tangle
 ;; (require 'init-dashboard); org-tangle
-(require 'init-dired)
+;; (require 'init-dired); org-tangle
 (require 'init-ibuffer)
 (require 'init-kill-ring)
 (require 'init-deft)
