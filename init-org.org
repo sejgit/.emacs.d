@@ -16,6 +16,8 @@
 - <2019-11-13 Wed> init-registers.el tangled
 - <2019-11-14 Thu> init-dired.el tangled
 - <2019-11-14 Thu> init-ibuffer.el tangled
+- <2019-11-14 Thu> init-kill-ring.el tangled
+- <2019-11-14 Thu> init-deft.el tangled
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -529,11 +531,7 @@
 
       (define-key sej-mode-map (kbd "C-x g") 'magit-status)
 
-      ;; Zap to char
-      (define-key sej-mode-map (kbd "M-z") 'zap-to-char)
-      (define-key sej-mode-map (kbd "s-z") (lambda (char) (interactive "cZap to char backwards: ") (zap-to-char -1 char))) ;
       (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
-
       (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
 
       ;;added tips from steve drunken blog 10 specific ways to improve productivity
@@ -567,9 +565,6 @@
       (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
       (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
       (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-
-
     #+END_SRC
 
 *** super modifier
@@ -938,6 +933,14 @@
         )
     #+END_SRC
 
+*** suppress GUI features
+    #+BEGIN_SRC emacs-lisp
+      (setq use-file-dialog nil)
+      (setq use-dialog-box nil)
+      (setq inhibit-startup-screen t)
+      (setq inhibit-startup-echo-area-message t)
+    #+END_SRC
+
 *** sej/frame-resize-full
     - generic way to move and resize frame to full width of screen
     - set frame full height and full wide and position at screen left
@@ -1227,6 +1230,16 @@
   (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
   (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
 #+END_SRC
+
+*** mouse & smooth scroll
+    - Scroll one line at a time (less "jumpy" than defaults)
+    #+BEGIN_SRC emacs-lisp
+      (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+      (setq mouse-wheel-progressive-speed nil)
+      (setq scroll-step 1
+            scroll-margin 0
+            scroll-conservatively 100000)
+    #+END_SRC
 
 *** ace-window
     - quickly selecting a window to switch to
@@ -1529,36 +1542,11 @@
 
 ** line numbers
 *** display-line-numbers
-   - Show native line numbers if possible, otherwise use linum
+   - only in prog modes
 #+BEGIN_SRC emacs-lisp
-  (use-package display-line-numbers
+    (use-package display-line-numbers
     :ensure nil
-    :hook ((after-init . global-linum-mode)
-           (prog-mode . display-line-numbers-mode))
-    :config     (setq linum-format "%4d "))
-#+END_SRC
-
-*** linum-off
-    - mechanism to turn line numbers off in certain major modes
-#+BEGIN_SRC emacs-lisp
-  (use-package linum-off
-    :demand)
-#+END_SRC
-
-*** hlinum
-    - Highlight current line number
-#+BEGIN_SRC emacs-lisp
-  (use-package hlinum
-    :defines linum-highlight-in-all-buffersp
-    :hook (global-linum-mode . hlinum-activate)
-    :custom-face (linum-highlight-face
-                  ((t `(
-                        :inherit default
-                        :background nil
-                        :foreground nil
-                        ))))
-    :init
-    (setq linum-highlight-in-all-buffersp t))
+    :hook (prog-mode . display-line-numbers-mode))
 #+END_SRC
 
 *** goto-line-preview
@@ -1569,35 +1557,6 @@
               (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
        :bind ([remap goto-line] . goto-line-preview))
 #+END_SRC
-
-** mouse & smooth scroll
-   - Scroll one line at a time (less "jumpy" than defaults)
-   #+BEGIN_SRC emacs-lisp
-     (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-     (setq mouse-wheel-progressive-speed nil)
-     (setq scroll-step 1
-           scroll-margin 0
-           scroll-conservatively 100000)
-   #+END_SRC
-
-** display time
-   #+BEGIN_SRC emacs-lisp
-     (use-package time
-       :ensure nil
-       :unless (display-graphic-p)
-       :hook (after-init . display-time-mode)
-       :init
-       (setq display-time-24hr-format t)
-       (setq display-time-day-and-date t))
-   #+END_SRC
-
-** suppress GUI features
-   #+BEGIN_SRC emacs-lisp
-     (setq use-file-dialog nil)
-     (setq use-dialog-box nil)
-     (setq inhibit-startup-screen t)
-     (setq inhibit-startup-echo-area-message t)
-   #+END_SRC
 
 * text manipulation
 ** text manipulation settings
@@ -1787,12 +1746,7 @@
                      ("C-|" . mc/vertical-align-with-space))))
     #+END_SRC
 
-*** hydra
-    - Make bindings that stick around
-    #+BEGIN_SRC emacs-lisp
-      (use-package hydra)
-    #+END_SRC
-
+** search
 *** imenu
     - Framework for mode-specific buffer indexes
     #+BEGIN_SRC emacs-lisp
@@ -1802,7 +1756,6 @@
                     ("C-." . imenu)))
     #+END_SRC
 
-** search
 *** ivy
     - better mini-buffer completion
     #+BEGIN_SRC emacs-lisp
@@ -2590,6 +2543,45 @@
     #+END_SRC
 
 ** regions
+*** easy-kill-extras
+    - This package contains extra functions for easy-kill/easy-mark.
+    - Kill & Mark things easily
+#+BEGIN_SRC emacs-lisp
+  (setq kill-ring-max 200)
+
+  ;; Save clipboard contents into kill-ring before replace them
+  (setq save-interprogram-paste-before-kill t)
+
+  (use-package easy-kill-extras
+    :bind (([remap kill-ring-save] . easy-kill) ; M-w
+           ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
+           ([remap mark-word] . easy-mark-word) ; M-@
+
+           ;; Integrate `expand-region'
+           :map easy-kill-base-map
+           ("o" . easy-kill-er-expand)
+           ("i" . easy-kill-er-unexpand))
+    :config
+    (setq easy-kill-alist '((?w word           " ")
+                            (?s sexp           "\n")
+                            (?l list           "\n")
+                            (?f filename       "\n")
+                            (?d defun          "\n\n")
+                            (?D defun-name     " ")
+                            (?e line           "\n")
+                            (?b buffer-file-name)
+
+                            (?^ backward-line-edge "")
+                            (?$ forward-line-edge "")
+                            (?h buffer "")
+                            (?< buffer-before-point "")
+                            (?> buffer-after-point "")
+                            (?f string-to-char-forward "")
+                            (?F string-up-to-char-forward "")
+                            (?t string-to-char-backward "")
+                            (?T string-up-to-char-backward "")))    )
+#+END_SRC
+
 *** sej/copy-from-osx, sej/copy-to-osx
     - https://gist.github.com/the-kenny/267162
     #+BEGIN_SRC emacs-lisp
@@ -3147,7 +3139,7 @@
     - abbreviations and completions
 #+BEGIN_SRC emacs-lisp
      ;; turn on abbreviation translations
-     (abbrev-mode)
+     (abbrev-mode 1)
 #+END_SRC
 
 *** hippie-expand settings
@@ -3362,6 +3354,12 @@
            ("H-y" . aya-expand)
            ("C-o" . aya-open-line)))
 #+END_SRC
+
+*** hydra
+    - Make bindings that stick around
+    #+BEGIN_SRC emacs-lisp
+      (use-package hydra)
+    #+END_SRC
 
 * files
 *** ibuffer
@@ -3971,4 +3969,28 @@
 #+BEGIN_SRC emacs-lisp
   (use-package diredfl
     :init (diredfl-global-mode 1))
+#+END_SRC
+* Writing
+*** deft
+    - Deft is an Emacs mode for quickly browsing, filtering,
+      and editing directories of plain text notes
+#+BEGIN_SRC emacs-lisp
+(use-package deft
+  :ensure t
+  :defines sej-mode-map deft-text-mode
+  :bind (:map sej-mode-map
+              ("<f7>" . deft)
+              ("C-c d" . deft)
+              ("H-d" . deft))
+  :config
+  (setq deft-directory sej-org-directory)
+  (setq deft-use-filename-as-title t
+        deft-default-extension "org"
+        deft-text-mode (quote (org-mode))
+        deft-org-mode-title-prefix t
+        deft-use-filter-string-for-filename t
+        deft-auto-save-interval 0
+        deft-recursive t
+        deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
+        deft-org-mode-title-prefix t))
 #+END_SRC

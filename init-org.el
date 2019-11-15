@@ -421,11 +421,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (define-key sej-mode-map (kbd "C-x g") 'magit-status)
 
-;; Zap to char
-(define-key sej-mode-map (kbd "M-z") 'zap-to-char)
-(define-key sej-mode-map (kbd "s-z") (lambda (char) (interactive "cZap to char backwards: ") (zap-to-char -1 char))) ;
 (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
-
 (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
 
 ;;added tips from steve drunken blog 10 specific ways to improve productivity
@@ -717,6 +713,11 @@ output as per `sej/exec'. Otherwise, return nil."
     )
   )
 
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-echo-area-message t)
+
 (define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
 (define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
 
@@ -913,6 +914,12 @@ buffer is not visiting a file."
 ;;scroll window up/down by one line
 (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
 (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+(setq mouse-wheel-progressive-speed nil)
+(setq scroll-step 1
+      scroll-margin 0
+      scroll-conservatively 100000)
 
 (use-package ace-window
   :functions (hydra-frame-window/body my-aw-window<)
@@ -1185,49 +1192,13 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
                '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
 
 (use-package display-line-numbers
-  :ensure nil
-  :hook ((after-init . global-linum-mode)
-         (prog-mode . display-line-numbers-mode))
-  :config     (setq linum-format "%4d "))
-
-(use-package linum-off
-  :demand)
-
-(use-package hlinum
-  :defines linum-highlight-in-all-buffersp
-  :hook (global-linum-mode . hlinum-activate)
-  :custom-face (linum-highlight-face
-                ((t `(
-                      :inherit default
-                      :background nil
-                      :foreground nil
-                      ))))
-  :init
-  (setq linum-highlight-in-all-buffersp t))
+:ensure nil
+:hook (prog-mode . display-line-numbers-mode))
 
 (use-package goto-line-preview
   :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
          (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
   :bind ([remap goto-line] . goto-line-preview))
-
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil)
-(setq scroll-step 1
-      scroll-margin 0
-      scroll-conservatively 100000)
-
-(use-package time
-  :ensure nil
-  :unless (display-graphic-p)
-  :hook (after-init . display-time-mode)
-  :init
-  (setq display-time-24hr-format t)
-  (setq display-time-day-and-date t))
-
-(setq use-file-dialog nil)
-(setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-echo-area-message t)
 
 ;; Set the default formatting styles for various C based modes
 (setq c-default-style
@@ -1400,8 +1371,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
                ("C-S-<mouse-1>" . mc/add-cursor-on-click))
          (:map mc/keymap
                ("C-|" . mc/vertical-align-with-space))))
-
-(use-package hydra)
 
 (use-package imenu
   :ensure nil
@@ -2076,6 +2045,44 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 ;; push and jump to mark functions
 (define-key sej-mode-map (kbd "M-`") 'sej/jump-to-mark)
 
+(setq kill-ring-max 200)
+
+;; Save clipboard contents into kill-ring before replace them
+(setq save-interprogram-paste-before-kill t)
+
+(use-package easy-kill-extras
+  :bind (([remap kill-ring-save] . easy-kill) ; M-w
+         ([remap mark-sexp] . easy-mark-sexp) ; C-M-spc
+         ([remap mark-word] . easy-mark-word) ; M-@
+
+         ;; Integrate `zap-to-char'
+         ([remap zap-to-char] . easy-mark-to-char) ; M-z
+         ([remap zap-up-to-char] . easy-mark-up-to-char) ; none
+
+         ;; Integrate `expand-region'
+         :map easy-kill-base-map
+         ("o" . easy-kill-er-expand)
+         ("i" . easy-kill-er-unexpand))
+  :config
+  (setq easy-kill-alist '((?w word           " ")
+                          (?s sexp           "\n")
+                          (?l list           "\n")
+                          (?f filename       "\n")
+                          (?d defun          "\n\n")
+                          (?D defun-name     " ")
+                          (?e line           "\n")
+                          (?b buffer-file-name)
+
+                          (?^ backward-line-edge "")
+                          (?$ forward-line-edge "")
+                          (?h buffer "")
+                          (?< buffer-before-point "")
+                          (?> buffer-after-point "")
+                          (?f string-to-char-forward "")
+                          (?F string-up-to-char-forward "")
+                          (?t string-to-char-backward "")
+                          (?T string-up-to-char-backward "")))    )
+
 (when sys/macp
   (defun sej/copy-from-osx ()
     "For copying from osx."
@@ -2469,7 +2476,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
 ;; turn on abbreviation translations
-(abbrev-mode)
+(abbrev-mode 1)
 
 (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
@@ -2648,6 +2655,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :bind (("H-w" . aya-create)
          ("H-y" . aya-expand)
          ("C-o" . aya-open-line)))
+
+(use-package hydra)
 
 (use-package ibuffer
   :ensure nil
