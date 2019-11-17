@@ -187,10 +187,10 @@
 ;; (require 'init-kill-ring); org-tangle
 ;; (require 'init-deft); org-tangle
 
-(require 'init-persp)
+;; (require 'init-persp); removed
 
-(require 'init-eshell)
-(require 'init-shell)
+;; (require 'init-eshell); org-tangle
+;; (require 'init-shell); org-tangle
 
 (require 'init-org) ;
 ;; (require 'init-calendar) ; not used leave commented

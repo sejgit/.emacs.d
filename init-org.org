@@ -18,6 +18,8 @@
 - <2019-11-14 Thu> init-ibuffer.el tangled
 - <2019-11-14 Thu> init-kill-ring.el tangled
 - <2019-11-14 Thu> init-deft.el tangled
+- <2019-11-17 Sun> init-eshell.el tangled
+- <2019-11-17 Sun> init-shell.el tangled
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -549,10 +551,6 @@
     - use hyper (fn on osx) for mode type bindings
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "<f1>") 'org-mode)
-
-      (define-key sej-mode-map (kbd "H-s") 'shell)
-      (define-key sej-mode-map (kbd "<f2>") 'shell)
-      (define-key sej-mode-map (kbd "H-e") 'eshell)
 
       (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
@@ -1088,9 +1086,9 @@
                                (ido-read-file-name "Find file(as root): ")))
           (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-        ;; function to edit the curent file as root
-        ;; (defined in init-misc-defuns.el)
-        (define-key sej-mode-map (kbd "C-c C-s") 'sej/sudo-edit)
+      ;; function to edit the curent file as root
+      ;; (defined in init-misc-defuns.el)
+      (define-key sej-mode-map (kbd "C-c C-s") 'sej/sudo-edit)
     #+END_SRC
 
 *** sej/dos2unix
@@ -1214,22 +1212,22 @@
     #+END_SRC
 ** windows
 *** window settings
-#+BEGIN_SRC emacs-lisp
-  (define-key sej-mode-map (kbd "s-0") 'delete-window)
-  (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
-  (define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
-  (define-key sej-mode-map (kbd "s-3") 'split-window-right)
+    #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "s-0") 'delete-window)
+      (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
+      (define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
+      (define-key sej-mode-map (kbd "s-3") 'split-window-right)
 
-  (define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
-                                         (save-excursion
-                                           (other-window 1)
-                                           (quit-window))))
-  (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
+      (define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
+                                             (save-excursion
+                                               (other-window 1)
+                                               (quit-window))))
+      (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
 
-  ;;scroll window up/down by one line
-  (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
-  (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
-#+END_SRC
+      ;;scroll window up/down by one line
+      (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
+      (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+    #+END_SRC
 
 *** mouse & smooth scroll
     - Scroll one line at a time (less "jumpy" than defaults)
@@ -1542,21 +1540,21 @@
 
 ** line numbers
 *** display-line-numbers
-   - only in prog modes
-#+BEGIN_SRC emacs-lisp
-    (use-package display-line-numbers
-    :ensure nil
-    :hook (prog-mode . display-line-numbers-mode))
-#+END_SRC
+    - only in prog modes
+    #+BEGIN_SRC emacs-lisp
+      (use-package display-line-numbers
+        :ensure nil
+        :hook (prog-mode . display-line-numbers-mode))
+    #+END_SRC
 
 *** goto-line-preview
     - Preview line when executing goto-line command.
-#+BEGIN_SRC emacs-lisp
-     (use-package goto-line-preview
-       :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
-              (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
-       :bind ([remap goto-line] . goto-line-preview))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package goto-line-preview
+        :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
+               (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
+        :bind ([remap goto-line] . goto-line-preview))
+    #+END_SRC
 
 * text manipulation
 ** text manipulation settings
@@ -2362,19 +2360,19 @@
 
 *** smart-tab
     - indent and complete dwim when <tab> is pressed
-#+BEGIN_SRC emacs-lisp
-(use-package smart-tab
-  :diminish ""
-  :defines
-  smart-tab-using-hippie-expand
-  :init
-  (setq smart-tab-using-hippie-expand t)
-  :config
-  (global-smart-tab-mode 1)
-  (add-to-list 'smart-tab-disabled-major-modes 'mu4e-compose-mode)
-  (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
-  (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package smart-tab
+        :diminish ""
+        :defines
+        smart-tab-using-hippie-expand
+        :init
+        (setq smart-tab-using-hippie-expand t)
+        :config
+        (global-smart-tab-mode 1)
+        (add-to-list 'smart-tab-disabled-major-modes 'mu4e-compose-mode)
+        (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
+        (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
+    #+END_SRC
 
 ** history packages
 *** saveplace
@@ -2546,41 +2544,41 @@
 *** easy-kill-extras
     - This package contains extra functions for easy-kill/easy-mark.
     - Kill & Mark things easily
-#+BEGIN_SRC emacs-lisp
-  (setq kill-ring-max 200)
+    #+BEGIN_SRC emacs-lisp
+      (setq kill-ring-max 200)
 
-  ;; Save clipboard contents into kill-ring before replace them
-  (setq save-interprogram-paste-before-kill t)
+      ;; Save clipboard contents into kill-ring before replace them
+      (setq save-interprogram-paste-before-kill t)
 
-  (use-package easy-kill-extras
-    :bind (([remap kill-ring-save] . easy-kill) ; M-w
-           ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
-           ([remap mark-word] . easy-mark-word) ; M-@
+      (use-package easy-kill-extras
+        :bind (([remap kill-ring-save] . easy-kill) ; M-w
+               ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
+               ([remap mark-word] . easy-mark-word) ; M-@
 
-           ;; Integrate `expand-region'
-           :map easy-kill-base-map
-           ("o" . easy-kill-er-expand)
-           ("i" . easy-kill-er-unexpand))
-    :config
-    (setq easy-kill-alist '((?w word           " ")
-                            (?s sexp           "\n")
-                            (?l list           "\n")
-                            (?f filename       "\n")
-                            (?d defun          "\n\n")
-                            (?D defun-name     " ")
-                            (?e line           "\n")
-                            (?b buffer-file-name)
+               ;; Integrate `expand-region'
+               :map easy-kill-base-map
+               ("o" . easy-kill-er-expand)
+               ("i" . easy-kill-er-unexpand))
+        :config
+        (setq easy-kill-alist '((?w word           " ")
+                                (?s sexp           "\n")
+                                (?l list           "\n")
+                                (?f filename       "\n")
+                                (?d defun          "\n\n")
+                                (?D defun-name     " ")
+                                (?e line           "\n")
+                                (?b buffer-file-name)
 
-                            (?^ backward-line-edge "")
-                            (?$ forward-line-edge "")
-                            (?h buffer "")
-                            (?< buffer-before-point "")
-                            (?> buffer-after-point "")
-                            (?f string-to-char-forward "")
-                            (?F string-up-to-char-forward "")
-                            (?t string-to-char-backward "")
-                            (?T string-up-to-char-backward "")))    )
-#+END_SRC
+                                (?^ backward-line-edge "")
+                                (?$ forward-line-edge "")
+                                (?h buffer "")
+                                (?< buffer-before-point "")
+                                (?> buffer-after-point "")
+                                (?f string-to-char-forward "")
+                                (?F string-up-to-char-forward "")
+                                (?t string-to-char-backward "")
+                                (?T string-up-to-char-backward "")))    )
+    #+END_SRC
 
 *** sej/copy-from-osx, sej/copy-to-osx
     - https://gist.github.com/the-kenny/267162
@@ -3137,223 +3135,225 @@
 ** completion
 *** abbrev
     - abbreviations and completions
-#+BEGIN_SRC emacs-lisp
-     ;; turn on abbreviation translations
-     (abbrev-mode 1)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      ;; turn on abbreviation translations
+      (abbrev-mode 1)
+    #+END_SRC
 
 *** hippie-expand settings
-#+BEGIN_SRC emacs-lisp
-  (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
-  (setq hippie-expand-try-functions-list
-        '(try-complete-file-name-partially
-          try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line
-          try-expand-line-all-buffers
-          try-complete-lisp-symbol-partially
-          try-compelete-lisp-symbol))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
+      (setq hippie-expand-try-functions-list
+            '(try-complete-file-name-partially
+              try-expand-dabbrev
+              try-expand-dabbrev-all-buffers
+              try-expand-dabbrev-from-kill
+              try-complete-file-name-partially
+              try-complete-file-name
+              try-expand-all-abbrevs
+              try-expand-list
+              try-expand-line
+              try-expand-line-all-buffers
+              try-complete-lisp-symbol-partially
+              try-compelete-lisp-symbol))
+    #+END_SRC
 
 *** company
     - Modular in-buffer completion framework for Emacs http://company-mode.github.io/
-#+BEGIN_SRC emacs-lisp
-  (use-package company
-   :diminish company-mode
-   :defines
-   sej-mode-map
-   company-dabbrev-ignore-case
-   company-dabbrev-downcase
-   company-dabbrev-code-modes
-   company-dabbrev-code-ignore-case
-   :commands company-abort
-   :bind (
-          ("<backtab>" . company-yasnippet)
-          :map sej-mode-map
-          (("C-<tab>" . company-complete)
-           ("M-<tab>" . company-complete))
-          :map company-active-map
-          (("C-n" . company-select-next)
-           ("C-p" . company-select-previous)
-           ("C-d" . company-show-doc-buffer)
-           ("C-l" . company-show-location)
-           ("<tab>" . company-complete))
-          :map company-search-map
-          (("C-p" . company-select-previous)
-           ("C-n" . company-select-next)))
-   :hook (sej/after-init . global-company-mode)
-   :init
-   (defun my-company-yasnippet ()
-     (interactive)
-     (company-abort)
-     (call-interactively 'company-yasnippet))
-   :config
-   (setq company-tooltip-align-annotations t ; aligns annotation to the right
-         company-tooltip-limit 12            ; bigger popup window
-         company-idle-delay .2               ; decrease delay before autocompletion popup shows
-         company-echo-delay 0                ; remove annoying blinking
-         company-minimum-prefix-length 2
-         company-require-match nil
-         company-dabbrev-ignore-case nil
-         company-dabbrev-downcase nil))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package company
+        :diminish company-mode
+        :defines
+        sej-mode-map
+        company-dabbrev-ignore-case
+        company-dabbrev-downcase
+        company-dabbrev-code-modes
+        company-dabbrev-code-ignore-case
+        :commands company-abort
+        :bind (
+               ("<backtab>" . company-yasnippet)
+               :map sej-mode-map
+               (("C-<tab>" . company-complete)
+                ("M-<tab>" . company-complete))
+               :map company-active-map
+               (("C-n" . company-select-next)
+                ("C-p" . company-select-previous)
+                ("C-d" . company-show-doc-buffer)
+                ("C-l" . company-show-location)
+                ("<tab>" . company-complete))
+               :map company-search-map
+               (("C-p" . company-select-previous)
+                ("C-n" . company-select-next)))
+        :hook (sej/after-init . global-company-mode)
+        :init
+        (defun my-company-yasnippet ()
+          (interactive)
+          (company-abort)
+          (call-interactively 'company-yasnippet))
+        :config
+        (setq company-tooltip-align-annotations t ; aligns annotation to the right
+              company-tooltip-limit 12            ; bigger popup window
+              company-idle-delay .2               ; decrease delay before autocompletion popup shows
+              company-echo-delay 0                ; remove annoying blinking
+              company-minimum-prefix-length 2
+              company-require-match nil
+              company-dabbrev-ignore-case nil
+              company-dabbrev-downcase nil))
+    #+END_SRC
 
 *** company-box
     - a company front-end with Icons
-#+BEGIN_SRC emacs-lisp
-  (when emacs/>=26p
-    (use-package company-box
-      :after company
-      :diminish
-      :hook (company-mode . company-box-mode)
-      :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-      :config
-      (setq company-box-backends-colors nil)
-      (setq company-box-show-single-candidate t)
-      (setq company-box-max-candidates 50)
+    #+BEGIN_SRC emacs-lisp
+      (when emacs/>=26p
+        (use-package company-box
+          :after company
+          :diminish
+          :hook (company-mode . company-box-mode)
+          :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+          :config
+          (setq company-box-backends-colors nil)
+          (setq company-box-show-single-candidate t)
+          (setq company-box-max-candidates 50)
 
-      ;; Support `company-common'
-      (defun my-company-box--make-line (candidate)
-        (-let* (((candidate annotation len-c len-a backend) candidate)
-                (color (company-box--get-color backend))
-                ((c-color a-color i-color s-color) (company-box--resolve-colors color))
-                (icon-string (and company-box--with-icons-p (company-box--add-icon candidate)))
-                (candidate-string (concat (propertize company-common 'face 'company-tooltip-common)
-                                          (substring (propertize candidate 'face 'company-box-candidate) (length company-common) nil)))
-                (align-string (when annotation
-                                (concat " " (and company-tooltip-align-annotations
-                                                 (propertize " " 'display `(space :align-to (- right-fringe ,(or len-a 0) 1)))))))
-                (space company-box--space)
-                (icon-p company-box-enable-icon)
-                (annotation-string (and annotation (propertize annotation 'face 'company-box-annotation)))
-                (line (concat (unless (or (and (= space 2) icon-p) (= space 0))
-                                (propertize " " 'display `(space :width ,(if (or (= space 1) (not icon-p)) 1 0.75))))
-                              (company-box--apply-color icon-string i-color)
-                              (company-box--apply-color candidate-string c-color)
-                              align-string
-                              (company-box--apply-color annotation-string a-color)))
-                (len (length line)))
-          (add-text-properties 0 len (list 'company-box--len (+ len-c len-a)
-                                           'company-box--color s-color)
-                               line)
-          line))
-      (advice-add #'company-box--make-line :override #'my-company-box--make-line)
+          ;; Support `company-common'
+          (defun my-company-box--make-line (candidate)
+            (-let* (((candidate annotation len-c len-a backend) candidate)
+                    (color (company-box--get-color backend))
+                    ((c-color a-color i-color s-color) (company-box--resolve-colors color))
+                    (icon-string (and company-box--with-icons-p (company-box--add-icon candidate)))
+                    (candidate-string (concat (propertize company-common 'face 'company-tooltip-common)
+                                              (substring (propertize candidate 'face 'company-box-candidate) (length company-common) nil)))
+                    (align-string (when annotation
+                                    (concat " " (and company-tooltip-align-annotations
+                                                     (propertize " " 'display `(space :align-to (- right-fringe ,(or len-a 0) 1)))))))
+                    (space company-box--space)
+                    (icon-p company-box-enable-icon)
+                    (annotation-string (and annotation (propertize annotation 'face 'company-box-annotation)))
+                    (line (concat (unless (or (and (= space 2) icon-p) (= space 0))
+                                    (propertize " " 'display `(space :width ,(if (or (= space 1) (not icon-p)) 1 0.75))))
+                                  (company-box--apply-color icon-string i-color)
+                                  (company-box--apply-color candidate-string c-color)
+                                  align-string
+                                  (company-box--apply-color annotation-string a-color)))
+                    (len (length line)))
+              (add-text-properties 0 len (list 'company-box--len (+ len-c len-a)
+                                               'company-box--color s-color)
+                                   line)
+              line))
+          (advice-add #'company-box--make-line :override #'my-company-box--make-line)
 
-      ;; Prettify icons
-      (defun my-company-box-icons--elisp (candidate)
-        (when (derived-mode-p 'emacs-lisp-mode)
-          (let ((sym (intern candidate)))
-            (cond ((fboundp sym) 'Function)
-                  ((featurep sym) 'Module)
-                  ((facep sym) 'Color)
-                  ((boundp sym) 'Variable)
-                  ((symbolp sym) 'Text)
-                  (t . nil)))))
-      (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
+          ;; Prettify icons
+          (defun my-company-box-icons--elisp (candidate)
+            (when (derived-mode-p 'emacs-lisp-mode)
+              (let ((sym (intern candidate)))
+                (cond ((fboundp sym) 'Function)
+                      ((featurep sym) 'Module)
+                      ((facep sym) 'Color)
+                      ((boundp sym) 'Variable)
+                      ((symbolp sym) 'Text)
+                      (t . nil)))))
+          (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
 
-      (with-eval-after-load 'all-the-icons
-        (declare-function all-the-icons-faicon 'all-the-icons)
-        (declare-function all-the-icons-material 'all-the-icons)
-        (setq company-box-icons-all-the-icons
-              `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.9 :v-adjust -0.2))
-                (Text . ,(all-the-icons-faicon "text-width" :height 0.85 :v-adjust -0.05))
-                (Method . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-                (Function . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-                (Constructor . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-                (Field . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
-                (Variable . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
-                (Class . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-                (Interface . ,(all-the-icons-material "share" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                (Module . ,(all-the-icons-material "view_module" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                (Property . ,(all-the-icons-faicon "wrench" :height 0.85 :v-adjust -0.05))
-                (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.9 :v-adjust -0.2))
-                (Value . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                (Enum . ,(all-the-icons-material "storage" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-                (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.9 :v-adjust -0.2))
-                (Snippet . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2))
-                (Color . ,(all-the-icons-material "palette" :height 0.9 :v-adjust -0.2))
-                (File . ,(all-the-icons-faicon "file-o" :height 0.9 :v-adjust -0.05))
-                (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.9 :v-adjust -0.2))
-                (Folder . ,(all-the-icons-faicon "folder-open" :height 0.9 :v-adjust -0.05))
-                (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                (Constant . ,(all-the-icons-faicon "square-o" :height 0.9 :v-adjust -0.05))
-                (Struct . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-                (Event . ,(all-the-icons-faicon "bolt" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-orange))
-                (Operator . ,(all-the-icons-material "control_point" :height 0.9 :v-adjust -0.2))
-                (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.85 :v-adjust -0.05))
-                (Template . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2)))))))
-#+END_SRC
+          (with-eval-after-load 'all-the-icons
+            (declare-function all-the-icons-faicon 'all-the-icons)
+            (declare-function all-the-icons-material 'all-the-icons)
+            (setq company-box-icons-all-the-icons
+                  `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.9 :v-adjust -0.2))
+                    (Text . ,(all-the-icons-faicon "text-width" :height 0.85 :v-adjust -0.05))
+                    (Method . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
+                    (Function . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
+                    (Constructor . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
+                    (Field . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
+                    (Variable . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
+                    (Class . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
+                    (Interface . ,(all-the-icons-material "share" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                    (Module . ,(all-the-icons-material "view_module" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                    (Property . ,(all-the-icons-faicon "wrench" :height 0.85 :v-adjust -0.05))
+                    (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.9 :v-adjust -0.2))
+                    (Value . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                    (Enum . ,(all-the-icons-material "storage" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
+                    (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.9 :v-adjust -0.2))
+                    (Snippet . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2))
+                    (Color . ,(all-the-icons-material "palette" :height 0.9 :v-adjust -0.2))
+                    (File . ,(all-the-icons-faicon "file-o" :height 0.9 :v-adjust -0.05))
+                    (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.9 :v-adjust -0.2))
+                    (Folder . ,(all-the-icons-faicon "folder-open" :height 0.9 :v-adjust -0.05))
+                    (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                    (Constant . ,(all-the-icons-faicon "square-o" :height 0.9 :v-adjust -0.05))
+                    (Struct . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
+                    (Event . ,(all-the-icons-faicon "bolt" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-orange))
+                    (Operator . ,(all-the-icons-material "control_point" :height 0.9 :v-adjust -0.2))
+                    (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.85 :v-adjust -0.05))
+                    (Template . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2)))))))
+    #+END_SRC
 
 *** company-quickhelp
     - documentation popups that appear when idling on a completion candidate.
-#+BEGIN_SRC emacs-lisp
-  (use-package company-quickhelp
-    :after company
-    :hook ((global-company-mode company-mode) . company-quickhelp-mode)
-    :bind (:map company-active-map
-                ("M-h" . company-quickhelp-manual-begin))
-    :config (setq company-quickhelp-delay 1))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-quickhelp
+        :after company
+        :hook ((global-company-mode company-mode) . company-quickhelp-mode)
+        :bind (:map company-active-map
+                    ("M-h" . company-quickhelp-manual-begin))
+        :config (setq company-quickhelp-delay 1))
+    #+END_SRC
 
 *** company-statistics
     - Set up statistics and rank company completions based on frequency
-#+BEGIN_SRC emacs-lisp
-  (use-package company-statistics
-:after company
-    :hook (sej/after-init . company-statistics-mode))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-statistics
+        :after company
+        :hook (sej/after-init . company-statistics-mode))
+    #+END_SRC
 
 *** company-try-hard
-#+BEGIN_SRC emacs-lisp
-  (use-package company-try-hard
-    :commands company-try-hard
-    :bind (("C-z" . company-try-hard)
-           :map company-active-map
-           ("C-z" . company-try-hard)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-try-hard
+        :commands company-try-hard
+        :bind (("C-z" . company-try-hard)
+               :map company-active-map
+               ("C-z" . company-try-hard)))
+    #+END_SRC
 
 *** company-shell
     - Company mode completion backends for your shell scripting.
     - you also need bash-language-server installed and on your PATH
       npm install -g bash-language-server
-#+BEGIN_SRC emacs-lisp
-  (use-package company-shell
-    :after company
-    :config
-    (push 'company-shell company-backends))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-shell
+        :after company
+        :config
+        (add-to-list 'company-backends '(company-shell
+                                         company-shell-env
+                                         company-fish-shell)))
+    #+END_SRC
 *** yasnippet
     - short-cut completions
-#+BEGIN_SRC emacs-lisp
-  (use-package yasnippet
-    :diminish yas-minor-mode
-    :hook (sej/after-init . yas-global-mode)
-    :bind (:map yas-minor-mode-map
-                ("<tab>" . nil)
-                ("TAB" . nil)
-                ("<A-tab>" . yas-expand)
-                :map yas-keymap
-                ("<tab>" . nil)
-                ("TAB" . nil)
-                ("M-n" . yas-next-field-or-maybe-expand)
-                ("M-p" . yas-prev-field))
-    :config (use-package yasnippet-snippets))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package yasnippet
+        :diminish yas-minor-mode
+        :hook (sej/after-init . yas-global-mode)
+        :bind (:map yas-minor-mode-map
+                    ("<tab>" . nil)
+                    ("TAB" . nil)
+                    ("<A-tab>" . yas-expand)
+                    :map yas-keymap
+                    ("<tab>" . nil)
+                    ("TAB" . nil)
+                    ("M-n" . yas-next-field-or-maybe-expand)
+                    ("M-p" . yas-prev-field))
+        :config (use-package yasnippet-snippets))
+    #+END_SRC
 *** auto-yasnippet
     - This is a hybrid of keyboard macros and yasnippet.
     You create the snippet on the go, usually to be used just in the one place.
-#+BEGIN_SRC emacs-lisp
-  (use-package auto-yasnippet
-    :after yasnippet
-    :bind (("H-w" . aya-create)
-           ("H-y" . aya-expand)
-           ("C-o" . aya-open-line)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package auto-yasnippet
+        :after yasnippet
+        :bind (("H-w" . aya-create)
+               ("H-y" . aya-expand)
+               ("C-o" . aya-open-line)))
+    #+END_SRC
 
 *** hydra
     - Make bindings that stick around
@@ -3363,634 +3363,990 @@
 
 * files
 *** ibuffer
-  #+BEGIN_SRC emacs-lisp
-  (use-package ibuffer
-    :ensure nil
-    :functions (all-the-icons-icon-for-file
-                all-the-icons-icon-for-mode
-                all-the-icons-auto-mode-match?
-                all-the-icons-faicon)
-    :commands ibuffer-find-file
-    :bind (:map sej-mode-map
-                ("C-x C-b" . ibuffer))
-    :config
-    (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
+    #+BEGIN_SRC emacs-lisp
+      (use-package ibuffer
+        :ensure nil
+        :functions (all-the-icons-icon-for-file
+                    all-the-icons-icon-for-mode
+                    all-the-icons-auto-mode-match?
+                    all-the-icons-faicon)
+        :commands ibuffer-find-file
+        :bind (:map sej-mode-map
+                    ("C-x C-b" . ibuffer))
+        :config
+        (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
 
-    ;; Display buffer icons on GUI
-    (when (display-graphic-p)
-      ;; To be correctly aligned, the size of the name field must be equal to that
-      ;; of the icon column below, plus 1 (for the tab I inserted)
-      (define-ibuffer-column icon (:name "   ")
-        (let ((icon (if (and (buffer-file-name)
-                             (all-the-icons-auto-mode-match?))
-                        (all-the-icons-icon-for-file (file-name-nondirectory (buffer-file-name)) :v-adjust -0.05)
-                      (all-the-icons-icon-for-mode major-mode :v-adjust -0.05))))
-          (if (symbolp icon)
-              (setq icon (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0))
-            icon)))
+        ;; Display buffer icons on GUI
+        (when (display-graphic-p)
+          ;; To be correctly aligned, the size of the name field must be equal to that
+          ;; of the icon column below, plus 1 (for the tab I inserted)
+          (define-ibuffer-column icon (:name "   ")
+            (let ((icon (if (and (buffer-file-name)
+                                 (all-the-icons-auto-mode-match?))
+                            (all-the-icons-icon-for-file (file-name-nondirectory (buffer-file-name)) :v-adjust -0.05)
+                          (all-the-icons-icon-for-mode major-mode :v-adjust -0.05))))
+              (if (symbolp icon)
+                  (setq icon (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0))
+                icon)))
 
-      (let ((tab-width 1))
-        (setq ibuffer-formats '((mark modified read-only locked
-                                      ;; Here you may adjust by replacing :right with :center or :left
-                                      ;; According to taste, if you want the icon further from the name
-                                      " " (icon 1 -1 :left :elide) "\t" (name 18 18 :left :elide)
-                                      " " (size 9 -1 :right)
-                                      " " (mode 16 16 :left :elide) " " filename-and-process)
-                                (mark " " (name 16 -1) " " filename)))))
+          (let ((tab-width 1))
+            (setq ibuffer-formats '((mark modified read-only locked
+                                          ;; Here you may adjust by replacing :right with :center or :left
+                                          ;; According to taste, if you want the icon further from the name
+                                          " " (icon 1 -1 :left :elide) "\t" (name 18 18 :left :elide)
+                                          " " (size 9 -1 :right)
+                                          " " (mode 16 16 :left :elide) " " filename-and-process)
+                                    (mark " " (name 16 -1) " " filename)))))
 
-    (with-eval-after-load 'counsel
-      (defun my-ibuffer-find-file ()
-        (interactive)
-        (let ((default-directory (let ((buf (ibuffer-current-buffer)))
-                                   (if (buffer-live-p buf)
-                                       (with-current-buffer buf
-                                         default-directory)
-                                     default-directory))))
-          (counsel-find-file default-directory)))
-      (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
+        (with-eval-after-load 'counsel
+          (defun my-ibuffer-find-file ()
+            (interactive)
+            (let ((default-directory (let ((buf (ibuffer-current-buffer)))
+                                       (if (buffer-live-p buf)
+                                           (with-current-buffer buf
+                                             default-directory)
+                                         default-directory))))
+              (counsel-find-file default-directory)))
+          (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
 
-    ;; Group ibuffer's list by project root
-    (use-package ibuffer-projectile
-      :functions all-the-icons-octicon ibuffer-do-sort-by-alphabetic
-      :hook ((ibuffer . (lambda ()
-                          (ibuffer-projectile-set-filter-groups)
-                          (unless (eq ibuffer-sorting-mode 'alphabetic)
-                            (ibuffer-do-sort-by-alphabetic)))))
-      :config
-      (setq ibuffer-projectile-prefix
-            (if (display-graphic-p)
-                (concat
-                 (all-the-icons-octicon "file-directory"
-                                        :face ibuffer-filter-group-name-face
-                                        :v-adjust -0.05
-                                        :height 1.25)
-                 " ")
-              "Project: "))))
-  #+END_SRC
+        ;; Group ibuffer's list by project root
+        (use-package ibuffer-projectile
+          :functions all-the-icons-octicon ibuffer-do-sort-by-alphabetic
+          :hook ((ibuffer . (lambda ()
+                              (ibuffer-projectile-set-filter-groups)
+                              (unless (eq ibuffer-sorting-mode 'alphabetic)
+                                (ibuffer-do-sort-by-alphabetic)))))
+          :config
+          (setq ibuffer-projectile-prefix
+                (if (display-graphic-p)
+                    (concat
+                     (all-the-icons-octicon "file-directory"
+                                            :face ibuffer-filter-group-name-face
+                                            :v-adjust -0.05
+                                            :height 1.25)
+                     " ")
+                  "Project: "))))
+    #+END_SRC
 *** registers
     - Registers allow you to jump to a file or other location quickly.
       Use C-x r j or s-r followed by the letter of the register
       (i for init.el, r for this file) to jump to it.
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-      ; (kbd "C-x r j") is build in global
-(set-register ?b '(file . "~/.ssh/custom-post.el"))
-(set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
-(set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
-(set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
-(set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
-(set-register ?d '(file . "~/.emacs.d/lisp/"))
-(set-register ?i '(file . "~/.emacs.d/init.el"))
-#+END_SRC
+                                              ; (kbd "C-x r j") is build in global
+      (set-register ?b '(file . "~/.ssh/custom-post.el"))
+      (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
+      (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
+      (set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
+      (set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
+      (set-register ?d '(file . "~/.emacs.d/lisp/"))
+      (set-register ?i '(file . "~/.emacs.d/init.el"))
+    #+END_SRC
 *** dashboard
     - all-in-one start-up screen with current files / projects
-#+BEGIN_SRC emacs-lisp
-  (when sej-dashboard
-    (use-package dashboard
-      :diminish (dashboard-mode page-break-lines-mode)
-      :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
-      :functions (all-the-icons-faicon
-                  all-the-icons-material
-                  open-custom-file
-                  persp-get-buffer-or-null
-                  persp-load-state-from-file
-                  persp-switch-to-buffer
-                  winner-undo
-                  widget-forward)
-      :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
-      :bind (("<f6>" . open-dashboard)
-             (:map sej-mode-map
-                   ("C-c s d" . open-dashboard))
-             (:map dashboard-mode-map
-                   ("H" . browse-homepage)
-                   ("R" . restore-session)
-                   ("L" . persp-load-state-from-file)
-                   ("S" . open-custom-file)
-                   ("U" . sej-update)
-                   ("q" . quit-dashboard)
-                   ("C-p" . widget-backward)
-                   ("C-n" . widget-forward)
-                   ("<up>" . widget-backward)
-                   ("<down>" . widget-forward)
-                   ("<tab>" . widget-forward)
-                   ("C-i" . widget-forward)
-                   ("<backtab>" . widget-backward)
-                   ))
-      :hook (dashboard-mode . (lambda ()
-                                (setq-local frame-title-format "")
-                                (setq-local tab-width 1)))
-      :init (dashboard-setup-startup-hook)
-      :config
-      ;; (setq dashboard-banner-logo-title "SeJ EMACS")
-      (setq dashboard-startup-banner nil)
-      (setq dashboard-center-content nil)
-      (setq dashboard-show-shortcuts t)
-      (setq dashboard-items '((recents  . 15)
-                              (bookmarks . 15)
-                              (projects . 10)
-                              (registers . 10)))
+    #+BEGIN_SRC emacs-lisp
+      (when sej-dashboard
+        (use-package dashboard
+          :diminish (dashboard-mode page-break-lines-mode)
+          :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
+          :functions (all-the-icons-faicon
+                      all-the-icons-material
+                      open-custom-file
+                      persp-get-buffer-or-null
+                      persp-load-state-from-file
+                      persp-switch-to-buffer
+                      winner-undo
+                      widget-forward)
+          :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
+          :bind (("<f6>" . open-dashboard)
+                 (:map sej-mode-map
+                       ("C-c s d" . open-dashboard))
+                 (:map dashboard-mode-map
+                       ("H" . browse-homepage)
+                       ("R" . restore-session)
+                       ("L" . persp-load-state-from-file)
+                       ("S" . open-custom-file)
+                       ("U" . sej-update)
+                       ("q" . quit-dashboard)
+                       ("C-p" . widget-backward)
+                       ("C-n" . widget-forward)
+                       ("<up>" . widget-backward)
+                       ("<down>" . widget-forward)
+                       ("<tab>" . widget-forward)
+                       ("C-i" . widget-forward)
+                       ("<backtab>" . widget-backward)
+                       ))
+          :hook (dashboard-mode . (lambda ()
+                                    (setq-local frame-title-format "")
+                                    (setq-local tab-width 1)))
+          :init (dashboard-setup-startup-hook)
+          :config
+          ;; (setq dashboard-banner-logo-title "SeJ EMACS")
+          (setq dashboard-startup-banner nil)
+          (setq dashboard-center-content nil)
+          (setq dashboard-show-shortcuts t)
+          (setq dashboard-items '((recents  . 15)
+                                  (bookmarks . 15)
+                                  (projects . 10)
+                                  (registers . 10)))
 
-      (defvar dashboard-recover-layout-p nil
-        "Wether recovers the layout.")
+          (defvar dashboard-recover-layout-p nil
+            "Wether recovers the layout.")
 
-      (defun open-dashboard ()
-        "Open the *dashboard* buffer and jump to the first widget."
-        (interactive)
-        ;; Check if need to recover layout
-        (if (> (length (window-list-1)))
-            (setq dashboard-recover-layout-p t))
-        (delete-other-windows)
+          (defun open-dashboard ()
+            "Open the *dashboard* buffer and jump to the first widget."
+            (interactive)
+            ;; Check if need to recover layout
+            (if (> (length (window-list-1)))
+                (setq dashboard-recover-layout-p t))
+            (delete-other-windows)
 
-        ;; Refresh dashboard buffer
-        (if (get-buffer dashboard-buffer-name)
-            (kill-buffer dashboard-buffer-name))
-        (dashboard-insert-startupify-lists)
-        (switch-to-buffer dashboard-buffer-name)
+            ;; Refresh dashboard buffer
+            (if (get-buffer dashboard-buffer-name)
+                (kill-buffer dashboard-buffer-name))
+            (dashboard-insert-startupify-lists)
+            (switch-to-buffer dashboard-buffer-name)
 
-        ;; Jump to the first section
-        (goto-char (point-min))
-        (dashboard-goto-recent-files))
-
-      (defun restore-session ()
-        "Restore last session."
-        (interactive)
-        (when (bound-and-true-p persp-mode)
-          (message "Restoring session...")
-          (condition-case-unless-debug err
-              (persp-load-state-from-file)
-            (error
-             (message "Error: Unable to restore last session -- %s" err)))
-          (when (persp-get-buffer-or-null persp-special-last-buffer)
-            (persp-switch-to-buffer persp-special-last-buffer))))
-
-      (defun quit-dashboard ()
-        "Quit dashboard window."
-        (interactive)
-        (quit-window t)
-        (when (and dashboard-recover-layout-p
-                   (bound-and-true-p winner-mode))
-          (winner-undo)
-          (setq dashboard-recover-layout-p nil)))
-
-      (defun dashboard-goto-recent-files ()
-        "Go to recent files."
-        (interactive)
-        (funcall (local-key-binding "r")))
-
-      (defun dashboard-goto-projects ()
-        "Go to projects."
-        (interactive)
-        (funcall (local-key-binding "p")))
-
-      (defun dashboard-goto-bookmarks ()
-        "Go to bookmarks."
-        (interactive)
-        (funcall (local-key-binding "m")))
-
-      (defun dashboard-goto-registers ()
-        "Go to registers."
-        (interactive)
-        (funcall (local-key-binding "e")))
-
-      ;; Add heading icons
-      (defun dashboard-insert-heading-icon (heading &optional _shortcut)
-        (when (display-graphic-p)
-          ;; Load `all-the-icons' if it's unavailable
-          (unless (featurep 'all-the-icons)
-            (require 'all-the-icons nil t))
-
-          (insert (cond
-                   ((string-equal heading "Recent Files:")
-                    (all-the-icons-octicon "file-text" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                   ((string-equal heading "Bookmarks:")
-                    (all-the-icons-octicon "bookmark" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                   ((string-equal heading "Registers:")
-                    (all-the-icons-octicon "clippy" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                   ((string-equal heading "Projects:")
-                    (all-the-icons-octicon "file-directory" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))))
-          (insert " ")))
-      (advice-add #'dashboard-insert-heading :before #'dashboard-insert-heading-icon)
-
-      ;; Add file icons
-      ;; MUST redefine the sections because of the macro `dashboard-insert-section-list'
-      (defmacro dashboard-insert-section-list (section-name list action &rest rest)
-        "Insert into SECTION-NAME a LIST of items, expanding ACTION and passing REST to widget creation."
-        `(when (car ,list)
-           (mapc (lambda (el)
-                   (let ((widget nil))
-                     (insert "\n    ")
-                     (when (display-graphic-p)
-                       (insert (if-let ((path (car (last (split-string ,@rest " - ")))))
-                                   (if (file-directory-p path)
-                                       (cond
-                                        ((and (fboundp 'tramp-tramp-file-p)
-                                              (tramp-tramp-file-p default-directory))
-                                         (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
-                                        ((file-symlink-p path)
-                                         (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
-                                        ((all-the-icons-dir-is-submodule path)
-                                         (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
-                                        ((file-exists-p (format "%s/.git" path))
-                                         (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
-                                        (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
-                                             (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
-                                     (all-the-icons-icon-for-file (file-name-nondirectory path)))
-                                 (all-the-icons-octicon "clippy" :height 1.0 :v-adjust 0.01)
-                                 ))
-                       (insert "\t"))
-                     (setq widget
-                           (widget-create 'push-button
-                                          :action ,action
-                                          :mouse-face 'highlight
-                                          :button-prefix ""
-                                          :button-suffix ""
-                                          :format "%[%t%]"
-                                          ,@rest))))
-                 ,list)))
-
-      (defmacro dashboard-insert-shortcut (shortcut-char
-                                           search-label
-                                           &optional no-next-line)
-        "Insert a shortcut SHORTCUT-CHAR for a given SEARCH-LABEL.
-  Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
-        `(progn
-           (eval-when-compile (defvar dashboard-mode-map))
-           (let ((sym (make-symbol (format "Jump to \"%s\"" ,search-label))))
-             (fset sym (lambda ()
-                         (interactive)
-                         (unless (search-forward ,search-label (point-max) t)
-                           (search-backward ,search-label (point-min) t))
-                         ,@(unless no-next-line
-                             '((forward-line 1)))
-                         (back-to-indentation)
-                         (if (display-graphic-p) (widget-forward 1))))
-             (eval-after-load 'dashboard
-               (define-key dashboard-mode-map ,shortcut-char sym)))))
-
-      ;; Recentf
-      (defun dashboard-insert-recents (list-size)
-        "Add the list of LIST-SIZE items from recently edited files."
-        (recentf-mode)
-        (dashboard-insert-section
-         "Recent Files:"
-         recentf-list
-         list-size
-         "r"
-         `(lambda (&rest ignore) (find-file-existing ,el))
-         (abbreviate-file-name el)))
-
-      ;; Bookmarks
-      (defun dashboard-insert-bookmarks (list-size)
-        "Add the list of LIST-SIZE items of bookmarks."
-        (require 'bookmark)
-        (dashboard-insert-section
-         "Bookmarks:"
-         (dashboard-subseq (bookmark-all-names)
-                           0 list-size)
-         list-size
-         "m"
-         `(lambda (&rest ignore) (bookmark-jump ,el))
-         (let ((file (bookmark-get-filename el)))
-           (if file
-               (format "%s - %s" el (abbreviate-file-name file))
-             el))))
-
-      ;; Projectile
-      (defun dashboard-insert-projects (list-size)
-        "Add the list of LIST-SIZE items of projects."
-        (require 'projectile)
-        (projectile-load-known-projects)
-        (dashboard-insert-section
-         "Projects:"
-         (dashboard-subseq (projectile-relevant-known-projects)
-                           0 list-size)
-         list-size
-         "p"
-         `(lambda (&rest ignore) (projectile-switch-project-by-name ,el))
-         (abbreviate-file-name el)))
-
-      ;;
-      ;; Registers
-      ;;
-      (defun dashboard-insert-registers (list-size)
-        "Add the list of LIST-SIZE items of registers."
-        (require 'register)
-        (dashboard-insert-section
-         "Registers:"
-         register-alist
-         list-size
-         "e"
-         (lambda (&rest ignore) (jump-to-register (car el)))
-         (format "%c - %s" (car el) (register-describe-oneline (car el)))))
-
-      (defun dashboard-insert-buttons ()
-        "Insert buttions after the banner."
-        (interactive)
-        (with-current-buffer (get-buffer dashboard-buffer-name)
-          (let ((inhibit-read-only t))
+            ;; Jump to the first section
             (goto-char (point-min))
-            (search-forward dashboard-banner-logo-title nil t)
+            (dashboard-goto-recent-files))
 
-            (insert "")
-            (widget-create 'url-link
-                           :tag (concat
-                                 (if (display-graphic-p)
-                                     (concat
-                                      (all-the-icons-octicon "mark-github"
-                                                             :height 1.1
-                                                             :v-adjust 0.0
-                                                             :face 'font-lock-keyword-face)
-                                      (propertize " " 'face 'variable-pitch)))
-                                 (propertize "Homepage" 'face 'font-lock-keyword-face))
-                           :help-echo "Browse homepage"
-                           :mouse-face 'highlight
-                           sej-homepage)
-            (insert " ")
-            (widget-create 'push-button
-                           :help-echo "Restore previous session"
-                           :action (lambda (&rest _) (restore-session))
-                           :mouse-face 'highlight
-                           :tag (concat
-                                 (if (display-graphic-p)
-                                     (concat
-                                      (all-the-icons-material "restore"
-                                                              :height 1.35
-                                                              :v-adjust -0.24
-                                                              :face 'font-lock-keyword-face)
-                                      (propertize " " 'face 'variable-pitch)))
-                                 (propertize "Session" 'face 'font-lock-keyword-face)))
-            (insert " ")
-            (widget-create 'file-link
-                           :tag (concat
-                                 (if (display-graphic-p)
-                                     (concat
-                                      (all-the-icons-octicon "tools"
-                                                             :height 1.1
-                                                             :v-adjust 0.0
-                                                             :face 'font-lock-keyword-face)
-                                      (propertize " " 'face 'variable-pitch)))
-                                 (propertize "Settings" 'face 'font-lock-keyword-face))
-                           :help-echo "Open custom file"
-                           :mouse-face 'highlight
-                           custom-file)
-            (insert " ")
-            (widget-create 'push-button
-                           :help-echo "Update SeJ Emacs"
-                           :action (lambda (&rest _) (sej-update))
-                           :mouse-face 'highlight
-                           :tag (concat
-                                 (if (display-graphic-p)
-                                     (concat
-                                      (all-the-icons-material "update"
-                                                              :height 1.35
-                                                              :v-adjust -0.24
-                                                              :face 'font-lock-keyword-face)
-                                      (propertize " " 'face 'variable-pitch)))
-                                 (propertize "Update" 'face 'font-lock-keyword-face)))
-            (insert " ")
-            (widget-create 'push-button
-                           :help-echo "Help (?/h)"
-                           :action (lambda (&rest _) (hydra-dashboard/body))
-                           :mouse-face 'highlight
-                           :tag (concat
-                                 (if (display-graphic-p)
-                                     (all-the-icons-faicon "question"
-                                                           :height 1.2
-                                                           :v-adjust -0.1
-                                                           :face 'font-lock-string-face)
-                                   (propertize "?" 'face 'font-lock-string-face))))
-            (insert "\n")
+          (defun restore-session ()
+            "Restore last session."
+            (interactive)
+            (when (bound-and-true-p persp-mode)
+              (message "Restoring session...")
+              (condition-case-unless-debug err
+                  (persp-load-state-from-file)
+                (error
+                 (message "Error: Unable to restore last session -- %s" err)))
+              (when (persp-get-buffer-or-null persp-special-last-buffer)
+                (persp-switch-to-buffer persp-special-last-buffer))))
 
-            (insert (concat
-                     (propertize (format "%d packages loaded in %s"
-                                         (length package-activated-list) (emacs-init-time))
-                                 'face 'font-lock-comment-face)))
-            (insert "\n")
-            )))
-      (add-hook 'dashboard-mode-hook #'dashboard-insert-buttons)
+          (defun quit-dashboard ()
+            "Quit dashboard window."
+            (interactive)
+            (quit-window t)
+            (when (and dashboard-recover-layout-p
+                       (bound-and-true-p winner-mode))
+              (winner-undo)
+              (setq dashboard-recover-layout-p nil)))
 
-      (defun dashboard-insert-footer ()
-        "Insert footer of dashboard."
-        (interactive)
-        (with-current-buffer (get-buffer dashboard-buffer-name)
-          (let ((inhibit-read-only t))
-            (goto-char (point-max))
+          (defun dashboard-goto-recent-files ()
+            "Go to recent files."
+            (interactive)
+            (funcall (local-key-binding "r")))
 
-            (insert "\n\n")
-            (insert " ")
-            (insert (propertize
-                     (format "SeJ, %s" (format-time-string "%Y"))
-                     'face font-lock-doc-face))
-            (insert "\n"))))
-      (add-hook 'dashboard-mode-hook #'dashboard-insert-footer)
+          (defun dashboard-goto-projects ()
+            "Go to projects."
+            (interactive)
+            (funcall (local-key-binding "p")))
 
-      (defhydra hydra-dashboard (:color red :hint none)
-        "
-  ^Head^               ^Section^            ^Item^                  ^Dashboard^
-  ^^───────────────────^^───────────────────^^──────────────────────^^───────────────
-  _U_pdate             _r_: Recent Files    _RET_: Open             _<f2>_: Open
-  _H_omePage           _m_: Bookmarks       _<tab>_/_C-i_: Next       _Q_: Quit
-  _R_ecover session    _p_: Projects        _<backtab>_: Previous
-  _L_ist sessions      _e_: Registers       _C-n_: Next line
-  _S_ettings                                _C-p_: Previous Line
-  "
-        ("<tab>" widget-forward)
-        ("C-i" widget-forward)
-        ("<backtab>" widget-backward)
-        ("RET" widget-button-press :exit t)
-        ("g" dashboard-refresh-buffer :exit t)
-        ("r" dashboard-goto-recent-files)
-        ("p" dashboard-goto-projects)
-        ("m" dashboard-goto-bookmarks)
-        ("e" dashboard-goto-registers)
-        ("H" browse-homepage :exit t)
-        ("R" restore-session :exit t)
-        ("L" persp-load-state-from-file :exit t)
-        ("S" open-custom-file :exit t)
-        ("U" sej-update :exit t)
-        ("C-n" next-line)
-        ("C-p" previous-line)
-        ("<f2>" open-dashboard :exit t)
-        ("Q" quit-dashboard :exit t)
-        ("q" nil "quit")
-        ("C-g" nil "quit"))
-      (bind-keys :map dashboard-mode-map
-                 ("h" . hydra-dashboard/body)
-                 ("?" . hydra-dashboard/body))))
-#+END_SRC
+          (defun dashboard-goto-bookmarks ()
+            "Go to bookmarks."
+            (interactive)
+            (funcall (local-key-binding "m")))
+
+          (defun dashboard-goto-registers ()
+            "Go to registers."
+            (interactive)
+            (funcall (local-key-binding "e")))
+
+          ;; Add heading icons
+          (defun dashboard-insert-heading-icon (heading &optional _shortcut)
+            (when (display-graphic-p)
+              ;; Load `all-the-icons' if it's unavailable
+              (unless (featurep 'all-the-icons)
+                (require 'all-the-icons nil t))
+
+              (insert (cond
+                       ((string-equal heading "Recent Files:")
+                        (all-the-icons-octicon "file-text" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                       ((string-equal heading "Bookmarks:")
+                        (all-the-icons-octicon "bookmark" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                       ((string-equal heading "Registers:")
+                        (all-the-icons-octicon "clippy" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
+                       ((string-equal heading "Projects:")
+                        (all-the-icons-octicon "file-directory" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))))
+              (insert " ")))
+          (advice-add #'dashboard-insert-heading :before #'dashboard-insert-heading-icon)
+
+          ;; Add file icons
+          ;; MUST redefine the sections because of the macro `dashboard-insert-section-list'
+          (defmacro dashboard-insert-section-list (section-name list action &rest rest)
+            "Insert into SECTION-NAME a LIST of items, expanding ACTION and passing REST to widget creation."
+            `(when (car ,list)
+               (mapc (lambda (el)
+                       (let ((widget nil))
+                         (insert "\n    ")
+                         (when (display-graphic-p)
+                           (insert (if-let ((path (car (last (split-string ,@rest " - ")))))
+                                       (if (file-directory-p path)
+                                           (cond
+                                            ((and (fboundp 'tramp-tramp-file-p)
+                                                  (tramp-tramp-file-p default-directory))
+                                             (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
+                                            ((file-symlink-p path)
+                                             (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
+                                            ((all-the-icons-dir-is-submodule path)
+                                             (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
+                                            ((file-exists-p (format "%s/.git" path))
+                                             (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
+                                            (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
+                                                 (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
+                                         (all-the-icons-icon-for-file (file-name-nondirectory path)))
+                                     (all-the-icons-octicon "clippy" :height 1.0 :v-adjust 0.01)
+                                     ))
+                           (insert "\t"))
+                         (setq widget
+                               (widget-create 'push-button
+                                              :action ,action
+                                              :mouse-face 'highlight
+                                              :button-prefix ""
+                                              :button-suffix ""
+                                              :format "%[%t%]"
+                                              ,@rest))))
+                     ,list)))
+
+          (defmacro dashboard-insert-shortcut (shortcut-char
+                                               search-label
+                                               &optional no-next-line)
+            "Insert a shortcut SHORTCUT-CHAR for a given SEARCH-LABEL.
+      Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
+            `(progn
+               (eval-when-compile (defvar dashboard-mode-map))
+               (let ((sym (make-symbol (format "Jump to \"%s\"" ,search-label))))
+                 (fset sym (lambda ()
+                             (interactive)
+                             (unless (search-forward ,search-label (point-max) t)
+                               (search-backward ,search-label (point-min) t))
+                             ,@(unless no-next-line
+                                 '((forward-line 1)))
+                             (back-to-indentation)
+                             (if (display-graphic-p) (widget-forward 1))))
+                 (eval-after-load 'dashboard
+                   (define-key dashboard-mode-map ,shortcut-char sym)))))
+
+          ;; Recentf
+          (defun dashboard-insert-recents (list-size)
+            "Add the list of LIST-SIZE items from recently edited files."
+            (recentf-mode)
+            (dashboard-insert-section
+             "Recent Files:"
+             recentf-list
+             list-size
+             "r"
+             `(lambda (&rest ignore) (find-file-existing ,el))
+             (abbreviate-file-name el)))
+
+          ;; Bookmarks
+          (defun dashboard-insert-bookmarks (list-size)
+            "Add the list of LIST-SIZE items of bookmarks."
+            (require 'bookmark)
+            (dashboard-insert-section
+             "Bookmarks:"
+             (dashboard-subseq (bookmark-all-names)
+                               0 list-size)
+             list-size
+             "m"
+             `(lambda (&rest ignore) (bookmark-jump ,el))
+             (let ((file (bookmark-get-filename el)))
+               (if file
+                   (format "%s - %s" el (abbreviate-file-name file))
+                 el))))
+
+          ;; Projectile
+          (defun dashboard-insert-projects (list-size)
+            "Add the list of LIST-SIZE items of projects."
+            (require 'projectile)
+            (projectile-load-known-projects)
+            (dashboard-insert-section
+             "Projects:"
+             (dashboard-subseq (projectile-relevant-known-projects)
+                               0 list-size)
+             list-size
+             "p"
+             `(lambda (&rest ignore) (projectile-switch-project-by-name ,el))
+             (abbreviate-file-name el)))
+
+          ;;
+          ;; Registers
+          ;;
+          (defun dashboard-insert-registers (list-size)
+            "Add the list of LIST-SIZE items of registers."
+            (require 'register)
+            (dashboard-insert-section
+             "Registers:"
+             register-alist
+             list-size
+             "e"
+             (lambda (&rest ignore) (jump-to-register (car el)))
+             (format "%c - %s" (car el) (register-describe-oneline (car el)))))
+
+          (defun dashboard-insert-buttons ()
+            "Insert buttions after the banner."
+            (interactive)
+            (with-current-buffer (get-buffer dashboard-buffer-name)
+              (let ((inhibit-read-only t))
+                (goto-char (point-min))
+                (search-forward dashboard-banner-logo-title nil t)
+
+                (insert "")
+                (widget-create 'url-link
+                               :tag (concat
+                                     (if (display-graphic-p)
+                                         (concat
+                                          (all-the-icons-octicon "mark-github"
+                                                                 :height 1.1
+                                                                 :v-adjust 0.0
+                                                                 :face 'font-lock-keyword-face)
+                                          (propertize " " 'face 'variable-pitch)))
+                                     (propertize "Homepage" 'face 'font-lock-keyword-face))
+                               :help-echo "Browse homepage"
+                               :mouse-face 'highlight
+                               sej-homepage)
+                (insert " ")
+                (widget-create 'push-button
+                               :help-echo "Restore previous session"
+                               :action (lambda (&rest _) (restore-session))
+                               :mouse-face 'highlight
+                               :tag (concat
+                                     (if (display-graphic-p)
+                                         (concat
+                                          (all-the-icons-material "restore"
+                                                                  :height 1.35
+                                                                  :v-adjust -0.24
+                                                                  :face 'font-lock-keyword-face)
+                                          (propertize " " 'face 'variable-pitch)))
+                                     (propertize "Session" 'face 'font-lock-keyword-face)))
+                (insert " ")
+                (widget-create 'file-link
+                               :tag (concat
+                                     (if (display-graphic-p)
+                                         (concat
+                                          (all-the-icons-octicon "tools"
+                                                                 :height 1.1
+                                                                 :v-adjust 0.0
+                                                                 :face 'font-lock-keyword-face)
+                                          (propertize " " 'face 'variable-pitch)))
+                                     (propertize "Settings" 'face 'font-lock-keyword-face))
+                               :help-echo "Open custom file"
+                               :mouse-face 'highlight
+                               custom-file)
+                (insert " ")
+                (widget-create 'push-button
+                               :help-echo "Update SeJ Emacs"
+                               :action (lambda (&rest _) (sej-update))
+                               :mouse-face 'highlight
+                               :tag (concat
+                                     (if (display-graphic-p)
+                                         (concat
+                                          (all-the-icons-material "update"
+                                                                  :height 1.35
+                                                                  :v-adjust -0.24
+                                                                  :face 'font-lock-keyword-face)
+                                          (propertize " " 'face 'variable-pitch)))
+                                     (propertize "Update" 'face 'font-lock-keyword-face)))
+                (insert " ")
+                (widget-create 'push-button
+                               :help-echo "Help (?/h)"
+                               :action (lambda (&rest _) (hydra-dashboard/body))
+                               :mouse-face 'highlight
+                               :tag (concat
+                                     (if (display-graphic-p)
+                                         (all-the-icons-faicon "question"
+                                                               :height 1.2
+                                                               :v-adjust -0.1
+                                                               :face 'font-lock-string-face)
+                                       (propertize "?" 'face 'font-lock-string-face))))
+                (insert "\n")
+
+                (insert (concat
+                         (propertize (format "%d packages loaded in %s"
+                                             (length package-activated-list) (emacs-init-time))
+                                     'face 'font-lock-comment-face)))
+                (insert "\n")
+                )))
+          (add-hook 'dashboard-mode-hook #'dashboard-insert-buttons)
+
+          (defun dashboard-insert-footer ()
+            "Insert footer of dashboard."
+            (interactive)
+            (with-current-buffer (get-buffer dashboard-buffer-name)
+              (let ((inhibit-read-only t))
+                (goto-char (point-max))
+
+                (insert "\n\n")
+                (insert " ")
+                (insert (propertize
+                         (format "SeJ, %s" (format-time-string "%Y"))
+                         'face font-lock-doc-face))
+                (insert "\n"))))
+          (add-hook 'dashboard-mode-hook #'dashboard-insert-footer)
+
+          (defhydra hydra-dashboard (:color red :hint none)
+            "
+      ^Head^               ^Section^            ^Item^                  ^Dashboard^
+      ^^───────────────────^^───────────────────^^──────────────────────^^───────────────
+      _U_pdate             _r_: Recent Files    _RET_: Open             _<f2>_: Open
+      _H_omePage           _m_: Bookmarks       _<tab>_/_C-i_: Next       _Q_: Quit
+      _R_ecover session    _p_: Projects        _<backtab>_: Previous
+      _L_ist sessions      _e_: Registers       _C-n_: Next line
+      _S_ettings                                _C-p_: Previous Line
+      "
+            ("<tab>" widget-forward)
+            ("C-i" widget-forward)
+            ("<backtab>" widget-backward)
+            ("RET" widget-button-press :exit t)
+            ("g" dashboard-refresh-buffer :exit t)
+            ("r" dashboard-goto-recent-files)
+            ("p" dashboard-goto-projects)
+            ("m" dashboard-goto-bookmarks)
+            ("e" dashboard-goto-registers)
+            ("H" browse-homepage :exit t)
+            ("R" restore-session :exit t)
+            ("L" persp-load-state-from-file :exit t)
+            ("S" open-custom-file :exit t)
+            ("U" sej-update :exit t)
+            ("C-n" next-line)
+            ("C-p" previous-line)
+            ("<f2>" open-dashboard :exit t)
+            ("Q" quit-dashboard :exit t)
+            ("q" nil "quit")
+            ("C-g" nil "quit"))
+          (bind-keys :map dashboard-mode-map
+                     ("h" . hydra-dashboard/body)
+                     ("?" . hydra-dashboard/body))))
+    #+END_SRC
 
 *** page-break-lines
     - display ^L page breaks as tidy horizontal lines
-#+BEGIN_SRC emacs-lisp
-  (use-package page-break-lines
-    :config
-    (setq global-page-break-lines-mode t)
-    )
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package page-break-lines
+        :config
+        (setq global-page-break-lines-mode t)
+        )
+    #+END_SRC
 * dired
 *** dired
-#+BEGIN_SRC emacs-lisp
-  ;; Directory operations
-  (use-package dired
-    :ensure nil
-    :bind (:map dired-mode-map
-                ("C-c C-p" . wdired-change-to-wdired-mode))
-    :config
-    ;; Always delete and copy recursively
-    (setq dired-recursive-deletes 'always)
-    (setq dired-recursive-copies 'always)
+    #+BEGIN_SRC emacs-lisp
+      ;; Directory operations
+      (use-package dired
+        :ensure nil
+        :bind (:map dired-mode-map
+                    ("C-c C-p" . wdired-change-to-wdired-mode))
+        :config
+        ;; Always delete and copy recursively
+        (setq dired-recursive-deletes 'always)
+        (setq dired-recursive-copies 'always)
 
-    (when sys/macp
-      ;; Suppress the warning: `ls does not support --dired'.
-      (setq dired-use-ls-dired nil)
+        (when sys/macp
+          ;; Suppress the warning: `ls does not support --dired'.
+          (setq dired-use-ls-dired nil)
 
-      ;; Use GNU ls as `gls' from `coreutils' if available.
-      ;; Prefer g-prefixed coreutils version of standard utilities when available
-      (when (executable-find "gls")
-        (setq insert-directory-program (executable-find "gls")
-              dired-use-ls-dired t) ))
+          ;; Use GNU ls as `gls' from `coreutils' if available.
+          ;; Prefer g-prefixed coreutils version of standard utilities when available
+          (when (executable-find "gls")
+            (setq insert-directory-program (executable-find "gls")
+                  dired-use-ls-dired t) ))
 
-    ;; Show directory first
-    (setq dired-listing-switches "-alh --group-directories-first"))
-#+END_SRC
+        ;; Show directory first
+        (setq dired-listing-switches "-alh --group-directories-first"))
+    #+END_SRC
 
-      ;; Quick sort dired buffers via hydra
-#+BEGIN_SRC emacs-lisp
-        (use-package dired-quick-sort
-          :bind (:map dired-mode-map
-                      ("S" . hydra-dired-quick-sort/body)))
-#+END_SRC
+    ;; Quick sort dired buffers via hydra
+    #+BEGIN_SRC emacs-lisp
+      (use-package dired-quick-sort
+        :bind (:map dired-mode-map
+                    ("S" . hydra-dired-quick-sort/body)))
+    #+END_SRC
 
 *** all-the-icons-dired
     - Shows icons in dired buffer
-#+BEGIN_SRC emacs-lisp
-  (use-package all-the-icons-dired
-    :diminish
-    :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
-    :hook (dired-mode . all-the-icons-dired-mode)
-    :config
-    (defun my-all-the-icons-dired--display ()
-      "Display the icons of files without colors in a dired buffer."
+    #+BEGIN_SRC emacs-lisp
+      (use-package all-the-icons-dired
+        :diminish
+        :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
+        :hook (dired-mode . all-the-icons-dired-mode)
+        :config
+        (defun my-all-the-icons-dired--display ()
+          "Display the icons of files without colors in a dired buffer."
 
-      ;; Fix: not display icons after dired commands (e.g insert-subdir, create-directory)
-      ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
-      (all-the-icons-dired--reset)
+          ;; Fix: not display icons after dired commands (e.g insert-subdir, create-directory)
+          ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
+          (all-the-icons-dired--reset)
 
-      (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
-        (setq-local all-the-icons-dired-displayed t)
-        (let ((inhibit-read-only t)
-              (remote-p (and (fboundp 'tramp-tramp-file-p)
-                             (tramp-tramp-file-p default-directory))))
-          (save-excursion
-            (setq-local tab-width 1)
-            (goto-char (point-min))
-            (while (not (eobp))
-              (when (dired-move-to-filename nil)
-                (insert "\t")
-                (let ((file (dired-get-filename 'verbatim t)))
-                  (unless (member file '("." ".."))
-                    (let ((filename (dired-get-filename nil t)))
-                      (if (file-directory-p filename)
-                          (let ((icon
-                                 (cond
-                                  (remote-p
-                                   (all-the-icons-octicon "file-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                  ((file-symlink-p filename)
-                                   (all-the-icons-octicon "file-symlink-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                  ((all-the-icons-dir-is-submodule filename)
-                                   (all-the-icons-octicon "file-submodule" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                  ((file-exists-p (format "%s/.git" filename))
-                                   (all-the-icons-octicon "repo" :height 1.1 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust ))
-                                  (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
-                                       (apply (car matcher) (list (cadr matcher) :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust)))))))
-                            (insert icon))
-                        (insert (all-the-icons-icon-for-file file :v-adjust -0.05))))
-                    (insert "\t"))))
-              (forward-line 1))))))
-    (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
-#+END_SRC
+          (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
+            (setq-local all-the-icons-dired-displayed t)
+            (let ((inhibit-read-only t)
+                  (remote-p (and (fboundp 'tramp-tramp-file-p)
+                                 (tramp-tramp-file-p default-directory))))
+              (save-excursion
+                (setq-local tab-width 1)
+                (goto-char (point-min))
+                (while (not (eobp))
+                  (when (dired-move-to-filename nil)
+                    (insert "\t")
+                    (let ((file (dired-get-filename 'verbatim t)))
+                      (unless (member file '("." ".."))
+                        (let ((filename (dired-get-filename nil t)))
+                          (if (file-directory-p filename)
+                              (let ((icon
+                                     (cond
+                                      (remote-p
+                                       (all-the-icons-octicon "file-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                      ((file-symlink-p filename)
+                                       (all-the-icons-octicon "file-symlink-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                      ((all-the-icons-dir-is-submodule filename)
+                                       (all-the-icons-octicon "file-submodule" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
+                                      ((file-exists-p (format "%s/.git" filename))
+                                       (all-the-icons-octicon "repo" :height 1.1 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust ))
+                                      (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
+                                           (apply (car matcher) (list (cadr matcher) :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust)))))))
+                                (insert icon))
+                            (insert (all-the-icons-icon-for-file file :v-adjust -0.05))))
+                        (insert "\t"))))
+                  (forward-line 1))))))
+        (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
+    #+END_SRC
 
 *** dired-aux
     - auxiliary functionality of dired
-#+BEGIN_SRC emacs-lisp
-(use-package dired-aux :ensure nil)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package dired-aux :ensure nil)
+    #+END_SRC
 
 *** dired-x
     - Extra Dired functionality
-#+BEGIN_SRC emacs-lisp
-(use-package dired-x
-  :ensure nil
-  :demand
-  :config
-  (let ((cmd (cond
-              (sys/mac-x-p "open")
-              (sys/linux-x-p "xdg-open")
-              (sys/win32p "start")
-              (t ""))))
-    (setq dired-guess-shell-alist-user
-          `(("\\.pdf\\'" ,cmd)
-            ("\\.docx\\'" ,cmd)
-            ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
-            ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
-            ("\\.\\(?:xcf\\)\\'" ,cmd)
-            ("\\.csv\\'" ,cmd)
-            ("\\.tex\\'" ,cmd)
-            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
-            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
-            ("\\.html?\\'" ,cmd)
-            ("\\.md\\'" ,cmd))))
+    #+BEGIN_SRC emacs-lisp
+      (use-package dired-x
+        :ensure nil
+        :demand
+        :config
+        (let ((cmd (cond
+                    (sys/mac-x-p "open")
+                    (sys/linux-x-p "xdg-open")
+                    (sys/win32p "start")
+                    (t ""))))
+          (setq dired-guess-shell-alist-user
+                `(("\\.pdf\\'" ,cmd)
+                  ("\\.docx\\'" ,cmd)
+                  ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
+                  ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
+                  ("\\.\\(?:xcf\\)\\'" ,cmd)
+                  ("\\.csv\\'" ,cmd)
+                  ("\\.tex\\'" ,cmd)
+                  ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
+                  ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
+                  ("\\.html?\\'" ,cmd)
+                  ("\\.md\\'" ,cmd))))
 
-  (setq dired-omit-files
-        (concat dired-omit-files
-                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
-#+END_SRC
+        (setq dired-omit-files
+              (concat dired-omit-files
+                      "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
+    #+END_SRC
 
 *** quick-preview
     - Quick-preview provides a nice preview of the thing at point for files.
-#+BEGIN_SRC emacs-lisp
-(use-package quick-preview
-  :defines sej-mode-map
-  :bind (:map sej-mode-map
-              ("C-c q" . quick-preview-at-point)
-              :map dired-mode-map
-              ("Q" . quick-preview-at-point)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package quick-preview
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c q" . quick-preview-at-point)
+                    :map dired-mode-map
+                    ("Q" . quick-preview-at-point)))
+    #+END_SRC
 
 *** browse-at-remote
     - browse file at remote source
-#+BEGIN_SRC emacs-lisp
-  (use-package browse-at-remote
-    :bind ("C-c s b" . browse-at-remote))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package browse-at-remote
+        :bind ("C-c s b" . browse-at-remote))
+    #+END_SRC
 
 *** diredfl
     - Colourful dired
-#+BEGIN_SRC emacs-lisp
-  (use-package diredfl
-    :init (diredfl-global-mode 1))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package diredfl
+        :init (diredfl-global-mode 1))
+    #+END_SRC
 * Writing
 *** deft
     - Deft is an Emacs mode for quickly browsing, filtering,
       and editing directories of plain text notes
+    #+BEGIN_SRC emacs-lisp
+      (use-package deft
+        :ensure t
+        :defines sej-mode-map deft-text-mode
+        :bind (:map sej-mode-map
+                    ("<f7>" . deft)
+                    ("C-c d" . deft)
+                    ("H-d" . deft))
+        :config
+        (setq deft-directory sej-org-directory)
+        (setq deft-use-filename-as-title t
+              deft-default-extension "org"
+              deft-text-mode (quote (org-mode))
+              deft-org-mode-title-prefix t
+              deft-use-filter-string-for-filename t
+              deft-auto-save-interval 0
+              deft-recursive t
+              deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
+              deft-org-mode-title-prefix t))
+    #+END_SRC
+* eshell & shell
+*** eshell
+    - Emacs command shell ; much better than shell
+    #+BEGIN_SRC emacs-lisp
+      (use-package eshell
+        :ensure nil
+        :defines (compilation-last-buffer
+                  eshell-prompt-function)
+        :commands (eshell/alias
+                   eshell-send-input
+                   eshell-flatten-list
+                   eshell-interactive-output-p
+                   eshell-parse-command
+                   eshell-command
+                   eshell)
+        :defines (sej-mode-map
+                  eshell-mode-map)
+        :hook  (
+                (eshell-mode . (lambda ()
+                                 (eshell/alias "f" "find-file $1")
+                                 (eshell/alias "ff" "find-file $1")
+                                 (eshell/alias "e" "find-file $1")
+                                 (eshell/alias "ee" "find-file-other-window $1")
+                                 (eshell/alias "emacs" "find-file $1")
+                                 (eshell/alias "fo" "find-file-other-window $1")
+                                 (eshell/alias "d" "dired $1")
+                                 (eshell/alias "ll" "ls  -AlohG --color=always $1")
+                                 (eshell/alias "la" "ls -al $1")
+                                 (eshell/alias "gd" "magit-diff-unstaged")
+                                 (eshell/alias "gds" "magit-diff-staged")
+                                 (bind-keys :map eshell-mode-map
+                                            ("M-P" . eshell-previous-prompt)
+                                            ("M-N" . eshell-next-prompt)
+                                            ("M-R" . eshell-previous-matching-input)
+                                            ("C-l" . eshell/clear)
+                                            )
+                                 )))
+
+        :bind (
+               :map sej-mode-map
+               ("H-e" . eshell)
+               ("C-c e" . eshell)
+               ("C-c s e" . eshell) )
+
+        :init
+        (require 'em-smart)
+        (require 'em-cmpl)
+        (require 'em-prompt)
+        (require 'em-term)
+        (require 'esh-opt)
+
+:config
+        (setenv "PAGER" "cat")
+
+        ;; Visual commands
+        (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
+        (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
+
+
+        (setq eshell-glob-case-insensitive nil
+              eshell-error-if-no-glob nil
+              eshell-scroll-to-bottom-on-input nil
+              eshell-where-to-jump 'begin
+              eshell-review-quick-commands nil
+              eshell-smart-space-goes-to-end t
+              eshell-cmpl-cycle-completions nil
+              ;; auto truncate after 12k lines
+              eshell-buffer-maximum-lines 12000
+              ;; history size
+              eshell-history-size 500
+              ;; buffer shorthand -> echo foo > #'buffer
+              eshell-buffer-shorthand t
+              ;; my prompt is easy enough to see
+              eshell-highlight-prompt nil
+              ;; treat 'echo' like shell echo
+              eshell-plain-echo-behavior t
+              ;; add -lh to the `ls' flags
+              ;; eshell-ls-initial-args "-lh"
+              eshell-hist-ignoredups t
+              eshell-save-history-on-exit t
+              eshell-prefer-lisp-functions nil
+              eshell-destroy-buffer-when-process-dies t)
+
+        ;; turn off semantic-mode in eshell buffers
+        (semantic-mode -1)
+        )
+#+END_SRC
+
+*** eshell/truncate-eshell-buffers
+    - truncates all eshell buffers after t time (5s)
 #+BEGIN_SRC emacs-lisp
-(use-package deft
-  :ensure t
-  :defines sej-mode-map deft-text-mode
-  :bind (:map sej-mode-map
-              ("<f7>" . deft)
-              ("C-c d" . deft)
-              ("H-d" . deft))
+  (defun eshell/truncate-eshell-buffers ()
+    "Truncates all eshell buffers"
+    (interactive)
+    (save-current-buffer
+      (dolist (buffer (buffer-list t))
+        (set-buffer buffer)
+        (when (eq major-mode 'eshell-mode)
+          (eshell-truncate-buffer)))))
+
+  ;; After being idle for 50 seconds, truncate all the eshell-buffers if
+  ;; needed. If this needs to be canceled,
+  ;; you can run `(cancel-timer sej/eshell-truncate-timer)'
+  (setq sej/eshell-truncate-timer
+        (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
+    #+END_SRC
+
+*** eshell-prompt-extras
+    - Display extra information for prompt
+    - See: https://github.com/kaihaosw/eshell-prompt-extras
+    #+BEGIN_SRC emacs-lisp
+      (use-package eshell-prompt-extras
+        :init
+        (with-eval-after-load "esh-opt"
+          (autoload 'epe-theme-lambda "eshell-prompt-extras")
+          (setq eshell-highlight-prompt nil
+                eshell-prompt-function 'epe-theme-lambda)))
+    #+END_SRC
+
+*** esh-autosuggest
+    - Fish-like history autosuggestions
+    #+BEGIN_SRC emacs-lisp
+      (use-package esh-autosuggest
+        :defines ivy-display-functions-alist
+        :preface
+        (defun setup-eshell-ivy-completion ()
+          (setq-local ivy-display-functions-alist
+                      (remq (assoc 'ivy-completion-in-region ivy-display-functions-alist)
+                            ivy-display-functions-alist)))
+        :bind (:map eshell-mode-map
+                    ([remap eshell-pcomplete] . completion-at-point))
+        :hook ((eshell-mode . esh-autosuggest-mode)
+               (eshell-mode . setup-eshell-ivy-completion)))
+    #+END_SRC
+
+*** eshell/clear
+    - clear the eshell buffer / screen
+#+BEGIN_SRC emacs-lisp
+  (defun eshell/clear ()
+    "Clear the eshell buffer."
+    (interactive)
+    (let ((eshell-buffer-maximum-lines 0))
+      (eshell-truncate-buffer)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (eshell-send-input))))
+#+END_SRC
+
+*** eshell/emacs
+    - edit a file in eshell without re-rerunning Emacs
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/emacs (&rest args)
+        "Open a file (ARGS) in Emacs.  Some habits die hard."
+        (if (null args)
+            ;; If I just ran "emacs", I probably expect to be launching
+            ;; Emacs, which is rather silly since I'm already in Emacs.
+            ;; So just pretend to do what I ask.
+            (bury-buffer)
+          ;; We have to expand the file names or else naming a directory in an
+          ;; argument causes later arguments to be looked for in that directory,
+          ;; not the starting directory
+          (mapc #'find-file (mapcar #'expand-file-name (eshell-flatten-list (reverse args))))))
+
+      (defalias 'eshell/e 'eshell/emacs)
+    #+END_SRC
+
+*** eshell/ec
+    - Compile a file (ARGS) in Emacs.  Use `compile' to do background make.
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/ec (&rest args)
+        "Compile a file (ARGS) in Emacs.  Use `compile' to do background make."
+        (if (eshell-interactive-output-p)
+            (let ((compilation-process-setup-function
+                   (list 'lambda nil
+                         (list 'setq 'process-environment
+                               (list 'quote (eshell-copy-environment))))))
+              (compile (eshell-flatten-and-stringify args))
+              (pop-to-buffer compilation-last-buffer))
+          (throw 'eshell-replace-command
+                 (let ((l (eshell-stringify-list (eshell-flatten-list args))))
+                   (eshell-parse-command (car l) (cdr l))))))
+      (put 'eshell/ec 'eshell-no-numeric-conversions t)
+    #+END_SRC
+
+*** eshell-view-file
+    - A version of `view-file' which properly rets the eshell prompt.
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell-view-file (file)
+        "View FILE.  A version of `view-file' which properly rets the eshell prompt."
+        (interactive "fView file: ")
+        (unless (file-exists-p file) (error "%s does not exist" file))
+        (let ((buffer (find-file-noselect file)))
+          (if (eq (get (buffer-local-value 'major-mode buffer) 'mode-class)
+                  'special)
+              (progn
+                (switch-to-buffer buffer)
+                (message "Not using View mode because the major mode is special"))
+            (let ((undo-window (list (window-buffer) (window-start)
+                                     (+ (window-point)
+                                        (length (funcall eshell-prompt-function))))))
+              (switch-to-buffer buffer)
+              (view-mode-enter (cons (selected-window) (cons nil undo-window))
+                               'kill-buffer)))))
+    #+END_SRC
+
+*** eshell/less
+    - Invoke `view-file' on a file.  \"less +42 foo\" will go to line 42 in the buffer
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/less (&rest args)
+        "Invoke `view-file' on a file (ARGS).  \"less +42 foo\" will go to line 42 in the buffer for foo."
+        (while args
+          (if (string-match "\\`\\+\\([0-9]+\\)\\'" (car args))
+              (let* ((line (string-to-number (match-string 1 (pop args))))
+                     (file (pop args)))
+                (eshell-view-file file)
+                (forward-line line))
+            (eshell-view-file (pop args)))))
+
+      (defalias 'eshell/more 'eshell/less)
+    #+END_SRC
+
+*** eshell/cds
+    - change directory to the project's root
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/cds ()
+        "Change directory to the project's root."
+        (eshell/cd (locate-dominating-file default-directory ".git")))
+    #+END_SRC
+
+*** eshell/d
+    - shortcut for dired in eshell
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/d (&rest args)
+        (dired (pop args) "."))
+    #+END_SRC
+
+*** eshell/magit
+    - function to open magit-status for the current directory
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/magit ()
+        "Function to open magit-status for the current directory."
+        (interactive)
+        (magit-status default-directory)
+        nil)
+    #+END_SRC
+
+*** shell
+    - basic emacs shell ; eshell is much better
+#+BEGIN_SRC emacs-lisp
+  (use-package shell
+    :ensure nil
+    :hook ((shell-mode . n-shell-mode-hook)
+           (comint-output-filter-functions . comint-strip-ctrl-m)
+           (comint-output-filter-functions . comint-truncate-buffer))
+    :bind  (:map sej-mode-map
+                 ("H-s" . shell)
+                 ("C-c s S" . shell))
+    :config
+    (defun n-shell-simple-send (proc command)
+      "Various PROC COMMANDs pre-processing before sending to shell."
+      (cond
+       ;; Checking for clear command and execute it.
+       ((string-match "^[ \t]*clear[ \t]*$" command)
+        (comint-send-string proc "\n")
+        (erase-buffer))
+       ;; Checking for man command and execute it.
+       ((string-match "^[ \t]*man[ \t]*" command)
+        (comint-send-string proc "\n")
+        (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
+        (setq command (replace-regexp-in-string "[ \t]+$" "" command))
+        ;;(message (format "command %s command" command))
+        (funcall 'man command))
+       ;; Send other commands to the default handler.
+       (t (comint-simple-send proc command))))
+
+    (defun n-shell-mode-hook ()
+      "Shell mode customizations."
+      (local-set-key '[up] 'comint-previous-input)
+      (local-set-key '[down] 'comint-next-input)
+      (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
+      (setq comint-input-sender 'n-shell-simple-send))
+
+    (setq system-uses-terminfo nil)       ; don't use system term info
+
+    (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
+          ;; always add output at the bottom
+          comint-scroll-to-bottom-on-output nil
+          ;; scroll to show max possible output
+          comint-scroll-show-maximum-output t
+          ;; no duplicates in command history
+          comint-input-ignoredups t
+          ;; insert space/slash after file completion
+          comint-completion-addsuffix t
+          ;; if this is t, it breaks shell-command
+          comint-prompt-read-only nil))
+#+END_SRC
+
+*** shell-pop
+    - pop-up shell
+#+BEGIN_SRC emacs-lisp
+(use-package shell-pop
+  :bind ("C-c s p" . shell-pop)
+  :init (let ((val
+               (if sys/win32p
+                   '("eshell" "*eshell*" (lambda () (eshell)))
+                 '("ansi-term" "*ansi-term*"
+                   (lambda () (ansi-term shell-pop-term-shell))))))
+          (setq shell-pop-shell-type val)))
+#+END_SRC
+
+*** sej/shell-kill-buffers
+    - kill shell buffer upon exit
+#+BEGIN_SRC emacs-lisp
+(defun sej/shell-kill-buffer-sentinel (process event)
+  "Function to kill shell buffer upon (PROCESS EVENT)."
+  (when (memq (process-status process) '(exit signal))
+    (kill-buffer)))
+#+END_SRC
+
+*** sej/kill-process-buffer-on-exit
+    - make sure processes get killed on Emacs-exit
+#+BEGIN_SRC emacs-lisp
+(defun sej/kill-process-buffer-on-exit ()
+  "Function to kill buffer on exit."
+  (set-process-sentinel (get-buffer-process (current-buffer))
+                        #'sej/shell-kill-buffer-sentinel))
+
+(dolist (hook '(ielm-mode-hook term-exec-hook comint-exec-hook))
+  (add-hook hook 'sej/kill-process-buffer-on-exit))
+#+END_SRC
+
+*** with-editor
+    - things that invoke $EDITOR will use the current Emacs
+#+BEGIN_SRC emacs-lisp
+(use-package with-editor
+  :hook ((shell-mode . with-editor-export-editor)
+         (eshell-mode . with-editor-export-editor)))
+#+END_SRC
+
+*** keychain-environment
+    - set up any SSH or GPG keychains that the Keychain tool has set up for us
+#+BEGIN_SRC emacs-lisp
+(use-package keychain-environment
+  :hook (sej/after-init . keychain-refresh-environment))
+#+END_SRC
+
+*** exec-path-from-shell
+    - this allows GUI Emacs to inherit $PATH
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
   :config
-  (setq deft-directory sej-org-directory)
-  (setq deft-use-filename-as-title t
-        deft-default-extension "org"
-        deft-text-mode (quote (org-mode))
-        deft-org-mode-title-prefix t
-        deft-use-filter-string-for-filename t
-        deft-auto-save-interval 0
-        deft-recursive t
-        deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
-        deft-org-mode-title-prefix t))
+  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
+    (add-to-list 'exec-path-from-shell-variables var))
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
 #+END_SRC

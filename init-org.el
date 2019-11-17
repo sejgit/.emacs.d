@@ -820,9 +820,9 @@ buffer is not visiting a file."
                          (ido-read-file-name "Find file(as root): ")))
     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-  ;; function to edit the curent file as root
-  ;; (defined in init-misc-defuns.el)
-  (define-key sej-mode-map (kbd "C-c C-s") 'sej/sudo-edit)
+;; function to edit the curent file as root
+;; (defined in init-misc-defuns.el)
+(define-key sej-mode-map (kbd "C-c C-s") 'sej/sudo-edit)
 
 (defun sej/dos2unix ()
   "Convert the current buffer to UNIX file format."
@@ -1192,8 +1192,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
                '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
 
 (use-package display-line-numbers
-:ensure nil
-:hook (prog-mode . display-line-numbers-mode))
+  :ensure nil
+  :hook (prog-mode . display-line-numbers-mode))
 
 (use-package goto-line-preview
   :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
@@ -2052,12 +2052,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 
 (use-package easy-kill-extras
   :bind (([remap kill-ring-save] . easy-kill) ; M-w
-         ([remap mark-sexp] . easy-mark-sexp) ; C-M-spc
+         ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
          ([remap mark-word] . easy-mark-word) ; M-@
-
-         ;; Integrate `zap-to-char'
-         ([remap zap-to-char] . easy-mark-to-char) ; M-z
-         ([remap zap-up-to-char] . easy-mark-up-to-char) ; none
 
          ;; Integrate `expand-region'
          :map easy-kill-base-map
@@ -2494,43 +2490,43 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
         try-compelete-lisp-symbol))
 
 (use-package company
- :diminish company-mode
- :defines
- sej-mode-map
- company-dabbrev-ignore-case
- company-dabbrev-downcase
- company-dabbrev-code-modes
- company-dabbrev-code-ignore-case
- :commands company-abort
- :bind (
-        ("<backtab>" . company-yasnippet)
-        :map sej-mode-map
-        (("C-<tab>" . company-complete)
-         ("M-<tab>" . company-complete))
-        :map company-active-map
-        (("C-n" . company-select-next)
-         ("C-p" . company-select-previous)
-         ("C-d" . company-show-doc-buffer)
-         ("C-l" . company-show-location)
-         ("<tab>" . company-complete))
-        :map company-search-map
-        (("C-p" . company-select-previous)
-         ("C-n" . company-select-next)))
- :hook (sej/after-init . global-company-mode)
- :init
- (defun my-company-yasnippet ()
-   (interactive)
-   (company-abort)
-   (call-interactively 'company-yasnippet))
- :config
- (setq company-tooltip-align-annotations t ; aligns annotation to the right
-       company-tooltip-limit 12            ; bigger popup window
-       company-idle-delay .2               ; decrease delay before autocompletion popup shows
-       company-echo-delay 0                ; remove annoying blinking
-       company-minimum-prefix-length 2
-       company-require-match nil
-       company-dabbrev-ignore-case nil
-       company-dabbrev-downcase nil))
+  :diminish company-mode
+  :defines
+  sej-mode-map
+  company-dabbrev-ignore-case
+  company-dabbrev-downcase
+  company-dabbrev-code-modes
+  company-dabbrev-code-ignore-case
+  :commands company-abort
+  :bind (
+         ("<backtab>" . company-yasnippet)
+         :map sej-mode-map
+         (("C-<tab>" . company-complete)
+          ("M-<tab>" . company-complete))
+         :map company-active-map
+         (("C-n" . company-select-next)
+          ("C-p" . company-select-previous)
+          ("C-d" . company-show-doc-buffer)
+          ("C-l" . company-show-location)
+          ("<tab>" . company-complete))
+         :map company-search-map
+         (("C-p" . company-select-previous)
+          ("C-n" . company-select-next)))
+  :hook (sej/after-init . global-company-mode)
+  :init
+  (defun my-company-yasnippet ()
+    (interactive)
+    (company-abort)
+    (call-interactively 'company-yasnippet))
+  :config
+  (setq company-tooltip-align-annotations t ; aligns annotation to the right
+        company-tooltip-limit 12            ; bigger popup window
+        company-idle-delay .2               ; decrease delay before autocompletion popup shows
+        company-echo-delay 0                ; remove annoying blinking
+        company-minimum-prefix-length 2
+        company-require-match nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-downcase nil))
 
 (when emacs/>=26p
   (use-package company-box
@@ -2622,8 +2618,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config (setq company-quickhelp-delay 1))
 
 (use-package company-statistics
-:after company
-    :hook (sej/after-init . company-statistics-mode))
+  :after company
+  :hook (sej/after-init . company-statistics-mode))
 
 (use-package company-try-hard
   :commands company-try-hard
@@ -2634,7 +2630,9 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 (use-package company-shell
   :after company
   :config
-  (push 'company-shell company-backends))
+  (add-to-list 'company-backends '(company-shell
+                                   company-shell-env
+                                   company-fish-shell)))
 
 (use-package yasnippet
   :diminish yas-minor-mode
@@ -2722,7 +2720,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
             "Project: "))))
 
 (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-      ; (kbd "C-x r j") is build in global
+                                        ; (kbd "C-x r j") is build in global
 (set-register ?b '(file . "~/.ssh/custom-post.el"))
 (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
 (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
@@ -3221,3 +3219,298 @@ _S_ettings                                _C-p_: Previous Line
 
 (use-package diredfl
   :init (diredfl-global-mode 1))
+
+(use-package deft
+  :ensure t
+  :defines sej-mode-map deft-text-mode
+  :bind (:map sej-mode-map
+              ("<f7>" . deft)
+              ("C-c d" . deft)
+              ("H-d" . deft))
+  :config
+  (setq deft-directory sej-org-directory)
+  (setq deft-use-filename-as-title t
+        deft-default-extension "org"
+        deft-text-mode (quote (org-mode))
+        deft-org-mode-title-prefix t
+        deft-use-filter-string-for-filename t
+        deft-auto-save-interval 0
+        deft-recursive t
+        deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
+        deft-org-mode-title-prefix t))
+
+(use-package eshell
+        :ensure nil
+        :defines (compilation-last-buffer
+                  eshell-prompt-function)
+        :commands (eshell/alias
+                   eshell-send-input
+                   eshell-flatten-list
+                   eshell-interactive-output-p
+                   eshell-parse-command
+                   eshell-command
+                   eshell)
+        :defines (sej-mode-map
+                  eshell-mode-map)
+        :hook  (
+                (eshell-mode . (lambda ()
+                                 (eshell/alias "f" "find-file $1")
+                                 (eshell/alias "ff" "find-file $1")
+                                 (eshell/alias "e" "find-file $1")
+                                 (eshell/alias "ee" "find-file-other-window $1")
+                                 (eshell/alias "emacs" "find-file $1")
+                                 (eshell/alias "fo" "find-file-other-window $1")
+                                 (eshell/alias "d" "dired $1")
+                                 (eshell/alias "ll" "ls  -AlohG --color=always $1")
+                                 (eshell/alias "la" "ls -al $1")
+                                 (eshell/alias "gd" "magit-diff-unstaged")
+                                 (eshell/alias "gds" "magit-diff-staged")
+                                 (bind-keys :map eshell-mode-map
+                                            ("M-P" . eshell-previous-prompt)
+                                            ("M-N" . eshell-next-prompt)
+                                            ("M-R" . eshell-previous-matching-input)
+                                            ("C-l" . eshell/clear)
+                                            )
+                                 )))
+
+        :bind (
+               :map sej-mode-map
+               ("H-e" . eshell)
+               ("C-c e" . eshell) )
+
+        :init
+        (require 'em-smart)
+        (require 'em-cmpl)
+        (require 'em-prompt)
+        (require 'em-term)
+        (require 'esh-opt)
+
+:config
+        (setenv "PAGER" "cat")
+
+        ;; Visual commands
+        (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
+        (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
+
+
+        (setq eshell-glob-case-insensitive nil
+              eshell-error-if-no-glob nil
+              eshell-scroll-to-bottom-on-input nil
+              eshell-where-to-jump 'begin
+              eshell-review-quick-commands nil
+              eshell-smart-space-goes-to-end t
+              eshell-cmpl-cycle-completions nil
+              ;; auto truncate after 12k lines
+              eshell-buffer-maximum-lines 12000
+              ;; history size
+              eshell-history-size 500
+              ;; buffer shorthand -> echo foo > #'buffer
+              eshell-buffer-shorthand t
+              ;; my prompt is easy enough to see
+              eshell-highlight-prompt nil
+              ;; treat 'echo' like shell echo
+              eshell-plain-echo-behavior t
+              ;; add -lh to the `ls' flags
+              ;; eshell-ls-initial-args "-lh"
+              eshell-hist-ignoredups t
+              eshell-save-history-on-exit t
+              eshell-prefer-lisp-functions nil
+              eshell-destroy-buffer-when-process-dies t)
+
+        ;; turn off semantic-mode in eshell buffers
+        (semantic-mode -1)
+        )
+
+(defun eshell/truncate-eshell-buffers ()
+  "Truncates all eshell buffers"
+  (interactive)
+  (save-current-buffer
+    (dolist (buffer (buffer-list t))
+      (set-buffer buffer)
+      (when (eq major-mode 'eshell-mode)
+        (eshell-truncate-buffer)))))
+
+;; After being idle for 50 seconds, truncate all the eshell-buffers if
+;; needed. If this needs to be canceled,
+;; you can run `(cancel-timer sej/eshell-truncate-timer)'
+(setq sej/eshell-truncate-timer
+      (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
+
+(use-package eshell-prompt-extras
+  :init
+  (with-eval-after-load "esh-opt"
+    (autoload 'epe-theme-lambda "eshell-prompt-extras")
+    (setq eshell-highlight-prompt nil
+          eshell-prompt-function 'epe-theme-lambda)))
+
+(use-package esh-autosuggest
+  :defines ivy-display-functions-alist
+  :preface
+  (defun setup-eshell-ivy-completion ()
+    (setq-local ivy-display-functions-alist
+                (remq (assoc 'ivy-completion-in-region ivy-display-functions-alist)
+                      ivy-display-functions-alist)))
+  :bind (:map eshell-mode-map
+              ([remap eshell-pcomplete] . completion-at-point))
+  :hook ((eshell-mode . esh-autosuggest-mode)
+         (eshell-mode . setup-eshell-ivy-completion)))
+
+(defun eshell/clear ()
+  "Clear the eshell buffer."
+  (interactive)
+  (let ((eshell-buffer-maximum-lines 0))
+    (eshell-truncate-buffer)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eshell-send-input))))
+
+(defun eshell/emacs (&rest args)
+  "Open a file (ARGS) in Emacs.  Some habits die hard."
+  (if (null args)
+      ;; If I just ran "emacs", I probably expect to be launching
+      ;; Emacs, which is rather silly since I'm already in Emacs.
+      ;; So just pretend to do what I ask.
+      (bury-buffer)
+    ;; We have to expand the file names or else naming a directory in an
+    ;; argument causes later arguments to be looked for in that directory,
+    ;; not the starting directory
+    (mapc #'find-file (mapcar #'expand-file-name (eshell-flatten-list (reverse args))))))
+
+(defalias 'eshell/e 'eshell/emacs)
+
+(defun eshell/ec (&rest args)
+  "Compile a file (ARGS) in Emacs.  Use `compile' to do background make."
+  (if (eshell-interactive-output-p)
+      (let ((compilation-process-setup-function
+             (list 'lambda nil
+                   (list 'setq 'process-environment
+                         (list 'quote (eshell-copy-environment))))))
+        (compile (eshell-flatten-and-stringify args))
+        (pop-to-buffer compilation-last-buffer))
+    (throw 'eshell-replace-command
+           (let ((l (eshell-stringify-list (eshell-flatten-list args))))
+             (eshell-parse-command (car l) (cdr l))))))
+(put 'eshell/ec 'eshell-no-numeric-conversions t)
+
+(defun eshell-view-file (file)
+  "View FILE.  A version of `view-file' which properly rets the eshell prompt."
+  (interactive "fView file: ")
+  (unless (file-exists-p file) (error "%s does not exist" file))
+  (let ((buffer (find-file-noselect file)))
+    (if (eq (get (buffer-local-value 'major-mode buffer) 'mode-class)
+            'special)
+        (progn
+          (switch-to-buffer buffer)
+          (message "Not using View mode because the major mode is special"))
+      (let ((undo-window (list (window-buffer) (window-start)
+                               (+ (window-point)
+                                  (length (funcall eshell-prompt-function))))))
+        (switch-to-buffer buffer)
+        (view-mode-enter (cons (selected-window) (cons nil undo-window))
+                         'kill-buffer)))))
+
+(defun eshell/less (&rest args)
+  "Invoke `view-file' on a file (ARGS).  \"less +42 foo\" will go to line 42 in the buffer for foo."
+  (while args
+    (if (string-match "\\`\\+\\([0-9]+\\)\\'" (car args))
+        (let* ((line (string-to-number (match-string 1 (pop args))))
+               (file (pop args)))
+          (eshell-view-file file)
+          (forward-line line))
+      (eshell-view-file (pop args)))))
+
+(defalias 'eshell/more 'eshell/less)
+
+(defun eshell/cds ()
+  "Change directory to the project's root."
+  (eshell/cd (locate-dominating-file default-directory ".git")))
+
+(defun eshell/d (&rest args)
+  (dired (pop args) "."))
+
+(defun eshell/magit ()
+  "Function to open magit-status for the current directory."
+  (interactive)
+  (magit-status default-directory)
+  nil)
+
+(use-package shell
+    :ensure nil
+    :hook ((shell-mode . n-shell-mode-hook)
+    (comint-output-filter-functions . comint-strip-ctrl-m)
+    (comint-output-filter-functions . comint-truncate-buffer))
+    :config
+    (defun n-shell-simple-send (proc command)
+      "Various PROC COMMANDs pre-processing before sending to shell."
+      (cond
+       ;; Checking for clear command and execute it.
+       ((string-match "^[ \t]*clear[ \t]*$" command)
+        (comint-send-string proc "\n")
+        (erase-buffer))
+       ;; Checking for man command and execute it.
+       ((string-match "^[ \t]*man[ \t]*" command)
+        (comint-send-string proc "\n")
+        (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
+        (setq command (replace-regexp-in-string "[ \t]+$" "" command))
+        ;;(message (format "command %s command" command))
+        (funcall 'man command))
+       ;; Send other commands to the default handler.
+       (t (comint-simple-send proc command))))
+
+    (defun n-shell-mode-hook ()
+      "Shell mode customizations."
+      (local-set-key '[up] 'comint-previous-input)
+      (local-set-key '[down] 'comint-next-input)
+      (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
+      (setq comint-input-sender 'n-shell-simple-send))
+
+    (setq system-uses-terminfo nil)       ; don't use system term info
+)
+
+(setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
+      ;; always add output at the bottom
+      comint-scroll-to-bottom-on-output nil
+      ;; scroll to show max possible output
+      comint-scroll-show-maximum-output t
+      ;; no duplicates in command history
+      comint-input-ignoredups t
+      ;; insert space/slash after file completion
+      comint-completion-addsuffix t
+      ;; if this is t, it breaks shell-command
+      comint-prompt-read-only nil)
+
+(use-package shell-pop
+  :bind ("C-c s p" . shell-pop)
+  :init (let ((val
+               (if sys/win32p
+                   '("eshell" "*eshell*" (lambda () (eshell)))
+                 '("ansi-term" "*ansi-term*"
+                   (lambda () (ansi-term shell-pop-term-shell))))))
+          (setq shell-pop-shell-type val)))
+
+(defun sej/shell-kill-buffer-sentinel (process event)
+  "Function to kill shell buffer upon (PROCESS EVENT)."
+  (when (memq (process-status process) '(exit signal))
+    (kill-buffer)))
+
+(defun sej/kill-process-buffer-on-exit ()
+  "Function to kill buffer on exit."
+  (set-process-sentinel (get-buffer-process (current-buffer))
+                        #'sej/shell-kill-buffer-sentinel))
+
+(dolist (hook '(ielm-mode-hook term-exec-hook comint-exec-hook))
+  (add-hook hook 'sej/kill-process-buffer-on-exit))
+
+(use-package with-editor
+  :hook ((shell-mode . with-editor-export-editor)
+         (eshell-mode . with-editor-export-editor)))
+
+(use-package keychain-environment
+  :hook (sej/after-init . keychain-refresh-environment))
+
+(use-package exec-path-from-shell
+  :config
+  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
+    (add-to-list 'exec-path-from-shell-variables var))
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
