@@ -21,6 +21,7 @@
 - <2019-11-17 Sun> init-eshell.el tangled
 - <2019-11-17 Sun> init-shell.el tangled
 - <2019-11-17 Sun> init-org.el tangled
+- <2019-11-23 Sat> init-vcs.el tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -580,10 +581,7 @@
       ;; unset C- and M- digit keys
       (dotimes (n 10)
         (global-unset-key (kbd (format "C-%d" n)))
-        (global-unset-key (kbd (format "M-%d" n)))
-        )
-
-      (define-key sej-mode-map (kbd "C-x g") 'magit-status)
+        (global-unset-key (kbd (format "M-%d" n))))
 
       (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
       (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
@@ -595,15 +593,6 @@
       ;; Align your code in a pretty way.
       (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
 
-      ;; number lines with rectangle defined in init-writing.el
-      (define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
-
-    #+END_SRC
-*** hyper modifier
-    - use hyper (fn on osx) for mode type bindings
-    #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "<f1>") 'org-mode)
-
       (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
       (define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
@@ -611,24 +600,14 @@
       (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
       (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
 
-      (define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
-      (define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
       (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
       (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-    #+END_SRC
-
-*** super modifier
-    - use super for action type stuff
-    #+BEGIN_SRC emacs-lisp
 
       (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
 
       (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
       (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
       (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
-
-      (define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
-      (define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
     #+END_SRC
 
 * general defuns
@@ -3146,49 +3125,75 @@
 *** magit
     - interface to the version control system Git
 #+BEGIN_SRC emacs-lisp
-(use-package magit
-  :bind (("C-x g" . magit-status)
-         ("<f12>" . magit-status)
-         ("C-x M-g" . magit-dispatch)
-         ("C-c M-g" . magit-file-popup))
-  :config
-  (when sys/win32p
-    (setenv "GIT_ASKPASS" "git-gui--askpass"))
+  (use-package magit
+    :bind (("C-x g" . magit-status)
+           ("<f12>" . magit-status)
+           ("C-x M-g" . magit-dispatch)
+           ("C-c M-g" . magit-file-popup))
+    :config
+    (when sys/win32p
+      (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
-  (if (fboundp 'transient-append-suffix)
-      ;; Add switch: --tags
-      (transient-append-suffix 'magit-fetch
-                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+    (if (fboundp 'transient-append-suffix)
+        ;; Add switch: --tags
+        (transient-append-suffix 'magit-fetch
+          "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+#+END_SRC
 
-;; Access Git forges from Magit
-(if (executable-find "cc")
-    (use-package forge
-      :after magit
-      :demand))
+*** forge
+    - Access Git forges from Magit
+      To start using Forge in a certain repository visit the Magit status buffer
+    for that repository and type f y (forge-pull). Alternatively you can use M-x
+    forge-add-repostiory, which makes it possible to add a forge repository without
+    pulling all topics and even without having to clone the respective Git repository.
+ #+BEGIN_SRC emacs-lisp
+  (if (executable-find "cc")
+      (use-package forge
+        :after magit
+        :demand))
+#+END_SRC
 
-;; Show tasks
-(use-package magit-todos
-  :hook (ater-init . magit-todos-mode))
+*** magit-todos
+    - Show tasks from commit files
+#+BEGIN_SRC emacs-lisp
+  (use-package magit-todos
+    :hook (ater-init . magit-todos-mode))
+#+END_SRC
 
-;; Walk through git revisions of a file
-(use-package git-timemachine
-  :custom-face
-  (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
-  (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
-  :bind (:map vc-prefix-map
-              ("t" . git-timemachine)))
+*** git-timemachine
+    - Walk through git revisions of a file
+#+BEGIN_SRC emacs-lisp
+  (use-package git-timemachine
+    :custom-face
+    (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
+    (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
+    :bind (:map vc-prefix-map
+                ("t" . git-timemachine)))
+#+END_SRC
 
-;; Pop up last commit information of current line
-(use-package git-messenger
-  :bind (:map vc-prefix-map
-              ("p" . git-messenger:popup-message)
-              :map git-messenger-map
-              ("m" . git-messenger:copy-message))
-  :init
-  ;; Use magit-show-commit for showing status/diff commands
-  (setq git-messenger:use-magit-popup t))
+*** git-messenger
+    - Pop up last commit information of current line
+#+BEGIN_SRC emacs-lisp
+  (use-package git-messenger
+    :bind (
+           :map sej-mode-map
+           (
+            ("C-x v p" . git-messenger:popup-message)
+            ("C-x M" . git-messenger:popup-message)
+            ("H-m" . git-messenger:popup-message)
+            )
+           :map vc-prefix-map
+           ("p" . git-messenger:popup-message)
+           :map git-messenger-map
+           ("m" . git-messenger:copy-message))
+    :init
+    ;; Use magit-show-commit for showing status/diff commands
+    (setq git-messenger:use-magit-popup t))
+#+END_SRC
 
-;; Resolve diff3 conflicts
+*** smerge-mode
+    - Resolve diff3 conflicts
+#+BEGIN_SRC emacs-lisp
 (use-package smerge-mode
   :ensure nil
   :diminish
@@ -3252,11 +3257,17 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
          (magit-diff-visit-file . (lambda ()
                                     (when smerge-mode
                                       (hydra-smerge/body))))))
+#+END_SRC
 
-;; Open github/gitlab/bitbucket page
-(use-package browse-at-remote
-  :bind (:map vc-prefix-map
-              ("B" . browse-at-remote)))
+*** browse-at-remote
+    - Open github/gitlab/bitbucket page
+#+BEGIN_SRC emacs-lisp
+  (use-package browse-at-remote
+    :bind (:map sej-mode-map
+                (("C-c s b" . browse-at-remote)
+                 ("C-x v B" . browse-at-remote))
+                :map vc-prefix-map
+                ("B" . browse-at-remote)))
 #+END_SRC
 
 *** gist
@@ -4484,6 +4495,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   (goto-char start))
 
   (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+  (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
 #+END_SRC
 
 *** flyspell

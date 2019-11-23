@@ -416,10 +416,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; unset C- and M- digit keys
 (dotimes (n 10)
   (global-unset-key (kbd (format "C-%d" n)))
-  (global-unset-key (kbd (format "M-%d" n)))
-  )
-
-(define-key sej-mode-map (kbd "C-x g") 'magit-status)
+  (global-unset-key (kbd (format "M-%d" n))))
 
 (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
 (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
@@ -431,11 +428,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 ;; Align your code in a pretty way.
 (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
 
-;; number lines with rectangle defined in init-writing.el
-(define-key sej-mode-map (kbd "C-x r N") 'number-rectangle)
-
-(define-key sej-mode-map (kbd "<f1>") 'org-mode)
-
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
 (define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
@@ -443,8 +435,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
 
-(define-key sej-mode-map (kbd "C-x G") 'gist-list) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-G") 'gist-list) ;; defined here for ref
 (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
 (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
 
@@ -453,9 +443,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
 (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
-
-(define-key sej-mode-map (kbd "s-/") 'define-word-at-point) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-|") 'powerthesaurus-lookup-word-dwim) ;; defined here for ref
 
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."
@@ -2383,6 +2370,46 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config
   (setq paren-highlight-offscreen t))
 
+(use-package tramp
+  :commands
+  tramp-default-method
+  tramp-default-user
+  tramp-default-host
+  :init
+  (if sys/macp
+      (setq
+       tramp-default-method "ssh"
+       password-cache-expiry nil)
+    (setq
+     tramp-default-method "ssh"
+     tramp-default-user "pi"
+     tramp-default-host "home"
+     password-cache-expiry nil)
+    )
+  (setq tramp-use-ssh-controlmaster-options nil)
+
+  (defadvice tramp-handle-write-region
+      (after tramp-write-beep-advice activate)
+    "Make tramp beep after writing a file."
+    (interactive)
+    (beep))
+
+  (defadvice tramp-handle-do-copy-or-rename-file
+      (after tramp-copy-beep-advice activate)
+    "Make tramp beep after copying a file."
+    (interactive)
+    (beep))
+
+  (defadvice tramp-handle-insert-file-contents
+      (after tramp-insert-beep-advice activate)
+    "Make tramp beep after inserting a file."
+    (interactive)
+    (beep))
+  )
+
+(use-package pass
+  :commands pass)
+
 (use-package indent-guide
   :hook (prog-mode . indent-guide-mode)
   :diminish indent-guide-mode)
@@ -2417,6 +2444,136 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
         'no-indent
       nil))
   (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+
+(use-package magit
+  :bind (("C-x g" . magit-status)
+         ("<f12>" . magit-status)
+         ("C-x M-g" . magit-dispatch)
+         ("C-c M-g" . magit-file-popup))
+  :config
+  (when sys/win32p
+    (setenv "GIT_ASKPASS" "git-gui--askpass"))
+
+  (if (fboundp 'transient-append-suffix)
+      ;; Add switch: --tags
+      (transient-append-suffix 'magit-fetch
+        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+
+(if (executable-find "cc")
+    (use-package forge
+      :after magit
+      :demand))
+
+(use-package magit-todos
+  :hook (ater-init . magit-todos-mode))
+
+(use-package git-timemachine
+  :custom-face
+  (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
+  (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
+  :bind (:map vc-prefix-map
+              ("t" . git-timemachine)))
+
+(use-package git-messenger
+  :bind (
+         :map sej-mode-map
+         (
+          ("C-x v p" . git-messenger:popup-message)
+          ("C-x M" . git-messenger:popup-message)
+          ("H-m" . git-messenger:popup-message)
+          )
+         :map vc-prefix-map
+         ("p" . git-messenger:popup-message)
+         :map git-messenger-map
+         ("m" . git-messenger:copy-message))
+  :init
+  ;; Use magit-show-commit for showing status/diff commands
+  (setq git-messenger:use-magit-popup t))
+
+(use-package smerge-mode
+  :ensure nil
+  :diminish
+  :commands (smerge-mode
+             smerge-auto-leave
+             smerge-next
+             smerge-prev
+             smerge-keep-base
+             smerge-keep-upper
+             smerge-keep-lower
+             smerge-keep-all
+             smerge-keep-current
+             smerge-keep-current
+             smerge-diff-base-upper
+             smerge-diff-upper-lower
+             smerge-diff-base-lower
+             smerge-refine
+             smerge-ediff
+             smerge-combine-with-next
+             smerge-resolve
+             smerge-kill-current)
+  :preface
+  (defhydra hydra-smerge
+    (:color red :hint none :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^──────────-^^───────────────────^^─────────────────────^^──────────────────
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine               _ZZ_: Save and bury
+^^           _RET_: current       _E_diff                _q_: cancel
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("ZZ" (lambda ()
+            (interactive)
+            (save-buffer)
+            (bury-buffer))
+     "Save and bury buffer" :color blue)
+    ("q" nil "cancel" :color blue))
+  :hook ((find-file . (lambda ()
+                        (save-excursion
+                          (goto-char (point-min))
+                          (when (re-search-forward "^<<<<<<< " nil t)
+                            (smerge-mode 1)))))
+         (magit-diff-visit-file . (lambda ()
+                                    (when smerge-mode
+                                      (hydra-smerge/body))))))
+
+(use-package browse-at-remote
+  :bind (:map sej-mode-map
+              (("C-c s b" . browse-at-remote)
+               ("C-x v B" . browse-at-remote))
+              :map vc-prefix-map
+              ("B" . browse-at-remote)))
+
+(use-package gist
+  :defines sej-mode-map
+  :bind  (:map sej-mode-map
+               ("C-x G" . gist-list)
+               ("H-G" . gist-list)))
+
+(use-package gitattributes-mode)
+
+(use-package gitconfig-mode)
+
+(use-package gitignore-mode)
+
+(use-package git-blamed)
 
 (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
 (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
@@ -3104,6 +3261,32 @@ _S_ettings                                _C-p_: Previous Line
   (setq global-page-break-lines-mode t)
   )
 
+(use-package autoinsert
+  :hook (find-file . auto-insert)
+  :defines
+  auto-insert-query
+  auto-insert-directory
+  :init
+  (setq auto-insert-directory "~/.emacs.d/templates/")
+  (setq auto-insert-query nil)
+  (auto-insert-mode 1)
+  :config
+  (define-auto-insert ".*\\.py[3]?$" "template.py")
+  (define-auto-insert ".*\\.el" "template.el")
+  )
+
+(use-package conf-mode
+  :diminish conf-mode
+  :mode "\\.gitconfig$")
+
+(use-package csv-mode
+  :mode "\\.[Cc][Ss][Vv]\\'"
+  :config
+  (setq csv-separators '("," ";" "|" " ")))
+
+(use-package textile-mode
+  :mode "\\.textile\\'")
+
 ;; Directory operations
 (use-package dired
   :ensure nil
@@ -3385,6 +3568,7 @@ for i from from   do
 (goto-char start))
 
 (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+(define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
 
 (use-package flyspell
   :functions
