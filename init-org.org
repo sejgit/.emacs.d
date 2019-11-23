@@ -62,6 +62,7 @@
   - [[#highlighting-faces-fonts][highlighting faces fonts]]
 - [[#programming][programming]]
   - [[#general][general]]
+  - [[#vcs][vcs]]
   - [[#lisp][lisp]]
   - [[#completion][completion]]
 - [[#files][files]]
@@ -3140,6 +3141,159 @@
             nil))
         (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
     #+END_SRC
+
+** vcs
+*** magit
+    - interface to the version control system Git
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :bind (("C-x g" . magit-status)
+         ("<f12>" . magit-status)
+         ("C-x M-g" . magit-dispatch)
+         ("C-c M-g" . magit-file-popup))
+  :config
+  (when sys/win32p
+    (setenv "GIT_ASKPASS" "git-gui--askpass"))
+
+  (if (fboundp 'transient-append-suffix)
+      ;; Add switch: --tags
+      (transient-append-suffix 'magit-fetch
+                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+
+;; Access Git forges from Magit
+(if (executable-find "cc")
+    (use-package forge
+      :after magit
+      :demand))
+
+;; Show tasks
+(use-package magit-todos
+  :hook (ater-init . magit-todos-mode))
+
+;; Walk through git revisions of a file
+(use-package git-timemachine
+  :custom-face
+  (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
+  (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
+  :bind (:map vc-prefix-map
+              ("t" . git-timemachine)))
+
+;; Pop up last commit information of current line
+(use-package git-messenger
+  :bind (:map vc-prefix-map
+              ("p" . git-messenger:popup-message)
+              :map git-messenger-map
+              ("m" . git-messenger:copy-message))
+  :init
+  ;; Use magit-show-commit for showing status/diff commands
+  (setq git-messenger:use-magit-popup t))
+
+;; Resolve diff3 conflicts
+(use-package smerge-mode
+  :ensure nil
+  :diminish
+  :commands (smerge-mode
+             smerge-auto-leave
+             smerge-next
+             smerge-prev
+             smerge-keep-base
+             smerge-keep-upper
+             smerge-keep-lower
+             smerge-keep-all
+             smerge-keep-current
+             smerge-keep-current
+             smerge-diff-base-upper
+             smerge-diff-upper-lower
+             smerge-diff-base-lower
+             smerge-refine
+             smerge-ediff
+             smerge-combine-with-next
+             smerge-resolve
+             smerge-kill-current)
+  :preface
+  (defhydra hydra-smerge
+    (:color red :hint none :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^──────────-^^───────────────────^^─────────────────────^^──────────────────
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine               _ZZ_: Save and bury
+^^           _RET_: current       _E_diff                _q_: cancel
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("ZZ" (lambda ()
+            (interactive)
+            (save-buffer)
+            (bury-buffer))
+     "Save and bury buffer" :color blue)
+    ("q" nil "cancel" :color blue))
+  :hook ((find-file . (lambda ()
+                        (save-excursion
+                          (goto-char (point-min))
+                          (when (re-search-forward "^<<<<<<< " nil t)
+                            (smerge-mode 1)))))
+         (magit-diff-visit-file . (lambda ()
+                                    (when smerge-mode
+                                      (hydra-smerge/body))))))
+
+;; Open github/gitlab/bitbucket page
+(use-package browse-at-remote
+  :bind (:map vc-prefix-map
+              ("B" . browse-at-remote)))
+#+END_SRC
+
+*** gist
+    - Git related modes
+    - gist client
+#+BEGIN_SRC emacs-lisp
+(use-package gist
+  :defines sej-mode-map
+  :bind  (:map sej-mode-map
+               ("C-x G" . gist-list)
+               ("H-G" . gist-list)))
+#+END_SRC
+
+*** gitattributes-mode
+    - mode for .gitattributes files
+#+BEGIN_SRC emacs-lisp
+(use-package gitattributes-mode)
+#+END_SRC
+
+*** gitconfig-mode
+    - mode for .gitconfig files
+#+BEGIN_SRC emacs-lisp
+(use-package gitconfig-mode)
+#+END_SRC
+
+*** gitignore-mode
+    - mode for .gitignore files
+#+BEGIN_SRC emacs-lisp
+(use-package gitignore-mode)
+#+END_SRC
+
+*** git-blamed
+    - implementation of incremental git-blame part of git-emacs packages
+    - M-x git-blamed-mode to turn on view with commits
+#+BEGIN_SRC emacs-lisp
+(use-package git-blamed)
+#+END_SRC
 
 ** lisp
 *** lisp settings

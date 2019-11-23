@@ -206,7 +206,7 @@
 
 ;; Programming
 ;; (require 'init-tramp); org-tangle
-(require 'init-vcs)
+;; (require 'init-vcs); org-tangle
 (require 'init-prog)
 
 (require 'init-flycheck)
