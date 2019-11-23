@@ -3879,6 +3879,26 @@
         (setq global-page-break-lines-mode t)
         )
     #+END_SRC
+
+*** autoinsert
+    - mode that comes with Emacs that automagically inserts text into new buffers
+      based on file extension or the major mode
+#+BEGIN_SRC emacs-lisp
+(use-package autoinsert
+  :hook (find-file . auto-insert)
+  :defines
+  auto-insert-query
+  auto-insert-directory
+  :init
+  (setq auto-insert-directory "~/.emacs.d/templates/")
+  (setq auto-insert-query nil)
+  (auto-insert-mode 1)
+  :config
+  (define-auto-insert ".*\\.py[3]?$" "template.py")
+  (define-auto-insert ".*\\.el" "template.el")
+  )
+#+END_SRC
+
 * dired
 *** dired
     #+BEGIN_SRC emacs-lisp

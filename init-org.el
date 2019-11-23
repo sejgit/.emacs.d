@@ -2383,6 +2383,10 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config
   (setq paren-highlight-offscreen t))
 
+(use-package indent-guide
+  :hook (prog-mode . indent-guide-mode)
+  :diminish indent-guide-mode)
+
 (use-package comment-dwim-2
   :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
 
@@ -3218,8 +3222,7 @@ _S_ettings                                _C-p_: Previous Line
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
               ("<f7>" . deft)
-              ("C-c d" . deft)
-              ("H-d" . deft))
+              ("C-c d" . deft))
   :config
   (setq deft-directory sej-org-directory)
   (setq deft-use-filename-as-title t
@@ -3231,6 +3234,303 @@ _S_ettings                                _C-p_: Previous Line
         deft-recursive t
         deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
         deft-org-mode-title-prefix t))
+
+(use-package writegood-mode
+  :hook (markdown-mode . writegood-mode)
+  )
+
+(use-package olivetti
+  :diminish
+  :hook (text-mode-hook . olivetti-mode)
+  :init (setq olivetti-body-width 0.618))
+
+(use-package markdown-mode
+  :defines flycheck-markdown-markdownlint-cli-config
+  :preface
+  ;; Install: pip install grip
+  (defun markdown-preview-grip ()
+    "Render and preview with `grip'."
+    (interactive)
+    (let ((program "grip")
+          (port "6419")
+          (buffer "*gfm-to-html*"))
+
+      ;; If process exists, kill it.
+      (markdown-preview-kill-grip buffer)
+
+      ;; Start a new `grip' process.
+      (start-process program buffer program (buffer-file-name) port)
+      (sleep-for 1) ; wait for process start
+      (browse-url (format "http://localhost:%s/%s.%s"
+                          port
+                          (file-name-base)
+                          (file-name-extension
+                           (buffer-file-name))))))
+
+  (defun markdown-preview-kill-grip (&optional buffer)
+    "Kill `grip' process."
+    (interactive)
+    (let ((process (get-buffer-process (or buffer "*gfm-to-html*"))))
+      (when process
+        (kill-process process)
+        (message "Process %s killed" process))))
+
+  ;; Install: npm i -g markdownlint-cli
+  (defun set-flycheck-markdownlint ()
+    "Set the `mardkownlint' config file for the current buffer."
+    (let* ((md-lint ".markdownlint.json")
+           (md-file buffer-file-name)
+           (md-lint-dir (and md-file
+                             (locate-dominating-file md-file md-lint))))
+      (setq-local flycheck-markdown-markdownlint-cli-config
+                  (concat md-lint-dir md-lint))))
+  :bind (:map markdown-mode-command-map
+              ("g" .  markdown-preview-grip)
+              ("k" .  markdown-preview-kill-grip))
+  :hook ((markdown-mode . flyspell-mode)
+         (markdown-mode . auto-fill-mode)
+         (markdown-mode . set-flycheck-markdownlint)
+         (markdown-mode . visual-line-mode)
+         (markdown-mode . writegood-mode))
+  :functions writegood-mode
+  :commands (markdown-mode gfm-mode)
+  :mode   (("README\\.md\\'" . gfm-mode)
+           ("github\\.com.*\\.txt\\'" . gfm-mode)
+           ("\\.md\\'"          . markdown-mode)
+           ("\\.markdown\\'"    . markdown-mode))
+  :init (setq markdown-command "multimarkdown")
+  :config
+  (setq markdown-enable-wiki-links t
+        markdown-italic-underscore t
+        markdown-make-gfm-checkboxes-buttons t
+        markdown-gfm-additional-languages '("sh")
+        markdown-header-scaling t)
+  (setq markdown-command "pandoc --smart -f markdown -t html")
+
+  (when sys/macp
+    (let ((typora "/Applications/Typora.app/Contents/MacOS/Typora"))
+      (if (file-exists-p typora)
+          (setq markdown-open-command typora))))
+
+  (setq markdown-content-type "application/xhtml+xml")
+  (setq markdown-css-paths '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
+                             "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"))
+  (setq markdown-xhtml-header-content "
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+<style>
+body {
+box-sizing: border-box;
+max-width: 740px;
+width: 100%;
+margin: 40px auto;
+padding: 0 10px;
+}
+</style>
+<script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+document.body.classList.add('markdown-body');
+document.querySelectorAll('pre[lang] > code').forEach((code) => {
+code.classList.add(code.parentElement.lang);
+hljs.highlightBlock(code);
+});
+});
+</script>
+")
+
+(use-package markdown-toc))
+
+(use-package adoc-mode)
+
+(use-package abbrev
+:ensure nil
+:hook ((sej/after-init org-mode) . abbrev-mode)
+:diminish abbrev-mode
+:config
+(setq abbrev-file-name             ;; tell emacs where to read abbrev
+"~/.emacs.d/abbrev_defs")    ;; definitions from...
+(define-abbrev-table
+'global-abbrev-table
+'(("<sej" "stephenearljenkins" nil 0)))
+(define-abbrev-table
+'org-mode-abbrev-table
+'(("<orgh" "" 'sej/org-header 0)))
+(define-abbrev-table
+'org-mode-abbrev-table
+'(("<orgl" "" 'sej/org-wrap-elisp 0)))
+(define-abbrev-table
+'org-mode-abbrev-table
+'(("<orgs" "" 'sej/org-wrap-source 0))))
+
+(defun sej/number-rectangle (start end format-string from)
+"Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
+(interactive
+(list (region-beginning) (region-end)
+(read-string "Number rectangle: "
+(if (looking-back "^ *" nil nil) "%d. " "%d"))
+(read-number "From: " 1)))
+(save-excursion
+(goto-char start)
+(setq start (point-marker))
+(goto-char end)
+(setq end (point-marker))
+(delete-rectangle start end)
+(goto-char start)
+(loop with column = (current-column)
+while (and (<= (point) end) (not (eobp)))
+for i from from   do
+(move-to-column column t)
+(insert (format format-string i))
+(forward-line 1)))
+(goto-char start))
+
+(define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+
+(use-package flyspell
+  :functions
+  flyspell-correct-word
+  flyspell-goto-next-error
+  :defines
+  sej-mode-map
+  :bind
+  (:map sej-mode-map
+        ("<f8>" . ispell-word)
+        ("s-," . ispell-word)
+        ("C-<f8>" . flyspell-mode)
+        ("M-<f8>" . flyspell-check-next-highlighted-word)
+        ("S-<f8>" . ispell-region)
+        ("s-." . ispell-region)
+        )
+  :hook (((text-mode outline-mode org-mode) . flyspell-mode)
+         (prog-mode . flyspell-prog-mode))
+  :config
+  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+  (define-key flyspell-mouse-map [mouse-3] #'undefined)
+
+  (setq ispell-personal-dictionary "~/sej.ispell")
+
+  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+
+  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+
+  (setq ispell-dictionary "canadian")
+
+  (defun flyspell-check-next-highlighed-word ()
+    "Custom function to spell check next highlighted word"
+    (interactive)
+    (flyspell-goto-next-error)
+    (ispell-word))
+  (setq flyspell-issue-welcome-flag nil)
+  (setq-default ispell-list-command "list"))
+
+(use-package powerthesaurus
+  :bind (:map sej-mode-map
+              ("C-c s t" . powerthesaurus-lookup-word-dwim)
+              ("s-|" . powerthesaurus-lookup-word-dwim)))
+
+(use-package define-word
+  :unless sys/macp
+  :bind (:map sej-mode-map
+              ("C-c s w" . define-word-at-point)
+              ("H-d" . define-word-at-point)
+              ("H-D" . define-word)
+              ("s-\\" . define-word-at-point)))
+
+(use-package osx-dictionary
+  :if sys/macp
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c s w" . osx-dictionary-search-word-at-point)
+              ("s-\\" . osx-dictionary-search-word-at-point)
+              ("H-d" . osx-dictionary-search-word-at-point)
+              ("H-D" . osx-dictionary-search-pointer)
+              ("C-c s i" . osx-dictionary-search-input)
+              ("s-i" . osx-dictionary-search-input)
+              ))
+
+(use-package view
+  :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
+  :bind (:map view-mode-map (("C-v" . 'View-scroll-half-page-forward)
+                             ("M-v" . 'View-scroll-half-page-backward)
+
+                             ;; less like
+                             ("N" . View-search-last-regexp-backward)
+                             ("?" . View-search-regexp-backward?)
+                             ("g" . View-goto-line)
+                             ("G" . View-goto-line-last)
+                             ;; vi/w3m like
+                             ("h" . backward-char)
+                             ("j" . next-line)
+                             ("k" . previous-line)
+                             ("l" . forward-char)))
+  :config
+  (defun View-goto-line-last (&optional line)
+    "goto last line"
+    (interactive "P")
+    (forward-line (line-number-at-pos (point-max)))))
+
+(when (executable-find "ps2pdf")
+  (use-package ps-print
+    :ensure nil
+    :commands (ps-print-preprint ps-print-with-faces)
+    :init
+    (defun sej/pdf-print-buffer-with-faces (&optional filename)
+      "Print file in the current buffer as pdf, including font, color, and
+underline information.  This command works only if you are using a window system,
+so it has a way to determine color values.
+
+C-u COMMAND prompts user where to save the Postscript file (which is then
+converted to PDF at the same location."
+      (interactive (list (if current-prefix-arg
+                             (ps-print-preprint 4)
+                           (concat (file-name-sans-extension (buffer-file-name))
+                                   ".ps"))))
+      (ps-print-with-faces (point-min) (point-max) filename)
+      (shell-command (concat "ps2pdf " filename))
+      (delete-file filename)
+      (message "Deleted %s" filename)
+      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
+
+    ))
+
+(when (display-graphic-p)
+  (use-package pdf-tools
+    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :defines pdf-annot-activate-created-annotations
+    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
+    :magic ("%PDF" . pdf-view-mode)
+    :bind (:map pdf-view-mode-map
+                ("C-s" . isearch-forward))
+    :config
+    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
+    (setq pdf-annot-activate-created-annotations t)
+
+    ;; WORKAROUND: Fix compilation errors on macOS.
+    ;; @see https://github.com/politza/pdf-tools/issues/480
+    (when sys/macp
+      (setenv "PKG_CONFIG_PATH"
+              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
+    (pdf-tools-install t nil t t)
+
+    ;; Recover last viewed position
+    (use-package pdf-view-restore
+      :hook (pdf-view-mode . pdf-view-restore-mode)
+      :init (setq pdf-view-restore-filename
+                  (locate-user-emacs-file ".pdf-view-restore")))))
+
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode)
+  :preface
+  (defun my-nov-setup ()
+    (visual-line-mode 1)
+    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
+    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
+  :hook (nov-mode . my-nov-setup))
 
 (use-package org
   ;;:ensure org-plus-contrib
@@ -3432,6 +3732,33 @@ _S_ettings                                _C-p_: Previous Line
   :ensure t
   :bind (:map sej-mode-map
               ("C-c s o" . poporg-dwim)))
+
+(define-skeleton sej/org-header
+  "Insert a standard header for org-mode files"
+  "Title: "
+  "#+TITLE: " str \n
+  "#+AUTHOR: " (user-full-name) \n
+  "#+EMAIL: " user-mail-address \n
+  "#+SETUPFILE: ~/eos/setupfiles/default.setup
+
+  | *Author* | {{{author}}} ({{{email}}})    |
+  | *Date*   | {{{time(%Y-%m-%d %H:%M:%S)}}} |
+
+  * Introduction  " \n)
+
+(define-skeleton sej/org-wrap-elisp
+"Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+nil
+> "#+BEGIN_SRC emacs-lisp" \n
+> _ \n
+> "#+END_SRC" \n)
+
+(define-skeleton sej/org-wrap-source
+"Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+"Language: "
+> "#+BEGIN_SRC " str \n
+> _ \n
+> "#+END_SRC" \n)
 
 (use-package eshell
   :ensure nil
