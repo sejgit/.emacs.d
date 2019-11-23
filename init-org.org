@@ -71,6 +71,7 @@
 - [[#eshell--shell][eshell & shell]]
   - [[#eshell][eshell]]
   - [[#shell][shell]]
+  - [[#pdf-view][pdf view]]
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -4240,13 +4241,90 @@
   (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
 #+END_SRC
 
-*** define-word
-    - define-word at point
+*** flyspell
+    - main spelling package
 #+BEGIN_SRC emacs-lisp
-  (use-package define-word
-    :bind (("H-d" . define-word-at-point)
-           ("H-D" . define-word)))
-  #+END_SRC
+(use-package flyspell
+  :functions
+  flyspell-correct-word
+  flyspell-goto-next-error
+  :defines
+  sej-mode-map
+  :bind
+  (:map sej-mode-map
+        ("<f8>" . ispell-word)
+        ("s-," . ispell-word)
+        ("C-<f8>" . flyspell-mode)
+        ("M-<f8>" . flyspell-check-next-highlighted-word)
+        ("S-<f8>" . ispell-region)
+        ("s-." . ispell-region)
+        )
+  :hook (((text-mode outline-mode org-mode) . flyspell-mode)
+         (prog-mode . flyspell-prog-mode))
+  :config
+  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+  (define-key flyspell-mouse-map [mouse-3] #'undefined)
+
+  (setq ispell-personal-dictionary "~/sej.ispell")
+
+  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+
+  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+
+  (setq ispell-dictionary "canadian")
+
+  (defun flyspell-check-next-highlighed-word ()
+    "Custom function to spell check next highlighted word"
+    (interactive)
+    (flyspell-goto-next-error)
+    (ispell-word))
+  (setq flyspell-issue-welcome-flag nil)
+  (setq-default ispell-list-command "list"))
+#+END_SRC
+
+*** powerthesaurus
+    - simple plugin to integrate Emacs with powerthesaurus.org
+#+BEGIN_SRC emacs-lisp
+(use-package powerthesaurus
+  :bind (:map sej-mode-map
+              ("C-c s t" . powerthesaurus-lookup-word-dwim)
+              ("s-|" . powerthesaurus-lookup-word-dwim)))
+#+END_SRC
+
+*** define-word
+    - Word Definition search for non-osx
+#+BEGIN_SRC emacs-lisp
+(use-package define-word
+  :unless sys/macp
+  :bind (:map sej-mode-map
+              ("C-c s w" . define-word-at-point)
+              ("H-d" . define-word-at-point)
+              ("H-D" . define-word)
+              ("s-\\" . define-word-at-point)))
+#+END_SRC
+
+*** osx-dictionary
+    - define-word OR
+    - pilot osx-dictionary only for osx
+      use osx dictionary when possible
+#+BEGIN_SRC emacs-lisp
+(use-package osx-dictionary
+  :if sys/macp
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c s w" . osx-dictionary-search-word-at-point)
+              ("s-\\" . osx-dictionary-search-word-at-point)
+              ("H-d" . osx-dictionary-search-word-at-point)
+              ("H-D" . osx-dictionary-search-pointer)
+              ("C-c s i" . osx-dictionary-search-input)
+              ("s-i" . osx-dictionary-search-input)
+              ))
+#+END_SRC
 
 ** org
 *** org
@@ -4885,3 +4963,91 @@
         (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
     #+END_SRC
+** pdf view
+#+BEGIN_SRC emacs-lisp
+  :bind (:map view-mode-map (("e" . 'View-scroll-half-page-forward)
+                             ("u" . 'View-scroll-half-page-backward)
+
+                             ;; less like
+                             ("N" . View-search-last-regexp-backward)
+                             ("?" . View-search-regexp-backward?)
+                             ("g" . View-goto-line)
+                             ("G" . View-goto-line-last)
+                             ;; vi/w3m like
+                             ("h" . backward-char)
+                             ("j" . next-line)
+                             ("k" . previous-line)
+                             ("l" . forward-char)))
+  :config
+  (defun View-goto-line-last (&optional line)
+    "goto last line"
+    (interactive "P")
+    (forward-line (line-number-at-pos (point-max)))))
+
+(use-package doc-view
+  :bind (:map doc-view-mode-map (("j" . doc-view-next-line-or-next-page)
+                                 ("k" . doc-view-previous-line-or-previous-page)
+                                 ;; use 'q' to kill the buffer, not just hide it
+                                 ("q" . kill-this-buffer))))
+
+(when (executable-find "ps2pdf")
+  (use-package ps-print
+    :ensure nil
+    :commands (ps-print-preprint ps-print-with-faces)
+    :init
+    (defun sej/pdf-print-buffer-with-faces (&optional filename)
+      "Print file in the current buffer as pdf, including font, color, and
+underline information.  This command works only if you are using a window system,
+so it has a way to determine color values.
+
+C-u COMMAND prompts user where to save the Postscript file (which is then
+converted to PDF at the same location."
+      (interactive (list (if current-prefix-arg
+                             (ps-print-preprint 4)
+                           (concat (file-name-sans-extension (buffer-file-name))
+                                   ".ps"))))
+      (ps-print-with-faces (point-min) (point-max) filename)
+      (shell-command (concat "ps2pdf " filename))
+      (delete-file filename)
+      (message "Deleted %s" filename)
+      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
+
+    ))
+
+
+;; PDF reader
+(when (display-graphic-p)
+  (use-package pdf-tools
+    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :defines pdf-annot-activate-created-annotations
+    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
+    :magic ("%PDF" . pdf-view-mode)
+    :bind (:map pdf-view-mode-map
+                ("C-s" . isearch-forward))
+    :config
+    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
+    (setq pdf-annot-activate-created-annotations t)
+
+    ;; WORKAROUND: Fix compilation errors on macOS.
+    ;; @see https://github.com/politza/pdf-tools/issues/480
+    (when sys/macp
+      (setenv "PKG_CONFIG_PATH"
+              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
+    (pdf-tools-install t nil t t)
+
+    ;; Recover last viewed position
+    (use-package pdf-view-restore
+      :hook (pdf-view-mode . pdf-view-restore-mode)
+      :init (setq pdf-view-restore-filename
+                  (locate-user-emacs-file ".pdf-view-restore")))))
+
+;; Epub reader
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode)
+  :preface
+  (defun my-nov-setup ()
+    (visual-line-mode 1)
+    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
+    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
+  :hook (nov-mode . my-nov-setup))
+#+END_SRC

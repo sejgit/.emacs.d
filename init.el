@@ -198,8 +198,8 @@
 ;; (require 'init-elfeed) ;  not used leave commented
 
 ;; (require 'init-writing); org-tangle
-(require 'init-spelling)
-(require 'init-view)
+;; (require 'init-spelling); org-tangle
+;; (require 'init-view); org-tangle
 
 (require 'init-templates)
 (require 'init-misc-filetypes)
