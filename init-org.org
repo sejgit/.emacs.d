@@ -66,12 +66,11 @@
   - [[#completion][completion]]
 - [[#files][files]]
 - [[#dired][dired]]
-- [[#writing][writing]]
+- [[#writing--reading][writing & reading]]
   - [[#org][org]]
 - [[#eshell--shell][eshell & shell]]
   - [[#eshell][eshell]]
   - [[#shell][shell]]
-  - [[#pdf-view][pdf view]]
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -4023,7 +4022,7 @@
       (use-package diredfl
         :init (diredfl-global-mode 1))
     #+END_SRC
-* writing
+* writing & reading
 *** deft
     - Deft is an Emacs mode for quickly browsing, filtering,
       and editing directories of plain text notes
@@ -4326,6 +4325,100 @@
               ))
 #+END_SRC
 
+*** view-file-mode
+    - allows you to scan or read a file by sequential screenfulls
+#+BEGIN_SRC emacs-lisp
+(use-package view
+  :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
+  :bind (:map view-mode-map (("C-v" . 'View-scroll-half-page-forward)
+                             ("M-v" . 'View-scroll-half-page-backward)
+
+                             ;; less like
+                             ("N" . View-search-last-regexp-backward)
+                             ("?" . View-search-regexp-backward?)
+                             ("g" . View-goto-line)
+                             ("G" . View-goto-line-last)
+                             ;; vi/w3m like
+                             ("h" . backward-char)
+                             ("j" . next-line)
+                             ("k" . previous-line)
+                             ("l" . forward-char)))
+  :config
+  (defun View-goto-line-last (&optional line)
+    "goto last line"
+    (interactive "P")
+    (forward-line (line-number-at-pos (point-max)))))
+#+END_SRC
+
+*** ps-print sej/pdf-print-buffer-with-faces
+    - print file in the current buffer as pdf
+#+BEGIN_SRC emacs-lisp
+(when (executable-find "ps2pdf")
+  (use-package ps-print
+    :ensure nil
+    :commands (ps-print-preprint ps-print-with-faces)
+    :init
+    (defun sej/pdf-print-buffer-with-faces (&optional filename)
+      "Print file in the current buffer as pdf, including font, color, and
+underline information.  This command works only if you are using a window system,
+so it has a way to determine color values.
+
+C-u COMMAND prompts user where to save the Postscript file (which is then
+converted to PDF at the same location."
+      (interactive (list (if current-prefix-arg
+                             (ps-print-preprint 4)
+                           (concat (file-name-sans-extension (buffer-file-name))
+                                   ".ps"))))
+      (ps-print-with-faces (point-min) (point-max) filename)
+      (shell-command (concat "ps2pdf " filename))
+      (delete-file filename)
+      (message "Deleted %s" filename)
+      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
+
+    ))
+#+END_SRC
+
+*** pdf-tools
+    - PDF reader
+#+BEGIN_SRC emacs-lisp
+(when (display-graphic-p)
+  (use-package pdf-tools
+    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :defines pdf-annot-activate-created-annotations
+    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
+    :magic ("%PDF" . pdf-view-mode)
+    :bind (:map pdf-view-mode-map
+                ("C-s" . isearch-forward))
+    :config
+    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
+    (setq pdf-annot-activate-created-annotations t)
+
+    ;; WORKAROUND: Fix compilation errors on macOS.
+    ;; @see https://github.com/politza/pdf-tools/issues/480
+    (when sys/macp
+      (setenv "PKG_CONFIG_PATH"
+              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
+    (pdf-tools-install t nil t t)
+
+    ;; Recover last viewed position
+    (use-package pdf-view-restore
+      :hook (pdf-view-mode . pdf-view-restore-mode)
+      :init (setq pdf-view-restore-filename
+                  (locate-user-emacs-file ".pdf-view-restore")))))
+#+END_SRC
+
+*** nov
+    - Epub reader
+#+BEGIN_SRC emacs-lisp
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode)
+  :preface
+  (defun my-nov-setup ()
+    (visual-line-mode 1)
+    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
+    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
+  :hook (nov-mode . my-nov-setup))
+#+END_SRC
 ** org
 *** org
     #+BEGIN_SRC emacs-lisp
@@ -4963,91 +5056,3 @@
         (when (memq window-system '(mac ns x))
           (exec-path-from-shell-initialize)))
     #+END_SRC
-** pdf view
-#+BEGIN_SRC emacs-lisp
-  :bind (:map view-mode-map (("e" . 'View-scroll-half-page-forward)
-                             ("u" . 'View-scroll-half-page-backward)
-
-                             ;; less like
-                             ("N" . View-search-last-regexp-backward)
-                             ("?" . View-search-regexp-backward?)
-                             ("g" . View-goto-line)
-                             ("G" . View-goto-line-last)
-                             ;; vi/w3m like
-                             ("h" . backward-char)
-                             ("j" . next-line)
-                             ("k" . previous-line)
-                             ("l" . forward-char)))
-  :config
-  (defun View-goto-line-last (&optional line)
-    "goto last line"
-    (interactive "P")
-    (forward-line (line-number-at-pos (point-max)))))
-
-(use-package doc-view
-  :bind (:map doc-view-mode-map (("j" . doc-view-next-line-or-next-page)
-                                 ("k" . doc-view-previous-line-or-previous-page)
-                                 ;; use 'q' to kill the buffer, not just hide it
-                                 ("q" . kill-this-buffer))))
-
-(when (executable-find "ps2pdf")
-  (use-package ps-print
-    :ensure nil
-    :commands (ps-print-preprint ps-print-with-faces)
-    :init
-    (defun sej/pdf-print-buffer-with-faces (&optional filename)
-      "Print file in the current buffer as pdf, including font, color, and
-underline information.  This command works only if you are using a window system,
-so it has a way to determine color values.
-
-C-u COMMAND prompts user where to save the Postscript file (which is then
-converted to PDF at the same location."
-      (interactive (list (if current-prefix-arg
-                             (ps-print-preprint 4)
-                           (concat (file-name-sans-extension (buffer-file-name))
-                                   ".ps"))))
-      (ps-print-with-faces (point-min) (point-max) filename)
-      (shell-command (concat "ps2pdf " filename))
-      (delete-file filename)
-      (message "Deleted %s" filename)
-      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
-
-    ))
-
-
-;; PDF reader
-(when (display-graphic-p)
-  (use-package pdf-tools
-    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
-    :defines pdf-annot-activate-created-annotations
-    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
-    :magic ("%PDF" . pdf-view-mode)
-    :bind (:map pdf-view-mode-map
-                ("C-s" . isearch-forward))
-    :config
-    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
-    (setq pdf-annot-activate-created-annotations t)
-
-    ;; WORKAROUND: Fix compilation errors on macOS.
-    ;; @see https://github.com/politza/pdf-tools/issues/480
-    (when sys/macp
-      (setenv "PKG_CONFIG_PATH"
-              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
-    (pdf-tools-install t nil t t)
-
-    ;; Recover last viewed position
-    (use-package pdf-view-restore
-      :hook (pdf-view-mode . pdf-view-restore-mode)
-      :init (setq pdf-view-restore-filename
-                  (locate-user-emacs-file ".pdf-view-restore")))))
-
-;; Epub reader
-(use-package nov
-  :mode ("\\.epub\\'" . nov-mode)
-  :preface
-  (defun my-nov-setup ()
-    (visual-line-mode 1)
-    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
-    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
-  :hook (nov-mode . my-nov-setup))
-#+END_SRC
