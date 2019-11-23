@@ -201,11 +201,11 @@
 ;; (require 'init-spelling); org-tangle
 ;; (require 'init-view); org-tangle
 
-(require 'init-templates)
-(require 'init-misc-filetypes)
+;; (require 'init-templates); org-tangle
+;; (require 'init-misc-filetypes); org-tangle
 
 ;; Programming
-(require 'init-tramp)
+;; (require 'init-tramp); org-tangle
 (require 'init-vcs)
 (require 'init-prog)
 

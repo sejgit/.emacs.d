@@ -3042,6 +3042,54 @@
     #+END_SRC
 * programming
 ** general
+*** tramp
+    - remote editing
+#+BEGIN_SRC emacs-lisp
+(use-package tramp
+  :commands
+  tramp-default-method
+  tramp-default-user
+  tramp-default-host
+  :init
+  (if sys/macp
+      (setq
+       tramp-default-method "ssh"
+       password-cache-expiry nil)
+    (setq
+     tramp-default-method "ssh"
+     tramp-default-user "pi"
+     tramp-default-host "home"
+     password-cache-expiry nil)
+    )
+  (setq tramp-use-ssh-controlmaster-options nil)
+
+  (defadvice tramp-handle-write-region
+      (after tramp-write-beep-advice activate)
+    "Make tramp beep after writing a file."
+    (interactive)
+    (beep))
+
+  (defadvice tramp-handle-do-copy-or-rename-file
+      (after tramp-copy-beep-advice activate)
+    "Make tramp beep after copying a file."
+    (interactive)
+    (beep))
+
+  (defadvice tramp-handle-insert-file-contents
+      (after tramp-insert-beep-advice activate)
+    "Make tramp beep after inserting a file."
+    (interactive)
+    (beep))
+  )
+#+END_SRC
+
+*** pass
+    - major-mode to manage your password-store (pass) keychain
+#+BEGIN_SRC emacs-lisp
+(use-package pass
+  :commands pass)
+#+END_SRC
+
 *** indent-guide
     - show vertical lines to guide indentation
 #+BEGIN_SRC emacs-lisp
@@ -3897,6 +3945,30 @@
   (define-auto-insert ".*\\.py[3]?$" "template.py")
   (define-auto-insert ".*\\.el" "template.el")
   )
+#+END_SRC
+
+*** conf-mode
+    - major mode for editing conf/ini/properties files
+#+BEGIN_SRC emacs-lisp
+(use-package conf-mode
+  :diminish conf-mode
+  :mode "\\.gitconfig$")
+#+END_SRC
+
+*** csv-mode
+    - major mode for csv
+#+BEGIN_SRC emacs-lisp
+(use-package csv-mode
+  :mode "\\.[Cc][Ss][Vv]\\'"
+  :config
+  (setq csv-separators '("," ";" "|" " ")))
+#+END_SRC
+
+*** textile-mode
+    - textile markup editing major mode
+#+BEGIN_SRC emacs-lisp
+(use-package textile-mode
+  :mode "\\.textile\\'")
 #+END_SRC
 
 * dired
