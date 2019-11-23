@@ -192,11 +192,12 @@
 ;; (require 'init-eshell); org-tangle
 ;; (require 'init-shell); org-tangle
 
-(require 'init-org) ;
+;; (require 'init-org); org-tangle
+
 ;; (require 'init-calendar) ; not used leave commented
 ;; (require 'init-elfeed) ;  not used leave commented
 
-(require 'init-writing)
+;; (require 'init-writing); org-tangle
 (require 'init-spelling)
 (require 'init-view)
 

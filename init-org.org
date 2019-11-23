@@ -20,6 +20,57 @@
 - <2019-11-14 Thu> init-deft.el tangled
 - <2019-11-17 Sun> init-eshell.el tangled
 - <2019-11-17 Sun> init-shell.el tangled
+- <2019-11-17 Sun> init-org.el tangled
+
+* table of contents                                                     :TOC:
+- [[#constants][constants]]
+- [[#customization][customization]]
+- [[#initialize-basic][initialize basic]]
+  - [[#environment-general][environment general]]
+  - [[#initialize-package-system][initialize package system]]
+  - [[#environment-system-specific][environment system specific]]
+  - [[#sejafter-init-hook][sej/after-init-hook]]
+  - [[#start-server][start server]]
+  - [[#miscellaneous-settings][miscellaneous settings]]
+- [[#general-key-bindings][general key-bindings]]
+  - [[#set-os-specific-modifiers][Set OS specific modifiers]]
+  - [[#keybindings-global][keybindings global]]
+  - [[#keybindings-sej-mode-map][keybindings sej-mode-map]]
+- [[#general-defuns][general defuns]]
+  - [[#sejcreate-non-existent-directory][sej/create-non-existent-directory]]
+  - [[#sejsave-macro][sej/save-macro]]
+  - [[#sejexec][sej/exec]]
+  - [[#update-functions][update functions]]
+  - [[#network-proxy-functions][network proxy functions]]
+- [[#user-interface-settings][user interface settings]]
+  - [[#themes][themes]]
+  - [[#frames][frames]]
+  - [[#buffers][buffers]]
+  - [[#windows][windows]]
+  - [[#mode-line][mode-line]]
+  - [[#icons][icons]]
+  - [[#line-numbers][line numbers]]
+- [[#text-manipulation][text manipulation]]
+  - [[#text-manipulation-settings][text manipulation settings]]
+  - [[#un-catagorized][un-catagorized]]
+  - [[#search][search]]
+  - [[#indentation][indentation]]
+  - [[#history-packages][history packages]]
+  - [[#movement][movement]]
+  - [[#regions][regions]]
+  - [[#url-actions][url actions]]
+  - [[#highlighting-faces-fonts][highlighting faces fonts]]
+- [[#programming][programming]]
+  - [[#general][general]]
+  - [[#lisp][lisp]]
+  - [[#completion][completion]]
+- [[#files][files]]
+- [[#dired][dired]]
+- [[#writing][writing]]
+  - [[#org][org]]
+- [[#eshell--shell][eshell & shell]]
+  - [[#eshell][eshell]]
+  - [[#shell][shell]]
 
 * constants
   #+BEGIN_SRC emacs-lisp
@@ -2991,6 +3042,14 @@
     #+END_SRC
 * programming
 ** general
+*** indent-guide
+    - show vertical lines to guide indentation
+#+BEGIN_SRC emacs-lisp
+      (use-package indent-guide
+        :hook (prog-mode . indent-guide-mode)
+        :diminish indent-guide-mode)
+#+END_SRC
+
 *** comment-dwim-2
     - An all-in-one comment command to rule them all
     #+BEGIN_SRC emacs-lisp
@@ -3133,13 +3192,6 @@
       (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
     #+END_SRC
 ** completion
-*** abbrev
-    - abbreviations and completions
-    #+BEGIN_SRC emacs-lisp
-      ;; turn on abbreviation translations
-      (abbrev-mode 1)
-    #+END_SRC
-
 *** hippie-expand settings
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
@@ -3970,7 +4022,7 @@
       (use-package diredfl
         :init (diredfl-global-mode 1))
     #+END_SRC
-* Writing
+* writing
 *** deft
     - Deft is an Emacs mode for quickly browsing, filtering,
       and editing directories of plain text notes
@@ -3980,8 +4032,7 @@
         :defines sej-mode-map deft-text-mode
         :bind (:map sej-mode-map
                     ("<f7>" . deft)
-                    ("C-c d" . deft)
-                    ("H-d" . deft))
+                    ("C-c d" . deft))
         :config
         (setq deft-directory sej-org-directory)
         (setq deft-use-filename-as-title t
@@ -3994,7 +4045,490 @@
               deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
               deft-org-mode-title-prefix t))
     #+END_SRC
+*** writegood-mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package writegood-mode
+        :hook (markdown-mode . writegood-mode)
+        )
+#+END_SRC
+
+*** olivetti
+    -  Nice text writing environment
+#+BEGIN_SRC emacs-lisp
+      (use-package olivetti
+        :diminish
+        :hook (text-mode-hook . olivetti-mode)
+        :init (setq olivetti-body-width 0.618))
+#+END_SRC
+
+*** markdown-mode
+    - markdown-mode used a lot on Github
+#+BEGIN_SRC emacs-lisp
+      (use-package markdown-mode
+        :defines flycheck-markdown-markdownlint-cli-config
+        :preface
+        ;; Install: pip install grip
+        (defun markdown-preview-grip ()
+          "Render and preview with `grip'."
+          (interactive)
+          (let ((program "grip")
+                (port "6419")
+                (buffer "*gfm-to-html*"))
+
+            ;; If process exists, kill it.
+            (markdown-preview-kill-grip buffer)
+
+            ;; Start a new `grip' process.
+            (start-process program buffer program (buffer-file-name) port)
+            (sleep-for 1) ; wait for process start
+            (browse-url (format "http://localhost:%s/%s.%s"
+                                port
+                                (file-name-base)
+                                (file-name-extension
+                                 (buffer-file-name))))))
+
+        (defun markdown-preview-kill-grip (&optional buffer)
+          "Kill `grip' process."
+          (interactive)
+          (let ((process (get-buffer-process (or buffer "*gfm-to-html*"))))
+            (when process
+              (kill-process process)
+              (message "Process %s killed" process))))
+
+        ;; Install: npm i -g markdownlint-cli
+        (defun set-flycheck-markdownlint ()
+          "Set the `mardkownlint' config file for the current buffer."
+          (let* ((md-lint ".markdownlint.json")
+                 (md-file buffer-file-name)
+                 (md-lint-dir (and md-file
+                                   (locate-dominating-file md-file md-lint))))
+            (setq-local flycheck-markdown-markdownlint-cli-config
+                        (concat md-lint-dir md-lint))))
+        :bind (:map markdown-mode-command-map
+                    ("g" .  markdown-preview-grip)
+                    ("k" .  markdown-preview-kill-grip))
+        :hook ((markdown-mode . flyspell-mode)
+               (markdown-mode . auto-fill-mode)
+               (markdown-mode . set-flycheck-markdownlint)
+               (markdown-mode . visual-line-mode)
+               (markdown-mode . writegood-mode))
+        :functions writegood-mode
+        :commands (markdown-mode gfm-mode)
+        :mode   (("README\\.md\\'" . gfm-mode)
+                 ("github\\.com.*\\.txt\\'" . gfm-mode)
+                 ("\\.md\\'"          . markdown-mode)
+                 ("\\.markdown\\'"    . markdown-mode))
+        :init (setq markdown-command "multimarkdown")
+        :config
+        (setq markdown-enable-wiki-links t
+              markdown-italic-underscore t
+              markdown-make-gfm-checkboxes-buttons t
+              markdown-gfm-additional-languages '("sh")
+              markdown-header-scaling t)
+        (setq markdown-command "pandoc --smart -f markdown -t html")
+
+        (when sys/macp
+          (let ((typora "/Applications/Typora.app/Contents/MacOS/Typora"))
+            (if (file-exists-p typora)
+                (setq markdown-open-command typora))))
+
+        (setq markdown-content-type "application/xhtml+xml")
+        (setq markdown-css-paths '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
+                                   "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"))
+        (setq markdown-xhtml-header-content "
+      <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+      <style>
+      body {
+      box-sizing: border-box;
+      max-width: 740px;
+      width: 100%;
+      margin: 40px auto;
+      padding: 0 10px;
+      }
+      </style>
+      <script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
+      <script>
+      document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('markdown-body');
+      document.querySelectorAll('pre[lang] > code').forEach((code) => {
+      code.classList.add(code.parentElement.lang);
+      hljs.highlightBlock(code);
+      });
+      });
+      </script>
+      ")
+#+END_SRC
+
+*** markdown-toc
+    - Table of contents
+      - Inside a markdown file, the first time,
+        place yourself where you want to insert the TOC:
+        M-x markdown-toc-generate-toc
+
+#+BEGIN_SRC emacs-lisp
+    (use-package markdown-toc))
+#+END_SRC
+
+*** adoc-mode
+    - adoc-mode is an Emacs major mode for editing AsciiDoc files.
+      It emphasizes on the idea that the document is highlighted
+      so it pretty much looks like the final output.
+#+BEGIN_SRC emacs-lisp
+    (use-package adoc-mode)
+#+END_SRC
+
+*** abbrev
+    - for inserting abbreviations
+#+BEGIN_SRC emacs-lisp
+  (use-package abbrev
+  :ensure nil
+  :hook ((sej/after-init org-mode) . abbrev-mode)
+  :diminish abbrev-mode
+  :config
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+  "~/.emacs.d/abbrev_defs")    ;; definitions from...
+  (define-abbrev-table
+  'global-abbrev-table
+  '(("<sej" "stephenearljenkins" nil 0)))
+  (define-abbrev-table
+  'org-mode-abbrev-table
+  '(("<orgh" "" 'sej/org-header 0)))
+  (define-abbrev-table
+  'org-mode-abbrev-table
+  '(("<orgl" "" 'sej/org-wrap-elisp 0)))
+  (define-abbrev-table
+  'org-mode-abbrev-table
+  '(("<orgs" "" 'sej/org-wrap-source 0))))
+#+END_SRC
+
+*** sej/number-rectangle
+    - Let's say you have a list like:
+        First Item
+        Second Item
+        Third Item
+        Fourth Item
+      And you want to number it to look like:
+        1. First Item
+        2. Second Item
+        3. Third Item
+        4. Fourth Item
+      This function allows you to hit ***C-x r N ***and specify the pattern
+      and starting offset to number lines in rectangular-selection mode:
+#+BEGIN_SRC emacs-lisp
+  (defun sej/number-rectangle (start end format-string from)
+  "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
+  (interactive
+  (list (region-beginning) (region-end)
+  (read-string "Number rectangle: "
+  (if (looking-back "^ *" nil nil) "%d. " "%d"))
+  (read-number "From: " 1)))
+  (save-excursion
+  (goto-char start)
+  (setq start (point-marker))
+  (goto-char end)
+  (setq end (point-marker))
+  (delete-rectangle start end)
+  (goto-char start)
+  (loop with column = (current-column)
+  while (and (<= (point) end) (not (eobp)))
+  for i from from   do
+  (move-to-column column t)
+  (insert (format format-string i))
+  (forward-line 1)))
+  (goto-char start))
+
+  (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+#+END_SRC
+
+*** define-word
+    - define-word at point
+#+BEGIN_SRC emacs-lisp
+  (use-package define-word
+    :bind (("H-d" . define-word-at-point)
+           ("H-D" . define-word)))
+  #+END_SRC
+
+** org
+*** org
+    #+BEGIN_SRC emacs-lisp
+      (use-package org
+        ;;:ensure org-plus-contrib
+        :defines
+        sej-mode-map
+        org-capture-bookmark
+        org-capture-templates
+        org-agenda-window-setup
+        org-agenda-span
+        org-agenda-skip-scheduled-if-deadline-is-shown
+        org-agenda-todo-ignore-deadlines
+        org-agenda-todo-ignore-scheduled
+        org-agenda-sorting-strategy
+        org-agenda-skip-deadline-prewarning-if-scheduled
+        :functions
+        sej/org-capture-get-src-block-string
+        which-function
+        :mode ("\\.org$" . org-mode)
+        :hook ((org-mode . flyspell-mode)
+               (org-mode . writegood-mode)
+               (org-mode . visual-line-mode))
+        :bind (:map sej-mode-map
+                    ("<f1>" . org-mode)
+                    ("C-c l" . org-store-link)
+                    ("C-c c" . org-capture)
+                    ("C-c a" . org-agenda)
+                    :map org-mode-map
+                    ("C-M-\\" . org-indent-region)
+                    ("S-<left>" . org-shiftleft)
+                    ("S-<right>" . org-shiftright)
+                    )
+        :config
+        (setq org-directory sej-org-directory)
+        (defconst org-file-inbox (concat org-directory "/inbox.org"))
+        (defconst org-file-someday (concat org-directory "/someday.org"))
+        (defconst org-file-gtd (concat org-directory "/gtd.org"))
+        (defconst org-file-journal (concat org-directory "/journal.org"))
+        (defconst org-file-notes (concat org-directory "/notes.org"))
+        (defconst org-file-code (concat org-directory "/snippets.org"))
+        (setq org-replace-disputed-keys t
+              org-hide-emphasis-markers t
+              org-default-notes-file org-file-notes
+              org-capture-bookmark t
+              org-refile-use-outline-path 'file
+              org-log-done 'note
+              org-log-done t
+              org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+                                  (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
+                                  (sequence "|" "CANCELED(x)"))
+              org-todo-keyword-faces '(("TODO" . org-warning)
+                                       ("WAITING" . (:foreground "blue" :weight bold))
+                                       ("DONE" . (:foreground "green" :weight bold))
+                                       ("DELIGATE" . (:foreground "blue" :weight bold))
+                                       ("VERIFIED" . (:foreground "green" :weight bold))
+                                       ("CANCELED" . (:foreground "grey" :weight bold)))
+              org-confirm-babel-evaluate nil
+              org-src-fontify-natively t
+              org-src-tab-acts-natively t
+              org-src-window-setup 'current-window
+              org-startup-folded nil
+              )
+        (font-lock-add-keywords 'org-mode
+                                '(("^ *\\([-]\\) "
+                                   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+        (let* ((variable-tuple
+                (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                      ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                      ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                      ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                      (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+               (base-font-color     (face-foreground 'default nil 'default))
+               (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
+          (custom-theme-set-faces
+           'user
+           `(org-level-8 ((t (,@headline ,@variable-tuple))))
+           `(org-level-7 ((t (,@headline ,@variable-tuple))))
+           `(org-level-6 ((t (,@headline ,@variable-tuple))))
+           `(org-level-5 ((t (,@headline ,@variable-tuple))))
+           `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+           `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+           `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+           `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+           `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+
+        (custom-theme-set-faces
+         'user
+         '(org-block ((t (:inherit fixed-pitch))))
+         '(org-code ((t (:inherit (shadow fixed-pitch)))))
+         '(org-document-info ((t (:foreground "dark orange"))))
+         '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+         '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+         '(org-link ((t (:foreground "royal blue" :underline t))))
+         '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+         '(org-property-value ((t (:inherit fixed-pitch))) t)
+         '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+         '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+         '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+         '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+
+        (define-skeleton org-skeleton
+          "Header info for a emacs-org file."
+          "Title: "
+          "#+TITLE:" str " \n"
+          "#+DATE:" '(org-date-from-calendar) " \n"
+          "#+AUTHOR: " '(sej-full-name) "\n"
+          "#+email: " '(sej-mail-address) "\n"
+          "#+INFOJS_OPT: \n"
+          "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
+          "-----\n\n")
+        (global-set-key [C-S-f4] 'org-skeleton)
+
+        (setq sej-project-org-capture-list (list
+                                            "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
+
+        (setq org-capture-templates (append
+                                     '(
+                                       ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
+                                       ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
+                                       ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
+                                       ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
+                                       ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                       ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                        "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                       )
+                                     (list sej-project-org-capture-list)))
+
+        ;; org-mode agenda options
+        (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
+              org-refile-targets '((org-file-gtd :maxlevel . 3)
+                                   (org-file-someday :maxlevel . 1))
+              org-agenda-window-setup (quote current-window) ;open agenda in current window
+              org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
+              org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+              org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
+              org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+              org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+              (quote
+               ((agenda deadline-up priority-down)
+                (todo priority-down category-keep)
+                (tags priority-down category-keep)
+                (search category-keep))))
+
+        )
+    #+END_SRC
+
+*** org-babel settings
+    #+BEGIN_SRC emacs-lisp
+      (setq org-confirm-babel-evaluate nil
+            org-src-fontify-natively t
+            org-src-tab-acts-natively t)
+
+      (defvar load-language-list '((emacs-lisp . t)
+                                   (perl . t)
+                                   (python . t)
+                                   (ruby . t)
+                                   (js . t)
+                                   (css . t)
+                                   (sass . t)
+                                   (C . t)
+                                   (java . t)
+                                   (plantuml . t)))
+    #+END_SRC
+
+*** ob-shell
+    - org-babel functions for shell source code
+    - ob-sh renamed to ob-shell since 26.1.
+    #+BEGIN_SRC emacs-lisp
+      (if emacs/>=26p
+          (cl-pushnew '(shell . t) load-language-list)
+        (cl-pushnew '(sh . t) load-language-list))
+    #+END_SRC
+
+*** ob-go
+    - org-bable functions for go evaluations
+    #+BEGIN_SRC emacs-lisp
+      (use-package ob-go
+        :init (cl-pushnew '(go . t) load-language-list))
+    #+END_SRC
+
+*** ob-rust
+    - org-babel functions for rust evaluation
+    #+BEGIN_SRC emacs-lisp
+      (use-package ob-rust
+        :init (cl-pushnew '(rust . t) load-language-list))
+    #+END_SRC
+
+*** ob-ipython
+    - library that allows Org mode to evaluate code blocks using a Jupyter kernel
+    (Python by default)
+    #+BEGIN_SRC emacs-lisp
+      (use-package ob-ipython
+        :if (executable-find "jupyter") ; DO NOT remove
+        :init (cl-pushnew '(ipython . t) load-language-list))
+
+      (org-babel-do-load-languages 'org-babel-load-languages
+                                   load-language-list)
+    #+END_SRC
+
+*** org-rich-yank
+    - Rich text clipboard when yanking code into org buffer
+      consider demand t as lazy loading may not work
+    #+BEGIN_SRC emacs-lisp
+      (use-package org-rich-yank
+        :bind (:map org-mode-map
+                    ("C-M-y" . org-rich-yank)))
+    #+END_SRC
+
+*** org-bullets
+    - Show org-mode bullets as UTF-8 characters
+    #+BEGIN_SRC emacs-lisp
+      (use-package org-bullets
+        :hook (org-mode . org-bullets-mode)
+        :config (org-bullets-mode 1))
+    #+END_SRC
+
+*** org-fancy-priorities
+    - displays org priorities as custom strings
+    #+BEGIN_SRC emacs-lisp
+      (use-package org-fancy-priorities
+        :diminish
+        :defines org-fancy-priorities-list
+        :hook (org-mode . org-fancy-priorities-mode)
+        :config
+        (unless (char-displayable-p ?❗)
+          (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+    #+END_SRC
+
+*** toc-org
+    - Table of contents updated at save to header with TOC tag
+    #+BEGIN_SRC emacs-lisp
+      (use-package toc-org
+        :hook (org-mode . toc-org-mode))
+    #+END_SRC
+
+*** poporg
+    - While editing a buffer containing a program, you may edit a comment block
+    or a string (often a doc-string) in Org mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package poporg
+        :ensure t
+        :bind (:map sej-mode-map
+                    ("C-c s o" . poporg-dwim)))
+    #+END_SRC
+
+*** sej/org-header skeleton
+    - skeletons are a kind of yasnippet but they don't mess with keybindings
+#+BEGIN_SRC emacs-lisp
+    (define-skeleton sej/org-header
+    "Insert a standard header for org-mode files"
+    "Title: "
+    "#+TITLE: " str \n
+    "#+AUTHOR: " (user-full-name) \n
+    "#+EMAIL: " user-mail-address \n
+    "#+SETUPFILE: ~/eos/setupfiles/default.setup
+
+    | *Author* | {{{author}}} ({{{email}}})    |
+    | *Date*   | {{{time(%Y-%m-%d %H:%M:%S)}}} |
+
+    * Introduction  " \n)
+
+  (define-skeleton sej/org-wrap-elisp
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+  nil
+  > "#+BEGIN_SRC emacs-lisp" \n
+  > _ \n
+  > "#+END_SRC" \n)
+
+  (define-skeleton sej/org-wrap-source
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+  "Language: "
+  > "#+BEGIN_SRC " str \n
+  > _ \n
+  > "#+END_SRC" \n)
+#+END_SRC
+
 * eshell & shell
+** eshell
 *** eshell
     - Emacs command shell ; much better than shell
     #+BEGIN_SRC emacs-lisp
@@ -4045,7 +4579,7 @@
         (require 'em-term)
         (require 'esh-opt)
 
-:config
+        :config
         (setenv "PAGER" "cat")
 
         ;; Visual commands
@@ -4080,25 +4614,25 @@
         ;; turn off semantic-mode in eshell buffers
         (semantic-mode -1)
         )
-#+END_SRC
+    #+END_SRC
 
 *** eshell/truncate-eshell-buffers
     - truncates all eshell buffers after t time (5s)
-#+BEGIN_SRC emacs-lisp
-  (defun eshell/truncate-eshell-buffers ()
-    "Truncates all eshell buffers"
-    (interactive)
-    (save-current-buffer
-      (dolist (buffer (buffer-list t))
-        (set-buffer buffer)
-        (when (eq major-mode 'eshell-mode)
-          (eshell-truncate-buffer)))))
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/truncate-eshell-buffers ()
+        "Truncates all eshell buffers"
+        (interactive)
+        (save-current-buffer
+          (dolist (buffer (buffer-list t))
+            (set-buffer buffer)
+            (when (eq major-mode 'eshell-mode)
+              (eshell-truncate-buffer)))))
 
-  ;; After being idle for 50 seconds, truncate all the eshell-buffers if
-  ;; needed. If this needs to be canceled,
-  ;; you can run `(cancel-timer sej/eshell-truncate-timer)'
-  (setq sej/eshell-truncate-timer
-        (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
+      ;; After being idle for 50 seconds, truncate all the eshell-buffers if
+      ;; needed. If this needs to be canceled,
+      ;; you can run `(cancel-timer sej/eshell-truncate-timer)'
+      (setq sej/eshell-truncate-timer
+            (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
     #+END_SRC
 
 *** eshell-prompt-extras
@@ -4131,16 +4665,16 @@
 
 *** eshell/clear
     - clear the eshell buffer / screen
-#+BEGIN_SRC emacs-lisp
-  (defun eshell/clear ()
-    "Clear the eshell buffer."
-    (interactive)
-    (let ((eshell-buffer-maximum-lines 0))
-      (eshell-truncate-buffer)
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (eshell-send-input))))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (defun eshell/clear ()
+        "Clear the eshell buffer."
+        (interactive)
+        (let ((eshell-buffer-maximum-lines 0))
+          (eshell-truncate-buffer)
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (eshell-send-input))))
+    #+END_SRC
 
 *** eshell/emacs
     - edit a file in eshell without re-rerunning Emacs
@@ -4240,113 +4774,114 @@
         nil)
     #+END_SRC
 
+** shell
 *** shell
     - basic emacs shell ; eshell is much better
-#+BEGIN_SRC emacs-lisp
-  (use-package shell
-    :ensure nil
-    :hook ((shell-mode . n-shell-mode-hook)
-           (comint-output-filter-functions . comint-strip-ctrl-m)
-           (comint-output-filter-functions . comint-truncate-buffer))
-    :bind  (:map sej-mode-map
-                 ("H-s" . shell)
-                 ("C-c s S" . shell))
-    :config
-    (defun n-shell-simple-send (proc command)
-      "Various PROC COMMANDs pre-processing before sending to shell."
-      (cond
-       ;; Checking for clear command and execute it.
-       ((string-match "^[ \t]*clear[ \t]*$" command)
-        (comint-send-string proc "\n")
-        (erase-buffer))
-       ;; Checking for man command and execute it.
-       ((string-match "^[ \t]*man[ \t]*" command)
-        (comint-send-string proc "\n")
-        (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
-        (setq command (replace-regexp-in-string "[ \t]+$" "" command))
-        ;;(message (format "command %s command" command))
-        (funcall 'man command))
-       ;; Send other commands to the default handler.
-       (t (comint-simple-send proc command))))
+    #+BEGIN_SRC emacs-lisp
+      (use-package shell
+        :ensure nil
+        :hook ((shell-mode . n-shell-mode-hook)
+               (comint-output-filter-functions . comint-strip-ctrl-m)
+               (comint-output-filter-functions . comint-truncate-buffer))
+        :bind  (:map sej-mode-map
+                     ("H-s" . shell)
+                     ("C-c s S" . shell))
+        :config
+        (defun n-shell-simple-send (proc command)
+          "Various PROC COMMANDs pre-processing before sending to shell."
+          (cond
+           ;; Checking for clear command and execute it.
+           ((string-match "^[ \t]*clear[ \t]*$" command)
+            (comint-send-string proc "\n")
+            (erase-buffer))
+           ;; Checking for man command and execute it.
+           ((string-match "^[ \t]*man[ \t]*" command)
+            (comint-send-string proc "\n")
+            (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
+            (setq command (replace-regexp-in-string "[ \t]+$" "" command))
+            ;;(message (format "command %s command" command))
+            (funcall 'man command))
+           ;; Send other commands to the default handler.
+           (t (comint-simple-send proc command))))
 
-    (defun n-shell-mode-hook ()
-      "Shell mode customizations."
-      (local-set-key '[up] 'comint-previous-input)
-      (local-set-key '[down] 'comint-next-input)
-      (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
-      (setq comint-input-sender 'n-shell-simple-send))
+        (defun n-shell-mode-hook ()
+          "Shell mode customizations."
+          (local-set-key '[up] 'comint-previous-input)
+          (local-set-key '[down] 'comint-next-input)
+          (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
+          (setq comint-input-sender 'n-shell-simple-send))
 
-    (setq system-uses-terminfo nil)       ; don't use system term info
+        (setq system-uses-terminfo nil)       ; don't use system term info
 
-    (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
-          ;; always add output at the bottom
-          comint-scroll-to-bottom-on-output nil
-          ;; scroll to show max possible output
-          comint-scroll-show-maximum-output t
-          ;; no duplicates in command history
-          comint-input-ignoredups t
-          ;; insert space/slash after file completion
-          comint-completion-addsuffix t
-          ;; if this is t, it breaks shell-command
-          comint-prompt-read-only nil))
-#+END_SRC
+        (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
+              ;; always add output at the bottom
+              comint-scroll-to-bottom-on-output nil
+              ;; scroll to show max possible output
+              comint-scroll-show-maximum-output t
+              ;; no duplicates in command history
+              comint-input-ignoredups t
+              ;; insert space/slash after file completion
+              comint-completion-addsuffix t
+              ;; if this is t, it breaks shell-command
+              comint-prompt-read-only nil))
+    #+END_SRC
 
 *** shell-pop
     - pop-up shell
-#+BEGIN_SRC emacs-lisp
-(use-package shell-pop
-  :bind ("C-c s p" . shell-pop)
-  :init (let ((val
-               (if sys/win32p
-                   '("eshell" "*eshell*" (lambda () (eshell)))
-                 '("ansi-term" "*ansi-term*"
-                   (lambda () (ansi-term shell-pop-term-shell))))))
-          (setq shell-pop-shell-type val)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package shell-pop
+        :bind ("C-c s p" . shell-pop)
+        :init (let ((val
+                     (if sys/win32p
+                         '("eshell" "*eshell*" (lambda () (eshell)))
+                       '("ansi-term" "*ansi-term*"
+                         (lambda () (ansi-term shell-pop-term-shell))))))
+                (setq shell-pop-shell-type val)))
+    #+END_SRC
 
 *** sej/shell-kill-buffers
     - kill shell buffer upon exit
-#+BEGIN_SRC emacs-lisp
-(defun sej/shell-kill-buffer-sentinel (process event)
-  "Function to kill shell buffer upon (PROCESS EVENT)."
-  (when (memq (process-status process) '(exit signal))
-    (kill-buffer)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/shell-kill-buffer-sentinel (process event)
+        "Function to kill shell buffer upon (PROCESS EVENT)."
+        (when (memq (process-status process) '(exit signal))
+          (kill-buffer)))
+    #+END_SRC
 
 *** sej/kill-process-buffer-on-exit
     - make sure processes get killed on Emacs-exit
-#+BEGIN_SRC emacs-lisp
-(defun sej/kill-process-buffer-on-exit ()
-  "Function to kill buffer on exit."
-  (set-process-sentinel (get-buffer-process (current-buffer))
-                        #'sej/shell-kill-buffer-sentinel))
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/kill-process-buffer-on-exit ()
+        "Function to kill buffer on exit."
+        (set-process-sentinel (get-buffer-process (current-buffer))
+                              #'sej/shell-kill-buffer-sentinel))
 
-(dolist (hook '(ielm-mode-hook term-exec-hook comint-exec-hook))
-  (add-hook hook 'sej/kill-process-buffer-on-exit))
-#+END_SRC
+      (dolist (hook '(ielm-mode-hook term-exec-hook comint-exec-hook))
+        (add-hook hook 'sej/kill-process-buffer-on-exit))
+    #+END_SRC
 
 *** with-editor
     - things that invoke $EDITOR will use the current Emacs
-#+BEGIN_SRC emacs-lisp
-(use-package with-editor
-  :hook ((shell-mode . with-editor-export-editor)
-         (eshell-mode . with-editor-export-editor)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package with-editor
+        :hook ((shell-mode . with-editor-export-editor)
+               (eshell-mode . with-editor-export-editor)))
+    #+END_SRC
 
 *** keychain-environment
     - set up any SSH or GPG keychains that the Keychain tool has set up for us
-#+BEGIN_SRC emacs-lisp
-(use-package keychain-environment
-  :hook (sej/after-init . keychain-refresh-environment))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package keychain-environment
+        :hook (sej/after-init . keychain-refresh-environment))
+    #+END_SRC
 
 *** exec-path-from-shell
     - this allows GUI Emacs to inherit $PATH
-#+BEGIN_SRC emacs-lisp
-(use-package exec-path-from-shell
-  :config
-  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
-    (add-to-list 'exec-path-from-shell-variables var))
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package exec-path-from-shell
+        :config
+        (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
+          (add-to-list 'exec-path-from-shell-variables var))
+        (when (memq window-system '(mac ns x))
+          (exec-path-from-shell-initialize)))
+    #+END_SRC

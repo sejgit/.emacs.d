@@ -436,10 +436,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (define-key sej-mode-map (kbd "<f1>") 'org-mode)
 
-(define-key sej-mode-map (kbd "H-s") 'shell)
-(define-key sej-mode-map (kbd "<f2>") 'shell)
-(define-key sej-mode-map (kbd "H-e") 'eshell)
-
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 
 (define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
@@ -2471,9 +2467,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
                   (delete-file (concat buffer-file-name "c"))))))
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
-;; turn on abbreviation translations
-(abbrev-mode 1)
-
 (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
       '(try-complete-file-name-partially
@@ -3239,87 +3232,289 @@ _S_ettings                                _C-p_: Previous Line
         deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
         deft-org-mode-title-prefix t))
 
-(use-package eshell
-        :ensure nil
-        :defines (compilation-last-buffer
-                  eshell-prompt-function)
-        :commands (eshell/alias
-                   eshell-send-input
-                   eshell-flatten-list
-                   eshell-interactive-output-p
-                   eshell-parse-command
-                   eshell-command
-                   eshell)
-        :defines (sej-mode-map
-                  eshell-mode-map)
-        :hook  (
-                (eshell-mode . (lambda ()
-                                 (eshell/alias "f" "find-file $1")
-                                 (eshell/alias "ff" "find-file $1")
-                                 (eshell/alias "e" "find-file $1")
-                                 (eshell/alias "ee" "find-file-other-window $1")
-                                 (eshell/alias "emacs" "find-file $1")
-                                 (eshell/alias "fo" "find-file-other-window $1")
-                                 (eshell/alias "d" "dired $1")
-                                 (eshell/alias "ll" "ls  -AlohG --color=always $1")
-                                 (eshell/alias "la" "ls -al $1")
-                                 (eshell/alias "gd" "magit-diff-unstaged")
-                                 (eshell/alias "gds" "magit-diff-staged")
-                                 (bind-keys :map eshell-mode-map
-                                            ("M-P" . eshell-previous-prompt)
-                                            ("M-N" . eshell-next-prompt)
-                                            ("M-R" . eshell-previous-matching-input)
-                                            ("C-l" . eshell/clear)
-                                            )
-                                 )))
-
-        :bind (
-               :map sej-mode-map
-               ("H-e" . eshell)
-               ("C-c e" . eshell) )
-
-        :init
-        (require 'em-smart)
-        (require 'em-cmpl)
-        (require 'em-prompt)
-        (require 'em-term)
-        (require 'esh-opt)
-
-:config
-        (setenv "PAGER" "cat")
-
-        ;; Visual commands
-        (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
-        (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
-
-
-        (setq eshell-glob-case-insensitive nil
-              eshell-error-if-no-glob nil
-              eshell-scroll-to-bottom-on-input nil
-              eshell-where-to-jump 'begin
-              eshell-review-quick-commands nil
-              eshell-smart-space-goes-to-end t
-              eshell-cmpl-cycle-completions nil
-              ;; auto truncate after 12k lines
-              eshell-buffer-maximum-lines 12000
-              ;; history size
-              eshell-history-size 500
-              ;; buffer shorthand -> echo foo > #'buffer
-              eshell-buffer-shorthand t
-              ;; my prompt is easy enough to see
-              eshell-highlight-prompt nil
-              ;; treat 'echo' like shell echo
-              eshell-plain-echo-behavior t
-              ;; add -lh to the `ls' flags
-              ;; eshell-ls-initial-args "-lh"
-              eshell-hist-ignoredups t
-              eshell-save-history-on-exit t
-              eshell-prefer-lisp-functions nil
-              eshell-destroy-buffer-when-process-dies t)
-
-        ;; turn off semantic-mode in eshell buffers
-        (semantic-mode -1)
+(use-package org
+  ;;:ensure org-plus-contrib
+  :defines
+  sej-mode-map
+  org-capture-bookmark
+  org-capture-templates
+  org-agenda-window-setup
+  org-agenda-span
+  org-agenda-skip-scheduled-if-deadline-is-shown
+  org-agenda-todo-ignore-deadlines
+  org-agenda-todo-ignore-scheduled
+  org-agenda-sorting-strategy
+  org-agenda-skip-deadline-prewarning-if-scheduled
+  :functions
+  sej/org-capture-get-src-block-string
+  which-function
+  :mode ("\\.org$" . org-mode)
+  :hook ((org-mode . flyspell-mode)
+         (org-mode . writegood-mode)
+         (org-mode . visual-line-mode))
+  :bind (:map sej-mode-map
+              ("<f1>" . org-mode)
+              ("C-c l" . org-store-link)
+              ("C-c c" . org-capture)
+              ("C-c a" . org-agenda)
+              :map org-mode-map
+              ("C-M-\\" . org-indent-region)
+              ("S-<left>" . org-shiftleft)
+              ("S-<right>" . org-shiftright)
+              )
+  :config
+  (setq org-directory sej-org-directory)
+  (defconst org-file-inbox (concat org-directory "/inbox.org"))
+  (defconst org-file-someday (concat org-directory "/someday.org"))
+  (defconst org-file-gtd (concat org-directory "/gtd.org"))
+  (defconst org-file-journal (concat org-directory "/journal.org"))
+  (defconst org-file-notes (concat org-directory "/notes.org"))
+  (defconst org-file-code (concat org-directory "/snippets.org"))
+  (setq org-replace-disputed-keys t
+        org-hide-emphasis-markers t
+        org-default-notes-file org-file-notes
+        org-capture-bookmark t
+        org-refile-use-outline-path 'file
+        org-log-done 'note
+        org-log-done t
+        org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
+                            (sequence "|" "CANCELED(x)"))
+        org-todo-keyword-faces '(("TODO" . org-warning)
+                                 ("WAITING" . (:foreground "blue" :weight bold))
+                                 ("DONE" . (:foreground "green" :weight bold))
+                                 ("DELIGATE" . (:foreground "blue" :weight bold))
+                                 ("VERIFIED" . (:foreground "green" :weight bold))
+                                 ("CANCELED" . (:foreground "grey" :weight bold)))
+        org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-src-window-setup 'current-window
+        org-startup-folded nil
         )
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  (let* ((variable-tuple
+          (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+         (base-font-color     (face-foreground 'default nil 'default))
+         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
+    (custom-theme-set-faces
+     'user
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+
+  (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+
+  (define-skeleton org-skeleton
+    "Header info for a emacs-org file."
+    "Title: "
+    "#+TITLE:" str " \n"
+    "#+DATE:" '(org-date-from-calendar) " \n"
+    "#+AUTHOR: " '(sej-full-name) "\n"
+    "#+email: " '(sej-mail-address) "\n"
+    "#+INFOJS_OPT: \n"
+    "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
+    "-----\n\n")
+  (global-set-key [C-S-f4] 'org-skeleton)
+
+  (setq sej-project-org-capture-list (list
+                                      "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
+
+  (setq org-capture-templates (append
+                               '(
+                                 ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
+                                 ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
+                                 ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
+                                 ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
+                                 ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                 )
+                               (list sej-project-org-capture-list)))
+
+  ;; org-mode agenda options
+  (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
+        org-refile-targets '((org-file-gtd :maxlevel . 3)
+                             (org-file-someday :maxlevel . 1))
+        org-agenda-window-setup (quote current-window) ;open agenda in current window
+        org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
+        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
+        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+        (quote
+         ((agenda deadline-up priority-down)
+          (todo priority-down category-keep)
+          (tags priority-down category-keep)
+          (search category-keep))))
+
+  )
+
+(setq org-confirm-babel-evaluate nil
+      org-src-fontify-natively t
+      org-src-tab-acts-natively t)
+
+(defvar load-language-list '((emacs-lisp . t)
+                             (perl . t)
+                             (python . t)
+                             (ruby . t)
+                             (js . t)
+                             (css . t)
+                             (sass . t)
+                             (C . t)
+                             (java . t)
+                             (plantuml . t)))
+
+(if emacs/>=26p
+    (cl-pushnew '(shell . t) load-language-list)
+  (cl-pushnew '(sh . t) load-language-list))
+
+(use-package ob-go
+  :init (cl-pushnew '(go . t) load-language-list))
+
+(use-package ob-rust
+  :init (cl-pushnew '(rust . t) load-language-list))
+
+(use-package ob-ipython
+  :if (executable-find "jupyter") ; DO NOT remove
+  :init (cl-pushnew '(ipython . t) load-language-list))
+
+(org-babel-do-load-languages 'org-babel-load-languages
+                             load-language-list)
+
+(use-package org-rich-yank
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :config (org-bullets-mode 1))
+
+(use-package org-fancy-priorities
+  :diminish
+  :defines org-fancy-priorities-list
+  :hook (org-mode . org-fancy-priorities-mode)
+  :config
+  (unless (char-displayable-p ?❗)
+    (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+
+(use-package toc-org
+  :hook (org-mode . toc-org-mode))
+
+(use-package poporg
+  :ensure t
+  :bind (:map sej-mode-map
+              ("C-c s o" . poporg-dwim)))
+
+(use-package eshell
+  :ensure nil
+  :defines (compilation-last-buffer
+            eshell-prompt-function)
+  :commands (eshell/alias
+             eshell-send-input
+             eshell-flatten-list
+             eshell-interactive-output-p
+             eshell-parse-command
+             eshell-command
+             eshell)
+  :defines (sej-mode-map
+            eshell-mode-map)
+  :hook  (
+          (eshell-mode . (lambda ()
+                           (eshell/alias "f" "find-file $1")
+                           (eshell/alias "ff" "find-file $1")
+                           (eshell/alias "e" "find-file $1")
+                           (eshell/alias "ee" "find-file-other-window $1")
+                           (eshell/alias "emacs" "find-file $1")
+                           (eshell/alias "fo" "find-file-other-window $1")
+                           (eshell/alias "d" "dired $1")
+                           (eshell/alias "ll" "ls  -AlohG --color=always $1")
+                           (eshell/alias "la" "ls -al $1")
+                           (eshell/alias "gd" "magit-diff-unstaged")
+                           (eshell/alias "gds" "magit-diff-staged")
+                           (bind-keys :map eshell-mode-map
+                                      ("M-P" . eshell-previous-prompt)
+                                      ("M-N" . eshell-next-prompt)
+                                      ("M-R" . eshell-previous-matching-input)
+                                      ("C-l" . eshell/clear)
+                                      )
+                           )))
+
+  :bind (
+         :map sej-mode-map
+         ("H-e" . eshell)
+         ("C-c e" . eshell)
+         ("C-c s e" . eshell) )
+
+  :init
+  (require 'em-smart)
+  (require 'em-cmpl)
+  (require 'em-prompt)
+  (require 'em-term)
+  (require 'esh-opt)
+
+  :config
+  (setenv "PAGER" "cat")
+
+  ;; Visual commands
+  (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
+  (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
+
+
+  (setq eshell-glob-case-insensitive nil
+        eshell-error-if-no-glob nil
+        eshell-scroll-to-bottom-on-input nil
+        eshell-where-to-jump 'begin
+        eshell-review-quick-commands nil
+        eshell-smart-space-goes-to-end t
+        eshell-cmpl-cycle-completions nil
+        ;; auto truncate after 12k lines
+        eshell-buffer-maximum-lines 12000
+        ;; history size
+        eshell-history-size 500
+        ;; buffer shorthand -> echo foo > #'buffer
+        eshell-buffer-shorthand t
+        ;; my prompt is easy enough to see
+        eshell-highlight-prompt nil
+        ;; treat 'echo' like shell echo
+        eshell-plain-echo-behavior t
+        ;; add -lh to the `ls' flags
+        ;; eshell-ls-initial-args "-lh"
+        eshell-hist-ignoredups t
+        eshell-save-history-on-exit t
+        eshell-prefer-lisp-functions nil
+        eshell-destroy-buffer-when-process-dies t)
+
+  ;; turn off semantic-mode in eshell buffers
+  (semantic-mode -1)
+  )
 
 (defun eshell/truncate-eshell-buffers ()
   "Truncates all eshell buffers"
@@ -3435,49 +3630,51 @@ _S_ettings                                _C-p_: Previous Line
   nil)
 
 (use-package shell
-    :ensure nil
-    :hook ((shell-mode . n-shell-mode-hook)
-    (comint-output-filter-functions . comint-strip-ctrl-m)
-    (comint-output-filter-functions . comint-truncate-buffer))
-    :config
-    (defun n-shell-simple-send (proc command)
-      "Various PROC COMMANDs pre-processing before sending to shell."
-      (cond
-       ;; Checking for clear command and execute it.
-       ((string-match "^[ \t]*clear[ \t]*$" command)
-        (comint-send-string proc "\n")
-        (erase-buffer))
-       ;; Checking for man command and execute it.
-       ((string-match "^[ \t]*man[ \t]*" command)
-        (comint-send-string proc "\n")
-        (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
-        (setq command (replace-regexp-in-string "[ \t]+$" "" command))
-        ;;(message (format "command %s command" command))
-        (funcall 'man command))
-       ;; Send other commands to the default handler.
-       (t (comint-simple-send proc command))))
+  :ensure nil
+  :hook ((shell-mode . n-shell-mode-hook)
+         (comint-output-filter-functions . comint-strip-ctrl-m)
+         (comint-output-filter-functions . comint-truncate-buffer))
+  :bind  (:map sej-mode-map
+               ("H-s" . shell)
+               ("C-c s S" . shell))
+  :config
+  (defun n-shell-simple-send (proc command)
+    "Various PROC COMMANDs pre-processing before sending to shell."
+    (cond
+     ;; Checking for clear command and execute it.
+     ((string-match "^[ \t]*clear[ \t]*$" command)
+      (comint-send-string proc "\n")
+      (erase-buffer))
+     ;; Checking for man command and execute it.
+     ((string-match "^[ \t]*man[ \t]*" command)
+      (comint-send-string proc "\n")
+      (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
+      (setq command (replace-regexp-in-string "[ \t]+$" "" command))
+      ;;(message (format "command %s command" command))
+      (funcall 'man command))
+     ;; Send other commands to the default handler.
+     (t (comint-simple-send proc command))))
 
-    (defun n-shell-mode-hook ()
-      "Shell mode customizations."
-      (local-set-key '[up] 'comint-previous-input)
-      (local-set-key '[down] 'comint-next-input)
-      (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
-      (setq comint-input-sender 'n-shell-simple-send))
+  (defun n-shell-mode-hook ()
+    "Shell mode customizations."
+    (local-set-key '[up] 'comint-previous-input)
+    (local-set-key '[down] 'comint-next-input)
+    (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
+    (setq comint-input-sender 'n-shell-simple-send))
 
-    (setq system-uses-terminfo nil)       ; don't use system term info
-)
+  (setq system-uses-terminfo nil)       ; don't use system term info
 
-(setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
-      ;; always add output at the bottom
-      comint-scroll-to-bottom-on-output nil
-      ;; scroll to show max possible output
-      comint-scroll-show-maximum-output t
-      ;; no duplicates in command history
-      comint-input-ignoredups t
-      ;; insert space/slash after file completion
-      comint-completion-addsuffix t
-      ;; if this is t, it breaks shell-command
-      comint-prompt-read-only nil)
+  (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
+        ;; always add output at the bottom
+        comint-scroll-to-bottom-on-output nil
+        ;; scroll to show max possible output
+        comint-scroll-show-maximum-output t
+        ;; no duplicates in command history
+        comint-input-ignoredups t
+        ;; insert space/slash after file completion
+        comint-completion-addsuffix t
+        ;; if this is t, it breaks shell-command
+        comint-prompt-read-only nil))
 
 (use-package shell-pop
   :bind ("C-c s p" . shell-pop)
