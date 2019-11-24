@@ -22,6 +22,7 @@
 - <2019-11-17 Sun> init-shell.el tangled
 - <2019-11-17 Sun> init-org.el tangled
 - <2019-11-23 Sat> init-vcs.el tangled
+- <2019-11-23 Sat> init-prog.el tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -66,6 +67,7 @@
   - [[#vcs][vcs]]
   - [[#lisp][lisp]]
   - [[#completion][completion]]
+  - [[#miscellaneous-program-modes][miscellaneous program modes]]
 - [[#files][files]]
 - [[#dired][dired]]
 - [[#writing--reading][writing & reading]]
@@ -3022,6 +3024,36 @@
     #+END_SRC
 * programming
 ** general
+*** prog-mode
+    - generalized program mode
+    - Prettify Symbols
+    - e.g. display “lambda” as “λ”
+#+BEGIN_SRC emacs-lisp
+(use-package prog-mode
+  :ensure nil
+  :hook ((prog-mode . global-prettify-symbols-mode)
+         (prog-mode . (lambda ()
+                        (setq prettify-symbols-alist
+                              '(("lambda" . ?λ)
+                                ("->" . ?→)
+                                ("->>" . ?↠)
+                                ("=>" . ?⇒)
+                                ("map" . ?↦)
+                                ("/=" . ?≠)
+                                ("!=" . ?≠)
+                                ("==" . ?≡)
+                                ("<=" . ?≤)
+                                (">=" . ?≥)
+                                ("=<<" . (?= (Br . Bl) ?≪))
+                                (">>=" . (?≫ (Br . Bl) ?=))
+                                ("<=<" . ?↢)
+                                (">=>" . ?↣)
+                                ("&&" . ?∧)
+                                ("||" . ?∨)
+                                ("not" . ?¬))))))
+  :init (setq prettify-symbols-unprettify-at-point 'right-edge))
+#+END_SRC
+
 *** tramp
     - remote editing
 #+BEGIN_SRC emacs-lisp
@@ -3120,6 +3152,58 @@
             nil))
         (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
     #+END_SRC
+
+*** compile
+    - Compilation Mode
+#+BEGIN_SRC emacs-lisp
+(use-package compile
+  :ensure nil
+  :preface
+  ;; ANSI Coloring
+  ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
+  (defun my-colorize-compilation-buffer ()
+    "ANSI coloring in compilation buffers."
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point-max))))
+  :hook (compilation-filter . my-colorize-compilation-buffer))
+#+END_SRC
+
+*** dumb-jump
+    - Jump to definition via `ag'/`rg'/`grep'
+#+BEGIN_SRC emacs-lisp
+(use-package dumb-jump
+  :defines sej-mode-map
+  :functions dumb-jump-hydra/body
+  :bind (:map sej-mode-map
+              ("M-g o" . dumb-jump-go-other-window)
+              ("M-g j" . dumb-jump-go)
+              ("M-g i" . dumb-jump-go-prompt)
+              ("M-g x" . dumb-jump-go-prefer-external)
+              ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :config
+  (setq dumb-jump-prefer-searcher 'ag)
+  (with-eval-after-load 'ivy
+    (setq dumb-jump-selector 'ivy))
+
+  (defhydra hydra-dumb-jump (:color blue :hint none)
+    "
+^Jump^                            ^Other^
+^^────────────────────────────────^^───────────────
+_j_: Go                           _i_: Prompt
+_o_: Go other window              _l_: Quick look
+_e_: Go external                  _b_: Back
+_x_: Go external other window
+"
+    ("j" dumb-jump-go "Go")
+    ("o" dumb-jump-go-other-window "Go other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back")
+    ("q" nil "quit"))
+  (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+#+END_SRC
 
 ** vcs
 *** magit
@@ -3625,6 +3709,40 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
     #+BEGIN_SRC emacs-lisp
       (use-package hydra)
     #+END_SRC
+
+** miscellaneous program modes
+*** nxml-mode
+    - major mode for editing XML
+#+BEGIN_SRC emacs-lisp
+(use-package nxml-mode
+  :ensure nil
+  :mode (("\\.xaml$" . xml-mode)))
+#+END_SRC
+
+*** csharp-mode
+    - mode for editing C# in emacs. It’s based on cc-mode
+#+BEGIN_SRC emacs-lisp
+(use-package csharp-mode)
+#+END_SRC
+
+*** swift-mode
+    - support for Apple's Swift programming language
+#+BEGIN_SRC emacs-lisp
+
+(use-package swift-mode
+  :config
+  (use-package flycheck-swift
+    :after flycheck
+    :commands flycheck-swift-setup
+    :init (flycheck-swift-setup)))
+#+END_SRC
+
+ *** rust-mode
+    - rust language package
+#+BEGIN_SRC emacs-lisp
+(use-package rust-mode
+  :config (setq rust-format-on-save t))
+#+END_SRC
 
 * files
 *** ibuffer
