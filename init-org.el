@@ -2370,6 +2370,30 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config
   (setq paren-highlight-offscreen t))
 
+(use-package prog-mode
+  :ensure nil
+  :hook ((prog-mode . global-prettify-symbols-mode)
+         (prog-mode . (lambda ()
+                        (setq prettify-symbols-alist
+                              '(("lambda" . ?λ)
+                                ("->" . ?→)
+                                ("->>" . ?↠)
+                                ("=>" . ?⇒)
+                                ("map" . ?↦)
+                                ("/=" . ?≠)
+                                ("!=" . ?≠)
+                                ("==" . ?≡)
+                                ("<=" . ?≤)
+                                (">=" . ?≥)
+                                ("=<<" . (?= (Br . Bl) ?≪))
+                                (">>=" . (?≫ (Br . Bl) ?=))
+                                ("<=<" . ?↢)
+                                (">=>" . ?↣)
+                                ("&&" . ?∧)
+                                ("||" . ?∨)
+                                ("not" . ?¬))))))
+  :init (setq prettify-symbols-unprettify-at-point 'right-edge))
+
 (use-package tramp
   :commands
   tramp-default-method
@@ -2444,6 +2468,126 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
         'no-indent
       nil))
   (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+
+(use-package compile
+  :ensure nil
+  :preface
+  ;; ANSI Coloring
+  ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
+  (defun my-colorize-compilation-buffer ()
+    "ANSI coloring in compilation buffers."
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point-max))))
+  :hook (compilation-filter . my-colorize-compilation-buffer))
+
+(use-package dumb-jump
+  :defines sej-mode-map
+  :functions dumb-jump-hydra/body
+  :bind (:map sej-mode-map
+              ("M-g o" . dumb-jump-go-other-window)
+              ("M-g j" . dumb-jump-go)
+              ("M-g i" . dumb-jump-go-prompt)
+              ("M-g x" . dumb-jump-go-prefer-external)
+              ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :config
+  (setq dumb-jump-prefer-searcher 'ag)
+  (with-eval-after-load 'ivy
+    (setq dumb-jump-selector 'ivy))
+
+  (defhydra hydra-dumb-jump (:color blue :hint none)
+    "
+^Jump^                            ^Other^
+^^────────────────────────────────^^───────────────
+_j_: Go                           _i_: Prompt
+_o_: Go other window              _l_: Quick look
+_e_: Go external                  _b_: Back
+_x_: Go external other window
+"
+    ("j" dumb-jump-go "Go")
+    ("o" dumb-jump-go-other-window "Go other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back")
+    ("q" nil "quit"))
+  (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+
+(use-package flymake
+  :ensure t
+  :defines sej-mode-map
+  :hook (post-command . flymake-error-at-point)
+  :bind (:map sej-mode-map
+              ("H-[" . flymake-goto-prev-error)
+              ("H-]" . flymake-goto-next-error))
+  :init
+  (defun flymake-error-at-point ()
+    "Show the flymake error in the minibuffer when point is on an invalid line."
+    (when (get-char-property (point) 'flymake-overlay)
+      (let ((help (get-char-property (point) 'help-echo)))
+        (if help (message "%s" help))))))
+
+(use-package flycheck
+                                        ;:diminish flycheck-mode
+  :defines sej-mode-map
+  :hook (prog-mode . global-flycheck-mode)
+  :bind
+  (:map sej-mode-map
+        ("s-[" . flycheck-previous-error)
+        ("s-]" . flycheck-next-error)
+        ("C-c f" . flycheck-list-errors)
+        ("s-f" . flycheck-list-errors)        )
+  :config
+  (global-flycheck-mode 1)
+  (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
+    (push-mark))
+
+  (setq flycheck-indication-mode 'right-fringe
+        flycheck-check-syntax-automatically '(save mode-enabled))
+  (custom-set-faces
+   '(flycheck-error ((((class color)) (:underline "Red"))))
+   '(flycheck-warning ((((class color)) (:underline "Orange")))))
+
+  (setq flycheck-emacs-lisp-load-path 'inherit)
+  (setq flycheck-python-flake8-executable "flake8")
+  (setq flycheck-flake8-maximum-line-length 79)
+  (setq flycheck-highlighting-mode 'lines)
+  (progn    (set-face-attribute 'flycheck-warning nil
+                                :inherit 'warning
+                                :underline nil)
+            (set-face-attribute 'flycheck-error nil
+                                :inherit 'error
+                                :underline nil)))
+
+;; (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+
+(if (display-graphic-p)
+    (use-package flycheck-posframe
+      :after flycheck
+      :hook (flycheck-mode . flycheck-posframe-mode)
+      :config
+      ;; (add-to-list 'flycheck-posframe-inhibit-functions
+      ;;              #'(lambda () (bound-and-true-p company-backend)))
+      (setq flycheck-posframe-warning-prefix "\u26a0 ")
+      (setq flycheck-posframe-position 'window-bottom-left-corner)
+      ) )
+
+(if (display-graphic-p)
+    (if emacs/>=26p
+        (use-package flycheck-pos-tip
+          :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
+          :hook (flycheck-mode . flycheck-pos-tip-mode)
+          :config
+          (setq flycheck-pos-tip-timeout 10
+                flycheck-display-errors-delay 0.5)
+          (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+      ))
+
+(use-package flycheck-popup-tip
+  :hook (flycheck-mode . flycheck-popup-tip-mode))
+
+(use-package flycheck-color-mode-line
+  :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 (use-package magit
   :bind (("C-x g" . magit-status)
@@ -2809,6 +2953,22 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
          ("C-o" . aya-open-line)))
 
 (use-package hydra)
+
+(use-package nxml-mode
+  :ensure nil
+  :mode (("\\.xaml$" . xml-mode)))
+
+(use-package csharp-mode)
+
+(use-package swift-mode
+  :config
+  (use-package flycheck-swift
+    :after flycheck
+    :commands flycheck-swift-setup
+    :init (flycheck-swift-setup)))
+
+(use-package rust-mode
+  :config (setq rust-format-on-save t))
 
 (use-package ibuffer
   :ensure nil

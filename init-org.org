@@ -23,6 +23,7 @@
 - <2019-11-17 Sun> init-org.el tangled
 - <2019-11-23 Sat> init-vcs.el tangled
 - <2019-11-23 Sat> init-prog.el tangled
+- <2019-11-24 Sun> init-flycheck.el tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -3203,6 +3204,105 @@ _x_: Go external other window
     ("b" dumb-jump-back "Back")
     ("q" nil "quit"))
   (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+#+END_SRC
+
+*** flymake
+    - built-in emacs syntax checker
+#+BEGIN_SRC emacs-lisp
+        (use-package flymake
+          :ensure t
+          :defines sej-mode-map
+          :hook (post-command . flymake-error-at-point)
+          :bind (:map sej-mode-map
+                      ("H-[" . flymake-goto-prev-error)
+                      ("H-]" . flymake-goto-next-error))
+          :init
+          (defun flymake-error-at-point ()
+            "Show the flymake error in the minibuffer when point is on an invalid line."
+            (when (get-char-property (point) 'flymake-overlay)
+              (let ((help (get-char-property (point) 'help-echo)))
+                (if help (message "%s" help))))))
+#+END_SRC
+
+*** flycheck
+    - added in emacs syntax checker
+#+BEGIN_SRC emacs-lisp
+        (use-package flycheck
+                                                ;:diminish flycheck-mode
+          :defines sej-mode-map
+          :hook (prog-mode . global-flycheck-mode)
+          :bind
+          (:map sej-mode-map
+                ("s-[" . flycheck-previous-error)
+                ("s-]" . flycheck-next-error)
+                ("C-c f" . flycheck-list-errors)
+                ("s-f" . flycheck-list-errors)        )
+          :init
+          (global-flycheck-mode 1)
+          :config
+          (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
+            (push-mark))
+          (setq flycheck-indication-mode 'right-fringe
+                flycheck-check-syntax-automatically '(save
+                                                      mode-enabled
+                                                           idle-change
+                                                           idle-buffer-switch))
+          (custom-set-faces
+           '(flycheck-error ((((class color)) (:underline "Red"))))
+           '(flycheck-warning ((((class color)) (:underline "Orange")))))
+
+          (setq flycheck-emacs-lisp-load-path 'inherit)
+          (setq flycheck-python-flake8-executable "flake8")
+          (setq flycheck-flake8-maximum-line-length 79)
+          (setq flycheck-highlighting-mode 'lines)
+          (progn    (set-face-attribute 'flycheck-warning nil
+                                        :inherit 'warning
+                                        :underline nil)
+                    (set-face-attribute 'flycheck-error nil
+                                        :inherit 'error
+                                        :underline nil)))
+#+END_SRC
+
+*** flycheck-posframe
+    - Display Flycheck errors in GUI tooltips
+#+BEGIN_SRC emacs-lisp
+  (if (display-graphic-p)
+      (use-package flycheck-posframe
+        :after flycheck
+        :hook (flycheck-mode . flycheck-posframe-mode)
+        :config
+        ;; (add-to-list 'flycheck-posframe-inhibit-functions
+        ;;              #'(lambda () (bound-and-true-p company-backend)))
+        (setq flycheck-posframe-warning-prefix "\u26a0 ")
+        (setq flycheck-posframe-position 'window-bottom-left-corner)))
+#+END_SRC
+
+*** flycheck-pos-tip
+#+BEGIN_SRC emacs-lisp
+  (if (display-graphic-p)
+      (if emacs/>=26p
+          (use-package flycheck-pos-tip
+            :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
+            :hook (flycheck-mode . flycheck-pos-tip-mode)
+            :config
+            (setq flycheck-pos-tip-timeout 10
+                  flycheck-display-errors-delay 0.5)
+            (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+        ))
+#+END_SRC
+
+*** flycheck-popup-tip
+#+BEGIN_SRC emacs-lisp
+      (use-package flycheck-popup-tip
+        :hook (flycheck-mode . flycheck-popup-tip-mode))
+#+END_SRC
+
+*** flycheck-color-mode-line
+    - minor-mode for Flycheck which colors the mode line according to
+    the Flycheck state of the current buffer
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck-color-mode-line
+  :hook (flycheck-mode . flycheck-color-mode-line-mode))
 #+END_SRC
 
 ** vcs
