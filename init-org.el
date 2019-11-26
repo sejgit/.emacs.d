@@ -408,7 +408,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key global-map (kbd "C-h C-h") nil)
 (define-key sej-mode-map (kbd "C-h C-h") nil)
 
-
 (define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
 (define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
 (global-set-key (kbd "RET") 'newline-and-indent)
@@ -429,20 +428,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
 
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-
-(define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
-
-(define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
-
-(define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
-(define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-(define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
-
-(define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
-(define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
+(define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
 
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."
@@ -2537,13 +2523,16 @@ _x_: Go external other window
         ("s-]" . flycheck-next-error)
         ("C-c f" . flycheck-list-errors)
         ("s-f" . flycheck-list-errors)        )
-  :config
+  :init
   (global-flycheck-mode 1)
+  :config
   (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
     (push-mark))
-
   (setq flycheck-indication-mode 'right-fringe
-        flycheck-check-syntax-automatically '(save mode-enabled))
+        flycheck-check-syntax-automatically '(save
+                                              mode-enabled
+                                                   idle-change
+                                                   idle-buffer-switch))
   (custom-set-faces
    '(flycheck-error ((((class color)) (:underline "Red"))))
    '(flycheck-warning ((((class color)) (:underline "Orange")))))
@@ -2559,8 +2548,6 @@ _x_: Go external other window
                                 :inherit 'error
                                 :underline nil)))
 
-;; (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
-
 (if (display-graphic-p)
     (use-package flycheck-posframe
       :after flycheck
@@ -2569,8 +2556,7 @@ _x_: Go external other window
       ;; (add-to-list 'flycheck-posframe-inhibit-functions
       ;;              #'(lambda () (bound-and-true-p company-backend)))
       (setq flycheck-posframe-warning-prefix "\u26a0 ")
-      (setq flycheck-posframe-position 'window-bottom-left-corner)
-      ) )
+      (setq flycheck-posframe-position 'window-bottom-left-corner)))
 
 (if (display-graphic-p)
     (if emacs/>=26p
@@ -2588,6 +2574,44 @@ _x_: Go external other window
 
 (use-package flycheck-color-mode-line
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
+
+(use-package emr
+  ;; Just hit M-RET to access your refactoring tools in any supported mode.
+  :bind (:map sej-mode-map
+              ("M-RET" . emr-show-refactor-menu))
+  :hook (prog-mode . emr-initialize))
+
+(use-package projectile
+  :diminish
+  :bind ("H-f" . projectile-find-file)
+  :bind-keymap (  ("s-P" . projectile-command-map)
+                  ("C-c p" . projectile-command-map))
+  :hook (sej/after-iinit . projectile-mode)
+  :init
+  (setq projectile-mode-line-prefix "")
+  (setq projectile-sort-order 'recentf)
+  (setq projectile-use-git-grep t)
+  :config
+  ;; global ignores
+  (add-to-list 'projectile-globally-ignored-files ".tern-port")
+  (add-to-list 'projectile-globally-ignored-files "GTAGS")
+  (add-to-list 'projectile-globally-ignored-files "GPATH")
+  (add-to-list 'projectile-globally-ignored-files "GRTAGS")
+  (add-to-list 'projectile-globally-ignored-files "GSYMS")
+  (add-to-list 'projectile-globally-ignored-files ".DS_Store")
+  ;; always ignore .class files
+  (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
+  (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/" "~/gdrive/"))
+
+  ;; Use the faster searcher to handle project files: ripgrep `rg'.
+  (when (executable-find "rg")
+    (setq projectile-generic-command
+          (let ((rg-cmd ""))
+            (dolist (dir projectile-globally-ignored-directories)
+              (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
+            (concat "rg -0 --files --color=never --hidden" rg-cmd))))
+
+  )
 
 (use-package magit
   :bind (("C-x g" . magit-status)
@@ -2718,59 +2742,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (use-package gitignore-mode)
 
 (use-package git-blamed)
-
-(define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
-(define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
-(define-key sej-mode-map (kbd "<A-return>") 'eval-region)
-(define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-;; Use C-M-. to jump to the definition of the symbol under the cursor.
-(define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
-
-;; use flycheck in elisp
-(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
-
-;; enable dash for Emacs lisp highlighting
-(eval-after-load "dash" '(dash-enable-font-lock))
-
-(use-package lispy
-  :hook (emacs-lisp-mode . lispy-mode))
-
-(use-package eldoc
-  :diminish eldoc-mode
-  :hook
-  ((emacs-lisp-mode . eldoc-mode)
-   (ielm-mode . eldoc-mode)
-   (lisp-interaction-mode . eldoc-mode)
-   (eval-expression-minibuffer-setup . eldoc-mode))
-  :config
-  (setq eldoc-idle-delay 0.1))
-
-(use-package elisp-slime-nav
-  :diminish elisp-slime-nav-mode
-  :hook (emacs-lisp-mode . elisp-slime-nav-mode))
-
-(use-package eros
-  :commands eros-mode
-  :hook (emacs-lisp-mode . eros-mode))
-
-(defun sej/ielm-other-window ()
-  "Run ielm on other window."
-  (interactive)
-  (switch-to-buffer-other-window
-   (get-buffer-create "*ielm*"))
-  (call-interactively 'ielm))
-
-(define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
-(define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
-
-(defun sej/remove-elc-on-save ()
-  "If you're saving an elisp file, likely the .elc is no longer valid."
-  (make-local-variable 'after-save-hook)
-  (add-hook 'after-save-hook
-            (lambda ()
-              (if (file-exists-p (concat buffer-file-name "c"))
-                  (delete-file (concat buffer-file-name "c"))))))
-(add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
 (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
@@ -2953,6 +2924,139 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
          ("C-o" . aya-open-line)))
 
 (use-package hydra)
+
+(define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
+(define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
+(define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+(define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
+;; Use C-M-. to jump to the definition of the symbol under the cursor.
+(define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
+
+;; use flycheck in elisp
+(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+
+;; enable dash for Emacs lisp highlighting
+(eval-after-load "dash" '(dash-enable-font-lock))
+
+(use-package lispy
+  :hook (emacs-lisp-mode . lispy-mode))
+
+(use-package eldoc
+  :diminish eldoc-mode
+  :hook
+  ((emacs-lisp-mode . eldoc-mode)
+   (ielm-mode . eldoc-mode)
+   (lisp-interaction-mode . eldoc-mode)
+   (eval-expression-minibuffer-setup . eldoc-mode))
+  :config
+  (setq eldoc-idle-delay 0.1))
+
+(use-package elisp-slime-nav
+  :diminish elisp-slime-nav-mode
+  :hook (emacs-lisp-mode . elisp-slime-nav-mode))
+
+(use-package eros
+  :commands eros-mode
+  :hook (emacs-lisp-mode . eros-mode))
+
+(defun sej/ielm-other-window ()
+  "Run ielm on other window."
+  (interactive)
+  (switch-to-buffer-other-window
+   (get-buffer-create "*ielm*"))
+  (call-interactively 'ielm))
+
+(define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
+(define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
+
+(defun sej/remove-elc-on-save ()
+  "If you're saving an elisp file, likely the .elc is no longer valid."
+  (make-local-variable 'after-save-hook)
+  (add-hook 'after-save-hook
+            (lambda ()
+              (if (file-exists-p (concat buffer-file-name "c"))
+                  (delete-file (concat buffer-file-name "c"))))))
+(add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
+
+(use-package python
+        :ensure nil
+        :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
+        :interpreter "python"
+        :bind (:map python-mode-map
+                    ("<backtab>" . python-back-indent)
+                    ("<f9>" . py-insert-debug))
+        :hook ((python-mode . flycheck-mode)
+               (python-mode . (lambda ()
+                                (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
+               )
+        :mode (("\\.py$" . python-mode)
+               ("\\.cpy$" . python-mode)
+               ("\\.vpy$" . python-mode))
+        :config
+        (setq python-shell-interpreter "ipython"
+              python-shell-interpreter-args "--simple-prompt -i")
+
+        (define-skeleton python-insert-docstring
+          "Insert a Python docstring."
+          "This string is ignored!"
+          "\"\"\"" - "\n\n    \"\"\"")
+
+        (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
+
+        (setq fill-column 79)
+        (setq-default flycheck-flake8rc "~/.config/flake8rc")
+        (setq python-check-command "flake8")
+        (setq tab-width 2)
+
+        ;; Disable readline based native completion
+        (setq python-shell-completion-native-enable nil)
+
+        (add-hook 'inferior-python-mode-hook
+                  (lambda ()
+                    ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
+                    (process-query-on-exit-flag (get-process "Python"))))
+)
+
+(use-package live-py-mode)
+
+(use-package yapfify
+  :diminish yapf-mode
+  :hook (python-mode . yapf-mode))
+
+(use-package ein
+  :diminish ein:notebook-mode
+  :defines ein:completion-backend
+  :init (setq ein:completion-backend 'ein:use-company-backend))
+
+(use-package pip-requirements
+  :defer t)
+
+(use-package ediff
+  :init
+  (setq ediff-shell (getenv "$SHELL"))
+  (setq-default ediff-split-window-function
+                (quote split-window-vertically)))
+
+(use-package pyvenv
+  :hook (pyvenv-post-activate . pyvenv-restart-python))
+
+(use-package company-jedi
+  :after company
+  :config (add-to-list 'company-backends 'company-jedi))
+
+(use-package cc-mode
+  :ensure nil
+  :bind (:map c-mode-base-map
+              ("C-c c" . compile))
+  :hook ((c-mode-common . flycheck-mode)
+         (c-mode-common . (lambda ()
+                            (c-set-style "bsd")
+                            (setq tab-width 4)
+                            (setq c-basic-offset 4))))
+  :config
+  (use-package modern-cpp-font-lock
+    :diminish
+    :hook (c++-mode modern-c++-font-lock-mode)))
 
 (use-package nxml-mode
   :ensure nil
@@ -4028,6 +4132,7 @@ converted to PDF at the same location."
 (defvar load-language-list '((emacs-lisp . t)
                              (perl . t)
                              (python . t)
+                             (ein . t)
                              (ruby . t)
                              (js . t)
                              (css . t)

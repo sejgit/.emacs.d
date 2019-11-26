@@ -210,13 +210,13 @@
 ;; (require 'init-prog); org-tangle
 
 ;; (require 'init-flycheck); org-tangle
-(require 'init-projectile)
+;; (require 'init-projectile); org-tangle
 
 (require 'init-lsp)
-;; (require 'init-lisp) ; tangle
+;; (require 'init-lisp) ; org-tangle
 
-(require 'init-c)
-(require 'init-python)
+;; (require 'init-c); org-tangle
+;; (require 'init-python); org-tangle
 (require 'init-web)
 (require 'init-misc-languages)
 (require 'init-misc-pkgs)

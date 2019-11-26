@@ -24,6 +24,8 @@
 - <2019-11-23 Sat> init-vcs.el tangled
 - <2019-11-23 Sat> init-prog.el tangled
 - <2019-11-24 Sun> init-flycheck.el tangled
+- <2019-11-24 Sun> init-projectile.el tangled
+- <2019-11-25 Mon> init-python.el tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -66,9 +68,10 @@
 - [[#programming][programming]]
   - [[#general][general]]
   - [[#vcs][vcs]]
-  - [[#lisp][lisp]]
   - [[#completion][completion]]
-  - [[#miscellaneous-program-modes][miscellaneous program modes]]
+  - [[#lisp][lisp]]
+  - [[#python][python]]
+  - [[#other-program-modes][other program modes]]
 - [[#files][files]]
 - [[#dired][dired]]
 - [[#writing--reading][writing & reading]]
@@ -576,7 +579,6 @@
       (define-key global-map (kbd "C-h C-h") nil)
       (define-key sej-mode-map (kbd "C-h C-h") nil)
 
-
       (define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
       (define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
       (global-set-key (kbd "RET") 'newline-and-indent)
@@ -597,20 +599,7 @@
       (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
 
       (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-
-      (define-key sej-mode-map (kbd "H-f") 'projectile-find-file)
-
-      (define-key sej-mode-map (kbd "C-c g") 'google-this) ;; defined here for ref
-      (define-key sej-mode-map (kbd "H-g") 'google-this) ;; defined here for ref
-
-      (define-key sej-mode-map (kbd "C-x M") 'git-messenger:popup-message) ;; defined here for ref
-      (define-key sej-mode-map (kbd "H-m") 'git-messenger:popup-message) ;; defined here for ref
-
-      (define-key sej-mode-map (kbd "s-i") 'emacs-init-time)
-
-      (define-key sej-mode-map (kbd "s-[") 'flycheck-previous-error) ;; defined here for ref
-      (define-key sej-mode-map (kbd "s-]") 'flycheck-next-error) ;; defined here for ref
-      (define-key sej-mode-map (kbd "s-f") 'flycheck-list-errors) ;; defined here for ref
+      (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
     #+END_SRC
 
 * general defuns
@@ -3305,6 +3294,52 @@ _x_: Go external other window
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 #+END_SRC
 
+*** emr
+    - a framework for providing language-specific refactoring in Emacs.
+    It includes refactoring commands for a variety of languages
+    Just hit M-RET to access your refactoring tools in any supported mode.
+#+BEGIN_SRC emacs-lisp
+      (use-package emr
+        ;; Just hit M-RET to access your refactoring tools in any supported mode.
+        :bind (:map sej-mode-map
+                    ("M-RET" . emr-show-refactor-menu))
+        :hook (prog-mode . emr-initialize))
+    #+END_SRC
+*** projectile
+    - Manage and navigate projects
+    #+BEGIN_SRC emacs-lisp
+      (use-package projectile
+        :diminish
+        :bind ("H-f" . projectile-find-file)
+        :bind-keymap (  ("s-P" . projectile-command-map)
+                        ("C-c p" . projectile-command-map))
+        :hook (sej/after-iinit . projectile-mode)
+        :init
+        (setq projectile-mode-line-prefix "")
+        (setq projectile-sort-order 'recentf)
+        (setq projectile-use-git-grep t)
+        :config
+        ;; global ignores
+        (add-to-list 'projectile-globally-ignored-files ".tern-port")
+        (add-to-list 'projectile-globally-ignored-files "GTAGS")
+        (add-to-list 'projectile-globally-ignored-files "GPATH")
+        (add-to-list 'projectile-globally-ignored-files "GRTAGS")
+        (add-to-list 'projectile-globally-ignored-files "GSYMS")
+        (add-to-list 'projectile-globally-ignored-files ".DS_Store")
+        ;; always ignore .class files
+        (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
+        (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/" "~/gdrive/"))
+
+        ;; Use the faster searcher to handle project files: ripgrep `rg'.
+        (when (executable-find "rg")
+          (setq projectile-generic-command
+                (let ((rg-cmd ""))
+                  (dolist (dir projectile-globally-ignored-directories)
+                    (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
+                  (concat "rg -0 --files --color=never --hidden" rg-cmd))))
+
+        )
+#+END_SRC
 ** vcs
 *** magit
     - interface to the version control system Git
@@ -3490,104 +3525,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (use-package git-blamed)
 #+END_SRC
 
-** lisp
-*** lisp settings
-    - some lisp stuff from Getting Started with Emacs Lisp
-    #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
-      (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
-      (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
-      (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-      ;; Use C-M-. to jump to the definition of the symbol under the cursor.
-      (define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
-
-      ;; use flycheck in elisp
-      (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
-
-      ;; enable dash for Emacs lisp highlighting
-      (eval-after-load "dash" '(dash-enable-font-lock))
-    #+END_SRC
-
-*** lispy
-    - This package reimagines Paredit
-    - a popular method to navigate and edit LISP code in Emacs.
-    - The killer-feature are the short bindings:
-
-    command                    binding  binding  command
-    paredit-forward             C-M-f      j     lispy-down
-    paredit-backward            C-M-b      k     lispy-up
-    paredit-backward-up         C-M-u      h     lispy-left
-    paredit-forward-up          C-M-n      l     lispy-right
-    paredit-raise-sexp          M-r        r     lispy-raise
-    paredit-convolute-sexp      M-?        C     lispy-convolute
-    paredit-forward-slurp-sexp  C-)        >     lispy-slurp
-    paredit-forward-barf-sexp   C-}        <     lispy-barf
-    paredit-backward-slurp-sexp C-(        >     lispy-slurp
-    paredit-backward-barf-sexp  C-{        <     lispy-barf
-    #+BEGIN_SRC emacs-lisp
-      (use-package lispy
-        :hook (emacs-lisp-mode . lispy-mode))
-    #+END_SRC
-
-*** eldoc
-    - we don't want this minor mode to be shown in the minibuffer, however
-      we use eldoc to show the signature of the function at point in the minibuffer
-    #+BEGIN_SRC emacs-lisp
-      (use-package eldoc
-        :diminish eldoc-mode
-        :hook
-        ((emacs-lisp-mode . eldoc-mode)
-         (ielm-mode . eldoc-mode)
-         (lisp-interaction-mode . eldoc-mode)
-         (eval-expression-minibuffer-setup . eldoc-mode))
-        :config
-        (setq eldoc-idle-delay 0.1))
-    #+END_SRC
-
-*** elisp-slime-nav
-    - turn on elisp-slime-nav if available so M-. works to jump to function definitions
-    #+BEGIN_SRC emacs-lisp
-      (use-package elisp-slime-nav
-        :diminish elisp-slime-nav-mode
-        :hook (emacs-lisp-mode . elisp-slime-nav-mode))
-    #+END_SRC
-
-*** eros
-    - eros-mode will show you the result of evaluating an elisp command
-      as an overlay in your elisp buffer. Try it out with C-x C-e now!
-    #+BEGIN_SRC emacs-lisp
-      (use-package eros
-        :commands eros-mode
-        :hook (emacs-lisp-mode . eros-mode))
-    #+END_SRC
-
-*** sej/ielm-other-window
-    - add a nice popup for ielm
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/ielm-other-window ()
-        "Run ielm on other window."
-        (interactive)
-        (switch-to-buffer-other-window
-         (get-buffer-create "*ielm*"))
-        (call-interactively 'ielm))
-
-      (define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
-      (define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
-    #+END_SRC
-
-*** sej/remove-elc-on-save
-    - When saving an elisp file, remove its compiled version if
-      there is one, as you'll want to recompile it.
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/remove-elc-on-save ()
-        "If you're saving an elisp file, likely the .elc is no longer valid."
-        (make-local-variable 'after-save-hook)
-        (add-hook 'after-save-hook
-                  (lambda ()
-                    (if (file-exists-p (concat buffer-file-name "c"))
-                        (delete-file (concat buffer-file-name "c"))))))
-      (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
-    #+END_SRC
 ** completion
 *** hippie-expand settings
     #+BEGIN_SRC emacs-lisp
@@ -3810,7 +3747,241 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
       (use-package hydra)
     #+END_SRC
 
-** miscellaneous program modes
+** lisp
+*** lisp settings
+    - some lisp stuff from Getting Started with Emacs Lisp
+    #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
+      (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
+      (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+      (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
+      ;; Use C-M-. to jump to the definition of the symbol under the cursor.
+      (define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
+
+      ;; use flycheck in elisp
+      (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+
+      ;; enable dash for Emacs lisp highlighting
+      (eval-after-load "dash" '(dash-enable-font-lock))
+    #+END_SRC
+
+*** lispy
+    - This package reimagines Paredit
+    - a popular method to navigate and edit LISP code in Emacs.
+    - The killer-feature are the short bindings:
+
+    command                    binding  binding  command
+    paredit-forward             C-M-f      j     lispy-down
+    paredit-backward            C-M-b      k     lispy-up
+    paredit-backward-up         C-M-u      h     lispy-left
+    paredit-forward-up          C-M-n      l     lispy-right
+    paredit-raise-sexp          M-r        r     lispy-raise
+    paredit-convolute-sexp      M-?        C     lispy-convolute
+    paredit-forward-slurp-sexp  C-)        >     lispy-slurp
+    paredit-forward-barf-sexp   C-}        <     lispy-barf
+    paredit-backward-slurp-sexp C-(        >     lispy-slurp
+    paredit-backward-barf-sexp  C-{        <     lispy-barf
+    #+BEGIN_SRC emacs-lisp
+      (use-package lispy
+        :hook (emacs-lisp-mode . lispy-mode))
+    #+END_SRC
+
+*** eldoc
+    - we don't want this minor mode to be shown in the minibuffer, however
+      we use eldoc to show the signature of the function at point in the minibuffer
+    #+BEGIN_SRC emacs-lisp
+      (use-package eldoc
+        :diminish eldoc-mode
+        :hook
+        ((emacs-lisp-mode . eldoc-mode)
+         (ielm-mode . eldoc-mode)
+         (lisp-interaction-mode . eldoc-mode)
+         (eval-expression-minibuffer-setup . eldoc-mode))
+        :config
+        (setq eldoc-idle-delay 0.1))
+    #+END_SRC
+
+*** elisp-slime-nav
+    - turn on elisp-slime-nav if available so M-. works to jump to function definitions
+    #+BEGIN_SRC emacs-lisp
+      (use-package elisp-slime-nav
+        :diminish elisp-slime-nav-mode
+        :hook (emacs-lisp-mode . elisp-slime-nav-mode))
+    #+END_SRC
+
+*** eros
+    - eros-mode will show you the result of evaluating an elisp command
+      as an overlay in your elisp buffer. Try it out with C-x C-e now!
+    #+BEGIN_SRC emacs-lisp
+      (use-package eros
+        :commands eros-mode
+        :hook (emacs-lisp-mode . eros-mode))
+    #+END_SRC
+
+*** sej/ielm-other-window
+    - add a nice popup for ielm
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/ielm-other-window ()
+        "Run ielm on other window."
+        (interactive)
+        (switch-to-buffer-other-window
+         (get-buffer-create "*ielm*"))
+        (call-interactively 'ielm))
+
+      (define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
+      (define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
+    #+END_SRC
+
+*** sej/remove-elc-on-save
+    - When saving an elisp file, remove its compiled version if
+      there is one, as you'll want to recompile it.
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/remove-elc-on-save ()
+        "If you're saving an elisp file, likely the .elc is no longer valid."
+        (make-local-variable 'after-save-hook)
+        (add-hook 'after-save-hook
+                  (lambda ()
+                    (if (file-exists-p (concat buffer-file-name "c"))
+                        (delete-file (concat buffer-file-name "c"))))))
+      (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
+    #+END_SRC
+** python
+*** python
+    - Install:
+      pip install pyflakes
+      pip install autopep8
+      you also need python-language-server installed and on your PATH
+      pip3 install -U setuptools
+      pip3 install python-language-server[all] --isolated
+      [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
+                             autopep8, YAPF
+    #+BEGIN_SRC emacs-lisp
+      (use-package python
+        :ensure nil
+        :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
+        :interpreter "python"
+        :bind (:map python-mode-map
+                    ("<backtab>" . python-back-indent)
+                    ("<f9>" . py-insert-debug))
+        :hook ((python-mode . flycheck-mode)
+               (python-mode . (lambda ()
+                                (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
+               )
+        :mode (("\\.py$" . python-mode)
+               ("\\.cpy$" . python-mode)
+               ("\\.vpy$" . python-mode))
+        :config
+        (setq python-shell-interpreter "ipython"
+              python-shell-interpreter-args "--simple-prompt -i")
+
+        (define-skeleton python-insert-docstring
+          "Insert a Python docstring."
+          "This string is ignored!"
+          "\"\"\"" - "\n\n    \"\"\"")
+
+        (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
+
+        (setq fill-column 79)
+        (setq-default flycheck-flake8rc "~/.config/flake8rc")
+        (setq python-check-command "flake8")
+        (setq tab-width 2)
+
+        ;; Disable readline based native completion
+        (setq python-shell-completion-native-enable nil)
+
+        (add-hook 'inferior-python-mode-hook
+                  (lambda ()
+                    ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
+                    (process-query-on-exit-flag (get-process "Python"))))
+)
+#+END_SRC
+
+*** live-py-mode
+    - Live Coding in Python
+    - Open any Python file, and activate live-py-mode with M-x live-py-mode.
+    - You should see an extra window on the right that shows the results of
+      running your code.
+#+BEGIN_SRC emacs-lisp
+        (use-package live-py-mode)
+#+END_SRC
+
+*** yapfify
+    - Format python buffer using YAPF
+    - Install: pip install yapf
+#+BEGIN_SRC emacs-lisp
+        (use-package yapfify
+          :diminish yapf-mode
+          :hook (python-mode . yapf-mode))
+#+END_SRC
+
+*** ein
+    - Emacs IPython Notebook
+      ;; #BEGIN_SRC ein-python :session localhost :results raw drawer
+      ;; import numpy, math, matplotlib.pyplot as plt
+      ;; %matplotlib inline
+      ;; x = numpy.linspace(0, 2*math.pi)
+      ;; plt.plot(x, numpy.sin(x))
+      ;; #+END_SRC
+    - Use M-x ein:connect-to-notebook to submit code from an arbitrary
+      buffer to a running jupyter kernel
+#+BEGIN_SRC emacs-lisp
+      (use-package ein
+        :diminish ein:notebook-mode
+        :defines ein:completion-backend
+        :init (setq ein:completion-backend 'ein:use-company-backend))
+#+END_SRC
+
+*** pip-requirements
+    - major mode for editing pip requirement files
+#+BEGIN_SRC emacs-lisp
+      (use-package pip-requirements
+        :defer t)
+#+END_SRC
+
+*** ediff
+    - file comparison
+#+BEGIN_SRC emacs-lisp
+      (use-package ediff
+        :init
+        (setq ediff-shell (getenv "$SHELL"))
+        (setq-default ediff-split-window-function
+                      (quote split-window-vertically)))
+#+END_SRC
+
+*** pyvenv
+    - simple global minor mode which will replicate the changes done
+    by virtualenv activation inside Emacs
+#+BEGIN_SRC emacs-lisp
+      (use-package pyvenv
+        :hook (pyvenv-post-activate . pyvenv-restart-python))
+#+END_SRC
+
+*** company-jedi
+    - company-mode completion back-end for Python JEDI
+#+BEGIN_SRC emacs-lisp
+      (use-package company-jedi
+        :after company
+        :config (add-to-list 'company-backends 'company-jedi))
+    #+END_SRC
+
+** other program modes
+*** c-mode
+    - C/C++ Mode
+    #+BEGIN_SRC emacs-lisp
+(use-package cc-mode
+  :ensure nil
+  :bind (:map c-mode-base-map
+              ("C-c c" . compile))
+  :hook ((c-mode-common . flycheck-mode)
+         (c-mode-common . (lambda ()
+                            (c-set-style "bsd")
+                            (setq tab-width 4)
+                            (setq c-basic-offset 4))))
+  :config
+  (use-package modern-cpp-font-lock
+    :diminish
+    :hook (c++-mode modern-c++-font-lock-mode)))
+    #+END_SRC
 *** nxml-mode
     - major mode for editing XML
 #+BEGIN_SRC emacs-lisp
@@ -5053,6 +5224,7 @@ converted to PDF at the same location."
       (defvar load-language-list '((emacs-lisp . t)
                                    (perl . t)
                                    (python . t)
+                                   (ein . t)
                                    (ruby . t)
                                    (js . t)
                                    (css . t)
