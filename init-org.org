@@ -29,6 +29,7 @@
 - <2019-11-26 Tue> init-web.el tangled
 - <2019-11-26 Tue> init-misc-languages.el tangled
 - <2019-11-26 Tue> init-misc-packages tangled
+- <2019-11-26 Tue> init-lsp.el tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -659,28 +660,28 @@
 
 *** list-environment
     - A tabulated process environment editor
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package list-environment
         :commands list-environment)
-#+END_SRC
+    #+END_SRC
 
 *** esup
     - Emacs startup profiler
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package esup
         :commands esup)
-#+END_SRC
+    #+END_SRC
 
 *** try
     - for TRYing out a package in current Emacs instance
     #+BEGIN_SRC emacs-lisp
       (use-package try)
-#+END_SRC
+    #+END_SRC
 
 ** help
 *** which-key
     - minibuffer keybinding prompts
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package which-key
         :diminish which-key-mode
         :hook (after-init . which-key-mode)
@@ -691,36 +692,36 @@
                     ("C-h C-k" . which-key-show-top-level))
         :config
         (which-key-setup-minibuffer))
-#+END_SRC
+    #+END_SRC
 
 *** helpful
     - helpful is an improved help-fns & help-fns+
-#+BEGIN_SRC emacs-lisp
-  (use-package helpful
-    :after counsel
-    :defines sej-mode-map
-    :bind (:map sej-mode-map
-                ("C-c C-d" . helpful-at-point)
-                ("C-h F" . helpful-function)
-                ("C-h c" . helpful-command)
-                ("C-h C" . helpful-command)
-                ("C-h k" . helpful-key)
-                ("C-h f" . helpful-callable)
-                ("C-h M" . helpful-macro)
-                ("C-h v" . helpful-variable))
-    :config
-    (setq counsel-describe-function-function #'helpful-callable)
-    (setq counsel-describe-variable-function #'helpful-variable)
-    )
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package helpful
+        :after counsel
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c C-d" . helpful-at-point)
+                    ("C-h F" . helpful-function)
+                    ("C-h c" . helpful-command)
+                    ("C-h C" . helpful-command)
+                    ("C-h k" . helpful-key)
+                    ("C-h f" . helpful-callable)
+                    ("C-h M" . helpful-macro)
+                    ("C-h v" . helpful-variable))
+        :config
+        (setq counsel-describe-function-function #'helpful-callable)
+        (setq counsel-describe-variable-function #'helpful-variable)
+        )
+    #+END_SRC
 
 *** discover-my-major
     - Discover key bindings and their meaning for the current Emacs major mode
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package discover-my-major
         :bind (("C-h M-m" . discover-my-major)
                ("C-h M-M" . discover-my-mode)))
-#+END_SRC
+    #+END_SRC
 
 ** update
 *** sej/update-config
@@ -1288,7 +1289,7 @@
     #+END_SRC
 *** persistent-scratch
     - keep the scratch buffer from session to session
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package persistent-scratch
         :preface
         (defun my-save-buffer ()
@@ -1304,15 +1305,15 @@
         :hook (after-init . persistent-scratch-setup-default)
         :bind (:map lisp-interaction-mode-map
                     ("C-x C-s" . my-save-buffer)))
-#+END_SRC
+    #+END_SRC
 
 *** memory-usage
     - functions and variables give information about the total amount of memory
       allocation that Emacs has done, broken down by data type
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package memory-usage
         :commands memory-usage)
-#+END_SRC
+    #+END_SRC
 
 ** windows
 *** window settings
@@ -2063,7 +2064,7 @@
 
 *** google-this
     - send this to google and search
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package google-this
         :diminish google-this-mode
         :defines sej-mode-map
@@ -2072,19 +2073,19 @@
                     ("s-g" . google-this))
         :config
         (google-this-mode 1))
-#+END_SRC
+    #+END_SRC
 
 *** fd-dired
     - `find-dired' alternative using `fd'
-#+BEGIN_SRC emacs-lisp
-  (when (executable-find "fd")
-    (use-package fd-dired
-      :commands fd-dired))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (when (executable-find "fd")
+        (use-package fd-dired
+          :commands fd-dired))
+    #+END_SRC
 
 *** ag
     - searching with the silver searcher
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (when (executable-find "ag")
         (use-package ag
           :commands ag
@@ -2093,18 +2094,18 @@
           :config
           (setq ag-executable (executable-find "ag")))
         (setq-default ag-highlight-search t))
-#+END_SRC
+    #+END_SRC
 
 *** deadgrep
     - searching with `ripgrep'
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (when (executable-find "rg")
         (use-package deadgrep
           :commands deadgrep
           :bind (:map sej-mode-map
                       ("H-r" . deadgrep)
                       ("C-c s r" . deadgrep))))
-#+END_SRC
+    #+END_SRC
 
 *** ivy-yasnippet
     - Integrate yasnippet
@@ -2806,13 +2807,13 @@
 
 *** expand-region
     - expand selection region larger & smaller
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package expand-region
         :defines sej-mode-map
         :bind (:map sej-mode-map
                     ("s-=" . er/expand-region)
                     ("s--" . er/contract-region)))
-#+END_SRC
+    #+END_SRC
 
 *** hungary-delete
     - Hungry deletion
@@ -3149,6 +3150,14 @@
     #+END_SRC
 * programming
 ** general
+*** eglot
+    - client for Language Server Protocol servers
+      #+BEGIN_SRC emacs-lisp
+        (use-package eglot
+          :hook ((python-mode c-mode go-mode)  . eglot-ensure)
+          :config
+          (setq help-at-pt-display-when-idle t))
+      #+END_SRC
 *** prog-mode
     - generalized program mode
     - Prettify Symbols
@@ -3511,7 +3520,7 @@
         (if (fboundp 'transient-append-suffix)
             ;; Add switch: --tags
             (transient-append-suffix 'magit-fetch
-                                     "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+              "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
     #+END_SRC
 
 *** forge
@@ -4364,7 +4373,7 @@
 * files
 *** ztree
     - text mode directory tree. Similar with beyond compare
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package ztree
         :commands ztree)
     #+END_SRC
@@ -4871,18 +4880,18 @@
 
 *** sudo-edit
     - Open files as another user
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (unless sys/win32p
         (use-package sudo-edit))
-#+END_SRC
+    #+END_SRC
 
 *** vlf-setup
     - vlf lets you handle very large files for viewing
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package vlf-setup
         :ensure vlf
         :commands (vlf vlf-occur-load vlf-ediff-files))
-#+END_SRC
+    #+END_SRC
 
 * dired
 *** dired

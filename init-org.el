@@ -2440,6 +2440,11 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :config
   (setq paren-highlight-offscreen t))
 
+(use-package eglot
+  :hook ((python-mode c-mode go-mode)  . eglot-ensure)
+  :config
+  (setq help-at-pt-display-when-idle t))
+
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . global-prettify-symbols-mode)
@@ -2720,7 +2725,7 @@ _x_: Go external other window
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 (if (executable-find "cc")
     (use-package forge

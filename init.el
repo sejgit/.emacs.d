@@ -212,7 +212,7 @@
 ;; (require 'init-flycheck); org-tangle
 ;; (require 'init-projectile); org-tangle
 
-(require 'init-lsp)
+;; (require 'init-lsp); org-tangle
 ;; (require 'init-lisp) ; org-tangle
 
 ;; (require 'init-c); org-tangle
