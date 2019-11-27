@@ -430,15 +430,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
 
-(defun sej/create-non-existent-directory ()
-  "Ask to make directory for file if it does not exist."
-  (let ((parent-directory (file-name-directory buffer-file-name)))
-    (when (and (not (file-exists-p parent-directory))
-               (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
-      (make-directory parent-directory t))))
-
-(add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
-
 (defun sej/save-macro (name)
   "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
   (interactive "SName of the macro :")
@@ -480,6 +471,46 @@ Otherwise, return nil."
 output as per `sej/exec'. Otherwise, return nil."
   (interactive)
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
+
+(use-package list-environment
+  :commands list-environment)
+
+(use-package esup
+  :commands esup)
+
+(use-package try)
+
+(use-package which-key
+  :diminish which-key-mode
+  :hook (after-init . which-key-mode)
+  :commands which-key-mode
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-h C-m" . which-key-show-major-mode)
+              ("C-h C-k" . which-key-show-top-level))
+  :config
+  (which-key-setup-minibuffer))
+
+(use-package helpful
+  :after counsel
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c C-d" . helpful-at-point)
+              ("C-h F" . helpful-function)
+              ("C-h c" . helpful-command)
+              ("C-h C" . helpful-command)
+              ("C-h k" . helpful-key)
+              ("C-h f" . helpful-callable)
+              ("C-h M" . helpful-macro)
+              ("C-h v" . helpful-variable))
+  :config
+  (setq counsel-describe-function-function #'helpful-callable)
+  (setq counsel-describe-variable-function #'helpful-variable)
+  )
+
+(use-package discover-my-major
+  :bind (("C-h M-m" . discover-my-major)
+         ("C-h M-M" . discover-my-mode)))
 
 (defun sej/update-config ()
   "Update git tracked Emacs configurations to the latest version."
@@ -868,6 +899,25 @@ buffer is not visiting a file."
 (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
 (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer)
 (define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer)
+
+(use-package persistent-scratch
+  :preface
+  (defun my-save-buffer ()
+    "Save scratch and other buffer."
+    (interactive)
+    (let ((scratch-name "*scratch*"))
+      (if (string-equal (buffer-name) scratch-name)
+          (progn
+            (message "Saving %s..." scratch-name)
+            (persistent-scratch-save)
+            (message "Wrote %s" scratch-name))
+        (save-buffer))))
+  :hook (after-init . persistent-scratch-setup-default)
+  :bind (:map lisp-interaction-mode-map
+              ("C-x C-s" . my-save-buffer)))
+
+(use-package memory-usage
+  :commands memory-usage)
 
 (define-key sej-mode-map (kbd "s-0") 'delete-window)
 (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
@@ -1533,6 +1583,35 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
   (counsel-projectile-mode 1))
 
+(use-package google-this
+  :diminish google-this-mode
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("C-c g" . google-this)
+              ("s-g" . google-this))
+  :config
+  (google-this-mode 1))
+
+(when (executable-find "fd")
+  (use-package fd-dired
+    :commands fd-dired))
+
+(when (executable-find "ag")
+  (use-package ag
+    :commands ag
+    :bind (:map sej-mode-map
+                ("M-?" . ag-project))
+    :config
+    (setq ag-executable (executable-find "ag")))
+  (setq-default ag-highlight-search t))
+
+(when (executable-find "rg")
+  (use-package deadgrep
+    :commands deadgrep
+    :bind (:map sej-mode-map
+                ("H-r" . deadgrep)
+                ("C-c s r" . deadgrep))))
+
 (use-package ivy-yasnippet
   :commands ivy-yasnippet--preview
   :bind ("C-c C-y" . ivy-yasnippet)
@@ -1943,7 +2022,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
               ([(shift return)] . crux-smart-open-line)
               ("C-c n" . crux-cleanup-buffer-or-region)
               ("C-c u" . crux-view-url)
-              ("C-c C-d" . crux-delete-file-and-buffer)
               ("s-d" . crux-duplicate-current-line-or-region)
               ("C-c C-k" . crux-duplicate-current-line-or-region)
               ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
@@ -2095,6 +2173,12 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 (use-package smart-region
   :bind ([remap set-mark-command] . smart-region)
   :config (smart-region-on))
+
+(use-package expand-region
+  :defines sej-mode-map
+  :bind (:map sej-mode-map
+              ("s-=" . er/expand-region)
+              ("s--" . er/contract-region)))
 
 (use-package hungry-delete
   :diminish
@@ -2380,6 +2464,11 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
                                 ("not" . ?¬))))))
   :init (setq prettify-symbols-unprettify-at-point 'right-edge))
 
+(use-package format-all
+  :bind (:map sej-mode-map
+              ("C-c s f" . format-all-buffer)
+              ("A-f" . format-all-buffer)))
+
 (use-package tramp
   :commands
   tramp-default-method
@@ -2531,8 +2620,8 @@ _x_: Go external other window
   (setq flycheck-indication-mode 'right-fringe
         flycheck-check-syntax-automatically '(save
                                               mode-enabled
-                                                   idle-change
-                                                   idle-buffer-switch))
+                                              idle-change
+                                              idle-buffer-switch))
   (custom-set-faces
    '(flycheck-error ((((class color)) (:underline "Red"))))
    '(flycheck-warning ((((class color)) (:underline "Orange")))))
@@ -2613,6 +2702,12 @@ _x_: Go external other window
 
   )
 
+(use-package ediff
+  :init
+  (setq ediff-shell (getenv "$SHELL"))
+  (setq-default ediff-split-window-function
+                (quote split-window-vertically)))
+
 (use-package magit
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
@@ -2625,7 +2720,7 @@ _x_: Go external other window
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 (if (executable-find "cc")
     (use-package forge
@@ -2903,6 +2998,31 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
                                    company-shell-env
                                    company-fish-shell)))
 
+(use-package company-jedi
+  :after company
+  :config (add-to-list 'company-backends 'company-jedi))
+
+(use-package company-arduino
+  :after company
+  :hook ( (arduino-mode . irony-mode)
+          (irony-mode . company-arduino-turn-on) )
+  :config
+  ;; Configuration for company-c-headers.el
+  ;; The `company-arduino-append-include-dirs' function appends
+  ;; Arduino's include directories to the default directories
+  ;; if `default-directory' is inside `company-arduino-home'. Otherwise
+  ;; just returns the default directories.
+  ;; Please change the default include directories accordingly.
+  (defun my-company-c-headers-get-system-path ()
+    "Return the system include path for the current buffer."
+    (let ((default '("/usr/include/" "/usr/local/include/")))
+      (company-arduino-append-include-dirs default t)))
+  (setq company-c-headers-path-system 'my-company-c-headers-get-system-path)
+
+  ;; If you are already using company-irony and company-c-headers, you might have same setting. That case, you can omit below setting.
+  (add-to-list 'company-backends 'company-irony)
+  (add-to-list 'company-backends 'company-c-headers))
+
 (use-package yasnippet
   :diminish yas-minor-mode
   :hook (sej/after-init . yas-global-mode)
@@ -2953,7 +3073,10 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package elisp-slime-nav
   :diminish elisp-slime-nav-mode
-  :hook (emacs-lisp-mode . elisp-slime-nav-mode))
+  :hook (emacs-lisp-mode . elisp-slime-nav-mode)
+  :config
+  (global-unset-key (kbd "C-c C-d d"))
+  (global-unset-key (kbd "C-c C-d C-d")))
 
 (use-package eros
   :commands eros-mode
@@ -2979,43 +3102,43 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
 (use-package python
-        :ensure nil
-        :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
-        :interpreter "python"
-        :bind (:map python-mode-map
-                    ("<backtab>" . python-back-indent)
-                    ("<f9>" . py-insert-debug))
-        :hook ((python-mode . flycheck-mode)
-               (python-mode . (lambda ()
-                                (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
-               )
-        :mode (("\\.py$" . python-mode)
-               ("\\.cpy$" . python-mode)
-               ("\\.vpy$" . python-mode))
-        :config
-        (setq python-shell-interpreter "ipython"
-              python-shell-interpreter-args "--simple-prompt -i")
+  :ensure nil
+  :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
+  :interpreter "python"
+  :bind (:map python-mode-map
+              ("<backtab>" . python-back-indent)
+              ("<f9>" . py-insert-debug))
+  :hook ((python-mode . flycheck-mode)
+         (python-mode . (lambda ()
+                          (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
+         )
+  :mode (("\\.py$" . python-mode)
+         ("\\.cpy$" . python-mode)
+         ("\\.vpy$" . python-mode))
+  :config
+  (setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "--simple-prompt -i")
 
-        (define-skeleton python-insert-docstring
-          "Insert a Python docstring."
-          "This string is ignored!"
-          "\"\"\"" - "\n\n    \"\"\"")
+  (define-skeleton python-insert-docstring
+    "Insert a Python docstring."
+    "This string is ignored!"
+    "\"\"\"" - "\n\n    \"\"\"")
 
-        (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
+  (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
 
-        (setq fill-column 79)
-        (setq-default flycheck-flake8rc "~/.config/flake8rc")
-        (setq python-check-command "flake8")
-        (setq tab-width 2)
+  (setq fill-column 79)
+  (setq-default flycheck-flake8rc "~/.config/flake8rc")
+  (setq python-check-command "flake8")
+  (setq tab-width 2)
 
-        ;; Disable readline based native completion
-        (setq python-shell-completion-native-enable nil)
+  ;; Disable readline based native completion
+  (setq python-shell-completion-native-enable nil)
 
-        (add-hook 'inferior-python-mode-hook
-                  (lambda ()
-                    ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
-                    (process-query-on-exit-flag (get-process "Python"))))
-)
+  (add-hook 'inferior-python-mode-hook
+            (lambda ()
+              ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
+              (process-query-on-exit-flag (get-process "Python"))))
+  )
 
 (use-package live-py-mode)
 
@@ -3031,18 +3154,104 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (use-package pip-requirements
   :defer t)
 
-(use-package ediff
-  :init
-  (setq ediff-shell (getenv "$SHELL"))
-  (setq-default ediff-split-window-function
-                (quote split-window-vertically)))
-
 (use-package pyvenv
   :hook (pyvenv-post-activate . pyvenv-restart-python))
 
-(use-package company-jedi
-  :after company
-  :config (add-to-list 'company-backends 'company-jedi))
+(use-package web-mode
+  :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
+  :config
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2))
+
+(use-package css-eldoc
+  :commands turn-on-css-eldoc
+  :hook ((css-mode scss-mode less-css-mode) . turn-on-css-eldoc))
+
+(use-package json-mode)
+
+(use-package js2-mode
+  :defines flycheck-javascript-eslint-executable
+  :mode (("\\.js\\'" . js2-mode)
+         ("\\.jsx\\'" . js2-jsx-mode))
+  :interpreter (("node" . js2-mode)
+                ("node" . js2-jsx-mode))
+  :hook ((js2-mode . js2-imenu-extras-mode)
+         (js2-mode . js2-highlight-unused-variables-mode))
+  :config
+  ;; Use default keybindings for lsp
+  (if sej-lsp
+      (unbind-key "M-." js2-mode-map))
+
+  (with-eval-after-load 'flycheck
+    (if (or (executable-find "eslint_d")
+            (executable-find "eslint")
+            (executable-find "jshint"))
+        (setq js2-mode-show-strict-warnings nil))
+    (if (executable-find "eslint_d")
+        ;; https://github.com/mantoni/eslint_d.js
+        ;; npm -i -g eslint_d
+        (setq flycheck-javascript-eslint-executable "eslint_d"))))
+
+(use-package js2-refactor
+  :after js2-mode
+  :diminish js2-refactor-mode
+  :hook (js2-mode . js2-refactor-mode)
+  :config (js2r-add-keybindings-with-prefix "C-c C-m"))
+
+(use-package mocha
+  :config (use-package mocha-snippets))
+
+(use-package coffee-mode
+  :config (setq coffee-tab-width 2))
+
+(use-package skewer-mode
+  :diminish skewer-mode
+  :hook ((js2-mode . skewer-mode)
+         (css-mode . skewer-css-mode)
+         (web-mode . skewer-html-mode)
+         (html-mode . skewer-html-mode))
+  :init
+  ;; diminish
+  (with-eval-after-load 'skewer-css
+    (diminish 'skewer-css-mode))
+  (with-eval-after-load 'skewer-html
+    (diminish 'skewer-html-mode)))
+
+(use-package web-beautify
+  :init
+  (with-eval-after-load 'js-mode
+    (bind-key "C-c b" #'web-beautify-js js-mode-map))
+  (with-eval-after-load 'js2-mode
+    (bind-key "C-c b" #'web-beautify-js js2-mode-map))
+  (with-eval-after-load 'json-mode
+    (bind-key "C-c b" #'web-beautify-js json-mode-map))
+  (with-eval-after-load 'web-mode
+    (bind-key "C-c b" #'web-beautify-html web-mode-map))
+  (with-eval-after-load 'sgml-mode
+    (bind-key "C-c b" #'web-beautify-html html-mode-map))
+  (with-eval-after-load 'css-mode
+    (bind-key "C-c b" #'web-beautify-css css-mode-map))
+  :config
+  ;; Set indent size to 2
+  (setq web-beautify-args '("-s" "2" "-f" "-")))
+
+(use-package haml-mode)
+
+(use-package php-mode
+  :mode (("\\.module$" . php-mode)
+         ("\\.inc$" . php-mode)
+         ("\\.install$" . php-mode)
+         ("\\.engine$" . php-mode)))
+
+(use-package yaml-mode
+  :mode
+  (("\\.yml$" . yaml-mode)
+   ("\\.yaml$" . yaml-mode)))
+
+(use-package nxml-mode
+  :ensure nil
+  :mode (("\\.xaml$" . xml-mode)))
 
 (use-package cc-mode
   :ensure nil
@@ -3058,11 +3267,13 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
     :diminish
     :hook (c++-mode modern-c++-font-lock-mode)))
 
-(use-package nxml-mode
-  :ensure nil
-  :mode (("\\.xaml$" . xml-mode)))
-
 (use-package csharp-mode)
+
+(use-package arduino-mode
+  :mode "\\.ino$"
+  :config
+  (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
+  (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
 (use-package swift-mode
   :config
@@ -3073,6 +3284,18 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package rust-mode
   :config (setq rust-format-on-save t))
+
+(use-package conf-mode
+  :diminish conf-mode
+  :mode "\\.gitconfig$")
+
+(use-package csv-mode
+  :mode "\\.[Cc][Ss][Vv]\\'"
+  :config
+  (setq csv-separators '("," ";" "|" " ")))
+
+(use-package ztree
+  :commands ztree)
 
 (use-package ibuffer
   :ensure nil
@@ -3539,17 +3762,21 @@ _S_ettings                                _C-p_: Previous Line
   (define-auto-insert ".*\\.el" "template.el")
   )
 
-(use-package conf-mode
-  :diminish conf-mode
-  :mode "\\.gitconfig$")
+(defun sej/create-non-existent-directory ()
+  "Ask to make directory for file if it does not exist."
+  (let ((parent-directory (file-name-directory buffer-file-name)))
+    (when (and (not (file-exists-p parent-directory))
+               (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
+      (make-directory parent-directory t))))
 
-(use-package csv-mode
-  :mode "\\.[Cc][Ss][Vv]\\'"
-  :config
-  (setq csv-separators '("," ";" "|" " ")))
+(add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
 
-(use-package textile-mode
-  :mode "\\.textile\\'")
+(unless sys/win32p
+  (use-package sudo-edit))
+
+(use-package vlf-setup
+  :ensure vlf
+  :commands (vlf vlf-occur-load vlf-ediff-files))
 
 ;; Directory operations
 (use-package dired
@@ -3787,49 +4014,52 @@ hljs.highlightBlock(code);
 
 (use-package markdown-toc))
 
+(use-package textile-mode
+  :mode "\\.textile\\'")
+
 (use-package adoc-mode)
 
 (use-package abbrev
-:ensure nil
-:hook ((sej/after-init org-mode) . abbrev-mode)
-:diminish abbrev-mode
-:config
-(setq abbrev-file-name             ;; tell emacs where to read abbrev
-"~/.emacs.d/abbrev_defs")    ;; definitions from...
-(define-abbrev-table
-'global-abbrev-table
-'(("<sej" "stephenearljenkins" nil 0)))
-(define-abbrev-table
-'org-mode-abbrev-table
-'(("<orgh" "" 'sej/org-header 0)))
-(define-abbrev-table
-'org-mode-abbrev-table
-'(("<orgl" "" 'sej/org-wrap-elisp 0)))
-(define-abbrev-table
-'org-mode-abbrev-table
-'(("<orgs" "" 'sej/org-wrap-source 0))))
+  :ensure nil
+  :hook ((sej/after-init org-mode) . abbrev-mode)
+  :diminish abbrev-mode
+  :config
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+        "~/.emacs.d/abbrev_defs")    ;; definitions from...
+  (define-abbrev-table
+    'global-abbrev-table
+    '(("<sej" "stephenearljenkins" nil 0)))
+  (define-abbrev-table
+    'org-mode-abbrev-table
+    '(("<orgh" "" 'sej/org-header 0)))
+  (define-abbrev-table
+    'org-mode-abbrev-table
+    '(("<orgl" "" 'sej/org-wrap-elisp 0)))
+  (define-abbrev-table
+    'org-mode-abbrev-table
+    '(("<orgs" "" 'sej/org-wrap-source 0))))
 
 (defun sej/number-rectangle (start end format-string from)
-"Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
-(interactive
-(list (region-beginning) (region-end)
-(read-string "Number rectangle: "
-(if (looking-back "^ *" nil nil) "%d. " "%d"))
-(read-number "From: " 1)))
-(save-excursion
-(goto-char start)
-(setq start (point-marker))
-(goto-char end)
-(setq end (point-marker))
-(delete-rectangle start end)
-(goto-char start)
-(loop with column = (current-column)
-while (and (<= (point) end) (not (eobp)))
-for i from from   do
-(move-to-column column t)
-(insert (format format-string i))
-(forward-line 1)))
-(goto-char start))
+  "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
+  (interactive
+   (list (region-beginning) (region-end)
+         (read-string "Number rectangle: "
+                      (if (looking-back "^ *" nil nil) "%d. " "%d"))
+         (read-number "From: " 1)))
+  (save-excursion
+    (goto-char start)
+    (setq start (point-marker))
+    (goto-char end)
+    (setq end (point-marker))
+    (delete-rectangle start end)
+    (goto-char start)
+    (loop with column = (current-column)
+          while (and (<= (point) end) (not (eobp)))
+          for i from from   do
+          (move-to-column column t)
+          (insert (format format-string i))
+          (forward-line 1)))
+  (goto-char start))
 
 (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
 (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
@@ -4139,7 +4369,7 @@ converted to PDF at the same location."
                              (sass . t)
                              (C . t)
                              (java . t)
-                             (plantuml . t)))
+                             (arduino . t)))
 
 (if emacs/>=26p
     (cl-pushnew '(shell . t) load-language-list)
@@ -4196,18 +4426,18 @@ converted to PDF at the same location."
   * Introduction  " \n)
 
 (define-skeleton sej/org-wrap-elisp
-"Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
-nil
-> "#+BEGIN_SRC emacs-lisp" \n
-> _ \n
-> "#+END_SRC" \n)
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+  nil
+  > "#+BEGIN_SRC emacs-lisp" \n
+  > _ \n
+  > "#+END_SRC" \n)
 
 (define-skeleton sej/org-wrap-source
-"Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
-"Language: "
-> "#+BEGIN_SRC " str \n
-> _ \n
-> "#+END_SRC" \n)
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+  "Language: "
+  > "#+BEGIN_SRC " str \n
+  > _ \n
+  > "#+END_SRC" \n)
 
 (use-package eshell
   :ensure nil

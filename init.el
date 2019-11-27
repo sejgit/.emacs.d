@@ -217,9 +217,9 @@
 
 ;; (require 'init-c); org-tangle
 ;; (require 'init-python); org-tangle
-(require 'init-web)
-(require 'init-misc-languages)
-(require 'init-misc-pkgs)
+;; (require 'init-web); org-tangle
+;; (require 'init-misc-languages); org-tangle
+;; (require 'init-misc-pkgs); org-tangle
 
 (message "init.el ends here")
 ;;; init.el ends here

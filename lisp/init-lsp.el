@@ -43,20 +43,20 @@
   :config
   (setq help-at-pt-display-when-idle t))
 
-(use-package dap-mode
-  :diminish
-  :hook (
-         ;; (after-init . dap-mode)
-         (dap-mode . dap-ui-mode)
+;; (use-package dap-mode
+;;   :diminish
+;;   :hook (
+;;          ;; (after-init . dap-mode)
+;;          (dap-mode . dap-ui-mode)
 
-         (python-mode . (lambda () (require 'dap-python)))
-         (go-mode . (lambda () (require 'dap-go)))
-         ((c-mode c++-mode objc-mode swift) . (lambda () (require 'dap-lldb)))
-         (php-mode . (lambda () (require 'dap-php))))
-  :config
-  (setq dap-python-executable (executable-find "python"))
-  (dap-mode 1)
-  (dap-ui-mode 1))
+;;          (python-mode . (lambda () (require 'dap-python)))
+;;          (go-mode . (lambda () (require 'dap-go)))
+;;          ((c-mode c++-mode objc-mode swift) . (lambda () (require 'dap-lldb)))
+;;          (php-mode . (lambda () (require 'dap-php))))
+;;   :config
+;;   (setq dap-python-executable (executable-find "python"))
+;;   (dap-mode 1)
+;;   (dap-ui-mode 1))
 
 (provide 'init-lsp)
 ;;; Init-lsp.el ends here

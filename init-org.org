@@ -26,6 +26,9 @@
 - <2019-11-24 Sun> init-flycheck.el tangled
 - <2019-11-24 Sun> init-projectile.el tangled
 - <2019-11-25 Mon> init-python.el tangled
+- <2019-11-26 Tue> init-web.el tangled
+- <2019-11-26 Tue> init-misc-languages.el tangled
+- <2019-11-26 Tue> init-misc-packages tangled
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -38,16 +41,14 @@
   - [[#start-server][start server]]
   - [[#miscellaneous-settings][miscellaneous settings]]
 - [[#general-key-bindings][general key-bindings]]
-  - [[#set-os-specific-modifiers][Set OS specific modifiers]]
+  - [[#modifiers---os-specific][modifiers - OS specific]]
   - [[#keybindings-global][keybindings global]]
   - [[#keybindings-sej-mode-map][keybindings sej-mode-map]]
-- [[#general-defuns][general defuns]]
-  - [[#sejcreate-non-existent-directory][sej/create-non-existent-directory]]
-  - [[#sejsave-macro][sej/save-macro]]
-  - [[#sejexec][sej/exec]]
-  - [[#update-functions][update functions]]
-  - [[#network-proxy-functions][network proxy functions]]
-- [[#user-interface-settings][user interface settings]]
+- [[#general-functions--packages][general functions / packages]]
+  - [[#help][help]]
+  - [[#update][update]]
+  - [[#network-proxy][network proxy]]
+- [[#user-interface][user interface]]
   - [[#themes][themes]]
   - [[#frames][frames]]
   - [[#buffers][buffers]]
@@ -71,6 +72,8 @@
   - [[#completion][completion]]
   - [[#lisp][lisp]]
   - [[#python][python]]
+  - [[#web-modes][web modes]]
+  - [[#c-program-modes][c program modes]]
   - [[#other-program-modes][other program modes]]
 - [[#files][files]]
 - [[#dired][dired]]
@@ -408,7 +411,7 @@
    #+END_SRC
 
 * general key-bindings
-** Set OS specific modifiers
+** modifiers - OS specific
 *** MAC OS Apple keyboard
     - caps lock is control (through karabiner)
       Fn key do Hyper
@@ -602,74 +605,124 @@
       (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
     #+END_SRC
 
-* general defuns
-** sej/create-non-existent-directory
-   - Offer to create parent directories if they do not exist
-     automatically run after save
-     - http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/create-non-existent-directory ()
-       "Ask to make directory for file if it does not exist."
-       (let ((parent-directory (file-name-directory buffer-file-name)))
-         (when (and (not (file-exists-p parent-directory))
-                    (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
-           (make-directory parent-directory t))))
+* general functions / packages
+*** sej/save-macro
+    - save last macro to init file
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/save-macro (name)
+        "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
+        (interactive "SName of the macro :")
+        (kmacro-name-last-macro name)
+        (find-file user-init-file)
+        (goto-char (point-max))
+        (newline)
+        (insert-kbd-macro name)
+        (newline)
+        (switch-to-buffer nil))
+    #+END_SRC
 
-     (add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
-   #+END_SRC
+*** sej/exec
+    - not key defined
+    - executable functions from ohai and modified for my uses
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/exec (command)
+        "Run a shell command and return its output as a string, whitespace trimmed."
+        (interactive)
+        (s-trim (shell-command-to-string command)))
 
-** sej/save-macro
-   - save last macro to init file
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/save-macro (name)
-       "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
-       (interactive "SName of the macro :")
-       (kmacro-name-last-macro name)
-       (find-file user-init-file)
-       (goto-char (point-max))
-       (newline)
-       (insert-kbd-macro name)
-       (newline)
-       (switch-to-buffer nil))
-   #+END_SRC
+      (defun sej/exec-with-rc (command &rest args)
+        "Run a shell command and return a list containing two values: its return
+      code and its whitespace trimmed output."
+        (interactive)
+        (with-temp-buffer
+          (list (apply 'call-process command nil (current-buffer) nil args)
+                (s-trim (buffer-string)))))
 
-** sej/exec
-   - not key defined
-   - executable functions from ohai and modified for my uses
-   #+BEGIN_SRC emacs-lisp
-     (defun sej/exec (command)
-       "Run a shell command and return its output as a string, whitespace trimmed."
-       (interactive)
-       (s-trim (shell-command-to-string command)))
+      (defun sej/is-exec (command)
+        "Returns true if `command' is an executable on the system search path."
+        (interactive)
+        (f-executable? (s-trim (shell-command-to-string (s-concat "which " command)))))
 
-     (defun sej/exec-with-rc (command &rest args)
-       "Run a shell command and return a list containing two values: its return
-     code and its whitespace trimmed output."
-       (interactive)
-       (with-temp-buffer
-         (list (apply 'call-process command nil (current-buffer) nil args)
-               (s-trim (buffer-string)))))
+      (defun sej/resolve-exec (command)
+        "If `command' is an executable on the system search path, return its absolute path.
+      Otherwise, return nil."
+        (interactive)
+        (-let [path (s-trim (shell-command-to-string (s-concat "which " command)))]
+          (when (f-executable? path) path)))
 
-     (defun sej/is-exec (command)
-       "Returns true if `command' is an executable on the system search path."
-       (interactive)
-       (f-executable? (s-trim (shell-command-to-string (s-concat "which " command)))))
+      (defun sej/exec-if-exec (command args)
+        "If `command' satisfies `sej/is-exec', run it with `args' and return its
+      output as per `sej/exec'. Otherwise, return nil."
+        (interactive)
+        (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
+    #+END_SRC
 
-     (defun sej/resolve-exec (command)
-       "If `command' is an executable on the system search path, return its absolute path.
-     Otherwise, return nil."
-       (interactive)
-       (-let [path (s-trim (shell-command-to-string (s-concat "which " command)))]
-         (when (f-executable? path) path)))
+*** list-environment
+    - A tabulated process environment editor
+#+BEGIN_SRC emacs-lisp
+      (use-package list-environment
+        :commands list-environment)
+#+END_SRC
 
-     (defun sej/exec-if-exec (command args)
-       "If `command' satisfies `sej/is-exec', run it with `args' and return its
-     output as per `sej/exec'. Otherwise, return nil."
-       (interactive)
-       (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
-   #+END_SRC
+*** esup
+    - Emacs startup profiler
+#+BEGIN_SRC emacs-lisp
+      (use-package esup
+        :commands esup)
+#+END_SRC
 
-** update functions
+*** try
+    - for TRYing out a package in current Emacs instance
+    #+BEGIN_SRC emacs-lisp
+      (use-package try)
+#+END_SRC
+
+** help
+*** which-key
+    - minibuffer keybinding prompts
+#+BEGIN_SRC emacs-lisp
+      (use-package which-key
+        :diminish which-key-mode
+        :hook (after-init . which-key-mode)
+        :commands which-key-mode
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-h C-m" . which-key-show-major-mode)
+                    ("C-h C-k" . which-key-show-top-level))
+        :config
+        (which-key-setup-minibuffer))
+#+END_SRC
+
+*** helpful
+    - helpful is an improved help-fns & help-fns+
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :after counsel
+    :defines sej-mode-map
+    :bind (:map sej-mode-map
+                ("C-c C-d" . helpful-at-point)
+                ("C-h F" . helpful-function)
+                ("C-h c" . helpful-command)
+                ("C-h C" . helpful-command)
+                ("C-h k" . helpful-key)
+                ("C-h f" . helpful-callable)
+                ("C-h M" . helpful-macro)
+                ("C-h v" . helpful-variable))
+    :config
+    (setq counsel-describe-function-function #'helpful-callable)
+    (setq counsel-describe-variable-function #'helpful-variable)
+    )
+#+END_SRC
+
+*** discover-my-major
+    - Discover key bindings and their meaning for the current Emacs major mode
+#+BEGIN_SRC emacs-lisp
+      (use-package discover-my-major
+        :bind (("C-h M-m" . discover-my-major)
+               ("C-h M-M" . discover-my-mode)))
+#+END_SRC
+
+** update
 *** sej/update-config
     - helper function to pull latest config from git tracked dir
     - not bound
@@ -762,7 +815,7 @@
             (byte-recompile-directory dir 0 t))))
     #+END_SRC
 
-** network proxy functions
+** network proxy
 *** sej/proxy-http-show
     - what are the current proxy settings
     - based on the Emacs settings variables
@@ -846,7 +899,7 @@
         (message "Disable socks proxy."))
     #+END_SRC
 
-* user interface settings
+* user interface
 ** themes
 *** sej/load-theme
     - functions to set-up menu of standard themes to load
@@ -1233,6 +1286,34 @@
       (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer)
       (define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer)
     #+END_SRC
+*** persistent-scratch
+    - keep the scratch buffer from session to session
+#+BEGIN_SRC emacs-lisp
+      (use-package persistent-scratch
+        :preface
+        (defun my-save-buffer ()
+          "Save scratch and other buffer."
+          (interactive)
+          (let ((scratch-name "*scratch*"))
+            (if (string-equal (buffer-name) scratch-name)
+                (progn
+                  (message "Saving %s..." scratch-name)
+                  (persistent-scratch-save)
+                  (message "Wrote %s" scratch-name))
+              (save-buffer))))
+        :hook (after-init . persistent-scratch-setup-default)
+        :bind (:map lisp-interaction-mode-map
+                    ("C-x C-s" . my-save-buffer)))
+#+END_SRC
+
+*** memory-usage
+    - functions and variables give information about the total amount of memory
+      allocation that Emacs has done, broken down by data type
+#+BEGIN_SRC emacs-lisp
+      (use-package memory-usage
+        :commands memory-usage)
+#+END_SRC
+
 ** windows
 *** window settings
     #+BEGIN_SRC emacs-lisp
@@ -1980,6 +2061,51 @@
         (counsel-projectile-mode 1))
     #+END_SRC
 
+*** google-this
+    - send this to google and search
+#+BEGIN_SRC emacs-lisp
+      (use-package google-this
+        :diminish google-this-mode
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c g" . google-this)
+                    ("s-g" . google-this))
+        :config
+        (google-this-mode 1))
+#+END_SRC
+
+*** fd-dired
+    - `find-dired' alternative using `fd'
+#+BEGIN_SRC emacs-lisp
+  (when (executable-find "fd")
+    (use-package fd-dired
+      :commands fd-dired))
+#+END_SRC
+
+*** ag
+    - searching with the silver searcher
+#+BEGIN_SRC emacs-lisp
+      (when (executable-find "ag")
+        (use-package ag
+          :commands ag
+          :bind (:map sej-mode-map
+                      ("M-?" . ag-project))
+          :config
+          (setq ag-executable (executable-find "ag")))
+        (setq-default ag-highlight-search t))
+#+END_SRC
+
+*** deadgrep
+    - searching with `ripgrep'
+#+BEGIN_SRC emacs-lisp
+      (when (executable-find "rg")
+        (use-package deadgrep
+          :commands deadgrep
+          :bind (:map sej-mode-map
+                      ("H-r" . deadgrep)
+                      ("C-c s r" . deadgrep))))
+#+END_SRC
+
 *** ivy-yasnippet
     - Integrate yasnippet
     #+BEGIN_SRC emacs-lisp
@@ -2459,7 +2585,6 @@
                     ([(shift return)] . crux-smart-open-line)
                     ("C-c n" . crux-cleanup-buffer-or-region)
                     ("C-c u" . crux-view-url)
-                    ("C-c C-d" . crux-delete-file-and-buffer)
                     ("s-d" . crux-duplicate-current-line-or-region)
                     ("C-c C-k" . crux-duplicate-current-line-or-region)
                     ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
@@ -2678,6 +2803,16 @@
         :bind ([remap set-mark-command] . smart-region)
         :config (smart-region-on))
     #+END_SRC
+
+*** expand-region
+    - expand selection region larger & smaller
+#+BEGIN_SRC emacs-lisp
+      (use-package expand-region
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("s-=" . er/expand-region)
+                    ("s--" . er/contract-region)))
+#+END_SRC
 
 *** hungary-delete
     - Hungry deletion
@@ -3018,87 +3153,97 @@
     - generalized program mode
     - Prettify Symbols
     - e.g. display “lambda” as “λ”
-#+BEGIN_SRC emacs-lisp
-(use-package prog-mode
-  :ensure nil
-  :hook ((prog-mode . global-prettify-symbols-mode)
-         (prog-mode . (lambda ()
-                        (setq prettify-symbols-alist
-                              '(("lambda" . ?λ)
-                                ("->" . ?→)
-                                ("->>" . ?↠)
-                                ("=>" . ?⇒)
-                                ("map" . ?↦)
-                                ("/=" . ?≠)
-                                ("!=" . ?≠)
-                                ("==" . ?≡)
-                                ("<=" . ?≤)
-                                (">=" . ?≥)
-                                ("=<<" . (?= (Br . Bl) ?≪))
-                                (">>=" . (?≫ (Br . Bl) ?=))
-                                ("<=<" . ?↢)
-                                (">=>" . ?↣)
-                                ("&&" . ?∧)
-                                ("||" . ?∨)
-                                ("not" . ?¬))))))
-  :init (setq prettify-symbols-unprettify-at-point 'right-edge))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package prog-mode
+        :ensure nil
+        :hook ((prog-mode . global-prettify-symbols-mode)
+               (prog-mode . (lambda ()
+                              (setq prettify-symbols-alist
+                                    '(("lambda" . ?λ)
+                                      ("->" . ?→)
+                                      ("->>" . ?↠)
+                                      ("=>" . ?⇒)
+                                      ("map" . ?↦)
+                                      ("/=" . ?≠)
+                                      ("!=" . ?≠)
+                                      ("==" . ?≡)
+                                      ("<=" . ?≤)
+                                      (">=" . ?≥)
+                                      ("=<<" . (?= (Br . Bl) ?≪))
+                                      (">>=" . (?≫ (Br . Bl) ?=))
+                                      ("<=<" . ?↢)
+                                      (">=>" . ?↣)
+                                      ("&&" . ?∧)
+                                      ("||" . ?∨)
+                                      ("not" . ?¬))))))
+        :init (setq prettify-symbols-unprettify-at-point 'right-edge))
+    #+END_SRC
+
+*** format-all
+    - auto-format source code in many languages using the same command for all languages
+    - You will need to install external programs to do the formatting
+    #+BEGIN_SRC emacs-lisp
+      (use-package format-all
+        :bind (:map sej-mode-map
+                    ("C-c s f" . format-all-buffer)
+                    ("A-f" . format-all-buffer)))
+    #+END_SRC
 
 *** tramp
     - remote editing
-#+BEGIN_SRC emacs-lisp
-(use-package tramp
-  :commands
-  tramp-default-method
-  tramp-default-user
-  tramp-default-host
-  :init
-  (if sys/macp
-      (setq
-       tramp-default-method "ssh"
-       password-cache-expiry nil)
-    (setq
-     tramp-default-method "ssh"
-     tramp-default-user "pi"
-     tramp-default-host "home"
-     password-cache-expiry nil)
-    )
-  (setq tramp-use-ssh-controlmaster-options nil)
+    #+BEGIN_SRC emacs-lisp
+      (use-package tramp
+        :commands
+        tramp-default-method
+        tramp-default-user
+        tramp-default-host
+        :init
+        (if sys/macp
+            (setq
+             tramp-default-method "ssh"
+             password-cache-expiry nil)
+          (setq
+           tramp-default-method "ssh"
+           tramp-default-user "pi"
+           tramp-default-host "home"
+           password-cache-expiry nil)
+          )
+        (setq tramp-use-ssh-controlmaster-options nil)
 
-  (defadvice tramp-handle-write-region
-      (after tramp-write-beep-advice activate)
-    "Make tramp beep after writing a file."
-    (interactive)
-    (beep))
+        (defadvice tramp-handle-write-region
+            (after tramp-write-beep-advice activate)
+          "Make tramp beep after writing a file."
+          (interactive)
+          (beep))
 
-  (defadvice tramp-handle-do-copy-or-rename-file
-      (after tramp-copy-beep-advice activate)
-    "Make tramp beep after copying a file."
-    (interactive)
-    (beep))
+        (defadvice tramp-handle-do-copy-or-rename-file
+            (after tramp-copy-beep-advice activate)
+          "Make tramp beep after copying a file."
+          (interactive)
+          (beep))
 
-  (defadvice tramp-handle-insert-file-contents
-      (after tramp-insert-beep-advice activate)
-    "Make tramp beep after inserting a file."
-    (interactive)
-    (beep))
-  )
-#+END_SRC
+        (defadvice tramp-handle-insert-file-contents
+            (after tramp-insert-beep-advice activate)
+          "Make tramp beep after inserting a file."
+          (interactive)
+          (beep))
+        )
+    #+END_SRC
 
 *** pass
     - major-mode to manage your password-store (pass) keychain
-#+BEGIN_SRC emacs-lisp
-(use-package pass
-  :commands pass)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package pass
+        :commands pass)
+    #+END_SRC
 
 *** indent-guide
     - show vertical lines to guide indentation
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package indent-guide
         :hook (prog-mode . indent-guide-mode)
         :diminish indent-guide-mode)
-#+END_SRC
+    #+END_SRC
 
 *** comment-dwim-2
     - An all-in-one comment command to rule them all
@@ -3145,160 +3290,160 @@
 
 *** compile
     - Compilation Mode
-#+BEGIN_SRC emacs-lisp
-(use-package compile
-  :ensure nil
-  :preface
-  ;; ANSI Coloring
-  ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
-  (defun my-colorize-compilation-buffer ()
-    "ANSI coloring in compilation buffers."
-    (when (eq major-mode 'compilation-mode)
-      (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  :hook (compilation-filter . my-colorize-compilation-buffer))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package compile
+        :ensure nil
+        :preface
+        ;; ANSI Coloring
+        ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
+        (defun my-colorize-compilation-buffer ()
+          "ANSI coloring in compilation buffers."
+          (when (eq major-mode 'compilation-mode)
+            (ansi-color-apply-on-region compilation-filter-start (point-max))))
+        :hook (compilation-filter . my-colorize-compilation-buffer))
+    #+END_SRC
 
 *** dumb-jump
     - Jump to definition via `ag'/`rg'/`grep'
-#+BEGIN_SRC emacs-lisp
-(use-package dumb-jump
-  :defines sej-mode-map
-  :functions dumb-jump-hydra/body
-  :bind (:map sej-mode-map
-              ("M-g o" . dumb-jump-go-other-window)
-              ("M-g j" . dumb-jump-go)
-              ("M-g i" . dumb-jump-go-prompt)
-              ("M-g x" . dumb-jump-go-prefer-external)
-              ("M-g z" . dumb-jump-go-prefer-external-other-window))
-  :config
-  (setq dumb-jump-prefer-searcher 'ag)
-  (with-eval-after-load 'ivy
-    (setq dumb-jump-selector 'ivy))
+    #+BEGIN_SRC emacs-lisp
+      (use-package dumb-jump
+        :defines sej-mode-map
+        :functions dumb-jump-hydra/body
+        :bind (:map sej-mode-map
+                    ("M-g o" . dumb-jump-go-other-window)
+                    ("M-g j" . dumb-jump-go)
+                    ("M-g i" . dumb-jump-go-prompt)
+                    ("M-g x" . dumb-jump-go-prefer-external)
+                    ("M-g z" . dumb-jump-go-prefer-external-other-window))
+        :config
+        (setq dumb-jump-prefer-searcher 'ag)
+        (with-eval-after-load 'ivy
+          (setq dumb-jump-selector 'ivy))
 
-  (defhydra hydra-dumb-jump (:color blue :hint none)
-    "
-^Jump^                            ^Other^
-^^────────────────────────────────^^───────────────
-_j_: Go                           _i_: Prompt
-_o_: Go other window              _l_: Quick look
-_e_: Go external                  _b_: Back
-_x_: Go external other window
-"
-    ("j" dumb-jump-go "Go")
-    ("o" dumb-jump-go-other-window "Go other window")
-    ("e" dumb-jump-go-prefer-external "Go external")
-    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-    ("i" dumb-jump-go-prompt "Prompt")
-    ("l" dumb-jump-quick-look "Quick look")
-    ("b" dumb-jump-back "Back")
-    ("q" nil "quit"))
-  (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
-#+END_SRC
+        (defhydra hydra-dumb-jump (:color blue :hint none)
+          "
+      ^Jump^                            ^Other^
+      ^^────────────────────────────────^^───────────────
+      _j_: Go                           _i_: Prompt
+      _o_: Go other window              _l_: Quick look
+      _e_: Go external                  _b_: Back
+      _x_: Go external other window
+      "
+          ("j" dumb-jump-go "Go")
+          ("o" dumb-jump-go-other-window "Go other window")
+          ("e" dumb-jump-go-prefer-external "Go external")
+          ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+          ("i" dumb-jump-go-prompt "Prompt")
+          ("l" dumb-jump-quick-look "Quick look")
+          ("b" dumb-jump-back "Back")
+          ("q" nil "quit"))
+        (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+    #+END_SRC
 
 *** flymake
     - built-in emacs syntax checker
-#+BEGIN_SRC emacs-lisp
-        (use-package flymake
-          :ensure t
-          :defines sej-mode-map
-          :hook (post-command . flymake-error-at-point)
-          :bind (:map sej-mode-map
-                      ("H-[" . flymake-goto-prev-error)
-                      ("H-]" . flymake-goto-next-error))
-          :init
-          (defun flymake-error-at-point ()
-            "Show the flymake error in the minibuffer when point is on an invalid line."
-            (when (get-char-property (point) 'flymake-overlay)
-              (let ((help (get-char-property (point) 'help-echo)))
-                (if help (message "%s" help))))))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package flymake
+        :ensure t
+        :defines sej-mode-map
+        :hook (post-command . flymake-error-at-point)
+        :bind (:map sej-mode-map
+                    ("H-[" . flymake-goto-prev-error)
+                    ("H-]" . flymake-goto-next-error))
+        :init
+        (defun flymake-error-at-point ()
+          "Show the flymake error in the minibuffer when point is on an invalid line."
+          (when (get-char-property (point) 'flymake-overlay)
+            (let ((help (get-char-property (point) 'help-echo)))
+              (if help (message "%s" help))))))
+    #+END_SRC
 
 *** flycheck
     - added in emacs syntax checker
-#+BEGIN_SRC emacs-lisp
-        (use-package flycheck
-                                                ;:diminish flycheck-mode
-          :defines sej-mode-map
-          :hook (prog-mode . global-flycheck-mode)
-          :bind
-          (:map sej-mode-map
-                ("s-[" . flycheck-previous-error)
-                ("s-]" . flycheck-next-error)
-                ("C-c f" . flycheck-list-errors)
-                ("s-f" . flycheck-list-errors)        )
-          :init
-          (global-flycheck-mode 1)
-          :config
-          (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
-            (push-mark))
-          (setq flycheck-indication-mode 'right-fringe
-                flycheck-check-syntax-automatically '(save
-                                                      mode-enabled
-                                                           idle-change
-                                                           idle-buffer-switch))
-          (custom-set-faces
-           '(flycheck-error ((((class color)) (:underline "Red"))))
-           '(flycheck-warning ((((class color)) (:underline "Orange")))))
+    #+BEGIN_SRC emacs-lisp
+      (use-package flycheck
+                                              ;:diminish flycheck-mode
+        :defines sej-mode-map
+        :hook (prog-mode . global-flycheck-mode)
+        :bind
+        (:map sej-mode-map
+              ("s-[" . flycheck-previous-error)
+              ("s-]" . flycheck-next-error)
+              ("C-c f" . flycheck-list-errors)
+              ("s-f" . flycheck-list-errors)        )
+        :init
+        (global-flycheck-mode 1)
+        :config
+        (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
+          (push-mark))
+        (setq flycheck-indication-mode 'right-fringe
+              flycheck-check-syntax-automatically '(save
+                                                    mode-enabled
+                                                    idle-change
+                                                    idle-buffer-switch))
+        (custom-set-faces
+         '(flycheck-error ((((class color)) (:underline "Red"))))
+         '(flycheck-warning ((((class color)) (:underline "Orange")))))
 
-          (setq flycheck-emacs-lisp-load-path 'inherit)
-          (setq flycheck-python-flake8-executable "flake8")
-          (setq flycheck-flake8-maximum-line-length 79)
-          (setq flycheck-highlighting-mode 'lines)
-          (progn    (set-face-attribute 'flycheck-warning nil
-                                        :inherit 'warning
-                                        :underline nil)
-                    (set-face-attribute 'flycheck-error nil
-                                        :inherit 'error
-                                        :underline nil)))
-#+END_SRC
+        (setq flycheck-emacs-lisp-load-path 'inherit)
+        (setq flycheck-python-flake8-executable "flake8")
+        (setq flycheck-flake8-maximum-line-length 79)
+        (setq flycheck-highlighting-mode 'lines)
+        (progn    (set-face-attribute 'flycheck-warning nil
+                                      :inherit 'warning
+                                      :underline nil)
+                  (set-face-attribute 'flycheck-error nil
+                                      :inherit 'error
+                                      :underline nil)))
+    #+END_SRC
 
 *** flycheck-posframe
     - Display Flycheck errors in GUI tooltips
-#+BEGIN_SRC emacs-lisp
-  (if (display-graphic-p)
-      (use-package flycheck-posframe
-        :after flycheck
-        :hook (flycheck-mode . flycheck-posframe-mode)
-        :config
-        ;; (add-to-list 'flycheck-posframe-inhibit-functions
-        ;;              #'(lambda () (bound-and-true-p company-backend)))
-        (setq flycheck-posframe-warning-prefix "\u26a0 ")
-        (setq flycheck-posframe-position 'window-bottom-left-corner)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (if (display-graphic-p)
+          (use-package flycheck-posframe
+            :after flycheck
+            :hook (flycheck-mode . flycheck-posframe-mode)
+            :config
+            ;; (add-to-list 'flycheck-posframe-inhibit-functions
+            ;;              #'(lambda () (bound-and-true-p company-backend)))
+            (setq flycheck-posframe-warning-prefix "\u26a0 ")
+            (setq flycheck-posframe-position 'window-bottom-left-corner)))
+    #+END_SRC
 
 *** flycheck-pos-tip
-#+BEGIN_SRC emacs-lisp
-  (if (display-graphic-p)
-      (if emacs/>=26p
-          (use-package flycheck-pos-tip
-            :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
-            :hook (flycheck-mode . flycheck-pos-tip-mode)
-            :config
-            (setq flycheck-pos-tip-timeout 10
-                  flycheck-display-errors-delay 0.5)
-            (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
-        ))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (if (display-graphic-p)
+          (if emacs/>=26p
+              (use-package flycheck-pos-tip
+                :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
+                :hook (flycheck-mode . flycheck-pos-tip-mode)
+                :config
+                (setq flycheck-pos-tip-timeout 10
+                      flycheck-display-errors-delay 0.5)
+                (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+            ))
+    #+END_SRC
 
 *** flycheck-popup-tip
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package flycheck-popup-tip
         :hook (flycheck-mode . flycheck-popup-tip-mode))
-#+END_SRC
+    #+END_SRC
 
 *** flycheck-color-mode-line
     - minor-mode for Flycheck which colors the mode line according to
     the Flycheck state of the current buffer
-#+BEGIN_SRC emacs-lisp
-(use-package flycheck-color-mode-line
-  :hook (flycheck-mode . flycheck-color-mode-line-mode))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package flycheck-color-mode-line
+        :hook (flycheck-mode . flycheck-color-mode-line-mode))
+    #+END_SRC
 
 *** emr
     - a framework for providing language-specific refactoring in Emacs.
     It includes refactoring commands for a variety of languages
     Just hit M-RET to access your refactoring tools in any supported mode.
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package emr
         ;; Just hit M-RET to access your refactoring tools in any supported mode.
         :bind (:map sej-mode-map
@@ -3339,25 +3484,35 @@ _x_: Go external other window
                   (concat "rg -0 --files --color=never --hidden" rg-cmd))))
 
         )
-#+END_SRC
+    #+END_SRC
+*** ediff
+    - file comparison
+    #+BEGIN_SRC emacs-lisp
+      (use-package ediff
+        :init
+        (setq ediff-shell (getenv "$SHELL"))
+        (setq-default ediff-split-window-function
+                      (quote split-window-vertically)))
+    #+END_SRC
+
 ** vcs
 *** magit
     - interface to the version control system Git
-#+BEGIN_SRC emacs-lisp
-  (use-package magit
-    :bind (("C-x g" . magit-status)
-           ("<f12>" . magit-status)
-           ("C-x M-g" . magit-dispatch)
-           ("C-c M-g" . magit-file-popup))
-    :config
-    (when sys/win32p
-      (setenv "GIT_ASKPASS" "git-gui--askpass"))
+    #+BEGIN_SRC emacs-lisp
+      (use-package magit
+        :bind (("C-x g" . magit-status)
+               ("<f12>" . magit-status)
+               ("C-x M-g" . magit-dispatch)
+               ("C-c M-g" . magit-file-popup))
+        :config
+        (when sys/win32p
+          (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
-    (if (fboundp 'transient-append-suffix)
-        ;; Add switch: --tags
-        (transient-append-suffix 'magit-fetch
-          "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
-#+END_SRC
+        (if (fboundp 'transient-append-suffix)
+            ;; Add switch: --tags
+            (transient-append-suffix 'magit-fetch
+                                     "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+    #+END_SRC
 
 *** forge
     - Access Git forges from Magit
@@ -3365,165 +3520,165 @@ _x_: Go external other window
     for that repository and type f y (forge-pull). Alternatively you can use M-x
     forge-add-repostiory, which makes it possible to add a forge repository without
     pulling all topics and even without having to clone the respective Git repository.
- #+BEGIN_SRC emacs-lisp
-  (if (executable-find "cc")
-      (use-package forge
-        :after magit
-        :demand))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (if (executable-find "cc")
+          (use-package forge
+            :after magit
+            :demand))
+    #+END_SRC
 
 *** magit-todos
     - Show tasks from commit files
-#+BEGIN_SRC emacs-lisp
-  (use-package magit-todos
-    :hook (ater-init . magit-todos-mode))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package magit-todos
+        :hook (ater-init . magit-todos-mode))
+    #+END_SRC
 
 *** git-timemachine
     - Walk through git revisions of a file
-#+BEGIN_SRC emacs-lisp
-  (use-package git-timemachine
-    :custom-face
-    (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
-    (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
-    :bind (:map vc-prefix-map
-                ("t" . git-timemachine)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package git-timemachine
+        :custom-face
+        (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
+        (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
+        :bind (:map vc-prefix-map
+                    ("t" . git-timemachine)))
+    #+END_SRC
 
 *** git-messenger
     - Pop up last commit information of current line
-#+BEGIN_SRC emacs-lisp
-  (use-package git-messenger
-    :bind (
-           :map sej-mode-map
-           (
-            ("C-x v p" . git-messenger:popup-message)
-            ("C-x M" . git-messenger:popup-message)
-            ("H-m" . git-messenger:popup-message)
-            )
-           :map vc-prefix-map
-           ("p" . git-messenger:popup-message)
-           :map git-messenger-map
-           ("m" . git-messenger:copy-message))
-    :init
-    ;; Use magit-show-commit for showing status/diff commands
-    (setq git-messenger:use-magit-popup t))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package git-messenger
+        :bind (
+               :map sej-mode-map
+               (
+                ("C-x v p" . git-messenger:popup-message)
+                ("C-x M" . git-messenger:popup-message)
+                ("H-m" . git-messenger:popup-message)
+                )
+               :map vc-prefix-map
+               ("p" . git-messenger:popup-message)
+               :map git-messenger-map
+               ("m" . git-messenger:copy-message))
+        :init
+        ;; Use magit-show-commit for showing status/diff commands
+        (setq git-messenger:use-magit-popup t))
+    #+END_SRC
 
 *** smerge-mode
     - Resolve diff3 conflicts
-#+BEGIN_SRC emacs-lisp
-(use-package smerge-mode
-  :ensure nil
-  :diminish
-  :commands (smerge-mode
-             smerge-auto-leave
-             smerge-next
-             smerge-prev
-             smerge-keep-base
-             smerge-keep-upper
-             smerge-keep-lower
-             smerge-keep-all
-             smerge-keep-current
-             smerge-keep-current
-             smerge-diff-base-upper
-             smerge-diff-upper-lower
-             smerge-diff-base-lower
-             smerge-refine
-             smerge-ediff
-             smerge-combine-with-next
-             smerge-resolve
-             smerge-kill-current)
-  :preface
-  (defhydra hydra-smerge
-    (:color red :hint none :post (smerge-auto-leave))
-    "
-^Move^       ^Keep^               ^Diff^                 ^Other^
-^^──────────-^^───────────────────^^─────────────────────^^──────────────────
-_n_ext       _b_ase               _<_: upper/base        _C_ombine
-_p_rev       _u_pper              _=_: upper/lower       _r_esolve
-^^           _l_ower              _>_: base/lower        _k_ill current
-^^           _a_ll                _R_efine               _ZZ_: Save and bury
-^^           _RET_: current       _E_diff                _q_: cancel
-"
-    ("n" smerge-next)
-    ("p" smerge-prev)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("R" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("k" smerge-kill-current)
-    ("ZZ" (lambda ()
-            (interactive)
-            (save-buffer)
-            (bury-buffer))
-     "Save and bury buffer" :color blue)
-    ("q" nil "cancel" :color blue))
-  :hook ((find-file . (lambda ()
-                        (save-excursion
-                          (goto-char (point-min))
-                          (when (re-search-forward "^<<<<<<< " nil t)
-                            (smerge-mode 1)))))
-         (magit-diff-visit-file . (lambda ()
-                                    (when smerge-mode
-                                      (hydra-smerge/body))))))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package smerge-mode
+        :ensure nil
+        :diminish
+        :commands (smerge-mode
+                   smerge-auto-leave
+                   smerge-next
+                   smerge-prev
+                   smerge-keep-base
+                   smerge-keep-upper
+                   smerge-keep-lower
+                   smerge-keep-all
+                   smerge-keep-current
+                   smerge-keep-current
+                   smerge-diff-base-upper
+                   smerge-diff-upper-lower
+                   smerge-diff-base-lower
+                   smerge-refine
+                   smerge-ediff
+                   smerge-combine-with-next
+                   smerge-resolve
+                   smerge-kill-current)
+        :preface
+        (defhydra hydra-smerge
+          (:color red :hint none :post (smerge-auto-leave))
+          "
+      ^Move^       ^Keep^               ^Diff^                 ^Other^
+      ^^──────────-^^───────────────────^^─────────────────────^^──────────────────
+      _n_ext       _b_ase               _<_: upper/base        _C_ombine
+      _p_rev       _u_pper              _=_: upper/lower       _r_esolve
+      ^^           _l_ower              _>_: base/lower        _k_ill current
+      ^^           _a_ll                _R_efine               _ZZ_: Save and bury
+      ^^           _RET_: current       _E_diff                _q_: cancel
+      "
+          ("n" smerge-next)
+          ("p" smerge-prev)
+          ("b" smerge-keep-base)
+          ("u" smerge-keep-upper)
+          ("l" smerge-keep-lower)
+          ("a" smerge-keep-all)
+          ("RET" smerge-keep-current)
+          ("\C-m" smerge-keep-current)
+          ("<" smerge-diff-base-upper)
+          ("=" smerge-diff-upper-lower)
+          (">" smerge-diff-base-lower)
+          ("R" smerge-refine)
+          ("E" smerge-ediff)
+          ("C" smerge-combine-with-next)
+          ("r" smerge-resolve)
+          ("k" smerge-kill-current)
+          ("ZZ" (lambda ()
+                  (interactive)
+                  (save-buffer)
+                  (bury-buffer))
+           "Save and bury buffer" :color blue)
+          ("q" nil "cancel" :color blue))
+        :hook ((find-file . (lambda ()
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^<<<<<<< " nil t)
+                                  (smerge-mode 1)))))
+               (magit-diff-visit-file . (lambda ()
+                                          (when smerge-mode
+                                            (hydra-smerge/body))))))
+    #+END_SRC
 
 *** browse-at-remote
     - Open github/gitlab/bitbucket page
-#+BEGIN_SRC emacs-lisp
-  (use-package browse-at-remote
-    :bind (:map sej-mode-map
-                (("C-c s b" . browse-at-remote)
-                 ("C-x v B" . browse-at-remote))
-                :map vc-prefix-map
-                ("B" . browse-at-remote)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package browse-at-remote
+        :bind (:map sej-mode-map
+                    (("C-c s b" . browse-at-remote)
+                     ("C-x v B" . browse-at-remote))
+                    :map vc-prefix-map
+                    ("B" . browse-at-remote)))
+    #+END_SRC
 
 *** gist
     - Git related modes
     - gist client
-#+BEGIN_SRC emacs-lisp
-(use-package gist
-  :defines sej-mode-map
-  :bind  (:map sej-mode-map
-               ("C-x G" . gist-list)
-               ("H-G" . gist-list)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package gist
+        :defines sej-mode-map
+        :bind  (:map sej-mode-map
+                     ("C-x G" . gist-list)
+                     ("H-G" . gist-list)))
+    #+END_SRC
 
 *** gitattributes-mode
     - mode for .gitattributes files
-#+BEGIN_SRC emacs-lisp
-(use-package gitattributes-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package gitattributes-mode)
+    #+END_SRC
 
 *** gitconfig-mode
     - mode for .gitconfig files
-#+BEGIN_SRC emacs-lisp
-(use-package gitconfig-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package gitconfig-mode)
+    #+END_SRC
 
 *** gitignore-mode
     - mode for .gitignore files
-#+BEGIN_SRC emacs-lisp
-(use-package gitignore-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package gitignore-mode)
+    #+END_SRC
 
 *** git-blamed
     - implementation of incremental git-blame part of git-emacs packages
     - M-x git-blamed-mode to turn on view with commits
-#+BEGIN_SRC emacs-lisp
-(use-package git-blamed)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package git-blamed)
+    #+END_SRC
 
 ** completion
 *** hippie-expand settings
@@ -3713,6 +3868,39 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
                                          company-shell-env
                                          company-fish-shell)))
     #+END_SRC
+*** company-jedi
+    - company-mode completion back-end for Python JEDI
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-jedi
+        :after company
+        :config (add-to-list 'company-backends 'company-jedi))
+    #+END_SRC
+
+*** company-arduino
+    - This package is a set of configuration to let you auto-completion
+    by using irony-mode, company-irony and company-c-headers on arduino-mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package company-arduino
+        :after company
+        :hook ( (arduino-mode . irony-mode)
+                (irony-mode . company-arduino-turn-on) )
+        :config
+        ;; Configuration for company-c-headers.el
+        ;; The `company-arduino-append-include-dirs' function appends
+        ;; Arduino's include directories to the default directories
+        ;; if `default-directory' is inside `company-arduino-home'. Otherwise
+        ;; just returns the default directories.
+        ;; Please change the default include directories accordingly.
+        (defun my-company-c-headers-get-system-path ()
+          "Return the system include path for the current buffer."
+          (let ((default '("/usr/include/" "/usr/local/include/")))
+            (company-arduino-append-include-dirs default t)))
+        (setq company-c-headers-path-system 'my-company-c-headers-get-system-path)
+
+        ;; If you are already using company-irony and company-c-headers, you might have same setting. That case, you can omit below setting.
+        (add-to-list 'company-backends 'company-irony)
+        (add-to-list 'company-backends 'company-c-headers))
+    #+END_SRC
 *** yasnippet
     - short-cut completions
     #+BEGIN_SRC emacs-lisp
@@ -3806,7 +3994,10 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
     #+BEGIN_SRC emacs-lisp
       (use-package elisp-slime-nav
         :diminish elisp-slime-nav-mode
-        :hook (emacs-lisp-mode . elisp-slime-nav-mode))
+        :hook (emacs-lisp-mode . elisp-slime-nav-mode)
+        :config
+        (global-unset-key (kbd "C-c C-d d"))
+        (global-unset-key (kbd "C-c C-d C-d")))
     #+END_SRC
 
 *** eros
@@ -3854,7 +4045,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
       pip3 install -U setuptools
       pip3 install python-language-server[all] --isolated
       [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
-                             autopep8, YAPF
+      autopep8, YAPF
     #+BEGIN_SRC emacs-lisp
       (use-package python
         :ensure nil
@@ -3893,26 +4084,26 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
                   (lambda ()
                     ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
                     (process-query-on-exit-flag (get-process "Python"))))
-)
-#+END_SRC
+        )
+    #+END_SRC
 
 *** live-py-mode
     - Live Coding in Python
     - Open any Python file, and activate live-py-mode with M-x live-py-mode.
     - You should see an extra window on the right that shows the results of
       running your code.
-#+BEGIN_SRC emacs-lisp
-        (use-package live-py-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package live-py-mode)
+    #+END_SRC
 
 *** yapfify
     - Format python buffer using YAPF
     - Install: pip install yapf
-#+BEGIN_SRC emacs-lisp
-        (use-package yapfify
-          :diminish yapf-mode
-          :hook (python-mode . yapf-mode))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package yapfify
+        :diminish yapf-mode
+        :hook (python-mode . yapf-mode))
+    #+END_SRC
 
 *** ein
     - Emacs IPython Notebook
@@ -3924,98 +4115,260 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
       ;; #+END_SRC
     - Use M-x ein:connect-to-notebook to submit code from an arbitrary
       buffer to a running jupyter kernel
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package ein
         :diminish ein:notebook-mode
         :defines ein:completion-backend
         :init (setq ein:completion-backend 'ein:use-company-backend))
-#+END_SRC
+    #+END_SRC
 
 *** pip-requirements
     - major mode for editing pip requirement files
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package pip-requirements
         :defer t)
-#+END_SRC
-
-*** ediff
-    - file comparison
-#+BEGIN_SRC emacs-lisp
-      (use-package ediff
-        :init
-        (setq ediff-shell (getenv "$SHELL"))
-        (setq-default ediff-split-window-function
-                      (quote split-window-vertically)))
-#+END_SRC
+    #+END_SRC
 
 *** pyvenv
     - simple global minor mode which will replicate the changes done
     by virtualenv activation inside Emacs
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package pyvenv
         :hook (pyvenv-post-activate . pyvenv-restart-python))
-#+END_SRC
-
-*** company-jedi
-    - company-mode completion back-end for Python JEDI
-#+BEGIN_SRC emacs-lisp
-      (use-package company-jedi
-        :after company
-        :config (add-to-list 'company-backends 'company-jedi))
     #+END_SRC
 
-** other program modes
+** web modes
+*** web-mode
+    - Major mode for editing web templates
+    #+BEGIN_SRC emacs-lisp
+      (use-package web-mode
+        :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
+        :config
+        (setq web-mode-markup-indent-offset 2)
+        (setq web-mode-css-indent-offset 2)
+        (setq web-mode-code-indent-offset 2))
+    #+END_SRC
+
+*** css-eldoc
+    - eldoc-mode plugin for CSS
+    #+BEGIN_SRC emacs-lisp
+      (use-package css-eldoc
+        :commands turn-on-css-eldoc
+        :hook ((css-mode scss-mode less-css-mode) . turn-on-css-eldoc))
+    #+END_SRC
+
+*** json-mode
+    - Major mode for editing JSON files.
+    - Extends the builtin js-mode to add better syntax highlighting for JSON
+      and some nice editing keybindings.
+    JSON mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package json-mode)
+    #+END_SRC
+
+*** js2-mode
+    - Improved JavaScript editing mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package js2-mode
+        :defines flycheck-javascript-eslint-executable
+        :mode (("\\.js\\'" . js2-mode)
+               ("\\.jsx\\'" . js2-jsx-mode))
+        :interpreter (("node" . js2-mode)
+                      ("node" . js2-jsx-mode))
+        :hook ((js2-mode . js2-imenu-extras-mode)
+               (js2-mode . js2-highlight-unused-variables-mode))
+        :config
+        ;; Use default keybindings for lsp
+        (if sej-lsp
+            (unbind-key "M-." js2-mode-map))
+
+        (with-eval-after-load 'flycheck
+          (if (or (executable-find "eslint_d")
+                  (executable-find "eslint")
+                  (executable-find "jshint"))
+              (setq js2-mode-show-strict-warnings nil))
+          (if (executable-find "eslint_d")
+              ;; https://github.com/mantoni/eslint_d.js
+              ;; npm -i -g eslint_d
+              (setq flycheck-javascript-eslint-executable "eslint_d"))))
+    #+END_SRC
+
+*** js2-refactor
+    - JavaScript refactoring library for Emacs
+    #+BEGIN_SRC emacs-lisp
+      (use-package js2-refactor
+        :after js2-mode
+        :diminish js2-refactor-mode
+        :hook (js2-mode . js2-refactor-mode)
+        :config (js2r-add-keybindings-with-prefix "C-c C-m"))
+    #+END_SRC
+
+*** mocha
+    - Run Mocha or Jasmine tests
+    #+BEGIN_SRC emacs-lisp
+      (use-package mocha
+        :config (use-package mocha-snippets))
+    #+END_SRC
+
+*** coffee-mode
+    - Major mode for CoffeeScript code
+    #+BEGIN_SRC emacs-lisp
+      (use-package coffee-mode
+        :config (setq coffee-tab-width 2))
+    #+END_SRC
+
+*** skewer-mode
+    - Live browser JavaScript, CSS, and HTML interaction
+    #+BEGIN_SRC emacs-lisp
+      (use-package skewer-mode
+        :diminish skewer-mode
+        :hook ((js2-mode . skewer-mode)
+               (css-mode . skewer-css-mode)
+               (web-mode . skewer-html-mode)
+               (html-mode . skewer-html-mode))
+        :init
+        ;; diminish
+        (with-eval-after-load 'skewer-css
+          (diminish 'skewer-css-mode))
+        (with-eval-after-load 'skewer-html
+          (diminish 'skewer-html-mode)))
+    #+END_SRC
+
+*** web-beautify
+    - Format HTML, CSS and JavaScript/JSON by js-beautify
+    - Insta;; npm -g install js-beautify
+    #+BEGIN_SRC emacs-lisp
+      (use-package web-beautify
+        :init
+        (with-eval-after-load 'js-mode
+          (bind-key "C-c b" #'web-beautify-js js-mode-map))
+        (with-eval-after-load 'js2-mode
+          (bind-key "C-c b" #'web-beautify-js js2-mode-map))
+        (with-eval-after-load 'json-mode
+          (bind-key "C-c b" #'web-beautify-js json-mode-map))
+        (with-eval-after-load 'web-mode
+          (bind-key "C-c b" #'web-beautify-html web-mode-map))
+        (with-eval-after-load 'sgml-mode
+          (bind-key "C-c b" #'web-beautify-html html-mode-map))
+        (with-eval-after-load 'css-mode
+          (bind-key "C-c b" #'web-beautify-css css-mode-map))
+        :config
+        ;; Set indent size to 2
+        (setq web-beautify-args '("-s" "2" "-f" "-")))
+    #+END_SRC
+
+*** haml-mode
+    - major mode for the haml mark-up language
+    #+BEGIN_SRC emacs-lisp
+      (use-package haml-mode)
+    #+END_SRC
+
+*** php-mode
+    - major mode for editing PHP code
+    #+BEGIN_SRC emacs-lisp
+      (use-package php-mode
+        :mode (("\\.module$" . php-mode)
+               ("\\.inc$" . php-mode)
+               ("\\.install$" . php-mode)
+               ("\\.engine$" . php-mode)))
+    #+END_SRC
+
+*** yaml-mode
+    - YAML major mode support
+    #+BEGIN_SRC emacs-lisp
+      (use-package yaml-mode
+        :mode
+        (("\\.yml$" . yaml-mode)
+         ("\\.yaml$" . yaml-mode)))
+    #+END_SRC
+
+*** nxml-mode
+    - major mode for editing XML
+    #+BEGIN_SRC emacs-lisp
+      (use-package nxml-mode
+        :ensure nil
+        :mode (("\\.xaml$" . xml-mode)))
+    #+END_SRC
+
+** c program modes
 *** c-mode
     - C/C++ Mode
     #+BEGIN_SRC emacs-lisp
-(use-package cc-mode
-  :ensure nil
-  :bind (:map c-mode-base-map
-              ("C-c c" . compile))
-  :hook ((c-mode-common . flycheck-mode)
-         (c-mode-common . (lambda ()
-                            (c-set-style "bsd")
-                            (setq tab-width 4)
-                            (setq c-basic-offset 4))))
-  :config
-  (use-package modern-cpp-font-lock
-    :diminish
-    :hook (c++-mode modern-c++-font-lock-mode)))
+      (use-package cc-mode
+        :ensure nil
+        :bind (:map c-mode-base-map
+                    ("C-c c" . compile))
+        :hook ((c-mode-common . flycheck-mode)
+               (c-mode-common . (lambda ()
+                                  (c-set-style "bsd")
+                                  (setq tab-width 4)
+                                  (setq c-basic-offset 4))))
+        :config
+        (use-package modern-cpp-font-lock
+          :diminish
+          :hook (c++-mode modern-c++-font-lock-mode)))
     #+END_SRC
-*** nxml-mode
-    - major mode for editing XML
-#+BEGIN_SRC emacs-lisp
-(use-package nxml-mode
-  :ensure nil
-  :mode (("\\.xaml$" . xml-mode)))
-#+END_SRC
-
 *** csharp-mode
     - mode for editing C# in emacs. It’s based on cc-mode
-#+BEGIN_SRC emacs-lisp
-(use-package csharp-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package csharp-mode)
+    #+END_SRC
 
+*** arduino-mode
+    - Upload [C-c C-c]  Build [C-c C-v]
+    - use with package company-arduino to get Arduino code completing
+    - https://github.com/stardiviner/arduino-mode/
+    #+BEGIN_SRC emacs-lisp
+      (use-package arduino-mode
+        :mode "\\.ino$"
+        :config
+        (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
+        (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
+    #+END_SRC
 *** swift-mode
     - support for Apple's Swift programming language
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
+      (use-package swift-mode
+        :config
+        (use-package flycheck-swift
+          :after flycheck
+          :commands flycheck-swift-setup
+          :init (flycheck-swift-setup)))
+    #+END_SRC
 
-(use-package swift-mode
-  :config
-  (use-package flycheck-swift
-    :after flycheck
-    :commands flycheck-swift-setup
-    :init (flycheck-swift-setup)))
-#+END_SRC
-
- *** rust-mode
+*** rust-mode
     - rust language package
-#+BEGIN_SRC emacs-lisp
-(use-package rust-mode
-  :config (setq rust-format-on-save t))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package rust-mode
+        :config (setq rust-format-on-save t))
+    #+END_SRC
+
+** other program modes
+*** conf-mode
+    - major mode for editing conf/ini/properties files
+    #+BEGIN_SRC emacs-lisp
+      (use-package conf-mode
+        :diminish conf-mode
+        :mode "\\.gitconfig$")
+    #+END_SRC
+
+*** csv-mode
+    - major mode for csv
+    #+BEGIN_SRC emacs-lisp
+      (use-package csv-mode
+        :mode "\\.[Cc][Ss][Vv]\\'"
+        :config
+        (setq csv-separators '("," ";" "|" " ")))
+    #+END_SRC
 
 * files
+*** ztree
+    - text mode directory tree. Similar with beyond compare
+#+BEGIN_SRC emacs-lisp
+      (use-package ztree
+        :commands ztree)
+    #+END_SRC
+
 *** ibuffer
     #+BEGIN_SRC emacs-lisp
       (use-package ibuffer
@@ -4485,44 +4838,50 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 *** autoinsert
     - mode that comes with Emacs that automagically inserts text into new buffers
       based on file extension or the major mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package autoinsert
+        :hook (find-file . auto-insert)
+        :defines
+        auto-insert-query
+        auto-insert-directory
+        :init
+        (setq auto-insert-directory "~/.emacs.d/templates/")
+        (setq auto-insert-query nil)
+        (auto-insert-mode 1)
+        :config
+        (define-auto-insert ".*\\.py[3]?$" "template.py")
+        (define-auto-insert ".*\\.el" "template.el")
+        )
+    #+END_SRC
+
+*** sej/create-non-existent-directory
+    - Offer to create parent directories if they do not exist
+      automatically run after save
+      - http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/create-non-existent-directory ()
+        "Ask to make directory for file if it does not exist."
+        (let ((parent-directory (file-name-directory buffer-file-name)))
+          (when (and (not (file-exists-p parent-directory))
+                     (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
+            (make-directory parent-directory t))))
+
+      (add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
+    #+END_SRC
+
+*** sudo-edit
+    - Open files as another user
 #+BEGIN_SRC emacs-lisp
-(use-package autoinsert
-  :hook (find-file . auto-insert)
-  :defines
-  auto-insert-query
-  auto-insert-directory
-  :init
-  (setq auto-insert-directory "~/.emacs.d/templates/")
-  (setq auto-insert-query nil)
-  (auto-insert-mode 1)
-  :config
-  (define-auto-insert ".*\\.py[3]?$" "template.py")
-  (define-auto-insert ".*\\.el" "template.el")
-  )
+      (unless sys/win32p
+        (use-package sudo-edit))
 #+END_SRC
 
-*** conf-mode
-    - major mode for editing conf/ini/properties files
+*** vlf-setup
+    - vlf lets you handle very large files for viewing
 #+BEGIN_SRC emacs-lisp
-(use-package conf-mode
-  :diminish conf-mode
-  :mode "\\.gitconfig$")
-#+END_SRC
-
-*** csv-mode
-    - major mode for csv
-#+BEGIN_SRC emacs-lisp
-(use-package csv-mode
-  :mode "\\.[Cc][Ss][Vv]\\'"
-  :config
-  (setq csv-separators '("," ";" "|" " ")))
-#+END_SRC
-
-*** textile-mode
-    - textile markup editing major mode
-#+BEGIN_SRC emacs-lisp
-(use-package textile-mode
-  :mode "\\.textile\\'")
+      (use-package vlf-setup
+        :ensure vlf
+        :commands (vlf vlf-occur-load vlf-ediff-files))
 #+END_SRC
 
 * dired
@@ -4696,20 +5055,20 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
       (use-package writegood-mode
         :hook (markdown-mode . writegood-mode)
         )
-#+END_SRC
+    #+END_SRC
 
 *** olivetti
     -  Nice text writing environment
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package olivetti
         :diminish
         :hook (text-mode-hook . olivetti-mode)
         :init (setq olivetti-body-width 0.618))
-#+END_SRC
+    #+END_SRC
 
 *** markdown-mode
     - markdown-mode used a lot on Github
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (use-package markdown-mode
         :defines flycheck-markdown-markdownlint-cli-config
         :preface
@@ -4803,7 +5162,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
       });
       </script>
       ")
-#+END_SRC
+    #+END_SRC
 
 *** markdown-toc
     - Table of contents
@@ -4811,261 +5170,268 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
         place yourself where you want to insert the TOC:
         M-x markdown-toc-generate-toc
 
-#+BEGIN_SRC emacs-lisp
-    (use-package markdown-toc))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package markdown-toc))
+    #+END_SRC
+
+*** textile-mode
+    - textile markup editing major mode
+    #+BEGIN_SRC emacs-lisp
+      (use-package textile-mode
+        :mode "\\.textile\\'")
+    #+END_SRC
 
 *** adoc-mode
     - adoc-mode is an Emacs major mode for editing AsciiDoc files.
       It emphasizes on the idea that the document is highlighted
       so it pretty much looks like the final output.
-#+BEGIN_SRC emacs-lisp
-    (use-package adoc-mode)
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package adoc-mode)
+    #+END_SRC
 
 *** abbrev
     - for inserting abbreviations
-#+BEGIN_SRC emacs-lisp
-  (use-package abbrev
-  :ensure nil
-  :hook ((sej/after-init org-mode) . abbrev-mode)
-  :diminish abbrev-mode
-  :config
-  (setq abbrev-file-name             ;; tell emacs where to read abbrev
-  "~/.emacs.d/abbrev_defs")    ;; definitions from...
-  (define-abbrev-table
-  'global-abbrev-table
-  '(("<sej" "stephenearljenkins" nil 0)))
-  (define-abbrev-table
-  'org-mode-abbrev-table
-  '(("<orgh" "" 'sej/org-header 0)))
-  (define-abbrev-table
-  'org-mode-abbrev-table
-  '(("<orgl" "" 'sej/org-wrap-elisp 0)))
-  (define-abbrev-table
-  'org-mode-abbrev-table
-  '(("<orgs" "" 'sej/org-wrap-source 0))))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package abbrev
+        :ensure nil
+        :hook ((sej/after-init org-mode) . abbrev-mode)
+        :diminish abbrev-mode
+        :config
+        (setq abbrev-file-name             ;; tell emacs where to read abbrev
+              "~/.emacs.d/abbrev_defs")    ;; definitions from...
+        (define-abbrev-table
+          'global-abbrev-table
+          '(("<sej" "stephenearljenkins" nil 0)))
+        (define-abbrev-table
+          'org-mode-abbrev-table
+          '(("<orgh" "" 'sej/org-header 0)))
+        (define-abbrev-table
+          'org-mode-abbrev-table
+          '(("<orgl" "" 'sej/org-wrap-elisp 0)))
+        (define-abbrev-table
+          'org-mode-abbrev-table
+          '(("<orgs" "" 'sej/org-wrap-source 0))))
+    #+END_SRC
 
 *** sej/number-rectangle
     - Let's say you have a list like:
-        First Item
-        Second Item
-        Third Item
-        Fourth Item
+      First Item
+      Second Item
+      Third Item
+      Fourth Item
       And you want to number it to look like:
-        1. First Item
-        2. Second Item
-        3. Third Item
-        4. Fourth Item
+      1. First Item
+      2. Second Item
+      3. Third Item
+      4. Fourth Item
       This function allows you to hit ***C-x r N ***and specify the pattern
       and starting offset to number lines in rectangular-selection mode:
-#+BEGIN_SRC emacs-lisp
-  (defun sej/number-rectangle (start end format-string from)
-  "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
-  (interactive
-  (list (region-beginning) (region-end)
-  (read-string "Number rectangle: "
-  (if (looking-back "^ *" nil nil) "%d. " "%d"))
-  (read-number "From: " 1)))
-  (save-excursion
-  (goto-char start)
-  (setq start (point-marker))
-  (goto-char end)
-  (setq end (point-marker))
-  (delete-rectangle start end)
-  (goto-char start)
-  (loop with column = (current-column)
-  while (and (<= (point) end) (not (eobp)))
-  for i from from   do
-  (move-to-column column t)
-  (insert (format format-string i))
-  (forward-line 1)))
-  (goto-char start))
+    #+BEGIN_SRC emacs-lisp
+      (defun sej/number-rectangle (start end format-string from)
+        "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
+        (interactive
+         (list (region-beginning) (region-end)
+               (read-string "Number rectangle: "
+                            (if (looking-back "^ *" nil nil) "%d. " "%d"))
+               (read-number "From: " 1)))
+        (save-excursion
+          (goto-char start)
+          (setq start (point-marker))
+          (goto-char end)
+          (setq end (point-marker))
+          (delete-rectangle start end)
+          (goto-char start)
+          (loop with column = (current-column)
+                while (and (<= (point) end) (not (eobp)))
+                for i from from   do
+                (move-to-column column t)
+                (insert (format format-string i))
+                (forward-line 1)))
+        (goto-char start))
 
-  (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
-  (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
-#+END_SRC
+      (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+      (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
+    #+END_SRC
 
 *** flyspell
     - main spelling package
-#+BEGIN_SRC emacs-lisp
-(use-package flyspell
-  :functions
-  flyspell-correct-word
-  flyspell-goto-next-error
-  :defines
-  sej-mode-map
-  :bind
-  (:map sej-mode-map
-        ("<f8>" . ispell-word)
-        ("s-," . ispell-word)
-        ("C-<f8>" . flyspell-mode)
-        ("M-<f8>" . flyspell-check-next-highlighted-word)
-        ("S-<f8>" . ispell-region)
-        ("s-." . ispell-region)
-        )
-  :hook (((text-mode outline-mode org-mode) . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
-  :config
-  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
-  (define-key flyspell-mouse-map [mouse-3] #'undefined)
+    #+BEGIN_SRC emacs-lisp
+      (use-package flyspell
+        :functions
+        flyspell-correct-word
+        flyspell-goto-next-error
+        :defines
+        sej-mode-map
+        :bind
+        (:map sej-mode-map
+              ("<f8>" . ispell-word)
+              ("s-," . ispell-word)
+              ("C-<f8>" . flyspell-mode)
+              ("M-<f8>" . flyspell-check-next-highlighted-word)
+              ("S-<f8>" . ispell-region)
+              ("s-." . ispell-region)
+              )
+        :hook (((text-mode outline-mode org-mode) . flyspell-mode)
+               (prog-mode . flyspell-prog-mode))
+        :config
+        (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+        (define-key flyspell-mouse-map [mouse-3] #'undefined)
 
-  (setq ispell-personal-dictionary "~/sej.ispell")
+        (setq ispell-personal-dictionary "~/sej.ispell")
 
-  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
-  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+        (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+        (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+        (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+        (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
 
-  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
-                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
-                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+        (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+                                        ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+                                        ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-  (setq ispell-dictionary "canadian")
+        (setq ispell-dictionary "canadian")
 
-  (defun flyspell-check-next-highlighed-word ()
-    "Custom function to spell check next highlighted word"
-    (interactive)
-    (flyspell-goto-next-error)
-    (ispell-word))
-  (setq flyspell-issue-welcome-flag nil)
-  (setq-default ispell-list-command "list"))
-#+END_SRC
+        (defun flyspell-check-next-highlighed-word ()
+          "Custom function to spell check next highlighted word"
+          (interactive)
+          (flyspell-goto-next-error)
+          (ispell-word))
+        (setq flyspell-issue-welcome-flag nil)
+        (setq-default ispell-list-command "list"))
+    #+END_SRC
 
 *** powerthesaurus
     - simple plugin to integrate Emacs with powerthesaurus.org
-#+BEGIN_SRC emacs-lisp
-(use-package powerthesaurus
-  :bind (:map sej-mode-map
-              ("C-c s t" . powerthesaurus-lookup-word-dwim)
-              ("s-|" . powerthesaurus-lookup-word-dwim)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package powerthesaurus
+        :bind (:map sej-mode-map
+                    ("C-c s t" . powerthesaurus-lookup-word-dwim)
+                    ("s-|" . powerthesaurus-lookup-word-dwim)))
+    #+END_SRC
 
 *** define-word
     - Word Definition search for non-osx
-#+BEGIN_SRC emacs-lisp
-(use-package define-word
-  :unless sys/macp
-  :bind (:map sej-mode-map
-              ("C-c s w" . define-word-at-point)
-              ("H-d" . define-word-at-point)
-              ("H-D" . define-word)
-              ("s-\\" . define-word-at-point)))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package define-word
+        :unless sys/macp
+        :bind (:map sej-mode-map
+                    ("C-c s w" . define-word-at-point)
+                    ("H-d" . define-word-at-point)
+                    ("H-D" . define-word)
+                    ("s-\\" . define-word-at-point)))
+    #+END_SRC
 
 *** osx-dictionary
     - define-word OR
     - pilot osx-dictionary only for osx
       use osx dictionary when possible
-#+BEGIN_SRC emacs-lisp
-(use-package osx-dictionary
-  :if sys/macp
-  :defines sej-mode-map
-  :bind (:map sej-mode-map
-              ("C-c s w" . osx-dictionary-search-word-at-point)
-              ("s-\\" . osx-dictionary-search-word-at-point)
-              ("H-d" . osx-dictionary-search-word-at-point)
-              ("H-D" . osx-dictionary-search-pointer)
-              ("C-c s i" . osx-dictionary-search-input)
-              ("s-i" . osx-dictionary-search-input)
-              ))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package osx-dictionary
+        :if sys/macp
+        :defines sej-mode-map
+        :bind (:map sej-mode-map
+                    ("C-c s w" . osx-dictionary-search-word-at-point)
+                    ("s-\\" . osx-dictionary-search-word-at-point)
+                    ("H-d" . osx-dictionary-search-word-at-point)
+                    ("H-D" . osx-dictionary-search-pointer)
+                    ("C-c s i" . osx-dictionary-search-input)
+                    ("s-i" . osx-dictionary-search-input)
+                    ))
+    #+END_SRC
 
 *** view-file-mode
     - allows you to scan or read a file by sequential screenfulls
-#+BEGIN_SRC emacs-lisp
-(use-package view
-  :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
-  :bind (:map view-mode-map (("C-v" . 'View-scroll-half-page-forward)
-                             ("M-v" . 'View-scroll-half-page-backward)
+    #+BEGIN_SRC emacs-lisp
+      (use-package view
+        :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
+        :bind (:map view-mode-map (("C-v" . 'View-scroll-half-page-forward)
+                                   ("M-v" . 'View-scroll-half-page-backward)
 
-                             ;; less like
-                             ("N" . View-search-last-regexp-backward)
-                             ("?" . View-search-regexp-backward?)
-                             ("g" . View-goto-line)
-                             ("G" . View-goto-line-last)
-                             ;; vi/w3m like
-                             ("h" . backward-char)
-                             ("j" . next-line)
-                             ("k" . previous-line)
-                             ("l" . forward-char)))
-  :config
-  (defun View-goto-line-last (&optional line)
-    "goto last line"
-    (interactive "P")
-    (forward-line (line-number-at-pos (point-max)))))
-#+END_SRC
+                                   ;; less like
+                                   ("N" . View-search-last-regexp-backward)
+                                   ("?" . View-search-regexp-backward?)
+                                   ("g" . View-goto-line)
+                                   ("G" . View-goto-line-last)
+                                   ;; vi/w3m like
+                                   ("h" . backward-char)
+                                   ("j" . next-line)
+                                   ("k" . previous-line)
+                                   ("l" . forward-char)))
+        :config
+        (defun View-goto-line-last (&optional line)
+          "goto last line"
+          (interactive "P")
+          (forward-line (line-number-at-pos (point-max)))))
+    #+END_SRC
 
 *** ps-print sej/pdf-print-buffer-with-faces
     - print file in the current buffer as pdf
-#+BEGIN_SRC emacs-lisp
-(when (executable-find "ps2pdf")
-  (use-package ps-print
-    :ensure nil
-    :commands (ps-print-preprint ps-print-with-faces)
-    :init
-    (defun sej/pdf-print-buffer-with-faces (&optional filename)
-      "Print file in the current buffer as pdf, including font, color, and
-underline information.  This command works only if you are using a window system,
-so it has a way to determine color values.
+    #+BEGIN_SRC emacs-lisp
+      (when (executable-find "ps2pdf")
+        (use-package ps-print
+          :ensure nil
+          :commands (ps-print-preprint ps-print-with-faces)
+          :init
+          (defun sej/pdf-print-buffer-with-faces (&optional filename)
+            "Print file in the current buffer as pdf, including font, color, and
+      underline information.  This command works only if you are using a window system,
+      so it has a way to determine color values.
 
-C-u COMMAND prompts user where to save the Postscript file (which is then
-converted to PDF at the same location."
-      (interactive (list (if current-prefix-arg
-                             (ps-print-preprint 4)
-                           (concat (file-name-sans-extension (buffer-file-name))
-                                   ".ps"))))
-      (ps-print-with-faces (point-min) (point-max) filename)
-      (shell-command (concat "ps2pdf " filename))
-      (delete-file filename)
-      (message "Deleted %s" filename)
-      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
+      C-u COMMAND prompts user where to save the Postscript file (which is then
+      converted to PDF at the same location."
+            (interactive (list (if current-prefix-arg
+                                   (ps-print-preprint 4)
+                                 (concat (file-name-sans-extension (buffer-file-name))
+                                         ".ps"))))
+            (ps-print-with-faces (point-min) (point-max) filename)
+            (shell-command (concat "ps2pdf " filename))
+            (delete-file filename)
+            (message "Deleted %s" filename)
+            (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
 
-    ))
-#+END_SRC
+          ))
+    #+END_SRC
 
 *** pdf-tools
     - PDF reader
-#+BEGIN_SRC emacs-lisp
-(when (display-graphic-p)
-  (use-package pdf-tools
-    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
-    :defines pdf-annot-activate-created-annotations
-    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
-    :magic ("%PDF" . pdf-view-mode)
-    :bind (:map pdf-view-mode-map
-                ("C-s" . isearch-forward))
-    :config
-    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
-    (setq pdf-annot-activate-created-annotations t)
+    #+BEGIN_SRC emacs-lisp
+      (when (display-graphic-p)
+        (use-package pdf-tools
+          :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+          :defines pdf-annot-activate-created-annotations
+          :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
+          :magic ("%PDF" . pdf-view-mode)
+          :bind (:map pdf-view-mode-map
+                      ("C-s" . isearch-forward))
+          :config
+          (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
+          (setq pdf-annot-activate-created-annotations t)
 
-    ;; WORKAROUND: Fix compilation errors on macOS.
-    ;; @see https://github.com/politza/pdf-tools/issues/480
-    (when sys/macp
-      (setenv "PKG_CONFIG_PATH"
-              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
-    (pdf-tools-install t nil t t)
+          ;; WORKAROUND: Fix compilation errors on macOS.
+          ;; @see https://github.com/politza/pdf-tools/issues/480
+          (when sys/macp
+            (setenv "PKG_CONFIG_PATH"
+                    "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
+          (pdf-tools-install t nil t t)
 
-    ;; Recover last viewed position
-    (use-package pdf-view-restore
-      :hook (pdf-view-mode . pdf-view-restore-mode)
-      :init (setq pdf-view-restore-filename
-                  (locate-user-emacs-file ".pdf-view-restore")))))
-#+END_SRC
+          ;; Recover last viewed position
+          (use-package pdf-view-restore
+            :hook (pdf-view-mode . pdf-view-restore-mode)
+            :init (setq pdf-view-restore-filename
+                        (locate-user-emacs-file ".pdf-view-restore")))))
+    #+END_SRC
 
 *** nov
     - Epub reader
-#+BEGIN_SRC emacs-lisp
-(use-package nov
-  :mode ("\\.epub\\'" . nov-mode)
-  :preface
-  (defun my-nov-setup ()
-    (visual-line-mode 1)
-    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
-    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
-  :hook (nov-mode . my-nov-setup))
-#+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package nov
+        :mode ("\\.epub\\'" . nov-mode)
+        :preface
+        (defun my-nov-setup ()
+          (visual-line-mode 1)
+          (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
+          (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
+        :hook (nov-mode . my-nov-setup))
+    #+END_SRC
 ** org
 *** org
     #+BEGIN_SRC emacs-lisp
@@ -5231,7 +5597,7 @@ converted to PDF at the same location."
                                    (sass . t)
                                    (C . t)
                                    (java . t)
-                                   (plantuml . t)))
+                                   (arduino . t)))
     #+END_SRC
 
 *** ob-shell
@@ -5317,34 +5683,34 @@ converted to PDF at the same location."
 
 *** sej/org-header skeleton
     - skeletons are a kind of yasnippet but they don't mess with keybindings
-#+BEGIN_SRC emacs-lisp
-    (define-skeleton sej/org-header
-    "Insert a standard header for org-mode files"
-    "Title: "
-    "#+TITLE: " str \n
-    "#+AUTHOR: " (user-full-name) \n
-    "#+EMAIL: " user-mail-address \n
-    "#+SETUPFILE: ~/eos/setupfiles/default.setup
+    #+BEGIN_SRC emacs-lisp
+      (define-skeleton sej/org-header
+        "Insert a standard header for org-mode files"
+        "Title: "
+        "#+TITLE: " str \n
+        "#+AUTHOR: " (user-full-name) \n
+        "#+EMAIL: " user-mail-address \n
+        "#+SETUPFILE: ~/eos/setupfiles/default.setup
 
-    | *Author* | {{{author}}} ({{{email}}})    |
-    | *Date*   | {{{time(%Y-%m-%d %H:%M:%S)}}} |
+        | *Author* | {{{author}}} ({{{email}}})    |
+        | *Date*   | {{{time(%Y-%m-%d %H:%M:%S)}}} |
 
-    * Introduction  " \n)
+        ,* Introduction  " \n)
 
-  (define-skeleton sej/org-wrap-elisp
-  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
-  nil
-  > "#+BEGIN_SRC emacs-lisp" \n
-  > _ \n
-  > "#+END_SRC" \n)
+      (define-skeleton sej/org-wrap-elisp
+        "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+        nil
+        > "#+BEGIN_SRC emacs-lisp" \n
+        > _ \n
+        > "#+END_SRC" \n)
 
-  (define-skeleton sej/org-wrap-source
-  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
-  "Language: "
-  > "#+BEGIN_SRC " str \n
-  > _ \n
-  > "#+END_SRC" \n)
-#+END_SRC
+      (define-skeleton sej/org-wrap-source
+        "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+        "Language: "
+        > "#+BEGIN_SRC " str \n
+        > _ \n
+        > "#+END_SRC" \n)
+    #+END_SRC
 
 * eshell & shell
 ** eshell
