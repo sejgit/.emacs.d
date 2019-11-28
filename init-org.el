@@ -30,10 +30,6 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
-(defconst emacs/>=25p
-  (>= emacs-major-version 25)
-  "Emacs is 25 or above.")
-
 (defconst emacs/>=26p
   (>= emacs-major-version 26)
   "Emacs is 26 or above.")
@@ -41,11 +37,6 @@
 (defconst emacs/>=27p
   (>= emacs-major-version 27)
   "Emacs is 27 or above.")
-
-(defconst emacs/>=25.2p
-  (or emacs/>=26p
-      (and (= emacs-major-version 25) (>= emacs-minor-version 2)))
-  "Emacs is 25.2 or above.")
 
 (defgroup sej nil
   "SeJ Emacs customizations."
@@ -134,6 +125,44 @@ If Non-nil, use dashboard, otherwise will restore previous session."
                   (load file)))
             ))
 
+(when (not emacs/>=26p)
+  (error "This requires Emacs 26 and above")
+  )
+
+;; Use a hook so the message doesn't get clobbered by other messages.
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
+;; Turn off mouse interface early in startup to avoid momentary display
+;; (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+;; No splash screen
+(setq inhibit-startup-message t)
+
+;; Set garbage collection threshold
+;; From https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(setq gc-cons-threshold-original gc-cons-threshold)
+(setq gc-cons-threshold (* 1024 1024 1024 100))
+
+;; Set file-name-handler-alist
+;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(setq file-name-handler-alist-original file-name-handler-alist)
+(setq file-name-handler-alist nil)
+
+;; Set deferred timer to reset them
+(run-with-idle-timer
+ 5 nil
+ (lambda ()
+   (setq gc-cons-threshold gc-cons-threshold-original)
+   (setq file-name-handler-alist file-name-handler-alist-original)))
+
 ;; Load path
 ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
 (defun update-load-path (&rest _)
@@ -172,6 +201,16 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 ;; allow exit without asking to kill processes
 (setq confirm-kill-processes nil)
+
+(size-indication-mode 1)
+(blink-cursor-mode -1)
+(setq track-eol t) ; Keep cursor at end of lines. Require line-move-visual is nil.
+(setq line-move-visual nil)
+(setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
+
+;; Don't use GTK+ tooltip
+(when (boundp 'x-gtk-use-system-tooltips)
+  (setq x-gtk-use-system-tooltips nil))
 
 (defun my-save-selected-packages (&optional value)
   "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
@@ -215,7 +254,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   :config
   (benchmark-init/activate)
   ;; To disable collection of benchmark data after init is done.
-  ;;(add-hook 'after-init-hook 'benchmark-init/deactivate)
+  (add-hook 'after-init-hook 'benchmark-init/deactivate)
   )
 
 (when sys/win32p
@@ -250,10 +289,10 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (defvar sej/after-init-hook nil
   "Hook called after emacs-init and some time.")
 
-(defvar sej/idle-timer 5
+(defvar sej/idle-timer 10
   "Var to set time in seconds for idle timer.")
 (when sys/macp
-  (setq sej/idle-timer 1))
+  (setq sej/idle-timer 5))
 
 (defun sej/run-my-after-init-hook ()
   "Function to define when to run my startup hooks"
@@ -274,16 +313,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   :ensure nil
   :hook (sej/after-init . server-mode)
   )
-
-(size-indication-mode 1)
-(blink-cursor-mode -1)
-(setq track-eol t) ; Keep cursor at end of lines. Require line-move-visual is nil.
-(setq line-move-visual nil)
-(setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
-
-;; Don't use GTK+ tooltip
-(when (boundp 'x-gtk-use-system-tooltips)
-  (setq x-gtk-use-system-tooltips nil))
 
 (cond
  (sys/macp ; OSX
@@ -419,10 +448,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
 (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
-
-;;added tips from steve drunken blog 10 specific ways to improve productivity
-(define-key sej-mode-map (kbd "C-x C-m") 'execute-extended-command)
-(define-key sej-mode-map (kbd "C-c C-m") 'execute-extended-command)
 
 ;; Align your code in a pretty way.
 (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
@@ -1267,7 +1292,6 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
 
 ;; Add proper word wrapping
 (global-visual-line-mode t)
-(setq line-move-visual t)
 
 (setq-default backup-directory-alist
               '(("." . ".saves")))    ; don't litter my fs tree
@@ -2479,7 +2503,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   tramp-default-method
   tramp-default-user
   tramp-default-host
-  :init
+  :config
   (if sys/macp
       (setq
        tramp-default-method "ssh"

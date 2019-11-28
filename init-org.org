@@ -6,30 +6,7 @@
 #+COMMENTARY: My attempt at an ORG tangled init file.
 #+LOG: Update Log
 - <2019-10-29 Tue> Init SeJ
-- <2019-11-01 Fri> init-bindings.el tangled
-- <2019-11-10 Sun> init-window.el tangled
-- <2019-11-10 Sun> init-frames.el tangled
-- <2019-11-11 Mon> init-ivy.el tangled
-- <2019-11-11 Mon> init-lisp.el tangled
-- <2019-11-12 Tue> init-company.el tangled
-- <2019-11-13 Wed> init-yasnippet.el tangled
-- <2019-11-13 Wed> init-registers.el tangled
-- <2019-11-14 Thu> init-dired.el tangled
-- <2019-11-14 Thu> init-ibuffer.el tangled
-- <2019-11-14 Thu> init-kill-ring.el tangled
-- <2019-11-14 Thu> init-deft.el tangled
-- <2019-11-17 Sun> init-eshell.el tangled
-- <2019-11-17 Sun> init-shell.el tangled
-- <2019-11-17 Sun> init-org.el tangled
-- <2019-11-23 Sat> init-vcs.el tangled
-- <2019-11-23 Sat> init-prog.el tangled
-- <2019-11-24 Sun> init-flycheck.el tangled
-- <2019-11-24 Sun> init-projectile.el tangled
-- <2019-11-25 Mon> init-python.el tangled
-- <2019-11-26 Tue> init-web.el tangled
-- <2019-11-26 Tue> init-misc-languages.el tangled
-- <2019-11-26 Tue> init-misc-packages tangled
-- <2019-11-26 Tue> init-lsp.el tangled
+- <2019-11-27 Wed> tangled done now working on efficiency
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -40,12 +17,11 @@
   - [[#environment-system-specific][environment system specific]]
   - [[#sejafter-init-hook][sej/after-init-hook]]
   - [[#start-server][start server]]
-  - [[#miscellaneous-settings][miscellaneous settings]]
-- [[#general-key-bindings][general key-bindings]]
+- [[#general---keybindings][general - keybindings]]
   - [[#modifiers---os-specific][modifiers - OS specific]]
   - [[#keybindings-global][keybindings global]]
   - [[#keybindings-sej-mode-map][keybindings sej-mode-map]]
-- [[#general-functions--packages][general functions / packages]]
+- [[#general---functions--packages][general - functions / packages]]
   - [[#help][help]]
   - [[#update][update]]
   - [[#network-proxy][network proxy]]
@@ -118,10 +94,6 @@
       (string-equal "root" (getenv "USER"))
       "Are you using ROOT user?")
 
-    (defconst emacs/>=25p
-      (>= emacs-major-version 25)
-      "Emacs is 25 or above.")
-
     (defconst emacs/>=26p
       (>= emacs-major-version 26)
       "Emacs is 26 or above.")
@@ -130,10 +102,6 @@
       (>= emacs-major-version 27)
       "Emacs is 27 or above.")
 
-    (defconst emacs/>=25.2p
-      (or emacs/>=26p
-          (and (= emacs-major-version 25) (>= emacs-minor-version 2)))
-      "Emacs is 25.2 or above.")
   #+END_SRC
 
 * customization
@@ -229,6 +197,44 @@
 * initialize basic
 ** environment general
    #+BEGIN_SRC emacs-lisp
+     (when (not emacs/>=26p)
+       (error "This requires Emacs 26 and above")
+       )
+
+     ;; Use a hook so the message doesn't get clobbered by other messages.
+     (add-hook 'emacs-startup-hook
+               (lambda ()
+                 (message "Emacs ready in %s with %d garbage collections."
+                          (format "%.2f seconds"
+                                  (float-time
+                                   (time-subtract after-init-time before-init-time)))
+                          gcs-done)))
+
+     ;; Turn off mouse interface early in startup to avoid momentary display
+     ;; (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
+     (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+     (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+     ;; No splash screen
+     (setq inhibit-startup-message t)
+
+     ;; Set garbage collection threshold
+     ;; From https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+     (setq gc-cons-threshold-original gc-cons-threshold)
+     (setq gc-cons-threshold (* 1024 1024 1024 100))
+
+     ;; Set file-name-handler-alist
+     ;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+     (setq file-name-handler-alist-original file-name-handler-alist)
+     (setq file-name-handler-alist nil)
+
+     ;; Set deferred timer to reset them
+     (run-with-idle-timer
+      5 nil
+      (lambda ()
+        (setq gc-cons-threshold gc-cons-threshold-original)
+        (setq file-name-handler-alist file-name-handler-alist-original)))
+
      ;; Load path
      ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
      (defun update-load-path (&rest _)
@@ -267,6 +273,16 @@
 
      ;; allow exit without asking to kill processes
      (setq confirm-kill-processes nil)
+
+     (size-indication-mode 1)
+     (blink-cursor-mode -1)
+     (setq track-eol t) ; Keep cursor at end of lines. Require line-move-visual is nil.
+     (setq line-move-visual nil)
+     (setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
+
+     ;; Don't use GTK+ tooltip
+     (when (boundp 'x-gtk-use-system-tooltips)
+       (setq x-gtk-use-system-tooltips nil))
    #+END_SRC
 
 ** initialize package system
@@ -325,7 +341,7 @@
         :config
         (benchmark-init/activate)
         ;; To disable collection of benchmark data after init is done.
-        ;;(add-hook 'after-init-hook 'benchmark-init/deactivate)
+        (add-hook 'after-init-hook 'benchmark-init/deactivate)
         )
     #+END_SRC
 
@@ -369,10 +385,10 @@
      (defvar sej/after-init-hook nil
        "Hook called after emacs-init and some time.")
 
-     (defvar sej/idle-timer 5
+     (defvar sej/idle-timer 10
        "Var to set time in seconds for idle timer.")
      (when sys/macp
-       (setq sej/idle-timer 1))
+       (setq sej/idle-timer 5))
 
      (defun sej/run-my-after-init-hook ()
        "Function to define when to run my startup hooks"
@@ -398,20 +414,7 @@
        )
    #+END_SRC
 
-** miscellaneous settings
-   #+BEGIN_SRC emacs-lisp
-     (size-indication-mode 1)
-     (blink-cursor-mode -1)
-     (setq track-eol t) ; Keep cursor at end of lines. Require line-move-visual is nil.
-     (setq line-move-visual nil)
-     (setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
-
-     ;; Don't use GTK+ tooltip
-     (when (boundp 'x-gtk-use-system-tooltips)
-       (setq x-gtk-use-system-tooltips nil))
-   #+END_SRC
-
-* general key-bindings
+* general - keybindings
 ** modifiers - OS specific
 *** MAC OS Apple keyboard
     - caps lock is control (through karabiner)
@@ -595,10 +598,6 @@
       (define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
       (define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
 
-      ;;added tips from steve drunken blog 10 specific ways to improve productivity
-      (define-key sej-mode-map (kbd "C-x C-m") 'execute-extended-command)
-      (define-key sej-mode-map (kbd "C-c C-m") 'execute-extended-command)
-
       ;; Align your code in a pretty way.
       (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
 
@@ -606,7 +605,7 @@
       (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
     #+END_SRC
 
-* general functions / packages
+* general - functions / packages
 *** sej/save-macro
     - save last macro to init file
     #+BEGIN_SRC emacs-lisp
@@ -1712,7 +1711,6 @@
 
      ;; Add proper word wrapping
      (global-visual-line-mode t)
-     (setq line-move-visual t)
 
      (setq-default backup-directory-alist
                    '(("." . ".saves")))    ; don't litter my fs tree
@@ -3206,7 +3204,7 @@
         tramp-default-method
         tramp-default-user
         tramp-default-host
-        :init
+        :config
         (if sys/macp
             (setq
              tramp-default-method "ssh"
