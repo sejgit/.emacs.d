@@ -139,9 +139,9 @@ If Non-nil, use dashboard, otherwise will restore previous session."
                      gcs-done)))
 
 ;; Turn off mouse interface early in startup to avoid momentary display
-;; (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(menu-bar-mode t)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 
 ;; No splash screen
 (setq inhibit-startup-message t)
@@ -249,14 +249,6 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (use-package diminish)
 (use-package bind-key)
 
-(use-package benchmark-init
-  :demand t
-  :config
-  (benchmark-init/activate)
-  ;; To disable collection of benchmark data after init is done.
-  (add-hook 'after-init-hook 'benchmark-init/deactivate)
-  )
-
 (when sys/win32p
   (setenv "PATH"
           (mapconcat
@@ -269,14 +261,12 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   (load-library "xahk-mode"))
 
 (when (or sys/mac-x-p sys/linux-x-p)
-  (use-package exec-path-from-shell
-    :init
-    (setq exec-path-from-shell-check-startup-files nil)
-    (setq exec-path-from-shell-variables
-          '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
-    (setq exec-path-from-shell-arguments '("-l"))
-    (exec-path-from-shell-initialize))
-  (setq exec-path (append exec-path '("/usr/local/bin"))))
+  (setq exec-path (append exec-path '("/usr/local/bin")))
+  ;; (use-package exec-path-from-shell
+  ;;   ;; :demand t
+  ;;   :init
+  ;;   (exec-path-from-shell-initialize))
+  )
 
 (setq-default locate-command "which")
 
@@ -289,10 +279,10 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (defvar sej/after-init-hook nil
   "Hook called after emacs-init and some time.")
 
-(defvar sej/idle-timer 10
+(defvar sej/idle-timer 5
   "Var to set time in seconds for idle timer.")
 (when sys/macp
-  (setq sej/idle-timer 5))
+  (setq sej/idle-timer 1))
 
 (defun sej/run-my-after-init-hook ()
   "Function to define when to run my startup hooks"
@@ -500,8 +490,7 @@ output as per `sej/exec'. Otherwise, return nil."
 (use-package list-environment
   :commands list-environment)
 
-(use-package esup
-  :commands esup)
+(require 'esup)
 
 (use-package try)
 
@@ -2749,7 +2738,7 @@ _x_: Go external other window
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 (if (executable-find "cc")
     (use-package forge
@@ -4240,7 +4229,6 @@ converted to PDF at the same location."
   :hook (nov-mode . my-nov-setup))
 
 (use-package org
-  ;;:ensure org-plus-contrib
   :defines
   sej-mode-map
   org-capture-bookmark
@@ -4382,8 +4370,6 @@ converted to PDF at the same location."
           (tags priority-down category-keep)
           (search category-keep))))
 
-  )
-
 (setq org-confirm-babel-evaluate nil
       org-src-fontify-natively t
       org-src-tab-acts-natively t)
@@ -4398,11 +4384,11 @@ converted to PDF at the same location."
                              (sass . t)
                              (C . t)
                              (java . t)
-                             (arduino . t)))
+                             (arduino . t)
+                             (shell . t)))
 
-(if emacs/>=26p
-    (cl-pushnew '(shell . t) load-language-list)
-  (cl-pushnew '(sh . t) load-language-list))
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               load-language-list) )
 
 (use-package ob-go
   :init (cl-pushnew '(go . t) load-language-list))
@@ -4410,12 +4396,7 @@ converted to PDF at the same location."
 (use-package ob-rust
   :init (cl-pushnew '(rust . t) load-language-list))
 
-(use-package ob-ipython
-  :if (executable-find "jupyter") ; DO NOT remove
-  :init (cl-pushnew '(ipython . t) load-language-list))
-
-(org-babel-do-load-languages 'org-babel-load-languages
-                             load-language-list)
+(use-package ob-ipython)
 
 (use-package org-rich-yank
   :bind (:map org-mode-map
@@ -4500,6 +4481,7 @@ converted to PDF at the same location."
                                       ("M-R" . eshell-previous-matching-input)
                                       ("C-l" . eshell/clear)
                                       )
+                           (sej/eshell-prompt)
                            )))
 
   :bind (
@@ -4508,14 +4490,14 @@ converted to PDF at the same location."
          ("C-c e" . eshell)
          ("C-c s e" . eshell) )
 
-  :init
-  (require 'em-smart)
-  (require 'em-cmpl)
-  (require 'em-prompt)
-  (require 'em-term)
-  (require 'esh-opt)
-
   :config
+  (require 'esh-opt)
+  (require 'em-cmpl)
+  (require 'em-smart)
+  (require 'em-term)
+  (require 'em-prompt)
+
+
   (setenv "PAGER" "cat")
 
   ;; Visual commands
@@ -4548,7 +4530,22 @@ converted to PDF at the same location."
         eshell-destroy-buffer-when-process-dies t)
 
   ;; turn off semantic-mode in eshell buffers
-  (semantic-mode -1)
+  (semantic-mode -1))
+
+(use-package eshell-prompt-extras
+  :after esh-opt
+  :defines eshell-highlight-prompt
+  :commands (epe-theme-lambda epe-theme-dakrone epe-theme-pipeline)
+  :init
+  (setq eshell-highlight-prompt nil
+        eshell-prompt-function 'epe-theme-lambda
+        eshell-prompt-function 'epe-theme-dakrone
+        ;; See eshell-prompt-function below
+        ;; eshell-prompt-regexp "^[^#$\n]* [#$] "
+        epe-git-dirty-char " Ϟ"
+        )
+  (autoload 'epe-theme-lambda "eshell-prompt-extras")
+  ;; epe-git-dirty-char "*"
   )
 
 (defun eshell/truncate-eshell-buffers ()
@@ -4565,13 +4562,6 @@ converted to PDF at the same location."
 ;; you can run `(cancel-timer sej/eshell-truncate-timer)'
 (setq sej/eshell-truncate-timer
       (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
-
-(use-package eshell-prompt-extras
-  :init
-  (with-eval-after-load "esh-opt"
-    (autoload 'epe-theme-lambda "eshell-prompt-extras")
-    (setq eshell-highlight-prompt nil
-          eshell-prompt-function 'epe-theme-lambda)))
 
 (use-package esh-autosuggest
   :defines ivy-display-functions-alist
@@ -4739,10 +4729,3 @@ converted to PDF at the same location."
 
 (use-package keychain-environment
   :hook (sej/after-init . keychain-refresh-environment))
-
-(use-package exec-path-from-shell
-  :config
-  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
-    (add-to-list 'exec-path-from-shell-variables var))
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))

@@ -211,9 +211,9 @@
                           gcs-done)))
 
      ;; Turn off mouse interface early in startup to avoid momentary display
-     ;; (if (fboundp 'menu-bar-mode) (menu-bar-mode t))
-     (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-     (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+     (menu-bar-mode t)
+     (tool-bar-mode -1)
+     (scroll-bar-mode -1)
 
      ;; No splash screen
      (setq inhibit-startup-message t)
@@ -334,17 +334,6 @@
       (use-package bind-key)
     #+END_SRC
 
-*** Begin benchmarking of packages
-    #+BEGIN_SRC emacs-lisp
-      (use-package benchmark-init
-        :demand t
-        :config
-        (benchmark-init/activate)
-        ;; To disable collection of benchmark data after init is done.
-        (add-hook 'after-init-hook 'benchmark-init/deactivate)
-        )
-    #+END_SRC
-
 ** environment system specific
    - Set environment variables based on current system & paths
    #+BEGIN_SRC emacs-lisp
@@ -360,14 +349,12 @@
        (load-library "xahk-mode"))
 
      (when (or sys/mac-x-p sys/linux-x-p)
-       (use-package exec-path-from-shell
-         :init
-         (setq exec-path-from-shell-check-startup-files nil)
-         (setq exec-path-from-shell-variables
-               '("PATH" "MANPATH" "PYTHONPATH" "GOPATH"))
-         (setq exec-path-from-shell-arguments '("-l"))
-         (exec-path-from-shell-initialize))
-       (setq exec-path (append exec-path '("/usr/local/bin"))))
+       (setq exec-path (append exec-path '("/usr/local/bin")))
+       ;; (use-package exec-path-from-shell
+       ;;   ;; :demand t
+       ;;   :init
+       ;;   (exec-path-from-shell-initialize))
+       )
 
      (setq-default locate-command "which")
 
@@ -375,7 +362,6 @@
      (setenv "EMACS"
              (file-truename (expand-file-name
                              invocation-name invocation-directory)))
-
    #+END_SRC
 
 ** sej/after-init-hook
@@ -385,10 +371,10 @@
      (defvar sej/after-init-hook nil
        "Hook called after emacs-init and some time.")
 
-     (defvar sej/idle-timer 10
+     (defvar sej/idle-timer 5
        "Var to set time in seconds for idle timer.")
      (when sys/macp
-       (setq sej/idle-timer 5))
+       (setq sej/idle-timer 1))
 
      (defun sej/run-my-after-init-hook ()
        "Function to define when to run my startup hooks"
@@ -658,7 +644,8 @@
     #+END_SRC
 
 *** list-environment
-    - A tabulated process environment editor
+    - environment variables tabulated
+    - process environment editor
     #+BEGIN_SRC emacs-lisp
       (use-package list-environment
         :commands list-environment)
@@ -667,8 +654,7 @@
 *** esup
     - Emacs startup profiler
     #+BEGIN_SRC emacs-lisp
-      (use-package esup
-        :commands esup)
+      (require 'esup)
     #+END_SRC
 
 *** try
@@ -3518,7 +3504,7 @@
         (if (fboundp 'transient-append-suffix)
             ;; Add switch: --tags
             (transient-append-suffix 'magit-fetch
-              "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+                                     "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
     #+END_SRC
 
 *** forge
@@ -5443,7 +5429,6 @@
 *** org
     #+BEGIN_SRC emacs-lisp
       (use-package org
-        ;;:ensure org-plus-contrib
         :defines
         sej-mode-map
         org-capture-bookmark
@@ -5585,11 +5570,6 @@
                 (tags priority-down category-keep)
                 (search category-keep))))
 
-        )
-    #+END_SRC
-
-*** org-babel settings
-    #+BEGIN_SRC emacs-lisp
       (setq org-confirm-babel-evaluate nil
             org-src-fontify-natively t
             org-src-tab-acts-natively t)
@@ -5604,16 +5584,11 @@
                                    (sass . t)
                                    (C . t)
                                    (java . t)
-                                   (arduino . t)))
-    #+END_SRC
+                                   (arduino . t)
+                                   (shell . t)))
 
-*** ob-shell
-    - org-babel functions for shell source code
-    - ob-sh renamed to ob-shell since 26.1.
-    #+BEGIN_SRC emacs-lisp
-      (if emacs/>=26p
-          (cl-pushnew '(shell . t) load-language-list)
-        (cl-pushnew '(sh . t) load-language-list))
+        (org-babel-do-load-languages 'org-babel-load-languages
+                                     load-language-list) )
     #+END_SRC
 
 *** ob-go
@@ -5634,12 +5609,7 @@
     - library that allows Org mode to evaluate code blocks using a Jupyter kernel
     (Python by default)
     #+BEGIN_SRC emacs-lisp
-      (use-package ob-ipython
-        :if (executable-find "jupyter") ; DO NOT remove
-        :init (cl-pushnew '(ipython . t) load-language-list))
-
-      (org-babel-do-load-languages 'org-babel-load-languages
-                                   load-language-list)
+      (use-package ob-ipython)
     #+END_SRC
 
 *** org-rich-yank
@@ -5756,6 +5726,7 @@
                                             ("M-R" . eshell-previous-matching-input)
                                             ("C-l" . eshell/clear)
                                             )
+                                 (sej/eshell-prompt)
                                  )))
 
         :bind (
@@ -5764,14 +5735,14 @@
                ("C-c e" . eshell)
                ("C-c s e" . eshell) )
 
-        :init
-        (require 'em-smart)
-        (require 'em-cmpl)
-        (require 'em-prompt)
-        (require 'em-term)
-        (require 'esh-opt)
-
         :config
+        (require 'esh-opt)
+        (require 'em-cmpl)
+        (require 'em-smart)
+        (require 'em-term)
+        (require 'em-prompt)
+
+
         (setenv "PAGER" "cat")
 
         ;; Visual commands
@@ -5804,7 +5775,27 @@
               eshell-destroy-buffer-when-process-dies t)
 
         ;; turn off semantic-mode in eshell buffers
-        (semantic-mode -1)
+        (semantic-mode -1))
+    #+END_SRC
+
+*** eshell-prompt-extras
+    - Display extra information for prompt
+    - See: https://github.com/kaihaosw/eshell-prompt-extras
+    #+BEGIN_SRC emacs-lisp
+      (use-package eshell-prompt-extras
+        :after esh-opt
+        :defines eshell-highlight-prompt
+        :commands (epe-theme-lambda epe-theme-dakrone epe-theme-pipeline)
+        :init
+        (setq eshell-highlight-prompt nil
+              eshell-prompt-function 'epe-theme-lambda
+              eshell-prompt-function 'epe-theme-dakrone
+              ;; See eshell-prompt-function below
+              ;; eshell-prompt-regexp "^[^#$\n]* [#$] "
+              epe-git-dirty-char " Ϟ"
+              )
+        (autoload 'epe-theme-lambda "eshell-prompt-extras")
+        ;; epe-git-dirty-char "*"
         )
     #+END_SRC
 
@@ -5825,18 +5816,6 @@
       ;; you can run `(cancel-timer sej/eshell-truncate-timer)'
       (setq sej/eshell-truncate-timer
             (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
-    #+END_SRC
-
-*** eshell-prompt-extras
-    - Display extra information for prompt
-    - See: https://github.com/kaihaosw/eshell-prompt-extras
-    #+BEGIN_SRC emacs-lisp
-      (use-package eshell-prompt-extras
-        :init
-        (with-eval-after-load "esh-opt"
-          (autoload 'epe-theme-lambda "eshell-prompt-extras")
-          (setq eshell-highlight-prompt nil
-                eshell-prompt-function 'epe-theme-lambda)))
     #+END_SRC
 
 *** esh-autosuggest
@@ -6065,15 +6044,4 @@
     #+BEGIN_SRC emacs-lisp
       (use-package keychain-environment
         :hook (sej/after-init . keychain-refresh-environment))
-    #+END_SRC
-
-*** exec-path-from-shell
-    - this allows GUI Emacs to inherit $PATH
-    #+BEGIN_SRC emacs-lisp
-      (use-package exec-path-from-shell
-        :config
-        (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE"))
-          (add-to-list 'exec-path-from-shell-variables var))
-        (when (memq window-system '(mac ns x))
-          (exec-path-from-shell-initialize)))
     #+END_SRC
