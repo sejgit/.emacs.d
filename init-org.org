@@ -229,8 +229,7 @@
      (setq file-name-handler-alist nil)
 
      ;; Set deferred timer to reset them
-     (run-with-idle-timer
-      5 nil
+     (run-with-idle-timer 5 nil
       (lambda ()
         (setq gc-cons-threshold gc-cons-threshold-original)
         (setq file-name-handler-alist file-name-handler-alist-original)))
@@ -391,6 +390,7 @@
      ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
      (add-hook 'emacs-startup-hook 'sej/frame-resize-full)
    #+END_SRC
+
 ** start server
    - but wait until sej/after-init
    #+BEGIN_SRC emacs-lisp
@@ -608,8 +608,8 @@
     #+END_SRC
 
 *** sej/exec
-    - not key defined
     - executable functions from ohai and modified for my uses
+    - not key defined
     #+BEGIN_SRC emacs-lisp
       (defun sej/exec (command)
         "Run a shell command and return its output as a string, whitespace trimmed."
@@ -673,7 +673,7 @@
         :commands which-key-mode
         :defines sej-mode-map
         :bind (:map sej-mode-map
-                    ("C-h C-m" . which-key-show-major-mode)
+                    ("C-h <ret>" . which-key-show-major-mode)
                     ("C-h C-k" . which-key-show-top-level))
         :config
         (which-key-setup-minibuffer))
@@ -744,9 +744,9 @@
             (message "\"%s\" doesn't exist." dir))))
     #+END_SRC
 
-*** sej/update-org
+*** TODO sej/update-org
     - helper function to pull latest dotfiles org files from git tracked dir
-    - not bound
+    - need to bring together ~/org/ and deft ~/gdrive/todo/
     #+BEGIN_SRC emacs-lisp
       (defun sej/update-org ()
         "Update Org files to the latest version."
@@ -2468,7 +2468,7 @@
         :hook (after-init . global-aggressive-indent-mode)
         :config
         ;; Disable in some modes
-        (dolist (mode '(asm-mode web-mode html-mode css-mode robot-mode go-mode))
+        (dolist (mode '(asm-mode web-mode html-mode css-mode go-mode))
           (push mode aggressive-indent-excluded-modes))
         ;; Be slightly less aggressive in C/C++/C#/Java/Go/Swift
         (add-to-list

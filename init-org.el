@@ -157,8 +157,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (setq file-name-handler-alist nil)
 
 ;; Set deferred timer to reset them
-(run-with-idle-timer
- 5 nil
+(run-with-idle-timer 5 nil
  (lambda ()
    (setq gc-cons-threshold gc-cons-threshold-original)
    (setq file-name-handler-alist file-name-handler-alist-original)))
@@ -500,7 +499,7 @@ output as per `sej/exec'. Otherwise, return nil."
   :commands which-key-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-h C-m" . which-key-show-major-mode)
+              ("C-h <ret>" . which-key-show-major-mode)
               ("C-h C-k" . which-key-show-top-level))
   :config
   (which-key-setup-minibuffer))
@@ -1959,7 +1958,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :hook (after-init . global-aggressive-indent-mode)
   :config
   ;; Disable in some modes
-  (dolist (mode '(asm-mode web-mode html-mode css-mode robot-mode go-mode))
+  (dolist (mode '(asm-mode web-mode html-mode css-mode go-mode))
     (push mode aggressive-indent-excluded-modes))
   ;; Be slightly less aggressive in C/C++/C#/Java/Go/Swift
   (add-to-list
