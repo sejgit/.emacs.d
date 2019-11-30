@@ -655,7 +655,7 @@ output as per `sej/exec'. Otherwise, return nil."
   (interactive
    (list
     (intern (completing-read "Load theme: "
-                             '(default classic dark light daylight)))))
+                             '(default classic peacock dark light daylight)))))
   (let ((theme (standardize-theme theme)))
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme t)))
@@ -798,8 +798,7 @@ output as per `sej/exec'. Otherwise, return nil."
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
 
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
-
-(define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+(define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
 (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
 (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
@@ -812,6 +811,8 @@ output as per `sej/exec'. Otherwise, return nil."
 ;; toggle two most recent buffers
 (fset 'quick-switch-buffer [?\C-x ?b return])
 (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
+
+(define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
 
 (defun sej/minibuffer-setup-hook ()
   (setq gc-cons-threshold most-positive-fixnum))
@@ -854,25 +855,12 @@ buffer is not visiting a file."
   (set-buffer-file-coding-system 'utf-8)
   (save-buffer))
 
-(defun sej/revert-this-buffer ()
-  "Revert the current buffer."
-  (interactive)
-  (unless (minibuffer-window-active-p (selected-window))
-    (text-scale-increase 0)
-    (widen)
-    (if (and (fboundp 'fancy-narrow-active-p)
-             (fancy-narrow-active-p))
-        (fancy-widen))
-    (revert-buffer t t)
-    (message "Reverted this buffer.")))
-(bind-key "<f5>" #'sej/revert-this-buffer)
-(if sys/mac-x-p
-    (bind-key "s-r" #'sej/revert-this-buffer))
-
-(defun browse-homepage ()
+(defun sej/browse-homepage ()
   "Browse the Github page of SeJ Emacs."
   (interactive)
   (browse-url sejgit-homepage))
+
+(define-key sej-mode-map (kbd "C-c s h") 'sej/browse-homepage)
 
 (defun sej/quit-and-kill-auxiliary-windows ()
   "Kill buffer and its window on quitting"
@@ -928,9 +916,6 @@ buffer is not visiting a file."
   :hook (after-init . persistent-scratch-setup-default)
   :bind (:map lisp-interaction-mode-map
               ("C-x C-s" . my-save-buffer)))
-
-(use-package memory-usage
-  :commands memory-usage)
 
 (define-key sej-mode-map (kbd "s-0") 'delete-window)
 (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)

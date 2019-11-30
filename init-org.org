@@ -913,7 +913,7 @@
         (interactive
          (list
           (intern (completing-read "Load theme: "
-                                   '(default classic dark light daylight)))))
+                                   '(default classic peacock dark light daylight)))))
         (let ((theme (standardize-theme theme)))
           (mapc #'disable-theme custom-enabled-themes)
           (load-theme theme t)))
@@ -1104,8 +1104,7 @@
       (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
 
       (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
-
-      (define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+      (define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
       (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
       (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
@@ -1123,6 +1122,8 @@
 *** minibuffer settings
     - make sure garbage collection does not happen in minibuffer mode
     #+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+
       (defun sej/minibuffer-setup-hook ()
         (setq gc-cons-threshold most-positive-fixnum))
 
@@ -1135,7 +1136,7 @@
 
 *** sej/sudo-edit
     - function to edit the curent file as root.
-      defined as C-x C-s in sej-mode-map bindings
+      defined as C-c C-s in sej-mode-map bindings
     #+BEGIN_SRC emacs-lisp
       (defun sej/sudo-edit (&optional arg)
         "Edit currently visited file as root.
@@ -1184,34 +1185,16 @@
         (save-buffer))
     #+END_SRC
 
-*** sej/revert-this-buffer
-    - revert-buffer without asking
-      bound to <f5> todo: merge with C-r revert-buffer
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/revert-this-buffer ()
-        "Revert the current buffer."
-        (interactive)
-        (unless (minibuffer-window-active-p (selected-window))
-          (text-scale-increase 0)
-          (widen)
-          (if (and (fboundp 'fancy-narrow-active-p)
-                   (fancy-narrow-active-p))
-              (fancy-widen))
-          (revert-buffer t t)
-          (message "Reverted this buffer.")))
-      (bind-key "<f5>" #'sej/revert-this-buffer)
-      (if sys/mac-x-p
-          (bind-key "s-r" #'sej/revert-this-buffer))
-    #+END_SRC
-
 *** sej/browse-homepage
     - Browse my github homepage
-      not bound
+    - bound to C-c s h
     #+BEGIN_SRC emacs-lisp
-      (defun browse-homepage ()
+      (defun sej/browse-homepage ()
         "Browse the Github page of SeJ Emacs."
         (interactive)
         (browse-url sejgit-homepage))
+
+      (define-key sej-mode-map (kbd "C-c s h") 'sej/browse-homepage)
     #+END_SRC
 
 *** sej/quit-and-kill-auxiliary-windows
@@ -1222,6 +1205,7 @@
       (add-hook 'special-mode 'sej/quit-and-kill-auxiliary-windows)
       (add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
     #+END_SRC
+
 *** autorevert
     - Automatically reload files when modified by external program if not modified
     #+BEGIN_SRC emacs-lisp
@@ -1272,6 +1256,7 @@
       (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer)
       (define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer)
     #+END_SRC
+
 *** persistent-scratch
     - keep the scratch buffer from session to session
     #+BEGIN_SRC emacs-lisp
@@ -1290,14 +1275,6 @@
         :hook (after-init . persistent-scratch-setup-default)
         :bind (:map lisp-interaction-mode-map
                     ("C-x C-s" . my-save-buffer)))
-    #+END_SRC
-
-*** memory-usage
-    - functions and variables give information about the total amount of memory
-      allocation that Emacs has done, broken down by data type
-    #+BEGIN_SRC emacs-lisp
-      (use-package memory-usage
-        :commands memory-usage)
     #+END_SRC
 
 ** windows
