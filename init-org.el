@@ -550,6 +550,7 @@ output as per `sej/exec'. Otherwise, return nil."
           (message "Update finished."))
       (message "\"%s\" doesn't exist." dir))))
 
+;; TODO: need to bring together ~/org/ and deft ~/gdrive/todo/
 (defun sej/update-org ()
   "Update Org files to the latest version."
   (interactive)
@@ -2730,7 +2731,7 @@ _x_: Go external other window
       :demand))
 
 (use-package magit-todos
-  :hook (ater-init . magit-todos-mode))
+  :init (magit-todos-mode))
 
 (use-package git-timemachine
   :custom-face

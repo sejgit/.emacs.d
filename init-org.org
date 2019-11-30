@@ -748,6 +748,7 @@
     - helper function to pull latest dotfiles org files from git tracked dir
     - need to bring together ~/org/ and deft ~/gdrive/todo/
     #+BEGIN_SRC emacs-lisp
+      ;; TODO: need to bring together ~/org/ and deft ~/gdrive/todo/
       (defun sej/update-org ()
         "Update Org files to the latest version."
         (interactive)
@@ -3501,7 +3502,7 @@
     - Show tasks from commit files
     #+BEGIN_SRC emacs-lisp
       (use-package magit-todos
-        :hook (ater-init . magit-todos-mode))
+        :init (magit-todos-mode))
     #+END_SRC
 
 *** git-timemachine
