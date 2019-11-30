@@ -946,65 +946,9 @@ buffer is not visiting a file."
   :custom-face
   (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
   (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
-  :preface
-  (defun toggle-window-split ()
-    (interactive)
-    (if (= (count-windows) 2)
-        (let* ((this-win-buffer (window-buffer))
-               (next-win-buffer (window-buffer (next-window)))
-               (this-win-edges (window-edges (selected-window)))
-               (next-win-edges (window-edges (next-window)))
-               (this-win-2nd (not (and (<= (car this-win-edges)
-                                           (car next-win-edges))
-                                       (<= (cadr this-win-edges)
-                                           (cadr next-win-edges)))))
-               (splitter
-                (if (= (car this-win-edges)
-                       (car (window-edges (next-window))))
-                    'split-window-horizontally
-                  'split-window-vertically)))
-          (delete-other-windows)
-          (let ((first-win (selected-window)))
-            (funcall splitter)
-            (if this-win-2nd (other-window 1))
-            (set-window-buffer (selected-window) this-win-buffer)
-            (set-window-buffer (next-window) next-win-buffer)
-            (select-window first-win)
-            (if this-win-2nd (other-window 1))))))
   :hook (after-init . ace-window-display-mode)
   :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-
-  ;; https://github.com/abo-abo/ace-window/wiki/Hydra
-  ;; `hydra-frame-window' is designed from `ace-window' and
-  ;; matches `aw-dispatch-alist' with a few extra
-  (defhydra hydra-frame-window (:color red :hint none)
-    "
-^Frame^                 ^Window^      ^Window Size^^^^     ^Text Zoom^
-^^──────────────────────^^────────────^^──────────^^^^─────^^───────────────
-_0_: delete             _t_oggle        ^ ^ _k_ ^ ^            _+_
-_1_: delete others      _s_wap          _h_ ^+^ _l_            _=_
-_2_: new                _d_elete        ^ ^ _j_ ^ ^            _-_
-_F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
-    ("0" delete-frame :exit t)
-    ("1" delete-other-frames :exit t)
-    ("2" make-frame  :exit t)
-    ("b" balance-windows)
-    ("s" ace-swap-window)
-    ("F" toggle-frame-fullscreen)
-    ("t" toggle-window-split)
-    ("d" ace-delete-window :exit t)
-    ("o" ace-window :exit t)
-    ("-" text-scale-decrease)
-    ("=" (text-scale-increase 0))
-    ("+" text-scale-increase)
-    ("h" shrink-window-horizontally)
-    ("k" shrink-window)
-    ("j" enlarge-window)
-    ("l" enlarge-window-horizontally)
-    ("q" nil "quit"))
-  (add-to-list 'aw-dispatch-alist '(?w hydra-frame-window/body) t)
-  (bind-key "C-c w" #'hydra-frame-window/body))
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
 (use-package windmove
   :ensure nil
@@ -1015,13 +959,7 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
          ("H-j" . windmove-down) )
   :config
   (when (fboundp 'winner-mode)
-    (winner-mode t))
-  ;; Make windmove work in org-mode:
-  ;; (add-hook 'org-shiftup-final-hook 'windmove-up)
-  ;; (add-hook 'org-shiftleft-final-hook 'windmove-left)
-  ;; (add-hook 'org-shiftdown-final-hook 'windmove-down)
-  ;; (add-hook 'org-shiftright-final-hook 'windmove-right)
-  )
+    (winner-mode t)))
 
 (use-package winner
   :ensure nil
@@ -1046,8 +984,8 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   :diminish golden-ratio-mode
   :config
   (add-to-list 'golden-ratio-extra-commands 'ace-window)
-  (setq golden-ratio-auto-scale t)
-  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window))
+  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
+  (setq golden-ratio-auto-scale t))
 
 (use-package shackle
   :commands shackle-display-buffer
@@ -1150,9 +1088,9 @@ _F_ullscreen            _o_ther         _b_alance^^^^          ^ ^         "
   (after-save . doom-modeline-update-buffer-file-state-icon)
   :init
   (setq doom-modeline-major-mode-color-icon t)
-  (setq doom-modeline-github nil)
+  (setq doom-modeline-github t)
   (setq doom-modeline-indent-info t)
-  (setq doom-modeline-persp-name t))
+  (setq doom-modeline-persp-name nil))
 
 (defun mode-line-height ()
   "Get current height of mode-line."
