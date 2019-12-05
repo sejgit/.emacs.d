@@ -288,11 +288,11 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   (interactive)
   (message "set-up my hooks")
   (run-with-idle-timer sej/idle-timer nil
-                       (lambda ()
-                         (message "start running my hooks")
-                         (run-hooks 'sej/after-init-hook)
-                         (message "done running my hooks")
-                         )))
+     (lambda ()
+       (message "start running my hooks")
+       (run-hooks 'sej/after-init-hook)
+       (message "done running my hooks")
+       )))
 
 (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
 ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
@@ -489,7 +489,9 @@ output as per `sej/exec'. Otherwise, return nil."
 (use-package list-environment
   :commands list-environment)
 
-(require 'esup)
+(use-package esup
+:init
+(autoload 'esup "esup" "Emacs Start Up Profiler." nil))
 
 (use-package try)
 
