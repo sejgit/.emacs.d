@@ -509,13 +509,10 @@ output as per `sej/exec'. Otherwise, return nil."
   :defines sej-mode-map
   :bind (:map sej-mode-map
               ("C-c C-d" . helpful-at-point)
-              ("C-h F" . helpful-function)
               ("C-h c" . helpful-command)
               ("C-h C" . helpful-command)
               ("C-h k" . helpful-key)
-              ("C-h f" . helpful-callable)
-              ("C-h M" . helpful-macro)
-              ("C-h v" . helpful-variable))
+              ("C-h M" . helpful-macro))
   :config
   (setq counsel-describe-function-function #'helpful-callable)
   (setq counsel-describe-variable-function #'helpful-variable)
@@ -1156,11 +1153,6 @@ buffer is not visiting a file."
          (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
   :bind ([remap goto-line] . goto-line-preview))
 
-;; Set the default formatting styles for various C based modes
-(setq c-default-style
-      '((awk-mode . "awk")
-        (other . "java")))
-
 ;; yes and no settings
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -1228,7 +1220,6 @@ buffer is not visiting a file."
 (setq make-pointer-invisible t)
 
 ;; color codes
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
 
 ;; Save whatever’s in the current (system) clipboard before
@@ -1236,19 +1227,12 @@ buffer is not visiting a file."
 ;; https://github.com/dakrone/eos/blob/master/eos.org
 (setq save-interprogram-paste-before-kill t)
 
-;; org-mode: Don't ruin S-arrow to switch windows please (use M-+ and M-- instead to toggle)
-(setq org-replace-disputed-keys t)
-
-;; Fontify org-mode code blocks
-(setq org-src-fontify-natively t)
-
 ;; UTF-8 please
 (setq locale-coding-system 'utf-8) ; pretty
 (set-terminal-coding-system 'utf-8) ; pretty
 (set-keyboard-coding-system 'utf-8) ; pretty
 (set-selection-coding-system 'utf-8) ; please
 (prefer-coding-system 'utf-8) ; with sugar on top
-
 
 ;; uniquify settings
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets) ; Show path if names are same
@@ -1280,25 +1264,7 @@ buffer is not visiting a file."
 (setq-default major-mode 'text-mode)
 
 ;; Sentences do not need double spaces to end. Period.
-
 (setq sentence-end-double-space nil)
-
-(use-package undo-tree
-  :diminish
-  :defer 10
-  :config (global-undo-tree-mode)
-  :bind (:map sej-mode-map
-              ("C-/" . undo-tree-undo)
-              ("C-?" . undo-tree-redo)
-              ("C-x u" . undo-tree-visualize)
-              ("C-x r u" . undo-tree-save-state-to-register)
-              ("C-x r U" . undo-tree-save-state-from-register))
-  :init (setq undo-tree-visualizer-timestamps t
-              undo-tree-visualizer-diff t
-              undo-tree-enable-undo-in-region nil
-              undo-tree-auto-save-history nil
-              undo-tree-history-directory-alist
-              `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
 
 (use-package iedit
   :defines desktop-minor-mode-table
@@ -1330,7 +1296,12 @@ buffer is not visiting a file."
 (use-package imenu
   :ensure nil
   :bind (:map sej-mode-map
-              ("C-." . imenu)))
+              ("C-." . imenu))
+  :hook
+  (org-mode . imenu-add-menubar-index)
+  (text-mode . imenu-add-menubar-index)
+  (prog-mode . imenu-add-menubar-index)
+  )
 
 (use-package ivy
   :diminish
@@ -1536,7 +1507,8 @@ buffer is not visiting a file."
   (use-package ag
     :commands ag
     :bind (:map sej-mode-map
-                ("M-?" . ag-project))
+                ("M-?" . ag-project)
+                ("H-a" . counsel-ag))
     :config
     (setq ag-executable (executable-find "ag")))
   (setq-default ag-highlight-search t))
@@ -1562,7 +1534,11 @@ buffer is not visiting a file."
 (use-package flyspell-correct-ivy
   :after flyspell
   :bind (:map flyspell-mode-map
-              ([remap flyspell-correct-word-before-point] . flyspell-correct-previous-word-generic)))
+              ("C-;" . flyspell-correct-wrapper)
+              ("C-M-;" . flyspell-correct-wrapper)
+              ([remap flyspell-correct-word-before-point] . flyspell-correct-previous-word-generic))
+  :init
+  (setq flyspell-correct-interface #'flyspell-correct-ivy))
 
 (cond
  (sys/linux-x-p
@@ -1669,6 +1645,10 @@ buffer is not visiting a file."
          (ivy-rich-mode . (lambda ()
                             (setq ivy-virtual-abbreviate
                                   (or (and ivy-rich-mode 'abbreviate) 'name)))))
+  :config
+  (ivy-rich-mode 1)
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+
   :init
   ;; For better performance
   (setq ivy-rich-parse-remote-buffer nil)
@@ -1912,6 +1892,22 @@ buffer is not visiting a file."
   (add-to-list 'smart-tab-disabled-major-modes 'mu4e-compose-mode)
   (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
   (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
+
+(use-package undo-tree
+  :diminish
+  :hook (sej/after-init . global-undo-tree-mode)
+  :bind (:map sej-mode-map
+              ("C-/" . undo-tree-undo)
+              ("C-?" . undo-tree-redo)
+              ("C-x u" . undo-tree-visualize)
+              ("C-x r u" . undo-tree-save-state-to-register)
+              ("C-x r U" . undo-tree-save-state-from-register))
+  :init (setq undo-tree-visualizer-timestamps t
+              undo-tree-visualizer-diff t
+              undo-tree-enable-undo-in-region nil
+              undo-tree-auto-save-history nil
+              undo-tree-history-directory-alist
+              `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
 
 (use-package saveplace
   :ensure nil
@@ -3203,6 +3199,11 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
                             (c-set-style "bsd")
                             (setq tab-width 4)
                             (setq c-basic-offset 4))))
+  :init
+  ;; Set the default formatting styles for various C based modes
+  (setq c-default-style
+        '((awk-mode . "awk")
+          (other . "java")))
   :config
   (use-package modern-cpp-font-lock
     :diminish
@@ -4580,6 +4581,8 @@ converted to PDF at the same location."
 (use-package shell
   :ensure nil
   :hook ((shell-mode . n-shell-mode-hook)
+         (shell-mode . ansi-color-for-comint-mode-on)
+
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-mode-map
