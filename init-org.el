@@ -3146,17 +3146,11 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :config (setq coffee-tab-width 2))
 
 (use-package skewer-mode
-  :diminish skewer-mode
+  :diminish skewer-mode skewer-css skewer-html
   :hook ((js2-mode . skewer-mode)
          (css-mode . skewer-css-mode)
          (web-mode . skewer-html-mode)
-         (html-mode . skewer-html-mode))
-  :init
-  ;; diminish
-  (with-eval-after-load 'skewer-css
-    (diminish 'skewer-css-mode))
-  (with-eval-after-load 'skewer-html
-    (diminish 'skewer-html-mode)))
+         (html-mode . skewer-html-mode)))
 
 (use-package web-beautify
   :init
