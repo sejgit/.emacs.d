@@ -7,6 +7,7 @@
 #+LOG: Update Log
 - <2019-10-29 Tue> Init SeJ
 - <2019-11-27 Wed> tangled done now working on efficiency
+- <2019-12-05 Thu> testing with clean install
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -5351,6 +5352,7 @@
 *** org
     #+BEGIN_SRC emacs-lisp
       (use-package org
+        :ensure org-plus-contrib
         :defines
         sej-mode-map
         org-capture-bookmark
@@ -5492,22 +5494,22 @@
                 (tags priority-down category-keep)
                 (search category-keep))))
 
-      (setq org-confirm-babel-evaluate nil
-            org-src-fontify-natively t
-            org-src-tab-acts-natively t)
+        (setq org-confirm-babel-evaluate nil
+              org-src-fontify-natively t
+              org-src-tab-acts-natively t)
 
-      (defvar load-language-list '((emacs-lisp . t)
-                                   (perl . t)
-                                   (python . t)
-                                   (ein . t)
-                                   (ruby . t)
-                                   (js . t)
-                                   (css . t)
-                                   (sass . t)
-                                   (C . t)
-                                   (java . t)
-                                   (arduino . t)
-                                   (shell . t)))
+        (defvar load-language-list '((emacs-lisp . t)
+                                     (perl . t)
+                                     (python . t)
+                                     (ein . t)
+                                     (ruby . t)
+                                     (js . t)
+                                     (css . t)
+                                     (sass . t)
+                                     (C . t)
+                                     (java . t)
+                                     (arduino . t)
+                                     (shell . t)))
 
         (org-babel-do-load-languages 'org-babel-load-languages
                                      load-language-list) )

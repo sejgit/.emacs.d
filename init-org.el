@@ -4158,6 +4158,7 @@ converted to PDF at the same location."
   :hook (nov-mode . my-nov-setup))
 
 (use-package org
+  :ensure org-plus-contrib
   :defines
   sej-mode-map
   org-capture-bookmark
@@ -4299,22 +4300,22 @@ converted to PDF at the same location."
           (tags priority-down category-keep)
           (search category-keep))))
 
-(setq org-confirm-babel-evaluate nil
-      org-src-fontify-natively t
-      org-src-tab-acts-natively t)
+  (setq org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
 
-(defvar load-language-list '((emacs-lisp . t)
-                             (perl . t)
-                             (python . t)
-                             (ein . t)
-                             (ruby . t)
-                             (js . t)
-                             (css . t)
-                             (sass . t)
-                             (C . t)
-                             (java . t)
-                             (arduino . t)
-                             (shell . t)))
+  (defvar load-language-list '((emacs-lisp . t)
+                               (perl . t)
+                               (python . t)
+                               (ein . t)
+                               (ruby . t)
+                               (js . t)
+                               (css . t)
+                               (sass . t)
+                               (C . t)
+                               (java . t)
+                               (arduino . t)
+                               (shell . t)))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list) )
