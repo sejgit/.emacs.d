@@ -288,11 +288,11 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   (interactive)
   (message "set-up my hooks")
   (run-with-idle-timer sej/idle-timer nil
-                       (lambda ()
-                         (message "start running my hooks")
-                         (run-hooks 'sej/after-init-hook)
-                         (message "done running my hooks")
-                         )))
+     (lambda ()
+       (message "start running my hooks")
+       (run-hooks 'sej/after-init-hook)
+       (message "done running my hooks")
+       )))
 
 (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
 ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
@@ -489,7 +489,9 @@ output as per `sej/exec'. Otherwise, return nil."
 (use-package list-environment
   :commands list-environment)
 
-(require 'esup)
+(use-package esup
+:init
+(autoload 'esup "esup" "Emacs Start Up Profiler." nil))
 
 (use-package try)
 
@@ -937,7 +939,6 @@ buffer is not visiting a file."
       scroll-conservatively 100000)
 
 (use-package ace-window
-  :functions (hydra-frame-window/body my-aw-window<)
   :bind (([remap other-window] . ace-window)
          ("C-x M-o" . ace-swap-window))
   :custom-face
@@ -2493,6 +2494,7 @@ buffer is not visiting a file."
   :hook (compilation-filter . my-colorize-compilation-buffer))
 
 (use-package dumb-jump
+  :after hydra
   :defines sej-mode-map
   :functions dumb-jump-hydra/body
   :bind (:map sej-mode-map
@@ -2692,6 +2694,7 @@ _x_: Go external other window
 
 (use-package smerge-mode
   :ensure nil
+  :after hydra
   :diminish
   :commands (smerge-mode
              smerge-auto-leave
@@ -2711,7 +2714,7 @@ _x_: Go external other window
              smerge-combine-with-next
              smerge-resolve
              smerge-kill-current)
-  :preface
+  :init
   (defhydra hydra-smerge
     (:color red :hint none :post (smerge-auto-leave))
     "
@@ -3314,6 +3317,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (when sej-dashboard
   (use-package dashboard
+    :after hydra
     :diminish (dashboard-mode page-break-lines-mode)
     :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
     :functions (all-the-icons-faicon
@@ -3744,6 +3748,7 @@ _S_ettings                                _C-p_: Previous Line
   (setq dired-listing-switches "-alh --group-directories-first"))
 
 (use-package dired-quick-sort
+  :after hydra
   :bind (:map dired-mode-map
               ("S" . hydra-dired-quick-sort/body)))
 

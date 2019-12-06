@@ -380,11 +380,11 @@
        (interactive)
        (message "set-up my hooks")
        (run-with-idle-timer sej/idle-timer nil
-                            (lambda ()
-                              (message "start running my hooks")
-                              (run-hooks 'sej/after-init-hook)
-                              (message "done running my hooks")
-                              )))
+          (lambda ()
+            (message "start running my hooks")
+            (run-hooks 'sej/after-init-hook)
+            (message "done running my hooks")
+            )))
 
      (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
      ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
@@ -654,7 +654,9 @@
 *** esup
     - Emacs startup profiler
     #+BEGIN_SRC emacs-lisp
-      (require 'esup)
+      (use-package esup
+  :init
+  (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
     #+END_SRC
 
 *** try
@@ -1308,7 +1310,6 @@
     - quickly selecting a window to switch to
     #+BEGIN_SRC emacs-lisp
       (use-package ace-window
-        :functions (hydra-frame-window/body my-aw-window<)
         :bind (([remap other-window] . ace-window)
                ("C-x M-o" . ace-swap-window))
         :custom-face
@@ -3212,6 +3213,7 @@
     - Jump to definition via `ag'/`rg'/`grep'
     #+BEGIN_SRC emacs-lisp
       (use-package dumb-jump
+        :after hydra
         :defines sej-mode-map
         :functions dumb-jump-hydra/body
         :bind (:map sej-mode-map
@@ -3475,6 +3477,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package smerge-mode
         :ensure nil
+        :after hydra
         :diminish
         :commands (smerge-mode
                    smerge-auto-leave
@@ -3494,7 +3497,7 @@
                    smerge-combine-with-next
                    smerge-resolve
                    smerge-kill-current)
-        :preface
+        :init
         (defhydra hydra-smerge
           (:color red :hint none :post (smerge-auto-leave))
           "
@@ -4364,6 +4367,7 @@
     #+BEGIN_SRC emacs-lisp
       (when sej-dashboard
         (use-package dashboard
+          :after hydra
           :diminish (dashboard-mode page-break-lines-mode)
           :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
           :functions (all-the-icons-faicon
@@ -4824,6 +4828,7 @@
     ;; Quick sort dired buffers via hydra
     #+BEGIN_SRC emacs-lisp
       (use-package dired-quick-sort
+        :after hydra
         :bind (:map dired-mode-map
                     ("S" . hydra-dired-quick-sort/body)))
     #+END_SRC
