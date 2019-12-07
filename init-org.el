@@ -688,6 +688,9 @@ output as per `sej/exec'. Otherwise, return nil."
     (ignore-errors
       (sej/load-theme sej-theme))))
 
+(when sys/macp
+  (set-default-font "SF Mono-14"))
+
 (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
 (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
 (define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
