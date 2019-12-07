@@ -2239,6 +2239,23 @@ buffer is not visiting a file."
               ("H-n" . hl-todo-next))
   :hook (sej/after-init . global-hl-todo-mode)
   :config
+  ;; defcustom hl-todo-keyword-faces
+  ;;   '(("HOLD" . "#d0bf8f")
+  ;;     ("TODO" . "#cc9393")
+  ;;     ("NEXT" . "#dca3a3")
+  ;;     ("THEM" . "#dc8cc3")
+  ;;     ("PROG" . "#7cb8bb")
+  ;;     ("OKAY" . "#7cb8bb")
+  ;;     ("DONT" . "#5f7f5f")
+  ;;     ("FAIL" . "#8c5353")
+  ;;     ("DONE" . "#afd8af")
+  ;;     ("NOTE"   . "#d0bf8f")
+  ;;     ("KLUDGE" . "#d0bf8f")
+  ;;     ("HACK"   . "#d0bf8f")
+  ;;     ("TEMP"   . "#d0bf8f")
+  ;;     ("FIXME"  . "#cc9393")
+  ;;     ("XXX+"   . "#cc9393"))
+  (push 'org-mode hl-todo-include-modes)
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
     (cl-pushnew `(,keyword . ,(face-foreground 'error)) hl-todo-keyword-faces))
   (dolist (keyword '("WORKAROUND" "HACK" "TRICK"))
@@ -3831,6 +3848,11 @@ _S_ettings                                _C-p_: Previous Line
 
 (use-package diredfl
   :init (diredfl-global-mode 1))
+
+(use-package dired-git-info
+  :after dired
+  :bind (:map dired-mode-map
+              (")" . dired-git-info-mode)))
 
 (use-package deft
   :ensure t
