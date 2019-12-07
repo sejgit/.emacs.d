@@ -888,6 +888,14 @@
 
 * user interface
 ** themes
+*** suppress GUI features
+    #+BEGIN_SRC emacs-lisp
+      (setq use-file-dialog nil)
+      (setq use-dialog-box nil)
+      (setq inhibit-startup-screen t)
+      (setq inhibit-startup-echo-area-message t)
+    #+END_SRC
+
 *** sej/load-theme
     - functions to set-up menu of standard themes to load
     #+BEGIN_SRC emacs-lisp
@@ -958,7 +966,7 @@
         (set-default-font "SF Mono-14"))
     #+END_SRC
 ** frames
-*** settings frames
+*** general frames key-bindings
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
       (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
@@ -967,14 +975,21 @@
       ;;added tips from pragmatic emacs
       (define-key sej-mode-map (kbd "s-w") 'delete-frame)
       (define-key sej-mode-map (kbd "C-x w") 'delete-frame)
+#+end_src
 
+*** general frame settings
+#+BEGIN_SRC emacs-lisp
       (setq frame-title-format '("SeJ Emacs - %b"))
       (setq icon-title-format frame-title-format)
 
       ;; Don't open a file in a new frame
       (when (boundp 'ns-pop-up-frames)
         (setq ns-pop-up-frames nil))
+#+end_src
 
+*** mac specific frame settings
+    - matching dark/light modes and for hiding
+#+BEGIN_SRC emacs-lisp
       (when sys/mac-x-p
         (use-package ns-auto-titlebar
           :config
@@ -999,20 +1014,12 @@
         )
     #+END_SRC
 
-*** suppress GUI features
-    #+BEGIN_SRC emacs-lisp
-      (setq use-file-dialog nil)
-      (setq use-dialog-box nil)
-      (setq inhibit-startup-screen t)
-      (setq inhibit-startup-echo-area-message t)
-    #+END_SRC
-
 *** sej/frame-resize-full
     - generic way to move and resize frame to full width of screen
     - set frame full height and full wide and position at screen left
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
-      (define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
+      (define-key sej-mode-map (kbd "H-C-j") 'sej/frame-resize-full)
 
       (defun sej/frame-resize-full ()
         "Set frame full height and 1/2 wide, position at screen left."
@@ -1028,7 +1035,7 @@
     - set frame full height and 1/2 wide and position at screen left
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
-      (define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
+      (define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
 
       (defun sej/frame-resize-l ()
         "Set frame full height and 1/2 wide, position at screen left."
@@ -1046,7 +1053,7 @@
     - assumes monitors are same resolution
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
-      (define-key sej-mode-map (kbd "s-<S-left>") 'sej/frame-resize-l2)
+      (define-key sej-mode-map (kbd "H-C-S-h") 'sej/frame-resize-l2)
 
       (defun sej/frame-resize-l2 ()
         "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
@@ -1062,7 +1069,7 @@
     - set frame full height and 1/2 wide and position at screen right
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
-      (define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
+      (define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
 
       (defun sej/frame-resize-r ()
         "Set frame full height and 1/2 wide, position at screen right."
@@ -1080,7 +1087,7 @@
     - assumes monitors are same resolution
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
-      (define-key sej-mode-map (kbd "s-<S-right>") 'sej/frame-resize-r2)
+      (define-key sej-mode-map (kbd "H-C-S-l") 'sej/frame-resize-r2)
 
       (defun sej/frame-resize-r2 ()
         "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
@@ -1097,7 +1104,7 @@
       (when sys/mac-x-p
         (setq ns-use-native-fullscreen nil))
       (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-                 ("C-s-f" . toggle-frame-fullscreen))
+                 ("C-c s F" . toggle-frame-fullscreen))
     #+END_SRC
 
 ** buffers
