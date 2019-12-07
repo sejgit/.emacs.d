@@ -3599,13 +3599,30 @@
       (use-package gitignore-mode)
     #+END_SRC
 
-*** git-blamed
-    - implementation of incremental git-blame part of git-emacs packages
-    - M-x git-blamed-mode to turn on view with commits
+*** sej/git-blame-line
     #+BEGIN_SRC emacs-lisp
-      (use-package git-blamed)
+      (defun sej/git-blame-line ()
+        "Runs `git blame` on the current line and
+         adds the commit id to the kill ring"
+        (interactive)
+        (let* ((line-number (save-excursion
+                              (goto-char (point-at-bol))
+                              (+ 1 (count-lines 1 (point)))))
+               (line-arg (format "%d,%d" line-number line-number))
+               (commit-buf (generate-new-buffer "*git-blame-line-commit*")))
+          (call-process "git" nil commit-buf nil
+                        "blame" (buffer-file-name) "-L" line-arg)
+          (let* ((commit-id (with-current-buffer commit-buf
+                              (buffer-substring 1 9)))
+                 (log-buf (generate-new-buffer "*git-blame-line-log*")))
+            (kill-new commit-id)
+            (call-process "git" nil log-buf nil
+                          "log" "-1" "--pretty=%h   %an   %s" commit-id)
+            (with-current-buffer log-buf
+              (message "Line %d: %s" line-number (buffer-string)))
+            (kill-buffer log-buf))
+          (kill-buffer commit-buf)))
     #+END_SRC
-
 ** completion
 *** hippie-expand settings
     #+BEGIN_SRC emacs-lisp
@@ -4836,15 +4853,6 @@
         ;; Show directory first
         (setq dired-listing-switches "-alh --group-directories-first"))
     #+END_SRC
-
-    ;; Quick sort dired buffers via hydra
-    #+BEGIN_SRC emacs-lisp
-      (use-package dired-quick-sort
-        :after hydra
-        :bind (:map dired-mode-map
-                    ("S" . hydra-dired-quick-sort/body)))
-    #+END_SRC
-
 *** all-the-icons-dired
     - Shows icons in dired buffer
     #+BEGIN_SRC emacs-lisp
@@ -4953,13 +4961,6 @@
     #+BEGIN_SRC emacs-lisp
       (use-package diredfl
         :init (diredfl-global-mode 1))
-    #+END_SRC
-*** dired-git-info
-    #+BEGIN_SRC emacs-lisp
-      (use-package dired-git-info
-        :after dired
-        :bind (:map dired-mode-map
-                    (")" . dired-git-info-mode)))
     #+END_SRC
 * writing & reading
 *** deft

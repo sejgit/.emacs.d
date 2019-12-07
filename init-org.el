@@ -2793,7 +2793,27 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package gitignore-mode)
 
-(use-package git-blamed)
+(defun sej/git-blame-line ()
+  "Runs `git blame` on the current line and
+   adds the commit id to the kill ring"
+  (interactive)
+  (let* ((line-number (save-excursion
+                        (goto-char (point-at-bol))
+                        (+ 1 (count-lines 1 (point)))))
+         (line-arg (format "%d,%d" line-number line-number))
+         (commit-buf (generate-new-buffer "*git-blame-line-commit*")))
+    (call-process "git" nil commit-buf nil
+                  "blame" (buffer-file-name) "-L" line-arg)
+    (let* ((commit-id (with-current-buffer commit-buf
+                        (buffer-substring 1 9)))
+           (log-buf (generate-new-buffer "*git-blame-line-log*")))
+      (kill-new commit-id)
+      (call-process "git" nil log-buf nil
+                    "log" "-1" "--pretty=%h   %an   %s" commit-id)
+      (with-current-buffer log-buf
+        (message "Line %d: %s" line-number (buffer-string)))
+      (kill-buffer log-buf))
+    (kill-buffer commit-buf)))
 
 (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
@@ -3758,11 +3778,6 @@ _S_ettings                                _C-p_: Previous Line
   ;; Show directory first
   (setq dired-listing-switches "-alh --group-directories-first"))
 
-(use-package dired-quick-sort
-  :after hydra
-  :bind (:map dired-mode-map
-              ("S" . hydra-dired-quick-sort/body)))
-
 (use-package all-the-icons-dired
   :diminish
   :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
@@ -3848,11 +3863,6 @@ _S_ettings                                _C-p_: Previous Line
 
 (use-package diredfl
   :init (diredfl-global-mode 1))
-
-(use-package dired-git-info
-  :after dired
-  :bind (:map dired-mode-map
-              (")" . dired-git-info-mode)))
 
 (use-package deft
   :ensure t
