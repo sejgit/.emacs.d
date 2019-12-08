@@ -1108,7 +1108,7 @@
     #+END_SRC
 
 ** buffers
-*** buffer settings
+*** buffer key-bindngs
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-s") 'save-buffer)
       (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs)
@@ -1119,24 +1119,25 @@
       (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
       (define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
-      (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
-      (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
-
-      (setq-default bs-default-configuration "all-intern-last")
 
       ;;added tips from pragmatic emacs
       (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
 
       ;; toggle two most recent buffers
-      (fset 'quick-switch-buffer [?\C-x ?b return])
       (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
+#+end_src
+
+*** bs.el settings
+#+BEGIN_SRC emacs-lisp
+      (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
+      (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
+
+      (setq-default bs-default-configuration "all-intern-last")
     #+END_SRC
 
-*** minibuffer settings
+*** minibuffer garbage collection
     - make sure garbage collection does not happen in minibuffer mode
     #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
-
       (defun sej/minibuffer-setup-hook ()
         (setq gc-cons-threshold most-positive-fixnum))
 
@@ -1231,7 +1232,12 @@
 *** buffer-move
     - buffer-move to swap buffers between windows
     #+BEGIN_SRC emacs-lisp
-      (use-package buffer-move)
+      (use-package buffer-move
+        :bind (:map sej-mode-map
+                    ("A-h" . buf-move-left)
+                    ("A-l" . buf-move-right)
+                    ("A-j" . buf-move-up)
+                    ("A-k" . buf-move-down) ))
     #+END_SRC
 
 *** scratch buffer set-up
@@ -2784,6 +2790,13 @@
         :hook ((text-mode . goto-address-mode)
                (prog-mode . goto-address-prog-mode)))
     #+END_SRC
+
+*** restclient
+    - use GET or POST plus http:10.0.1.1/rest/
+      then use C-c to execute (check examples directory for more)
+      #+BEGIN_SRC emacs-lisp
+      (use-package restclient)
+      #+END_SRC
 
 ** highlighting faces fonts
 *** hl-line

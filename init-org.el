@@ -632,6 +632,11 @@ output as per `sej/exec'. Otherwise, return nil."
   (setq socks-noproxy nil)
   (message "Disable socks proxy."))
 
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-echo-area-message t)
+
 (defvar after-load-theme-hook nil
   "Hook run after a color theme is loaded using `load-theme'.")
 (defun run-after-load-theme-hook (&rest _)
@@ -729,13 +734,8 @@ output as per `sej/exec'. Otherwise, return nil."
     )
   )
 
-(setq use-file-dialog nil)
-(setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-echo-area-message t)
-
 (define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
-(define-key sej-mode-map (kbd "s-<up>") 'sej/frame-resize-full)
+(define-key sej-mode-map (kbd "H-C-j") 'sej/frame-resize-full)
 
 (defun sej/frame-resize-full ()
   "Set frame full height and 1/2 wide, position at screen left."
@@ -746,7 +746,7 @@ output as per `sej/exec'. Otherwise, return nil."
   )
 
 (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
-(define-key sej-mode-map (kbd "s-<left>") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
 
 (defun sej/frame-resize-l ()
   "Set frame full height and 1/2 wide, position at screen left."
@@ -757,7 +757,7 @@ output as per `sej/exec'. Otherwise, return nil."
   )
 
 (define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
-(define-key sej-mode-map (kbd "s-<S-left>") 'sej/frame-resize-l2)
+(define-key sej-mode-map (kbd "H-C-S-h") 'sej/frame-resize-l2)
 
 (defun sej/frame-resize-l2 ()
   "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
@@ -768,7 +768,7 @@ output as per `sej/exec'. Otherwise, return nil."
   )
 
 (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
-(define-key sej-mode-map (kbd "s-<right>") 'sej/frame-resize-r)
+(define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
 
 (defun sej/frame-resize-r ()
   "Set frame full height and 1/2 wide, position at screen right."
@@ -779,7 +779,7 @@ output as per `sej/exec'. Otherwise, return nil."
   )
 
 (define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
-(define-key sej-mode-map (kbd "s-<S-right>") 'sej/frame-resize-r2)
+(define-key sej-mode-map (kbd "H-C-S-l") 'sej/frame-resize-r2)
 
 (defun sej/frame-resize-r2 ()
   "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
@@ -792,7 +792,7 @@ output as per `sej/exec'. Otherwise, return nil."
 (when sys/mac-x-p
   (setq ns-use-native-fullscreen nil))
 (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-           ("C-s-f" . toggle-frame-fullscreen))
+           ("C-c s F" . toggle-frame-fullscreen))
 
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
 (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs)
@@ -803,19 +803,17 @@ output as per `sej/exec'. Otherwise, return nil."
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
 (define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
-(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
-(define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
-
-(setq-default bs-default-configuration "all-intern-last")
 
 ;;added tips from pragmatic emacs
 (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
 
 ;; toggle two most recent buffers
-(fset 'quick-switch-buffer [?\C-x ?b return])
 (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
 
-(define-key sej-mode-map (kbd "M-`") 'file-cache-minibuffer-complete)
+(define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
+(define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
+
+(setq-default bs-default-configuration "all-intern-last")
 
 (defun sej/minibuffer-setup-hook ()
   (setq gc-cons-threshold most-positive-fixnum))
@@ -876,7 +874,12 @@ buffer is not visiting a file."
   :diminish
   :hook (sej/after-init . global-auto-revert-mode))
 
-(use-package buffer-move)
+(use-package buffer-move
+  :bind (:map sej-mode-map
+              ("A-h" . buf-move-left)
+              ("A-l" . buf-move-right)
+              ("A-j" . buf-move-up)
+              ("A-k" . buf-move-down) ))
 
 (setq initial-scratch-message "")
 (defadvice kill-buffer (around kill-buffer-around-advice activate)
@@ -2154,6 +2157,8 @@ buffer is not visiting a file."
   :ensure nil
   :hook ((text-mode . goto-address-mode)
          (prog-mode . goto-address-prog-mode)))
+
+(use-package restclient)
 
 (use-package hl-line
   :ensure nil
