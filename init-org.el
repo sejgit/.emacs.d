@@ -791,7 +791,7 @@ output as per `sej/exec'. Otherwise, return nil."
 
 (when sys/mac-x-p
   (setq ns-use-native-fullscreen nil))
-(bind-keys ("C-<f11>" . toggle-frame-fullscreen)
+(bind-keys ("H-C-k" . toggle-frame-fullscreen)
            ("C-c s F" . toggle-frame-fullscreen))
 
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
@@ -874,13 +874,6 @@ buffer is not visiting a file."
   :diminish
   :hook (sej/after-init . global-auto-revert-mode))
 
-(use-package buffer-move
-  :bind (:map sej-mode-map
-              ("A-h" . buf-move-left)
-              ("A-l" . buf-move-right)
-              ("A-j" . buf-move-up)
-              ("A-k" . buf-move-down) ))
-
 (setq initial-scratch-message "")
 (defadvice kill-buffer (around kill-buffer-around-advice activate)
   "Bury the *scratch* buffer, but never kill it."
@@ -946,24 +939,13 @@ buffer is not visiting a file."
 
 (use-package ace-window
   :bind (([remap other-window] . ace-window)
-         ("C-x M-o" . ace-swap-window))
+         ("M-o" . ace-window))
   :custom-face
   (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
   (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
   :hook (after-init . ace-window-display-mode)
   :config
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-
-(use-package windmove
-  :ensure nil
-  :hook (sej/after-init . windmove-default-keybindings)
-  :bind (("H-h" . windmove-left)
-         ("H-l" . windmove-right)
-         ("H-k" . windmove-up)
-         ("H-j" . windmove-down) )
-  :config
-  (when (fboundp 'winner-mode)
-    (winner-mode t)))
 
 (use-package winner
   :ensure nil

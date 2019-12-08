@@ -32,7 +32,7 @@
   - [[#buffers][buffers]]
   - [[#windows][windows]]
   - [[#mode-line][mode-line]]
-  - [[#icons][icons]]
+  - [[#all-the-icons][all-the-icons]]
   - [[#line-numbers][line numbers]]
 - [[#text-manipulation][text manipulation]]
   - [[#text-manipulation-settings][text manipulation settings]]
@@ -1103,7 +1103,7 @@
     #+BEGIN_SRC emacs-lisp
       (when sys/mac-x-p
         (setq ns-use-native-fullscreen nil))
-      (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
+      (bind-keys ("H-C-k" . toggle-frame-fullscreen)
                  ("C-c s F" . toggle-frame-fullscreen))
     #+END_SRC
 
@@ -1229,17 +1229,6 @@
         :hook (sej/after-init . global-auto-revert-mode))
     #+END_SRC
 
-*** buffer-move
-    - buffer-move to swap buffers between windows
-    #+BEGIN_SRC emacs-lisp
-      (use-package buffer-move
-        :bind (:map sej-mode-map
-                    ("A-h" . buf-move-left)
-                    ("A-l" . buf-move-right)
-                    ("A-j" . buf-move-up)
-                    ("A-k" . buf-move-down) ))
-    #+END_SRC
-
 *** scratch buffer set-up
     - initial message
     - bury don't kill scratch
@@ -1297,7 +1286,7 @@
     #+END_SRC
 
 ** windows
-*** window settings
+*** window key-bindings
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-0") 'delete-window)
       (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
@@ -1327,34 +1316,18 @@
 
 *** ace-window
     - quickly selecting a window to switch to
+    - C-u prefex to move window
+    - C-u C-u prefex to delete window
     #+BEGIN_SRC emacs-lisp
       (use-package ace-window
         :bind (([remap other-window] . ace-window)
-               ("C-x M-o" . ace-swap-window))
+               ("M-o" . ace-window))
         :custom-face
         (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
         (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
         :hook (after-init . ace-window-display-mode)
         :config
         (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-    #+END_SRC
-
-*** windmove
-    - Directional window-selection routines
-    - wind move built in package (default bindins are S-<cursor>)
-    - (windmove-default-keybindings)) ;; Shift + direction
-    - winner-mode is to undo & redo windows with C-c left and C-c right
-    #+BEGIN_SRC emacs-lisp
-      (use-package windmove
-        :ensure nil
-        :hook (sej/after-init . windmove-default-keybindings)
-        :bind (("H-h" . windmove-left)
-               ("H-l" . windmove-right)
-               ("H-k" . windmove-up)
-               ("H-j" . windmove-down) )
-        :config
-        (when (fboundp 'winner-mode)
-          (winner-mode t)))
     #+END_SRC
 
 *** winner
@@ -1514,7 +1487,7 @@
                . hide-mode-line-mode)))
    #+END_SRC
 
-** icons
+** all-the-icons
    - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
    #+BEGIN_SRC emacs-lisp
      (use-package all-the-icons
@@ -1572,6 +1545,7 @@
 
 *** goto-line-preview
     - Preview line when executing goto-line command.
+    - M-g g
     #+BEGIN_SRC emacs-lisp
       (use-package goto-line-preview
         :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
