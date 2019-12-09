@@ -1952,7 +1952,7 @@
         (use-package ag
           :commands ag
           :bind (:map sej-mode-map
-                      ("M-?" . ag-project)
+                      ("s-a" . counsel-projectile-ag)
                       ("H-a" . counsel-ag))
           :config
           (setq ag-executable (executable-find "ag")))
