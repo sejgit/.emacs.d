@@ -2293,11 +2293,8 @@
     - automatically set the right indent for other people's files
     #+BEGIN_SRC emacs-lisp
       (use-package dtrt-indent
-        :defer 2
-        :diminish
-        :config
-        ;; (setq dtrt-indent-active-mode-line-info "")
-        )
+        :hook (sej/after-init . dtrt-indent-mode)
+        :diminish)
     #+END_SRC
 
 *** aggressive-indent
