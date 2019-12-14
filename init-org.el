@@ -1324,18 +1324,16 @@ buffer is not visiting a file."
   :after ivy
   :diminish
   :defines (projectile-completion-system magit-completing-read-function)
+  :bind-keymap ("H-c" . counsel-mode-map)
   :bind (
-         ("M-x" . counsel-M-x)
+         ([remap execute-extended-command] . counsel-M-x)
          ("C-x C-f" . counsel-find-file)
          ("M-y" . counsel-yank-pop)
          :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper)
          ([remap dired] . counsel-dired)
          ("C-x C-r" . counsel-recentf)
          ("C-x j" . counsel-mark-ring)
-         ("C-h SPC" . helm-all-mark-rings)
-         ("H-SPC" . helm-all-mark-rings)
-
+         ("H-SPC" . counsel-mark-ring)
          ("C-c L" . counsel-load-library)
          ("C-c P" . counsel-package)
          ("C-c f" . counsel-find-library)
@@ -1348,7 +1346,6 @@ buffer is not visiting a file."
          ("C-c l" . counsel-locate)
          ("C-c r" . counsel-rg)
          ("C-c z" . counsel-fzf)
-
          ("C-c c L" . counsel-load-library)
          ("C-c c P" . counsel-package)
          ("C-c c a" . counsel-apropos)
@@ -1441,31 +1438,6 @@ buffer is not visiting a file."
 
   (add-hook 'minibuffer-setup-hook #'my-ivy-fly-time-travel)
 
-  ;; Improve search experience of `swiper'
-  ;; @see https://emacs-china.org/t/swiper-swiper-isearch/9007/12
-  (defun my-swiper-toggle-counsel-rg ()
-    "Toggle `counsel-rg' with current swiper input."
-    (interactive)
-    (let ((text (replace-regexp-in-string
-                 "\n" ""
-                 (replace-regexp-in-string
-                  "\\\\_<" ""
-                  (replace-regexp-in-string
-                   "\\\\_>" ""
-                   (replace-regexp-in-string "^.*Swiper: " ""
-                                             (thing-at-point 'line t)))))))
-      (ivy-quit-and-run
-        (counsel-rg text default-directory))))
-  (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg swiper-map)
-
-  (with-eval-after-load 'rg
-    (defun my-swiper-toggle-rg-dwim ()
-      "Toggle `rg-dwim' with current swiper input."
-      (interactive)
-      (ivy-quit-and-run (rg-dwim default-directory)))
-    (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim swiper-map)
-    (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim ivy-minibuffer-map))
-
   ;; Integration with `projectile'
   (with-eval-after-load 'projectile
     (setq projectile-completion-system 'ivy))
@@ -1475,7 +1447,9 @@ buffer is not visiting a file."
     (setq magit-completing-read-function 'ivy-completing-read)))
 
 (use-package counsel-projectile
-  :init
+  :after counsel
+  :hook (sej/after-init . counsel-projectile-mode)
+  :config
   (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
   (counsel-projectile-mode 1))
 
@@ -1483,45 +1457,35 @@ buffer is not visiting a file."
   :diminish google-this-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-c g" . google-this)
               ("s-g" . google-this))
   :config
   (google-this-mode 1))
 
-(when (executable-find "fd")
-  (use-package fd-dired
-    :commands fd-dired))
-
 (when (executable-find "ag")
   (use-package ag
+    :after counsel
     :commands ag
     :bind (:map sej-mode-map
-                ("M-?" . ag-project)
+                ("s-a" . counsel-projectile-ag)
                 ("H-a" . counsel-ag))
     :config
     (setq ag-executable (executable-find "ag")))
   (setq-default ag-highlight-search t))
 
-(when (executable-find "rg")
-  (use-package deadgrep
-    :commands deadgrep
-    :bind (:map sej-mode-map
-                ("H-r" . deadgrep)
-                ("C-c s r" . deadgrep))))
-
 (use-package ivy-yasnippet
+  :after ivy
   :commands ivy-yasnippet--preview
   :bind ("C-c C-y" . ivy-yasnippet)
   :config (advice-add #'ivy-yasnippet--preview :override #'ignore))
 
 (use-package ivy-xref
-  :ensure t
+  :after ivy
   :init (if (< emacs-major-version 27)
             (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
           (setq xref-show-definitions-function #'ivy-xref-show-defs)))
 
 (use-package flyspell-correct-ivy
-  :after flyspell
+  :after flyspell ivy
   :bind (:map flyspell-mode-map
               ("C-;" . flyspell-correct-wrapper)
               ("C-M-;" . flyspell-correct-wrapper)
@@ -1534,14 +1498,15 @@ buffer is not visiting a file."
   (bind-key "C-c s a" #'counsel-linux-app counsel-mode-map))
  (sys/macp
   (use-package counsel-osx-app
-    :bind (:map counsel-mode-map
-                ("C-c s a" . counsel-osx-app)))))
+    :after counsel
+    :bind ("C-c s a" . counsel-osx-app))))
 
 (use-package counsel-tramp
-  :bind (:map counsel-mode-map
-              ("C-c s v" . counsel-tramp)))
+  :after counsel
+  :bind ("C-c s v" . counsel-tramp))
 
 (use-package ivy-rich
+  :after ivy all-the-icons
   :defines (all-the-icons-icon-alist
             all-the-icons-dir-icon-alist
             bookmark-alist)
@@ -1788,16 +1753,6 @@ buffer is not visiting a file."
             (counsel-projectile-find-dir-transformer))
            :delimiter "\t")
           )))
-
-(use-package anzu
-  :diminish
-  :bind (([remap query-replace] . anzu-query-replace)
-         ([remap query-replace-regexp] . anzu-query-replace-regexp)
-         :map isearch-mode-map
-         ([remap isearch-query-replace] . anzu-isearch-query-replace)
-         ([remap isearch-query-replace-regexp] . anzu-isearch-query-replace-regexp))
-  :hook (after-init . global-anzu-mode)
-  )
 
 (use-package re-builder
   :ensure nil
