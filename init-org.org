@@ -2353,8 +2353,8 @@
         :diminish
         :hook (sej/after-init . global-undo-tree-mode)
         :bind (:map sej-mode-map
-                    ("C-/" . undo-tree-undo)
-                    ("C-?" . undo-tree-redo)
+                    ("C-z" . undo-tree-undo)
+                    ("C-r" . undo-tree-redo)
                     ("C-x u" . undo-tree-visualize)
                     ("C-x r u" . undo-tree-save-state-to-register)
                     ("C-x r U" . undo-tree-save-state-from-register))
@@ -2370,8 +2370,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package saveplace
         :ensure nil
-        :hook (sej/after-init . save-place-mode)
-        )
+        :hook (sej/after-init . save-place-mode))
     #+END_SRC
 
 *** recentf
@@ -3743,9 +3742,9 @@
     #+BEGIN_SRC emacs-lisp
       (use-package company-try-hard
         :commands company-try-hard
-        :bind (("C-z" . company-try-hard)
+        :bind (("H-/" . company-try-hard)
                :map company-active-map
-               ("C-z" . company-try-hard)))
+               ("H-/" . company-try-hard)))
     #+END_SRC
 
 *** company-shell
