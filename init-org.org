@@ -1915,7 +1915,8 @@
         :diminish google-this-mode
         :defines sej-mode-map
         :bind (:map sej-mode-map
-                    ("s-g" . google-this))
+                     ("s-g" . google-this)
+                     ("C-c g" . google-this))
         :config
         (google-this-mode 1))
     #+END_SRC
@@ -2660,35 +2661,8 @@
     #+BEGIN_SRC emacs-lisp
       (use-package ace-link
         :bind (:map sej-mode-map
-                    ("H-o" . ace-link-addr))
-        ;; :hook (sej/after-init . ace-link-setup-default)
-        )
-    #+END_SRC
-
-*** browse-url
-    - Pass a URL to a WWW browser
-    #+BEGIN_SRC emacs-lisp
-      (use-package browse-url
-        :ensure nil
-        :defines dired-mode-map
-        :bind (:map sej-mode-map
-                    ("C-c C-z ." . browse-url-at-point)
-                    ("C-c C-z b" . browse-url-of-buffer)
-                    ("C-c C-z r" . browse-url-of-region)
-                    ("C-c C-z u" . browse-url)
-                    ("C-c C-z v" . browse-url-of-file))
-        :init
-        (with-eval-after-load 'dired
-          (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
-    #+END_SRC
-
-*** goto-addr
-    - Click to browse URL or to send to e-mail address
-    #+BEGIN_SRC emacs-lisp
-      (use-package goto-addr
-        :ensure nil
-        :hook ((text-mode . goto-address-mode)
-               (prog-mode . goto-address-prog-mode)))
+                    ("H-u" . ace-link-addr)
+                     ("C-c s u" . ace-link-addr)) )
     #+END_SRC
 
 *** restclient
