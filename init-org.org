@@ -1772,7 +1772,7 @@
                :map counsel-mode-map
                ([remap dired] . counsel-dired)
                ("C-x C-r" . counsel-recentf)
-               ("C-x j" . counsel-mark-ring)
+               ("C-c s j" . counsel-mark-ring)
                ("H-SPC" . counsel-mark-ring)
                ("C-c L" . counsel-load-library)
                ("C-c P" . counsel-package)
@@ -2440,7 +2440,8 @@
 
 *** mwim
     - better than crux for C-e mwim-end
-    #+BEGIN_SRC emacs-lisp
+    - will cycle between end of code and end-of-code plus comments
+     #+BEGIN_SRC emacs-lisp
       (use-package mwim
         :bind (:map sej-mode-map
                     ("C-a" . mwim-beginning)
@@ -2452,14 +2453,12 @@
     #+BEGIN_SRC emacs-lisp
       (use-package avy
         :bind (:map sej-mode-map
-                    ("C-'" . avy-goto-char-2)
-                    ("C-:" . avy-goto-char)
-                    ("M-g f" . avy-goto-line)
+                    ("C-'" . avy-goto-char)
+                    ("H-'" . avy-goto-char-2)
+                    ("M-g l" . avy-goto-line)
+                    ("H-l" . avy-goto-line)
                     ("M-g w" . avy-goto-word-1)
-                    ;; ("C-<return>" . avy-goto-word-1)
-                    ("s-'" . avy-goto-word-0)
-                    ("M-g e" . avy-goto-word-0))
-        ;; :hook (after-init . avy-setup-default)
+                    ("H-w" . avy-goto-word-1))
         :config (setq avy-background t))
     #+END_SRC
 
@@ -2475,10 +2474,7 @@
     - smart moves redefining M-< and M-> for some modes
     #+BEGIN_SRC emacs-lisp
       (use-package beginend               ; smart M-< & M->
-        :defer 2
-        :config
-        (beginend-global-mode)
-        )
+        :hook (sej/after-init . beginend-global-mode))
     #+END_SRC
 
 *** subword
@@ -2496,7 +2492,7 @@
     #+END_SRC
 
 *** string inflection
-    - underscore -> upcase -> camelcase conversion
+    - underscore -> UPCASE -> Camelcase conversion
     #+BEGIN_SRC emacs-lisp
       (use-package string-inflection
         :bind (:map sej-mode-map
@@ -2513,19 +2509,7 @@
         (message "Pushed mark to ring"))
 
       ;; push and jump to mark functions
-      (define-key sej-mode-map (kbd "C-`") 'sej/push-mark-no-activate)
-    #+END_SRC
-
-*** sej/jump-to-mark
-    - defined in sej-mode-map as M-`
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/jump-to-mark ()
-        "Jumps to the local mark, respecting the `mark-ring' order.  This is the same as using \\[set-mark-command] with the prefix argument."
-        (interactive)
-        (set-mark-command 1))
-
-      ;; push and jump to mark functions
-      (define-key sej-mode-map (kbd "M-`") 'sej/jump-to-mark)
+      (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
     #+END_SRC
 
 ** regions
@@ -3809,17 +3793,6 @@
                     ("M-p" . yas-prev-field))
         :config (use-package yasnippet-snippets))
     #+END_SRC
-*** auto-yasnippet
-    - This is a hybrid of keyboard macros and yasnippet.
-    You create the snippet on the go, usually to be used just in the one place.
-    #+BEGIN_SRC emacs-lisp
-      (use-package auto-yasnippet
-        :after yasnippet
-        :bind (("H-w" . aya-create)
-               ("H-y" . aya-expand)
-               ("C-o" . aya-open-line)))
-    #+END_SRC
-
 *** hydra
     - Make bindings that stick around
     #+BEGIN_SRC emacs-lisp

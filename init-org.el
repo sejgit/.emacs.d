@@ -1795,11 +1795,8 @@ buffer is not visiting a file."
               web-mode-script-padding 2)
 
 (use-package dtrt-indent
-  :defer 2
-  :diminish
-  :config
-  ;; (setq dtrt-indent-active-mode-line-info "")
-  )
+  :hook (sej/after-init . dtrt-indent-mode)
+  :diminish)
 
 (use-package aggressive-indent
   :diminish
@@ -1841,8 +1838,8 @@ buffer is not visiting a file."
   :diminish
   :hook (sej/after-init . global-undo-tree-mode)
   :bind (:map sej-mode-map
-              ("C-/" . undo-tree-undo)
-              ("C-?" . undo-tree-redo)
+              ("C-z" . undo-tree-undo)
+              ("C-r" . undo-tree-redo)
               ("C-x u" . undo-tree-visualize)
               ("C-x r u" . undo-tree-save-state-to-register)
               ("C-x r U" . undo-tree-save-state-from-register))
@@ -1855,8 +1852,7 @@ buffer is not visiting a file."
 
 (use-package saveplace
   :ensure nil
-  :hook (sej/after-init . save-place-mode)
-  )
+  :hook (sej/after-init . save-place-mode))
 
 (use-package recentf
   :ensure nil
@@ -2909,9 +2905,9 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package company-try-hard
   :commands company-try-hard
-  :bind (("C-z" . company-try-hard)
+  :bind (("H-/" . company-try-hard)
          :map company-active-map
-         ("C-z" . company-try-hard)))
+         ("H-/" . company-try-hard)))
 
 (use-package company-shell
   :after company
