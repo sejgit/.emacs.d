@@ -158,9 +158,9 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 ;; Set deferred timer to reset them
 (run-with-idle-timer 5 nil
- (lambda ()
-   (setq gc-cons-threshold gc-cons-threshold-original)
-   (setq file-name-handler-alist file-name-handler-alist-original)))
+                     (lambda ()
+                       (setq gc-cons-threshold gc-cons-threshold-original)
+                       (setq file-name-handler-alist file-name-handler-alist-original)))
 
 ;; Load path
 ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
@@ -288,11 +288,11 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   (interactive)
   (message "set-up my hooks")
   (run-with-idle-timer sej/idle-timer nil
-     (lambda ()
-       (message "start running my hooks")
-       (run-hooks 'sej/after-init-hook)
-       (message "done running my hooks")
-       )))
+                       (lambda ()
+                         (message "start running my hooks")
+                         (run-hooks 'sej/after-init-hook)
+                         (message "done running my hooks")
+                         )))
 
 (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
 ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
@@ -490,8 +490,8 @@ output as per `sej/exec'. Otherwise, return nil."
   :commands list-environment)
 
 (use-package esup
-:init
-(autoload 'esup "esup" "Emacs Start Up Profiler." nil))
+  :init
+  (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
 
 (use-package try)
 
@@ -1288,9 +1288,7 @@ buffer is not visiting a file."
               ("C-." . imenu))
   :hook
   (org-mode . imenu-add-menubar-index)
-  (text-mode . imenu-add-menubar-index)
-  (prog-mode . imenu-add-menubar-index)
-  )
+  (prog-mode . imenu-add-menubar-index) )
 
 (use-package ivy
   :diminish
@@ -1457,8 +1455,8 @@ buffer is not visiting a file."
   :diminish google-this-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-               ("s-g" . google-this)
-               ("C-c g" . google-this))
+              ("s-g" . google-this)
+              ("C-c g" . google-this))
   :config
   (google-this-mode 1))
 
@@ -2049,12 +2047,14 @@ buffer is not visiting a file."
   (defun sej/insert-url ()
     "Insert URL of current browser page into Emacs buffer."
     (interactive)
-    (insert (sej/retrieve-url))))
+    (insert (sej/retrieve-url)))
+
+(define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
 
 (use-package ace-link
   :bind (:map sej-mode-map
               ("H-u" . ace-link-addr)
-               ("C-c s u" . ace-link-addr)) )
+              ("C-c s u" . ace-link-addr)) )
 
 (use-package restclient)
 
@@ -2074,8 +2074,7 @@ buffer is not visiting a file."
          ("M-p" . symbol-overlay-jump-prev)
          ("M-N" . symbol-overlay-switch-forward)
          ("M-P" . symbol-overlay-switch-backward)
-         ("M-C" . symbol-overlay-remove-all)
-         ([M-f3] . symbol-overlay-remove-all))
+         ("M-C" . symbol-overlay-remove-all))
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . (lambda () (symbol-overlay-mode -1)))
          (iedit-mode-end . symbol-overlay-mode)))
@@ -2114,7 +2113,7 @@ buffer is not visiting a file."
   :hook ((sej/after-init . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
-   :config
+  :config
   ;; defcustom hl-todo-keyword-faces
   ;;   '(("HOLD" . "#d0bf8f")
   ;;     ("TODO" . "#cc9393")
@@ -2267,7 +2266,10 @@ buffer is not visiting a file."
   (setq paren-highlight-offscreen t))
 
 (use-package eglot
-  :hook ((python-mode c-mode go-mode)  . eglot-ensure)
+  :hook ((python-mode c-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
+  :bind (:map eglot-mode-map
+              ("C-c h" . eglot-help-at-point)
+              ("C-c x" . xref-find-definitions))
   :config
   (setq help-at-pt-display-when-idle t))
 
@@ -2345,7 +2347,7 @@ buffer is not visiting a file."
   :diminish indent-guide-mode)
 
 (use-package comment-dwim-2
-  :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+  :bind ([remap comment-dwim] . comment-dwim-2)) ; M-;
 
 (use-package ediff
   :ensure nil
@@ -2388,6 +2390,7 @@ buffer is not visiting a file."
 
 (use-package dumb-jump
   :after hydra
+  :hook (sej/after-init . dumb-jump-mode)
   :defines sej-mode-map
   :functions dumb-jump-hydra/body
   :bind (:map sej-mode-map
@@ -2400,6 +2403,15 @@ buffer is not visiting a file."
   (setq dumb-jump-prefer-searcher 'ag)
   (with-eval-after-load 'ivy
     (setq dumb-jump-selector 'ivy))
+
+  (add-to-list 'dumb-jump-language-file-exts  '(:language "elisp" :ext ".org[ emacs-lisp ]*]" :agtype "elisp" :rgtype "elisp"))
+
+  (defun dumb-jump-get-language-from-mode ()
+    "Extract the language from the 'major-mode' name.  Currently just everything before '-mode'."
+    (let* ((lookup '(sh "shell" cperl "perl" matlab "matlab" elisp "elisp"))
+           (m (dumb-jump-get-mode-base-name))
+           (result (plist-get lookup (intern m))))
+      result))
 
   (defhydra hydra-dumb-jump (:color blue :hint none)
     "
@@ -2418,7 +2430,7 @@ _x_: Go external other window
     ("l" dumb-jump-quick-look "Quick look")
     ("b" dumb-jump-back "Back")
     ("q" nil "quit"))
-  (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+  (bind-key "M-g h" #'hydra-dumb-jump/body dumb-jump-mode-map))
 
 (use-package flymake
   :ensure t
@@ -2552,7 +2564,7 @@ _x_: Go external other window
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 (if (executable-find "cc")
     (use-package forge

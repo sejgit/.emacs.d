@@ -231,9 +231,9 @@
 
      ;; Set deferred timer to reset them
      (run-with-idle-timer 5 nil
-      (lambda ()
-        (setq gc-cons-threshold gc-cons-threshold-original)
-        (setq file-name-handler-alist file-name-handler-alist-original)))
+                          (lambda ()
+                            (setq gc-cons-threshold gc-cons-threshold-original)
+                            (setq file-name-handler-alist file-name-handler-alist-original)))
 
      ;; Load path
      ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
@@ -381,11 +381,11 @@
        (interactive)
        (message "set-up my hooks")
        (run-with-idle-timer sej/idle-timer nil
-          (lambda ()
-            (message "start running my hooks")
-            (run-hooks 'sej/after-init-hook)
-            (message "done running my hooks")
-            )))
+                            (lambda ()
+                              (message "start running my hooks")
+                              (run-hooks 'sej/after-init-hook)
+                              (message "done running my hooks")
+                              )))
 
      (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
      ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
@@ -656,8 +656,8 @@
     - Emacs startup profiler
     #+BEGIN_SRC emacs-lisp
       (use-package esup
-  :init
-  (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
+        :init
+        (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
     #+END_SRC
 
 *** try
@@ -975,21 +975,21 @@
       ;;added tips from pragmatic emacs
       (define-key sej-mode-map (kbd "s-w") 'delete-frame)
       (define-key sej-mode-map (kbd "C-x w") 'delete-frame)
-#+end_src
+    #+end_src
 
 *** general frame settings
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (setq frame-title-format '("SeJ Emacs - %b"))
       (setq icon-title-format frame-title-format)
 
       ;; Don't open a file in a new frame
       (when (boundp 'ns-pop-up-frames)
         (setq ns-pop-up-frames nil))
-#+end_src
+    #+end_src
 
 *** mac specific frame settings
     - matching dark/light modes and for hiding
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (when sys/mac-x-p
         (use-package ns-auto-titlebar
           :config
@@ -1125,10 +1125,10 @@
 
       ;; toggle two most recent buffers
       (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
-#+end_src
+    #+end_src
 
 *** bs.el settings
-#+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
       (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
 
@@ -1716,9 +1716,7 @@
                     ("C-." . imenu))
         :hook
         (org-mode . imenu-add-menubar-index)
-        (text-mode . imenu-add-menubar-index)
-        (prog-mode . imenu-add-menubar-index)
-        )
+        (prog-mode . imenu-add-menubar-index) )
     #+END_SRC
 
 *** ivy
@@ -1885,16 +1883,16 @@
         ;; Integration with `magit'
         (with-eval-after-load 'magit
           (setq magit-completing-read-function 'ivy-completing-read)))
-     #+END_SRC
+    #+END_SRC
 
 *** amx
     - an alternative interface for M-x which is a fork for smex
     - uses ivy as backend
     #+ BEGIN_SRC emacs-lisp
-      (use-package amx
-        :after ivy
-        :hook (sej/after-init . amx-mode)
-        :config (setq amx-backend 'ivy))
+    (use-package amx
+    :after ivy
+    :hook (sej/after-init . amx-mode)
+    :config (setq amx-backend 'ivy))
     #+END_SRC
 
 *** counsel-projectile
@@ -1915,8 +1913,8 @@
         :diminish google-this-mode
         :defines sej-mode-map
         :bind (:map sej-mode-map
-                     ("s-g" . google-this)
-                     ("C-c g" . google-this))
+                    ("s-g" . google-this)
+                    ("C-c g" . google-this))
         :config
         (google-this-mode 1))
     #+END_SRC
@@ -2442,12 +2440,12 @@
 *** mwim
     - better than crux for C-e mwim-end
     - will cycle between end of code and end-of-code plus comments
-     #+BEGIN_SRC emacs-lisp
-      (use-package mwim
-        :bind (:map sej-mode-map
-                    ("C-a" . mwim-beginning)
-                    ("C-e" . mwim-end))) ; better than crux
-    #+END_SRC
+      #+BEGIN_SRC emacs-lisp
+        (use-package mwim
+          :bind (:map sej-mode-map
+                      ("C-a" . mwim-beginning)
+                      ("C-e" . mwim-end))) ; better than crux
+      #+END_SRC
 
 *** avy
     - Jump to things in Emacs tree-style
@@ -2653,7 +2651,9 @@
         (defun sej/insert-url ()
           "Insert URL of current browser page into Emacs buffer."
           (interactive)
-          (insert (sej/retrieve-url))))
+          (insert (sej/retrieve-url)))
+
+      (define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
     #+END_SRC
 
 *** ace-link
@@ -2662,14 +2662,15 @@
       (use-package ace-link
         :bind (:map sej-mode-map
                     ("H-u" . ace-link-addr)
-                     ("C-c s u" . ace-link-addr)) )
+                    ("C-c s u" . ace-link-addr)) )
     #+END_SRC
 
 *** restclient
     - use GET or POST plus http:10.0.1.1/rest/
       then use C-c to execute (check examples directory for more)
+    - https://github.com/pashky/restclient.el
       #+BEGIN_SRC emacs-lisp
-      (use-package restclient)
+        (use-package restclient)
       #+END_SRC
 
 ** highlighting faces fonts
@@ -2679,7 +2680,7 @@
       (use-package hl-line
         :ensure nil
         :hook (sej/after-init . global-hl-line-mode))
-    #+END_SRC
+     #+END_SRC
 
 *** symbol-overlay
     - Highlight symbols
@@ -2696,8 +2697,7 @@
                ("M-p" . symbol-overlay-jump-prev)
                ("M-N" . symbol-overlay-switch-forward)
                ("M-P" . symbol-overlay-switch-backward)
-               ("M-C" . symbol-overlay-remove-all)
-               ([M-f3] . symbol-overlay-remove-all))
+               ("M-C" . symbol-overlay-remove-all))
         :hook ((prog-mode . symbol-overlay-mode)
                (iedit-mode . (lambda () (symbol-overlay-mode -1)))
                (iedit-mode-end . symbol-overlay-mode)))
@@ -2730,7 +2730,7 @@
           :config
           (setq highlight-indent-guides-method 'character)
           (setq highlight-indent-guides-responsive 'top)))
-#+END_SRC
+    #+END_SRC
 
 *** rainbow-mode
     - Colorize color names in buffers
@@ -2756,7 +2756,7 @@
         :hook ((sej/after-init . global-hl-todo-mode)
                (prog-mode . hl-todo-mode)
                (org-mode . hl-todo-mode))
-         :config
+        :config
         ;; defcustom hl-todo-keyword-faces
         ;;   '(("HOLD" . "#d0bf8f")
         ;;     ("TODO" . "#cc9393")
@@ -2936,12 +2936,17 @@
 ** general
 *** eglot
     - client for Language Server Protocol servers
+    - https://github.com/joaotavora/eglot
       #+BEGIN_SRC emacs-lisp
         (use-package eglot
-          :hook ((python-mode c-mode go-mode)  . eglot-ensure)
+          :hook ((python-mode c-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
+          :bind (:map eglot-mode-map
+                      ("C-c h" . eglot-help-at-point)
+                      ("C-c x" . xref-find-definitions))
           :config
           (setq help-at-pt-display-when-idle t))
       #+END_SRC
+
 *** prog-mode
     - generalized program mode
     - Prettify Symbols
@@ -2975,6 +2980,7 @@
 *** format-all
     - auto-format source code in many languages using the same command for all languages
     - You will need to install external programs to do the formatting
+    - https://github.com/lassik/emacs-format-all-the-code
     #+BEGIN_SRC emacs-lisp
       (use-package format-all
         :bind (:map sej-mode-map
@@ -2984,6 +2990,7 @@
 
 *** tramp
     - remote editing
+    - https://www.gnu.org/software/tramp/
     #+BEGIN_SRC emacs-lisp
       (use-package tramp
         :commands
@@ -3025,6 +3032,7 @@
 
 *** pass
     - major-mode to manage your password-store (pass) keychain
+    - https://github.com/NicolasPetton/pass
     #+BEGIN_SRC emacs-lisp
       (use-package pass
         :commands pass)
@@ -3032,6 +3040,7 @@
 
 *** indent-guide
     - show vertical lines to guide indentation
+    - https://github.com/zk-phi/indent-guide
     #+BEGIN_SRC emacs-lisp
       (use-package indent-guide
         :hook (prog-mode . indent-guide-mode)
@@ -3039,14 +3048,16 @@
     #+END_SRC
 
 *** comment-dwim-2
-    - An all-in-one comment command to rule them all
+    - replacement for the Emacs built-in command comment-dwim
+    - https://github.com/remyferre/comment-dwim-2
     #+BEGIN_SRC emacs-lisp
       (use-package comment-dwim-2
-        :bind ([remap comment-dwim] . comment-dwim-2)) ; C-; and  M-;
+        :bind ([remap comment-dwim] . comment-dwim-2)) ; M-;
     #+END_SRC
 
 *** ediff
-    A saner ediff
+    - A saner diff
+    - https://www.gnu.org/software/emacs/manual/html_mono/ediff.html
     #+BEGIN_SRC emacs-lisp
       (use-package ediff
         :ensure nil
@@ -3057,12 +3068,13 @@
         :config
         (setq ediff-diff-options "-w")
         (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-        (setq ediff-split-window-function 'split-window-horizontally)
-        (setq ediff-merge-split-window-function 'split-window-horizontally))
+        (setq ediff-split-window-function 'split-window-vertically)
+        (setq ediff-shell (getenv "$SHELL")))
     #+END_SRC
 
 *** elec-pair
     - Automatic parenthesis pairing
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
     #+BEGIN_SRC emacs-lisp
       (use-package elec-pair
         :ensure nil
@@ -3083,6 +3095,7 @@
 
 *** compile
     - Compilation Mode
+    - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
     #+BEGIN_SRC emacs-lisp
       (use-package compile
         :ensure nil
@@ -3098,9 +3111,11 @@
 
 *** dumb-jump
     - Jump to definition via `ag'/`rg'/`grep'
+    - https://github.com/jacktasia/dumb-jump
     #+BEGIN_SRC emacs-lisp
       (use-package dumb-jump
         :after hydra
+        :hook (sej/after-init . dumb-jump-mode)
         :defines sej-mode-map
         :functions dumb-jump-hydra/body
         :bind (:map sej-mode-map
@@ -3113,6 +3128,15 @@
         (setq dumb-jump-prefer-searcher 'ag)
         (with-eval-after-load 'ivy
           (setq dumb-jump-selector 'ivy))
+
+        (add-to-list 'dumb-jump-language-file-exts  '(:language "elisp" :ext ".org[ emacs-lisp ]*]" :agtype "elisp" :rgtype "elisp"))
+
+        (defun dumb-jump-get-language-from-mode ()
+          "Extract the language from the 'major-mode' name.  Currently just everything before '-mode'."
+          (let* ((lookup '(sh "shell" cperl "perl" matlab "matlab" emacs-lisp "elisp"))
+                 (m (dumb-jump-get-mode-base-name))
+                 (result (plist-get lookup (intern m))))
+            result))
 
         (defhydra hydra-dumb-jump (:color blue :hint none)
           "
@@ -3131,11 +3155,12 @@
           ("l" dumb-jump-quick-look "Quick look")
           ("b" dumb-jump-back "Back")
           ("q" nil "quit"))
-        (bind-key "C-M-j" #'hydra-dumb-jump/body dumb-jump-mode-map))
+        (bind-key "M-g h" #'hydra-dumb-jump/body dumb-jump-mode-map))
     #+END_SRC
 
 *** flymake
     - built-in emacs syntax checker
+    - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
     #+BEGIN_SRC emacs-lisp
       (use-package flymake
         :ensure t
@@ -3154,9 +3179,10 @@
 
 *** flycheck
     - added in emacs syntax checker
+    - https://www.flycheck.org/en/latest/
     #+BEGIN_SRC emacs-lisp
       (use-package flycheck
-                                              ;:diminish flycheck-mode
+        ;; ;:diminish flycheck-mode
         :defines sej-mode-map
         :hook (prog-mode . global-flycheck-mode)
         :bind
@@ -3191,43 +3217,20 @@
                                       :underline nil)))
     #+END_SRC
 
-*** flycheck-posframe
-    - Display Flycheck errors in GUI tooltips
-    #+BEGIN_SRC emacs-lisp
-      (if (display-graphic-p)
-          (use-package flycheck-posframe
-            :after flycheck
-            :hook (flycheck-mode . flycheck-posframe-mode)
-            :config
-            ;; (add-to-list 'flycheck-posframe-inhibit-functions
-            ;;              #'(lambda () (bound-and-true-p company-backend)))
-            (setq flycheck-posframe-warning-prefix "\u26a0 ")
-            (setq flycheck-posframe-position 'window-bottom-left-corner)))
-    #+END_SRC
-
-*** flycheck-pos-tip
-    #+BEGIN_SRC emacs-lisp
-      (if (display-graphic-p)
-          (if emacs/>=26p
-              (use-package flycheck-pos-tip
-                :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
-                :hook (flycheck-mode . flycheck-pos-tip-mode)
-                :config
-                (setq flycheck-pos-tip-timeout 10
-                      flycheck-display-errors-delay 0.5)
-                (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
-            ))
-    #+END_SRC
-
 *** flycheck-popup-tip
+    - Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
+    - https://github.com/flycheck/flycheck-popup-tip
     #+BEGIN_SRC emacs-lisp
       (use-package flycheck-popup-tip
-        :hook (flycheck-mode . flycheck-popup-tip-mode))
+        :hook (flycheck-mode . flycheck-popup-tip-mode)
+        :config
+        (setq flycheck-pos-tip-display-errors-tty-function #'flycheck-popup-tip-show-popup))
     #+END_SRC
 
 *** flycheck-color-mode-line
     - minor-mode for Flycheck which colors the mode line according to
     the Flycheck state of the current buffer
+    - https://github.com/flycheck/flycheck-color-mode-line
     #+BEGIN_SRC emacs-lisp
       (use-package flycheck-color-mode-line
         :hook (flycheck-mode . flycheck-color-mode-line-mode))
@@ -3237,15 +3240,19 @@
     - a framework for providing language-specific refactoring in Emacs.
     It includes refactoring commands for a variety of languages
     Just hit M-RET to access your refactoring tools in any supported mode.
+    - https://github.com/emacsmirror/emr
     #+BEGIN_SRC emacs-lisp
       (use-package emr
-        ;; Just hit M-RET to access your refactoring tools in any supported mode.
+        ;; Just hit H-r to access your refactoring tools in any supported mode.
         :bind (:map sej-mode-map
-                    ("M-RET" . emr-show-refactor-menu))
+                    ("C-c s r" . emr-show-refactor-menu)
+                    ("H-r" . emr-show-refactor-menu) )
         :hook (prog-mode . emr-initialize))
     #+END_SRC
+
 *** projectile
     - Manage and navigate projects
+    - https://github.com/bbatsov/projectile
     #+BEGIN_SRC emacs-lisp
       (use-package projectile
         :diminish
@@ -3257,6 +3264,7 @@
         (setq projectile-mode-line-prefix "")
         (setq projectile-sort-order 'recentf)
         (setq projectile-use-git-grep t)
+        (setq projectile-completion-system 'ivy)
         :config
         ;; global ignores
         (add-to-list 'projectile-globally-ignored-files ".tern-port")
@@ -3279,15 +3287,6 @@
 
         )
     #+END_SRC
-*** ediff
-    - file comparison
-    #+BEGIN_SRC emacs-lisp
-      (use-package ediff
-        :init
-        (setq ediff-shell (getenv "$SHELL"))
-        (setq-default ediff-split-window-function
-                      (quote split-window-vertically)))
-    #+END_SRC
 
 ** vcs
 *** magit
@@ -3305,7 +3304,7 @@
         (if (fboundp 'transient-append-suffix)
             ;; Add switch: --tags
             (transient-append-suffix 'magit-fetch
-                                     "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+              "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
     #+END_SRC
 
 *** forge
@@ -4107,7 +4106,7 @@
         (use-package modern-cpp-font-lock
           :diminish
           :hook (c++-mode modern-c++-font-lock-mode)))
-     #+END_SRC
+    #+END_SRC
 *** csharp-mode
     - mode for editing C# in emacs. It’s based on cc-mode
     #+BEGIN_SRC emacs-lisp
