@@ -1457,7 +1457,8 @@ buffer is not visiting a file."
   :diminish google-this-mode
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("s-g" . google-this))
+               ("s-g" . google-this)
+               ("C-c g" . google-this))
   :config
   (google-this-mode 1))
 
@@ -2052,27 +2053,8 @@ buffer is not visiting a file."
 
 (use-package ace-link
   :bind (:map sej-mode-map
-              ("H-o" . ace-link-addr))
-  ;; :hook (sej/after-init . ace-link-setup-default)
-  )
-
-(use-package browse-url
-  :ensure nil
-  :defines dired-mode-map
-  :bind (:map sej-mode-map
-              ("C-c C-z ." . browse-url-at-point)
-              ("C-c C-z b" . browse-url-of-buffer)
-              ("C-c C-z r" . browse-url-of-region)
-              ("C-c C-z u" . browse-url)
-              ("C-c C-z v" . browse-url-of-file))
-  :init
-  (with-eval-after-load 'dired
-    (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
-
-(use-package goto-addr
-  :ensure nil
-  :hook ((text-mode . goto-address-mode)
-         (prog-mode . goto-address-prog-mode)))
+              ("H-u" . ace-link-addr)
+               ("C-c s u" . ace-link-addr)) )
 
 (use-package restclient)
 
@@ -2110,46 +2092,14 @@ buffer is not visiting a file."
 (when (display-graphic-p)
   (use-package highlight-indent-guides
     :diminish
-    :hook (prog-mode . (lambda ()
-                         ;; WORKAROUND:Fix the issue of not displaying plots
-                         ;; @see https://github.com/DarthFennec/highlight-indent-guides/issues/55
-                         (unless (eq major-mode 'ein:notebook-multilang-mode)
-                           (highlight-indent-guides-mode 1))))
+    :hook (prog-mode . highlight-indent-guides-mode)
     :config
     (setq highlight-indent-guides-method 'character)
-    (setq highlight-indent-guides-responsive 'top)
-
-    ;; Disable `highlight-indent-guides-mode' in `swiper'
-    ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
-    (with-eval-after-load 'ivy
-      (defadvice ivy-cleanup-string (after my-ivy-cleanup-hig activate)
-        (let ((pos 0) (next 0) (limit (length str)) (prop 'highlight-indent-guides-prop))
-          (while (and pos next)
-            (setq next (text-property-not-all pos limit prop nil str))
-            (when next
-              (setq pos (text-property-any next limit prop nil str))
-              (ignore-errors
-                (remove-text-properties next pos '(display nil face nil) str)))))))))
+    (setq highlight-indent-guides-responsive 'top)))
 
 (use-package rainbow-mode
   :diminish
-  :hook (prog-mode . rainbow-mode)
-  :config
-  ;; HACK: Use overlay instead of text properties to override `hl-line' faces.
-  ;; @see https://emacs.stackexchange.com/questions/36420
-  (defun my-rainbow-colorize-match (color &optional match)
-    (let* ((match (or match 0))
-           (ov (make-overlay (match-beginning match) (match-end match))))
-      (overlay-put ov
-                   'face `((:foreground ,(if (> 0.5 (rainbow-x-color-luminance color))
-                                             "white" "black"))
-                           (:background ,color)))
-      (overlay-put ov 'ovrainbow t)))
-  (advice-add #'rainbow-colorize-match :override #'my-rainbow-colorize-match)
-
-  (defun my-rainbow-clear-overlays ()
-    (remove-overlays (point-min) (point-max) 'ovrainbow t))
-  (advice-add #'rainbow-turn-off :after #'my-rainbow-clear-overlays))
+  :hook (prog-mode . rainbow-mode))
 
 (use-package hl-todo
   :custom-face (hl-todo ((t (:box t :inherit))))
@@ -2161,8 +2111,10 @@ buffer is not visiting a file."
               ("H-p" . hl-todo-previous)
               ("C-c t n" . hl-todo-next)
               ("H-n" . hl-todo-next))
-  :hook (sej/after-init . global-hl-todo-mode)
-  :config
+  :hook ((sej/after-init . global-hl-todo-mode)
+         (prog-mode . hl-todo-mode)
+         (org-mode . hl-todo-mode))
+   :config
   ;; defcustom hl-todo-keyword-faces
   ;;   '(("HOLD" . "#d0bf8f")
   ;;     ("TODO" . "#cc9393")

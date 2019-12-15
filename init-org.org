@@ -2726,50 +2726,18 @@
       (when (display-graphic-p)
         (use-package highlight-indent-guides
           :diminish
-          :hook (prog-mode . (lambda ()
-                               ;; WORKAROUND:Fix the issue of not displaying plots
-                               ;; @see https://github.com/DarthFennec/highlight-indent-guides/issues/55
-                               (unless (eq major-mode 'ein:notebook-multilang-mode)
-                                 (highlight-indent-guides-mode 1))))
+          :hook (prog-mode . highlight-indent-guides-mode)
           :config
           (setq highlight-indent-guides-method 'character)
-          (setq highlight-indent-guides-responsive 'top)
-
-          ;; Disable `highlight-indent-guides-mode' in `swiper'
-          ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
-          (with-eval-after-load 'ivy
-            (defadvice ivy-cleanup-string (after my-ivy-cleanup-hig activate)
-              (let ((pos 0) (next 0) (limit (length str)) (prop 'highlight-indent-guides-prop))
-                (while (and pos next)
-                  (setq next (text-property-not-all pos limit prop nil str))
-                  (when next
-                    (setq pos (text-property-any next limit prop nil str))
-                    (ignore-errors
-                      (remove-text-properties next pos '(display nil face nil) str)))))))))
-    #+END_SRC
+          (setq highlight-indent-guides-responsive 'top)))
+#+END_SRC
 
 *** rainbow-mode
     - Colorize color names in buffers
     #+BEGIN_SRC emacs-lisp
       (use-package rainbow-mode
         :diminish
-        :hook (prog-mode . rainbow-mode)
-        :config
-        ;; HACK: Use overlay instead of text properties to override `hl-line' faces.
-        ;; @see https://emacs.stackexchange.com/questions/36420
-        (defun my-rainbow-colorize-match (color &optional match)
-          (let* ((match (or match 0))
-                 (ov (make-overlay (match-beginning match) (match-end match))))
-            (overlay-put ov
-                         'face `((:foreground ,(if (> 0.5 (rainbow-x-color-luminance color))
-                                                   "white" "black"))
-                                 (:background ,color)))
-            (overlay-put ov 'ovrainbow t)))
-        (advice-add #'rainbow-colorize-match :override #'my-rainbow-colorize-match)
-
-        (defun my-rainbow-clear-overlays ()
-          (remove-overlays (point-min) (point-max) 'ovrainbow t))
-        (advice-add #'rainbow-turn-off :after #'my-rainbow-clear-overlays))
+        :hook (prog-mode . rainbow-mode))
     #+END_SRC
 
 *** hl-todo
@@ -2785,8 +2753,10 @@
                     ("H-p" . hl-todo-previous)
                     ("C-c t n" . hl-todo-next)
                     ("H-n" . hl-todo-next))
-        :hook (sej/after-init . global-hl-todo-mode)
-        :config
+        :hook ((sej/after-init . global-hl-todo-mode)
+               (prog-mode . hl-todo-mode)
+               (org-mode . hl-todo-mode))
+         :config
         ;; defcustom hl-todo-keyword-faces
         ;;   '(("HOLD" . "#d0bf8f")
         ;;     ("TODO" . "#cc9393")
