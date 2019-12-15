@@ -2526,6 +2526,7 @@
         :bind (([remap kill-ring-save] . easy-kill) ; M-w
                ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
                ([remap mark-word] . easy-mark-word) ; M-@
+               ([remap zap-to-char] . easy-mark-to-char)
 
                ;; Integrate `expand-region'
                :map easy-kill-base-map
@@ -2607,24 +2608,15 @@
                     ("H-p" . drag-stuff-up))
         ;; :hook (after-init . drag-stuff-global-mode)
         :config
-        (add-to-list 'drag-stuff-except-modes 'org-mode)
-        ;; (drag-stuff-define-keys)
-        )
-    #+END_SRC
-
-*** expand-region
-    - Increase selected region by semantic units
-    #+BEGIN_SRC emacs-lisp
-      (use-package expand-region
-        :bind (:map sej-mode-map
-                    ("C-=" . er/expand-region)))
+        (add-to-list 'drag-stuff-except-modes 'org-mode))
     #+END_SRC
 
 *** smart-region
     - Smartly select region, rectangle, multi cursors
+    - remaping set-mark-command to smart-region
     #+BEGIN_SRC emacs-lisp
       (use-package smart-region
-        :bind ([remap set-mark-command] . smart-region)
+        :bind ([remap set-mark-command] . smart-region) ; C-SPC
         :config (smart-region-on))
     #+END_SRC
 
@@ -2638,13 +2630,14 @@
                     ("s--" . er/contract-region)))
     #+END_SRC
 
-*** hungary-delete
+*** smart-hungry-delete
     - Hungry deletion
     #+BEGIN_SRC emacs-lisp
-      (use-package hungry-delete
+      (use-package smart-hungry-delete
         :diminish
-        :hook (sej/after-init . global-hungry-delete-mode)
-        :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
+        :bind (("<backspace>" . smart-hungry-delete-backward-char)
+               ("C-d" . smart-hungry-delete-forward-char))
+        :hook (sej/after-init . smart-hungry-delete-add-default-hooks))
     #+END_SRC
 
 ** url actions

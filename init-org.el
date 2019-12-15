@@ -1332,7 +1332,7 @@ buffer is not visiting a file."
          :map counsel-mode-map
          ([remap dired] . counsel-dired)
          ("C-x C-r" . counsel-recentf)
-         ("C-x j" . counsel-mark-ring)
+         ("C-c s j" . counsel-mark-ring)
          ("H-SPC" . counsel-mark-ring)
          ("C-c L" . counsel-load-library)
          ("C-c P" . counsel-package)
@@ -1913,14 +1913,12 @@ buffer is not visiting a file."
 
 (use-package avy
   :bind (:map sej-mode-map
-              ("C-'" . avy-goto-char-2)
-              ("C-:" . avy-goto-char)
-              ("M-g f" . avy-goto-line)
+              ("C-'" . avy-goto-char)
+              ("H-'" . avy-goto-char-2)
+              ("M-g l" . avy-goto-line)
+              ("H-l" . avy-goto-line)
               ("M-g w" . avy-goto-word-1)
-              ;; ("C-<return>" . avy-goto-word-1)
-              ("s-'" . avy-goto-word-0)
-              ("M-g e" . avy-goto-word-0))
-  ;; :hook (after-init . avy-setup-default)
+              ("H-w" . avy-goto-word-1))
   :config (setq avy-background t))
 
 (use-package goto-chg
@@ -1928,10 +1926,7 @@ buffer is not visiting a file."
   :bind ("C-," . goto-last-change))
 
 (use-package beginend               ; smart M-< & M->
-  :defer 2
-  :config
-  (beginend-global-mode)
-  )
+  :hook (sej/after-init . beginend-global-mode))
 
 (use-package subword
   :ensure nil
@@ -1954,15 +1949,7 @@ buffer is not visiting a file."
   (message "Pushed mark to ring"))
 
 ;; push and jump to mark functions
-(define-key sej-mode-map (kbd "C-`") 'sej/push-mark-no-activate)
-
-(defun sej/jump-to-mark ()
-  "Jumps to the local mark, respecting the `mark-ring' order.  This is the same as using \\[set-mark-command] with the prefix argument."
-  (interactive)
-  (set-mark-command 1))
-
-;; push and jump to mark functions
-(define-key sej-mode-map (kbd "M-`") 'sej/jump-to-mark)
+(define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
 
 (setq kill-ring-max 200)
 
@@ -1973,6 +1960,7 @@ buffer is not visiting a file."
   :bind (([remap kill-ring-save] . easy-kill) ; M-w
          ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
          ([remap mark-word] . easy-mark-word) ; M-@
+         ([remap zap-to-char] . easy-mark-to-char)
 
          ;; Integrate `expand-region'
          :map easy-kill-base-map
@@ -2034,16 +2022,10 @@ buffer is not visiting a file."
               ("H-p" . drag-stuff-up))
   ;; :hook (after-init . drag-stuff-global-mode)
   :config
-  (add-to-list 'drag-stuff-except-modes 'org-mode)
-  ;; (drag-stuff-define-keys)
-  )
-
-(use-package expand-region
-  :bind (:map sej-mode-map
-              ("C-=" . er/expand-region)))
+  (add-to-list 'drag-stuff-except-modes 'org-mode))
 
 (use-package smart-region
-  :bind ([remap set-mark-command] . smart-region)
+  :bind ([remap set-mark-command] . smart-region) ; C-SPC
   :config (smart-region-on))
 
 (use-package expand-region
@@ -2052,10 +2034,11 @@ buffer is not visiting a file."
               ("s-=" . er/expand-region)
               ("s--" . er/contract-region)))
 
-(use-package hungry-delete
+(use-package smart-hungry-delete
   :diminish
-  :hook (sej/after-init . global-hungry-delete-mode)
-  :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
+  :bind (("<backspace>" . smart-hungry-delete-backward-char)
+         ("C-d" . smart-hungry-delete-forward-char))
+  :hook (sej/after-init . smart-hungry-delete-add-default-hooks))
 
 (when sys/macp
   (defun sej/retrieve-url ()
@@ -2954,12 +2937,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
               ("M-n" . yas-next-field-or-maybe-expand)
               ("M-p" . yas-prev-field))
   :config (use-package yasnippet-snippets))
-
-(use-package auto-yasnippet
-  :after yasnippet
-  :bind (("H-w" . aya-create)
-         ("H-y" . aya-expand)
-         ("C-o" . aya-open-line)))
 
 (use-package hydra)
 
