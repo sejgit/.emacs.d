@@ -1036,6 +1036,7 @@
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
       (define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
+      (define-key sej-mode-map (kbd "<A-M-left>") 'sej/frame-resize-l)
 
       (defun sej/frame-resize-l ()
         "Set frame full height and 1/2 wide, position at screen left."
@@ -1070,7 +1071,8 @@
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
       (define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
-
+      (define-key sej-mode-map (kbd "<A-M-right>") 'sej/frame-resize-r)
+       ;; last one is for non MACOS or just in case BTT is not installed on MACOS
       (defun sej/frame-resize-r ()
         "Set frame full height and 1/2 wide, position at screen right."
         (interactive)
