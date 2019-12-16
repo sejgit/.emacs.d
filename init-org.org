@@ -1938,7 +1938,7 @@
     - Integrate yasnippet
     #+BEGIN_SRC emacs-lisp
       (use-package ivy-yasnippet
-        :after ivy
+        :after ivy yasnippet
         :commands ivy-yasnippet--preview
         :bind ("C-c C-y" . ivy-yasnippet)
         :config (advice-add #'ivy-yasnippet--preview :override #'ignore))
@@ -3515,26 +3515,33 @@
      #+END_SRC
 
 ** completion
-*** hippie-expand settings
+*** hippie-expand
+    - built-in package to expand at point in various ways
+    - https://www.emacswiki.org/emacs/HippieExpand
     #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
-      (setq hippie-expand-try-functions-list
-            '(try-complete-file-name-partially
-              try-expand-dabbrev
-              try-expand-dabbrev-all-buffers
-              try-expand-dabbrev-from-kill
-              try-complete-file-name-partially
-              try-complete-file-name
-              try-expand-all-abbrevs
-              try-expand-list
-              try-expand-line
-              try-expand-line-all-buffers
-              try-complete-lisp-symbol-partially
-              try-compelete-lisp-symbol))
+      (use-package hippie-expand
+        :ensure nil
+        :bind (:map sej-mode-map
+                    ("M-/" . hippie-expand))
+        :init
+        (setq hippie-expand-try-functions-list
+              '(try-complete-file-name-partially
+                try-expand-dabbrev
+                try-expand-dabbrev-all-buffers
+                try-expand-dabbrev-from-kill
+                try-complete-file-name-partially
+                try-complete-file-name
+                try-expand-all-abbrevs
+                try-expand-list
+                try-expand-line
+                try-expand-line-all-buffers
+                try-complete-lisp-symbol-partially
+                try-compelete-lisp-symbol)))
     #+END_SRC
 
 *** company
-    - Modular in-buffer completion framework for Emacs http://company-mode.github.io/
+    - Modular in-buffer completion framework for Emacs
+    - http://company-mode.github.io/
     #+BEGIN_SRC emacs-lisp
       (use-package company
         :diminish company-mode
@@ -3578,6 +3585,7 @@
 
 *** company-box
     - a company front-end with Icons
+    - https://github.com/sebastiencs/company-box
     #+BEGIN_SRC emacs-lisp
       (when emacs/>=26p
         (use-package company-box
@@ -3664,17 +3672,19 @@
 
 *** company-quickhelp
     - documentation popups that appear when idling on a completion candidate.
+    - https://github.com/company-mode/company-quickhelp
     #+BEGIN_SRC emacs-lisp
       (use-package company-quickhelp
         :after company
         :hook ((global-company-mode company-mode) . company-quickhelp-mode)
         :bind (:map company-active-map
-                    ("M-h" . company-quickhelp-manual-begin))
+                    ("H-h" . company-quickhelp-manual-begin))
         :config (setq company-quickhelp-delay 1))
     #+END_SRC
 
 *** company-statistics
     - Set up statistics and rank company completions based on frequency
+    - https://github.com/company-mode/company-statistics
     #+BEGIN_SRC emacs-lisp
       (use-package company-statistics
         :after company
@@ -3682,6 +3692,10 @@
     #+END_SRC
 
 *** company-try-hard
+    - A company-complete alternative that tries much harder to find completions.
+    If none of the current completions look good, call the command again to try
+    the next backend.
+    - https://github.com/Wilfred/company-try-hard
     #+BEGIN_SRC emacs-lisp
       (use-package company-try-hard
         :commands company-try-hard
@@ -3694,25 +3708,34 @@
     - Company mode completion backends for your shell scripting.
     - you also need bash-language-server installed and on your PATH
       npm install -g bash-language-server
+    - https://github.com/Alexander-Miller/company-shell
     #+BEGIN_SRC emacs-lisp
       (use-package company-shell
         :after company
-        :config
-        (add-to-list 'company-backends '(company-shell
-                                         company-shell-env
-                                         company-fish-shell)))
+        :init
+        (defun sej/company-shell-hook ()
+          (add-to-list 'company-backends '(company-shell
+                                           company-shell-env
+                                           company-fish-shell)) )
+        :hook (sej/after-init . sej/company-shell-hook) )
     #+END_SRC
+
 *** company-jedi
     - company-mode completion back-end for Python JEDI
+    - https://github.com/syohex/emacs-company-jedi
     #+BEGIN_SRC emacs-lisp
       (use-package company-jedi
         :after company
-        :config (add-to-list 'company-backends 'company-jedi))
+        :init
+        (defun sej/company-jedi-hook ()
+          (add-to-list 'company-backends 'company-jedi)  )
+        :hook (python-mode . sej/company-jedi-hook) )
     #+END_SRC
 
 *** company-arduino
     - This package is a set of configuration to let you auto-completion
     by using irony-mode, company-irony and company-c-headers on arduino-mode
+    - https://github.com/yuutayamada/company-arduino
     #+BEGIN_SRC emacs-lisp
       (use-package company-arduino
         :after company
@@ -3735,12 +3758,15 @@
         (add-to-list 'company-backends 'company-irony)
         (add-to-list 'company-backends 'company-c-headers))
     #+END_SRC
+
 *** yasnippet
     - short-cut completions
+    - https://github.com/joaotavora/yasnippet
     #+BEGIN_SRC emacs-lisp
       (use-package yasnippet
         :diminish yas-minor-mode
-        :hook (sej/after-init . yas-global-mode)
+        :hook ((sej/after-init . yas-reload-all)
+               ((prog-mode org-mode) . yas-minor-mode))
         :bind (:map yas-minor-mode-map
                     ("<tab>" . nil)
                     ("TAB" . nil)
@@ -3752,8 +3778,10 @@
                     ("M-p" . yas-prev-field))
         :config (use-package yasnippet-snippets))
     #+END_SRC
+
 *** hydra
     - Make bindings that stick around
+    - https://github.com/abo-abo/hydra
     #+BEGIN_SRC emacs-lisp
       (use-package hydra)
     #+END_SRC

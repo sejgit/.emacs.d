@@ -1472,7 +1472,7 @@ buffer is not visiting a file."
   (setq-default ag-highlight-search t))
 
 (use-package ivy-yasnippet
-  :after ivy
+  :after ivy yasnippet
   :commands ivy-yasnippet--preview
   :bind ("C-c C-y" . ivy-yasnippet)
   :config (advice-add #'ivy-yasnippet--preview :override #'ignore))
@@ -2679,20 +2679,24 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
 
-(define-key sej-mode-map (kbd "M-/") 'hippie-expand)
-(setq hippie-expand-try-functions-list
-      '(try-complete-file-name-partially
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-expand-line-all-buffers
-        try-complete-lisp-symbol-partially
-        try-compelete-lisp-symbol))
+(use-package hippie-expand
+  :ensure nil
+  :bind (:map sej-mode-map
+              ("M-/" . hippie-expand))
+  :init
+  (setq hippie-expand-try-functions-list
+        '(try-complete-file-name-partially
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-dabbrev-from-kill
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-expand-list
+          try-expand-line
+          try-expand-line-all-buffers
+          try-complete-lisp-symbol-partially
+          try-compelete-lisp-symbol)))
 
 (use-package company
   :diminish company-mode
@@ -2819,7 +2823,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :after company
   :hook ((global-company-mode company-mode) . company-quickhelp-mode)
   :bind (:map company-active-map
-              ("M-h" . company-quickhelp-manual-begin))
+              ("H-h" . company-quickhelp-manual-begin))
   :config (setq company-quickhelp-delay 1))
 
 (use-package company-statistics
@@ -2834,14 +2838,19 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package company-shell
   :after company
-  :config
-  (add-to-list 'company-backends '(company-shell
-                                   company-shell-env
-                                   company-fish-shell)))
+  :init
+  (defun sej/company-shell-hook ()
+    (add-to-list 'company-backends '(company-shell
+                                     company-shell-env
+                                     company-fish-shell)) )
+  :hook (sej/after-init . sej/company-shell-hook) )
 
 (use-package company-jedi
   :after company
-  :config (add-to-list 'company-backends 'company-jedi))
+  :init
+  (defun sej/company-jedi-hook ()
+    (add-to-list 'company-backends 'company-jedi)  )
+  :hook (python-mode . sej/company-jedi-hook) )
 
 (use-package company-arduino
   :after company
@@ -2866,7 +2875,8 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package yasnippet
   :diminish yas-minor-mode
-  :hook (sej/after-init . yas-global-mode)
+  :hook ((sej/after-init . yas-reload-all)
+         ((prog-mode org-mode) . yas-minor-mode))
   :bind (:map yas-minor-mode-map
               ("<tab>" . nil)
               ("TAB" . nil)
