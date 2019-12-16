@@ -2049,7 +2049,7 @@ buffer is not visiting a file."
     (interactive)
     (insert (sej/retrieve-url)))
 
-(define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
+  (define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
 
 (use-package ace-link
   :bind (:map sej-mode-map
@@ -2358,8 +2358,8 @@ buffer is not visiting a file."
   :config
   (setq ediff-diff-options "-w")
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-merge-split-window-function 'split-window-horizontally))
+  (setq ediff-split-window-function 'split-window-vertically)
+  (setq ediff-shell (getenv "$SHELL")))
 
 (use-package elec-pair
   :ensure nil
@@ -2408,7 +2408,7 @@ buffer is not visiting a file."
 
   (defun dumb-jump-get-language-from-mode ()
     "Extract the language from the 'major-mode' name.  Currently just everything before '-mode'."
-    (let* ((lookup '(sh "shell" cperl "perl" matlab "matlab" elisp "elisp"))
+    (let* ((lookup '(sh "shell" cperl "perl" matlab "matlab" emacs-lisp "elisp"))
            (m (dumb-jump-get-mode-base-name))
            (result (plist-get lookup (intern m))))
       result))
@@ -2447,7 +2447,7 @@ _x_: Go external other window
         (if help (message "%s" help))))))
 
 (use-package flycheck
-                                        ;:diminish flycheck-mode
+  ;; ;:diminish flycheck-mode
   :defines sej-mode-map
   :hook (prog-mode . global-flycheck-mode)
   :bind
@@ -2481,37 +2481,19 @@ _x_: Go external other window
                                 :inherit 'error
                                 :underline nil)))
 
-(if (display-graphic-p)
-    (use-package flycheck-posframe
-      :after flycheck
-      :hook (flycheck-mode . flycheck-posframe-mode)
-      :config
-      ;; (add-to-list 'flycheck-posframe-inhibit-functions
-      ;;              #'(lambda () (bound-and-true-p company-backend)))
-      (setq flycheck-posframe-warning-prefix "\u26a0 ")
-      (setq flycheck-posframe-position 'window-bottom-left-corner)))
-
-(if (display-graphic-p)
-    (if emacs/>=26p
-        (use-package flycheck-pos-tip
-          :defines (flycheck-pos-tip-timeout flycheck-pos-tip-error-messages)
-          :hook (flycheck-mode . flycheck-pos-tip-mode)
-          :config
-          (setq flycheck-pos-tip-timeout 10
-                flycheck-display-errors-delay 0.5)
-          (setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
-      ))
-
 (use-package flycheck-popup-tip
-  :hook (flycheck-mode . flycheck-popup-tip-mode))
+  :hook (flycheck-mode . flycheck-popup-tip-mode)
+  :config
+  (setq flycheck-pos-tip-display-errors-tty-function #'flycheck-popup-tip-show-popup))
 
 (use-package flycheck-color-mode-line
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 (use-package emr
-  ;; Just hit M-RET to access your refactoring tools in any supported mode.
+  ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
-              ("M-RET" . emr-show-refactor-menu))
+              ("C-c s r" . emr-show-refactor-menu)
+              ("H-r" . emr-show-refactor-menu) )
   :hook (prog-mode . emr-initialize))
 
 (use-package projectile
@@ -2524,6 +2506,7 @@ _x_: Go external other window
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)
   (setq projectile-use-git-grep t)
+  (setq projectile-completion-system 'ivy)
   :config
   ;; global ignores
   (add-to-list 'projectile-globally-ignored-files ".tern-port")
@@ -2546,12 +2529,6 @@ _x_: Go external other window
 
   )
 
-(use-package ediff
-  :init
-  (setq ediff-shell (getenv "$SHELL"))
-  (setq-default ediff-split-window-function
-                (quote split-window-vertically)))
-
 (use-package magit
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
@@ -2566,13 +2543,12 @@ _x_: Go external other window
       (transient-append-suffix 'magit-fetch
         "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
-(if (executable-find "cc")
-    (use-package forge
-      :after magit
-      :demand))
+(use-package forge
+  :after magit
+  :demand)
 
 (use-package magit-todos
-  :init (magit-todos-mode))
+  :hook (sej/after-init . magit-todos-mode))
 
 (use-package git-timemachine
   :custom-face
@@ -2676,9 +2652,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
                ("H-G" . gist-list)))
 
 (use-package gitattributes-mode)
-
 (use-package gitconfig-mode)
-
 (use-package gitignore-mode)
 
 (defun sej/git-blame-line ()
@@ -2702,6 +2676,8 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
         (message "Line %d: %s" line-number (buffer-string)))
       (kill-buffer log-buf))
     (kill-buffer commit-buf)))
+
+(define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
 
 (define-key sej-mode-map (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list

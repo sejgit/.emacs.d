@@ -2653,7 +2653,7 @@
           (interactive)
           (insert (sej/retrieve-url)))
 
-      (define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
+        (define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
     #+END_SRC
 
 *** ace-link
@@ -2680,7 +2680,7 @@
       (use-package hl-line
         :ensure nil
         :hook (sej/after-init . global-hl-line-mode))
-     #+END_SRC
+    #+END_SRC
 
 *** symbol-overlay
     - Highlight symbols
@@ -3291,6 +3291,7 @@
 ** vcs
 *** magit
     - interface to the version control system Git
+    - https://magit.vc/
     #+BEGIN_SRC emacs-lisp
       (use-package magit
         :bind (("C-x g" . magit-status)
@@ -3313,22 +3314,24 @@
     for that repository and type f y (forge-pull). Alternatively you can use M-x
     forge-add-repostiory, which makes it possible to add a forge repository without
     pulling all topics and even without having to clone the respective Git repository.
+    - https://github.com/magit/forge
     #+BEGIN_SRC emacs-lisp
-      (if (executable-find "cc")
-          (use-package forge
-            :after magit
-            :demand))
+      (use-package forge
+        :after magit
+        :demand)
     #+END_SRC
 
 *** magit-todos
     - Show tasks from commit files
+    - https://github.com/alphapapa/magit-todos
     #+BEGIN_SRC emacs-lisp
       (use-package magit-todos
-        :init (magit-todos-mode))
+        :hook (sej/after-init . magit-todos-mode))
     #+END_SRC
 
 *** git-timemachine
     - Walk through git revisions of a file
+    - https://github.com/emacsmirror/git-timemachine
     #+BEGIN_SRC emacs-lisp
       (use-package git-timemachine
         :custom-face
@@ -3340,6 +3343,7 @@
 
 *** git-messenger
     - Pop up last commit information of current line
+    - https://github.com/syohex/emacs-git-messenger
     #+BEGIN_SRC emacs-lisp
       (use-package git-messenger
         :bind (
@@ -3360,6 +3364,7 @@
 
 *** smerge-mode
     - Resolve diff3 conflicts
+    - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
     #+BEGIN_SRC emacs-lisp
       (use-package smerge-mode
         :ensure nil
@@ -3429,6 +3434,7 @@
 
 *** browse-at-remote
     - Open github/gitlab/bitbucket page
+    - https://github.com/rmuslimov/browse-at-remote
     #+BEGIN_SRC emacs-lisp
       (use-package browse-at-remote
         :bind (:map sej-mode-map
@@ -3439,8 +3445,29 @@
     #+END_SRC
 
 *** gist
-    - Git related modes
     - gist client
+    - Functions:
+      gist-list - Lists your gists in a new buffer. Use arrow keys
+      to browse, RET to open one in the other buffer.
+
+      gist-region - Copies Gist URL into the kill ring.
+      With a prefix argument, makes a private gist.
+
+      gist-region-private - Explicitly create a private gist.
+
+      gist-buffer - Copies Gist URL into the kill ring.
+      With a prefix argument, makes a private gist.
+
+      gist-buffer-private - Explicitly create a private gist.
+
+      gist-region-or-buffer - Post either the current region, or if mark
+      is not set, the current buffer as a new paste at gist.github.com .
+      Copies the URL into the kill ring.
+      With a prefix argument, makes a private paste.
+
+      gist-region-or-buffer-private - Explicitly create a gist from the
+      region or buffer.
+    - https://github.com/defunkt/gist.el
     #+BEGIN_SRC emacs-lisp
       (use-package gist
         :defines sej-mode-map
@@ -3449,25 +3476,18 @@
                      ("H-G" . gist-list)))
     #+END_SRC
 
-*** gitattributes-mode
-    - mode for .gitattributes files
+*** git config modes
+    - Emacs major modes for various Git configuration files.
+    - gitattributes-mode , gitconfig-mode , gitignore-mode
+    - https://github.com/magit/git-modes
     #+BEGIN_SRC emacs-lisp
       (use-package gitattributes-mode)
-    #+END_SRC
-
-*** gitconfig-mode
-    - mode for .gitconfig files
-    #+BEGIN_SRC emacs-lisp
       (use-package gitconfig-mode)
-    #+END_SRC
-
-*** gitignore-mode
-    - mode for .gitignore files
-    #+BEGIN_SRC emacs-lisp
       (use-package gitignore-mode)
     #+END_SRC
 
 *** sej/git-blame-line
+    - Runs `git blame` on the current line and adds the commit id to the kill ring
     #+BEGIN_SRC emacs-lisp
       (defun sej/git-blame-line ()
         "Runs `git blame` on the current line and
@@ -3490,7 +3510,10 @@
               (message "Line %d: %s" line-number (buffer-string)))
             (kill-buffer log-buf))
           (kill-buffer commit-buf)))
-    #+END_SRC
+
+      (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
+     #+END_SRC
+
 ** completion
 *** hippie-expand settings
     #+BEGIN_SRC emacs-lisp
