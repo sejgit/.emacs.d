@@ -3795,9 +3795,8 @@
       (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
       (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
       (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+
       (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-      ;; Use C-M-. to jump to the definition of the symbol under the cursor.
-      (define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
 
       ;; use flycheck in elisp
       (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
@@ -3808,6 +3807,7 @@
 
 *** lispy
     - This package reimagines Paredit
+    - https://github.com/abo-abo/lispy
     - a popular method to navigate and edit LISP code in Emacs.
     - The killer-feature are the short bindings:
 
@@ -3830,6 +3830,7 @@
 *** eldoc
     - we don't want this minor mode to be shown in the minibuffer, however
       we use eldoc to show the signature of the function at point in the minibuffer
+    - https://www.emacswiki.org/emacs/ElDoc
     #+BEGIN_SRC emacs-lisp
       (use-package eldoc
         :diminish eldoc-mode
@@ -3839,11 +3840,14 @@
          (lisp-interaction-mode . eldoc-mode)
          (eval-expression-minibuffer-setup . eldoc-mode))
         :config
-        (setq eldoc-idle-delay 0.1))
+        (setq eldoc-idle-delay 0.1) )
     #+END_SRC
 
 *** elisp-slime-nav
-    - turn on elisp-slime-nav if available so M-. works to jump to function definitions
+    - turn on elisp-slime-nav
+    - M-. works to jump to function definitions
+    - M-, to jump back
+    - https://github.com/purcell/elisp-slime-nav
     #+BEGIN_SRC emacs-lisp
       (use-package elisp-slime-nav
         :diminish elisp-slime-nav-mode
@@ -3855,7 +3859,8 @@
 
 *** eros
     - eros-mode will show you the result of evaluating an elisp command
-      as an overlay in your elisp buffer. Try it out with C-x C-e now!
+      as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
+    - https://github.com/xiongtx/eros
     #+BEGIN_SRC emacs-lisp
       (use-package eros
         :commands eros-mode
@@ -3864,6 +3869,7 @@
 
 *** sej/ielm-other-window
     - add a nice popup for ielm
+    - https://www.emacswiki.org/emacs/InferiorEmacsLispMode
     #+BEGIN_SRC emacs-lisp
       (defun sej/ielm-other-window ()
         "Run ielm on other window."
@@ -3872,9 +3878,8 @@
          (get-buffer-create "*ielm*"))
         (call-interactively 'ielm))
 
-      (define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
-      (define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
-    #+END_SRC
+      (define-key sej-mode-map (kbd "s-i") 'sej/ielm-other-window)
+     #+END_SRC
 
 *** sej/remove-elc-on-save
     - When saving an elisp file, remove its compiled version if
@@ -3889,6 +3894,7 @@
                         (delete-file (concat buffer-file-name "c"))))))
       (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
     #+END_SRC
+
 ** python
 *** python
     - Install:
@@ -5179,7 +5185,6 @@
                     ("H-d" . osx-dictionary-search-word-at-point)
                     ("H-D" . osx-dictionary-search-pointer)
                     ("C-c s i" . osx-dictionary-search-input)
-                    ("s-i" . osx-dictionary-search-input)
                     ))
     #+END_SRC
 

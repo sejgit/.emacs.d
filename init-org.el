@@ -747,6 +747,7 @@ output as per `sej/exec'. Otherwise, return nil."
 
 (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
 (define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
+(define-key sej-mode-map (kbd "<A-M-left>") 'sej/frame-resize-l)
 
 (defun sej/frame-resize-l ()
   "Set frame full height and 1/2 wide, position at screen left."
@@ -769,7 +770,8 @@ output as per `sej/exec'. Otherwise, return nil."
 
 (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
 (define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
-
+(define-key sej-mode-map (kbd "<A-M-right>") 'sej/frame-resize-r)
+ ;; last one is for non MACOS or just in case BTT is not installed on MACOS
 (defun sej/frame-resize-r ()
   "Set frame full height and 1/2 wide, position at screen right."
   (interactive)
@@ -2893,9 +2895,8 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
 (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
 (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-;; Use C-M-. to jump to the definition of the symbol under the cursor.
-(define-key emacs-lisp-mode-map (kbd "C-M-.") 'find-function-at-point)
 
 ;; use flycheck in elisp
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
@@ -2914,7 +2915,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
    (lisp-interaction-mode . eldoc-mode)
    (eval-expression-minibuffer-setup . eldoc-mode))
   :config
-  (setq eldoc-idle-delay 0.1))
+  (setq eldoc-idle-delay 0.1) )
 
 (use-package elisp-slime-nav
   :diminish elisp-slime-nav-mode
@@ -2934,8 +2935,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
    (get-buffer-create "*ielm*"))
   (call-interactively 'ielm))
 
-(define-key emacs-lisp-mode-map (kbd "H-i") 'sej/ielm-other-window)
-(define-key lisp-interaction-mode-map (kbd "H-i") 'sej/ielm-other-window)
+(define-key sej-mode-map (kbd "s-i") 'sej/ielm-other-window)
 
 (defun sej/remove-elc-on-save ()
   "If you're saving an elisp file, likely the .elc is no longer valid."
@@ -3969,7 +3969,6 @@ hljs.highlightBlock(code);
               ("H-d" . osx-dictionary-search-word-at-point)
               ("H-D" . osx-dictionary-search-pointer)
               ("C-c s i" . osx-dictionary-search-input)
-              ("s-i" . osx-dictionary-search-input)
               ))
 
 (use-package view
