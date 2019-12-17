@@ -2996,8 +2996,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :defines ein:completion-backend
   :init (setq ein:completion-backend 'ein:use-company-backend))
 
-(use-package pip-requirements
-  :defer t)
+(use-package pip-requirements)
 
 (use-package pyvenv
   :hook (pyvenv-post-activate . pyvenv-restart-python))
@@ -4198,6 +4197,7 @@ converted to PDF at the same location."
         org-src-tab-acts-natively t)
 
   (defvar load-language-list '((emacs-lisp . t)
+                               (ein . t)
                                (perl . t)
                                (python . t)
                                (ein . t)

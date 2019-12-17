@@ -3905,6 +3905,7 @@
       pip3 install python-language-server[all] --isolated
       [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
       autopep8, YAPF
+    - http://wikemacs.org/wiki/Python
     #+BEGIN_SRC emacs-lisp
       (use-package python
         :ensure nil
@@ -3951,6 +3952,7 @@
     - Open any Python file, and activate live-py-mode with M-x live-py-mode.
     - You should see an extra window on the right that shows the results of
       running your code.
+    - https://github.com/donkirkby/live-py-plugin
     #+BEGIN_SRC emacs-lisp
       (use-package live-py-mode)
     #+END_SRC
@@ -3958,6 +3960,7 @@
 *** yapfify
     - Format python buffer using YAPF
     - Install: pip install yapf
+    - https://github.com/JorisE/yapfify
     #+BEGIN_SRC emacs-lisp
       (use-package yapfify
         :diminish yapf-mode
@@ -3974,6 +3977,9 @@
       ;; #+END_SRC
     - Use M-x ein:connect-to-notebook to submit code from an arbitrary
       buffer to a running jupyter kernel
+    - M-x ein:run launches a jupyter process from emacs
+    - M-x ein:login to a running jupyter server
+    - https://github.com/millejoh/emacs-ipython-notebook
     #+BEGIN_SRC emacs-lisp
       (use-package ein
         :diminish ein:notebook-mode
@@ -3983,14 +3989,15 @@
 
 *** pip-requirements
     - major mode for editing pip requirement files
+    - https://github.com/Wilfred/pip-requirements.el
     #+BEGIN_SRC emacs-lisp
-      (use-package pip-requirements
-        :defer t)
+      (use-package pip-requirements)
     #+END_SRC
 
 *** pyvenv
     - simple global minor mode which will replicate the changes done
     by virtualenv activation inside Emacs
+    - https://github.com/jorgenschaefer/pyvenv
     #+BEGIN_SRC emacs-lisp
       (use-package pyvenv
         :hook (pyvenv-post-activate . pyvenv-restart-python))
@@ -5433,6 +5440,7 @@
               org-src-tab-acts-natively t)
 
         (defvar load-language-list '((emacs-lisp . t)
+                                     (ein . t)
                                      (perl . t)
                                      (python . t)
                                      (ein . t)
