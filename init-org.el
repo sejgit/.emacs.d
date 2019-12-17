@@ -3194,7 +3194,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
             "Project: "))))
 
 (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-                                        ; (kbd "C-x r j") is build in global
+                                        ; (kbd "C-x r j") is built-in global
 (set-register ?b '(file . "~/.ssh/custom-post.el"))
 (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
 (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
@@ -3593,8 +3593,7 @@ _S_ettings                                _C-p_: Previous Line
   (auto-insert-mode 1)
   :config
   (define-auto-insert ".*\\.py[3]?$" "template.py")
-  (define-auto-insert ".*\\.el" "template.el")
-  )
+  (define-auto-insert ".*\\.el" "template.el") )
 
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."

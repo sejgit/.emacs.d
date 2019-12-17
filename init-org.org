@@ -4719,6 +4719,7 @@
 *** autoinsert
     - mode that comes with Emacs that automagically inserts text into new buffers
       based on file extension or the major mode
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
     #+BEGIN_SRC emacs-lisp
       (use-package autoinsert
         :hook (find-file . auto-insert)
@@ -4750,7 +4751,8 @@
     #+END_SRC
 
 *** sudo-edit
-    - Open files as another user
+    - Open files as sudo
+    - https://github.com/nflath/sudo-edit
     #+BEGIN_SRC emacs-lisp
       (unless sys/win32p
         (use-package sudo-edit))
@@ -4758,6 +4760,8 @@
 
 *** vlf-setup
     - vlf lets you handle very large files for viewing
+    - VLF operations are grouped under the C-c C-v prefix by default
+    - https://github.com/m00natic/vlfi
     #+BEGIN_SRC emacs-lisp
       (use-package vlf-setup
         :ensure vlf
