@@ -3023,10 +3023,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :hook ((js2-mode . js2-imenu-extras-mode)
          (js2-mode . js2-highlight-unused-variables-mode))
   :config
-  ;; Use default keybindings for lsp
-  (if sej-lsp
-      (unbind-key "M-." js2-mode-map))
-
   (with-eval-after-load 'flycheck
     (if (or (executable-find "eslint_d")
             (executable-find "eslint")
@@ -3045,9 +3041,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package mocha
   :config (use-package mocha-snippets))
-
-(use-package coffee-mode
-  :config (setq coffee-tab-width 2))
 
 (use-package skewer-mode
   :diminish skewer-mode skewer-css skewer-html
@@ -3080,7 +3073,8 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :mode (("\\.module$" . php-mode)
          ("\\.inc$" . php-mode)
          ("\\.install$" . php-mode)
-         ("\\.engine$" . php-mode)))
+         ("\\.engine$" . php-mode)
+         ("\\.\\(?:php\\|phtml\\)\\'" . php-mode)))
 
 (use-package yaml-mode
   :mode

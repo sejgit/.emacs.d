@@ -4006,6 +4006,8 @@
 ** web modes
 *** web-mode
     - Major mode for editing web templates
+    - http://web-mode.org/
+    - https://github.com/fxbois/web-mode
     #+BEGIN_SRC emacs-lisp
       (use-package web-mode
         :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
@@ -4017,6 +4019,7 @@
 
 *** css-eldoc
     - eldoc-mode plugin for CSS
+    - https://github.com/zenozeng/css-eldoc
     #+BEGIN_SRC emacs-lisp
       (use-package css-eldoc
         :commands turn-on-css-eldoc
@@ -4027,13 +4030,14 @@
     - Major mode for editing JSON files.
     - Extends the builtin js-mode to add better syntax highlighting for JSON
       and some nice editing keybindings.
-    JSON mode
+    - https://github.com/joshwnj/json-mode
     #+BEGIN_SRC emacs-lisp
       (use-package json-mode)
     #+END_SRC
 
 *** js2-mode
     - Improved JavaScript editing mode
+    - https://github.com/mooz/js2-mode
     #+BEGIN_SRC emacs-lisp
       (use-package js2-mode
         :defines flycheck-javascript-eslint-executable
@@ -4044,10 +4048,6 @@
         :hook ((js2-mode . js2-imenu-extras-mode)
                (js2-mode . js2-highlight-unused-variables-mode))
         :config
-        ;; Use default keybindings for lsp
-        (if sej-lsp
-            (unbind-key "M-." js2-mode-map))
-
         (with-eval-after-load 'flycheck
           (if (or (executable-find "eslint_d")
                   (executable-find "eslint")
@@ -4061,6 +4061,7 @@
 
 *** js2-refactor
     - JavaScript refactoring library for Emacs
+    - https://github.com/magnars/js2-refactor.el
     #+BEGIN_SRC emacs-lisp
       (use-package js2-refactor
         :after js2-mode
@@ -4071,20 +4072,22 @@
 
 *** mocha
     - Run Mocha or Jasmine tests
+    - https://github.com/scottaj/mocha.el
     #+BEGIN_SRC emacs-lisp
       (use-package mocha
         :config (use-package mocha-snippets))
     #+END_SRC
 
-*** coffee-mode
-    - Major mode for CoffeeScript code
-    #+BEGIN_SRC emacs-lisp
-      (use-package coffee-mode
-        :config (setq coffee-tab-width 2))
-    #+END_SRC
-
 *** skewer-mode
     - Live browser JavaScript, CSS, and HTML interaction
+    - M-x run-skewer to attach a browser to Emacs
+      C-x C-e: Evaluate the form before the point and display the result in the
+               minibuffer. If given a prefix argument, insert the result into the
+               current buffer.
+      C-M-x: Evaluate the top-level form around the point.
+      C-c C-k: Load the current buffer.
+      C-c C-z: Select the REPL buffer
+    - https://github.com/skeeto/skewer-mode
     #+BEGIN_SRC emacs-lisp
       (use-package skewer-mode
         :diminish skewer-mode skewer-css skewer-html
@@ -4097,6 +4100,7 @@
 *** web-beautify
     - Format HTML, CSS and JavaScript/JSON by js-beautify
     - Insta;; npm -g install js-beautify
+    - https://github.com/yasuyk/web-beautify
     #+BEGIN_SRC emacs-lisp
       (use-package web-beautify
         :init
@@ -4119,22 +4123,26 @@
 
 *** haml-mode
     - major mode for the haml mark-up language
+    - https://github.com/nex3/haml-mode
     #+BEGIN_SRC emacs-lisp
       (use-package haml-mode)
     #+END_SRC
 
 *** php-mode
     - major mode for editing PHP code
+    - https://github.com/emacs-php/php-mode
     #+BEGIN_SRC emacs-lisp
       (use-package php-mode
         :mode (("\\.module$" . php-mode)
                ("\\.inc$" . php-mode)
                ("\\.install$" . php-mode)
-               ("\\.engine$" . php-mode)))
+               ("\\.engine$" . php-mode)
+               ("\\.\\(?:php\\|phtml\\)\\'" . php-mode)))
     #+END_SRC
 
 *** yaml-mode
     - YAML major mode support
+    - https://www.emacswiki.org/emacs/YamlMode
     #+BEGIN_SRC emacs-lisp
       (use-package yaml-mode
         :mode
@@ -4144,6 +4152,7 @@
 
 *** nxml-mode
     - major mode for editing XML
+    - https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
     #+BEGIN_SRC emacs-lisp
       (use-package nxml-mode
         :ensure nil
