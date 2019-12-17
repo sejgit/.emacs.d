@@ -3122,10 +3122,6 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 (use-package rust-mode
   :config (setq rust-format-on-save t))
 
-(use-package conf-mode
-  :diminish conf-mode
-  :mode "\\.gitconfig$")
-
 (use-package csv-mode
   :mode "\\.[Cc][Ss][Vv]\\'"
   :config
