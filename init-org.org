@@ -4162,6 +4162,7 @@
 ** c program modes
 *** c-mode
     - C/C++ Mode
+    - https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
     #+BEGIN_SRC emacs-lisp
       (use-package cc-mode
         :ensure nil
@@ -4182,8 +4183,10 @@
           :diminish
           :hook (c++-mode modern-c++-font-lock-mode)))
     #+END_SRC
+
 *** csharp-mode
     - mode for editing C# in emacs. It’s based on cc-mode
+    - https://github.com/josteink/csharp-mode
     #+BEGIN_SRC emacs-lisp
       (use-package csharp-mode)
     #+END_SRC
@@ -4199,8 +4202,10 @@
         (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
         (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
     #+END_SRC
+
 *** swift-mode
     - support for Apple's Swift programming language
+    - https://github.com/swift-emacs/swift-mode
     #+BEGIN_SRC emacs-lisp
       (use-package swift-mode
         :config
@@ -4212,6 +4217,7 @@
 
 *** rust-mode
     - rust language package
+    - https://github.com/rust-lang/rust-mode
     #+BEGIN_SRC emacs-lisp
       (use-package rust-mode
         :config (setq rust-format-on-save t))
