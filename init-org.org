@@ -4770,8 +4770,9 @@
 
 * dired
 *** dired
+    - Directory operations
+    - https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
     #+BEGIN_SRC emacs-lisp
-      ;; Directory operations
       (use-package dired
         :ensure nil
         :bind (:map dired-mode-map
@@ -4794,8 +4795,10 @@
         ;; Show directory first
         (setq dired-listing-switches "-alh --group-directories-first"))
     #+END_SRC
+
 *** all-the-icons-dired
     - Shows icons in dired buffer
+    - https://github.com/jtbm37/all-the-icons-dired
     #+BEGIN_SRC emacs-lisp
       (use-package all-the-icons-dired
         :diminish
@@ -4845,12 +4848,14 @@
 
 *** dired-aux
     - auxiliary functionality of dired
+    - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
     #+BEGIN_SRC emacs-lisp
       (use-package dired-aux :ensure nil)
     #+END_SRC
 
 *** dired-x
     - Extra Dired functionality
+    - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
     #+BEGIN_SRC emacs-lisp
       (use-package dired-x
         :ensure nil
@@ -4878,7 +4883,7 @@
               (concat dired-omit-files
                       "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
     #+END_SRC
-
+<<<here>>>
 *** quick-preview
     - Quick-preview provides a nice preview of the thing at point for files.
     #+BEGIN_SRC emacs-lisp
