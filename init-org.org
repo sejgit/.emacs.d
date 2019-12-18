@@ -4883,9 +4883,10 @@
               (concat dired-omit-files
                       "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
     #+END_SRC
-<<<here>>>
+
 *** quick-preview
     - Quick-preview provides a nice preview of the thing at point for files.
+    - https://github.com/myuhe/quick-preview.el
     #+BEGIN_SRC emacs-lisp
       (use-package quick-preview
         :defines sej-mode-map
@@ -4897,17 +4898,20 @@
 
 *** browse-at-remote
     - browse file at remote source
+    - https://github.com/rmuslimov/browse-at-remote
     #+BEGIN_SRC emacs-lisp
       (use-package browse-at-remote
         :bind ("C-c s b" . browse-at-remote))
     #+END_SRC
 
 *** diredfl
-    - Colourful dired
+    - Extra font-lock rules for a more Colourful dired
+    - https://github.com/purcell/diredfl
     #+BEGIN_SRC emacs-lisp
       (use-package diredfl
         :init (diredfl-global-mode 1))
     #+END_SRC
+<<<here>>>
 * writing & reading
 *** deft
     - Deft is an Emacs mode for quickly browsing, filtering,

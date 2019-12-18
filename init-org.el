@@ -3611,7 +3611,6 @@ _S_ettings                                _C-p_: Previous Line
   :ensure vlf
   :commands (vlf vlf-occur-load vlf-ediff-files))
 
-;; Directory operations
 (use-package dired
   :ensure nil
   :bind (:map dired-mode-map
