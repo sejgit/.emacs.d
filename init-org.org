@@ -4911,14 +4911,14 @@
       (use-package diredfl
         :init (diredfl-global-mode 1))
     #+END_SRC
-<<<here>>>
+
 * writing & reading
 *** deft
     - Deft is an Emacs mode for quickly browsing, filtering,
       and editing directories of plain text notes
+    - https://jblevins.org/projects/deft/
     #+BEGIN_SRC emacs-lisp
       (use-package deft
-        :ensure t
         :defines sej-mode-map deft-text-mode
         :bind (:map sej-mode-map
                     ("<f7>" . deft)
@@ -4935,24 +4935,21 @@
               deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
               deft-org-mode-title-prefix t))
     #+END_SRC
+
 *** writegood-mode
+    - minor mode to aid in finding common writing problems
+    - https://github.com/bnbeckwith/writegood-mode
     #+BEGIN_SRC emacs-lisp
       (use-package writegood-mode
-        :hook (markdown-mode . writegood-mode)
-        )
-    #+END_SRC
-
-*** olivetti
-    -  Nice text writing environment
-    #+BEGIN_SRC emacs-lisp
-      (use-package olivetti
-        :diminish
-        :hook (text-mode-hook . olivetti-mode)
-        :init (setq olivetti-body-width 0.618))
+        :bind (("C-c C-g w" . writegood-mode)
+               ("C-c C-g g" . writegood-grade-level)
+               ("C-c C-g e" . writegood-reading-ease))
+        :hook (markdown-mode . writegood-mode) )
     #+END_SRC
 
 *** markdown-mode
     - markdown-mode used a lot on Github
+    - https://jblevins.org/projects/markdown-mode/
     #+BEGIN_SRC emacs-lisp
       (use-package markdown-mode
         :defines flycheck-markdown-markdownlint-cli-config
@@ -5048,7 +5045,7 @@
       </script>
       ")
     #+END_SRC
-
+<<<here>>>
 *** markdown-toc
     - Table of contents
       - Inside a markdown file, the first time,

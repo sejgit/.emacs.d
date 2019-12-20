@@ -3720,7 +3720,6 @@ _S_ettings                                _C-p_: Previous Line
   :init (diredfl-global-mode 1))
 
 (use-package deft
-  :ensure t
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
               ("<f7>" . deft)
@@ -3738,13 +3737,10 @@ _S_ettings                                _C-p_: Previous Line
         deft-org-mode-title-prefix t))
 
 (use-package writegood-mode
-  :hook (markdown-mode . writegood-mode)
-  )
-
-(use-package olivetti
-  :diminish
-  :hook (text-mode-hook . olivetti-mode)
-  :init (setq olivetti-body-width 0.618))
+  :bind (("C-c C-g w" . writegood-mode)
+         ("C-c C-g g" . writegood-grade-level)
+         ("C-c C-g e" . writegood-reading-ease))
+  :hook (markdown-mode . writegood-mode) )
 
 (use-package markdown-mode
   :defines flycheck-markdown-markdownlint-cli-config
