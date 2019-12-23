@@ -944,6 +944,8 @@
 
 *** doom themes
     - load doom-themes package if selected theme is of the doom family
+    - https://github.com/hlissner/emacs-doom-themes
+    - https://github.com/hlissner/emacs-solaire-mode
     #+BEGIN_SRC emacs-lisp
       (defun is-doom-theme-p (theme)
         "Check whether the THEME is a doom theme. THEME is a symbol."
@@ -979,6 +981,7 @@
       (when sys/macp
         (set-default-font "SF Mono-14"))
     #+END_SRC
+
 ** frames
 *** general frames key-bindings
     #+BEGIN_SRC emacs-lisp
