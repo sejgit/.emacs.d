@@ -5613,6 +5613,8 @@
 ** eshell
 *** eshell
     - Emacs command shell ; much better than shell
+    - https://www.gnu.org/software/emacs/manual/html_mono/eshell.html
+    - https://www.masteringemacs.org/article/complete-guide-mastering-eshell
     #+BEGIN_SRC emacs-lisp
       (use-package eshell
         :ensure nil
@@ -5740,6 +5742,7 @@
 
 *** esh-autosuggest
     - Fish-like history autosuggestions
+    - https://github.com/dieggsy/esh-autosuggest
     #+BEGIN_SRC emacs-lisp
       (use-package esh-autosuggest
         :defines ivy-display-functions-alist
@@ -5868,6 +5871,7 @@
 ** shell
 *** shell
     - basic emacs shell ; eshell is much better
+    - https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html
     #+BEGIN_SRC emacs-lisp
       (use-package shell
         :ensure nil
@@ -5921,6 +5925,7 @@
 
 *** shell-pop
     - pop-up shell
+    - https://github.com/kyagi/shell-pop-el
     #+BEGIN_SRC emacs-lisp
       (use-package shell-pop
         :bind ("C-c s p" . shell-pop)
@@ -5955,6 +5960,7 @@
 
 *** with-editor
     - things that invoke $EDITOR will use the current Emacs
+    - https://github.com/magit/with-editor
     #+BEGIN_SRC emacs-lisp
       (use-package with-editor
         :hook ((shell-mode . with-editor-export-editor)
@@ -5963,6 +5969,7 @@
 
 *** keychain-environment
     - set up any SSH or GPG keychains that the Keychain tool has set up for us
+    - https://github.com/tarsius/keychain-environment
     #+BEGIN_SRC emacs-lisp
       (use-package keychain-environment
         :hook (sej/after-init . keychain-refresh-environment))
