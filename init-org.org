@@ -680,6 +680,7 @@
 ** help
 *** which-key
     - minibuffer keybinding prompts
+    - https://github.com/justbur/emacs-which-key
     #+BEGIN_SRC emacs-lisp
       (use-package which-key
         :diminish which-key-mode
@@ -695,6 +696,7 @@
 
 *** helpful
     - helpful is an improved help-fns & help-fns+
+    - https://github.com/Wilfred/helpful
     #+BEGIN_SRC emacs-lisp
       (use-package helpful
         :after counsel
@@ -713,6 +715,7 @@
 
 *** discover-my-major
     - Discover key bindings and their meaning for the current Emacs major mode
+    - https://github.com/jguenther/discover-my-major
     #+BEGIN_SRC emacs-lisp
       (use-package discover-my-major
         :bind (("C-h M-m" . discover-my-major)
