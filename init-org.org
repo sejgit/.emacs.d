@@ -1006,6 +1006,7 @@
 
 *** mac specific frame settings
     - matching dark/light modes and for hiding
+    - https://github.com/purcell/ns-auto-titlebar
     #+BEGIN_SRC emacs-lisp
       (when sys/mac-x-p
         (use-package ns-auto-titlebar
