@@ -3841,7 +3841,8 @@ hljs.highlightBlock(code);
 (use-package textile-mode
   :mode "\\.textile\\'")
 
-(use-package adoc-mode)
+(use-package adoc-mode
+  :mode "\\.txt\\'")
 
 (use-package abbrev
   :ensure nil
@@ -3852,16 +3853,12 @@ hljs.highlightBlock(code);
         "~/.emacs.d/abbrev_defs")    ;; definitions from...
   (define-abbrev-table
     'global-abbrev-table
-    '(("<sej" "stephenearljenkins" nil 0)))
+    '(("ssej" "stephenearljenkins" nil 0 )))
   (define-abbrev-table
     'org-mode-abbrev-table
-    '(("<orgh" "" 'sej/org-header 0)))
-  (define-abbrev-table
-    'org-mode-abbrev-table
-    '(("<orgl" "" 'sej/org-wrap-elisp 0)))
-  (define-abbrev-table
-    'org-mode-abbrev-table
-    '(("<orgs" "" 'sej/org-wrap-source 0))))
+    '(("orgh" "" sej/org-header 0)
+      ("orgl" "" sej/org-wrap-elisp 0)
+      ("orgs" "" sej/org-wrap-source 0))))
 
 (defun sej/number-rectangle (start end format-string from)
   "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."

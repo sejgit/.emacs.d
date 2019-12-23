@@ -5045,19 +5045,20 @@
       </script>
       ")
     #+END_SRC
-<<<here>>>
+
 *** markdown-toc
     - Table of contents
       - Inside a markdown file, the first time,
         place yourself where you want to insert the TOC:
         M-x markdown-toc-generate-toc
-
+    - https://github.com/ardumont/markdown-toc
     #+BEGIN_SRC emacs-lisp
       (use-package markdown-toc))
     #+END_SRC
 
 *** textile-mode
     - textile markup editing major mode
+    - https://github.com/juba/textile-mode
     #+BEGIN_SRC emacs-lisp
       (use-package textile-mode
         :mode "\\.textile\\'")
@@ -5067,12 +5068,15 @@
     - adoc-mode is an Emacs major mode for editing AsciiDoc files.
       It emphasizes on the idea that the document is highlighted
       so it pretty much looks like the final output.
+    - https://github.com/sensorflo/adoc-mode/wiki
     #+BEGIN_SRC emacs-lisp
-      (use-package adoc-mode)
+      (use-package adoc-mode
+        :mode "\\.txt\\'")
     #+END_SRC
 
 *** abbrev
     - for inserting abbreviations
+    - https://www.emacswiki.org/emacs/AbbrevMode
     #+BEGIN_SRC emacs-lisp
       (use-package abbrev
         :ensure nil
@@ -5083,16 +5087,12 @@
               "~/.emacs.d/abbrev_defs")    ;; definitions from...
         (define-abbrev-table
           'global-abbrev-table
-          '(("<sej" "stephenearljenkins" nil 0)))
+          '(("ssej" "stephenearljenkins" nil 0 )))
         (define-abbrev-table
           'org-mode-abbrev-table
-          '(("<orgh" "" 'sej/org-header 0)))
-        (define-abbrev-table
-          'org-mode-abbrev-table
-          '(("<orgl" "" 'sej/org-wrap-elisp 0)))
-        (define-abbrev-table
-          'org-mode-abbrev-table
-          '(("<orgs" "" 'sej/org-wrap-source 0))))
+          '(("orgh" "" sej/org-header 0)
+            ("orgl" "" sej/org-wrap-elisp 0)
+            ("orgs" "" sej/org-wrap-source 0))))
     #+END_SRC
 
 *** sej/number-rectangle
@@ -5137,6 +5137,7 @@
 
 *** flyspell
     - main spelling package
+    - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
     #+BEGIN_SRC emacs-lisp
       (use-package flyspell
         :functions
@@ -5183,6 +5184,7 @@
 
 *** powerthesaurus
     - simple plugin to integrate Emacs with powerthesaurus.org
+    - https://github.com/SavchenkoValeriy/emacs-powerthesaurus
     #+BEGIN_SRC emacs-lisp
       (use-package powerthesaurus
         :bind (:map sej-mode-map
@@ -5192,6 +5194,7 @@
 
 *** define-word
     - Word Definition search for non-osx
+    - https://github.com/abo-abo/define-word
     #+BEGIN_SRC emacs-lisp
       (use-package define-word
         :unless sys/macp
@@ -5206,6 +5209,7 @@
     - define-word OR
     - pilot osx-dictionary only for osx
       use osx dictionary when possible
+    - https://github.com/xuchunyang/osx-dictionary.el
     #+BEGIN_SRC emacs-lisp
       (use-package osx-dictionary
         :if sys/macp
@@ -5220,7 +5224,8 @@
     #+END_SRC
 
 *** view-file-mode
-    - allows you to scan or read a file by sequential screenfulls
+    - allows you to scan or read a file by sequential screen-fulls
+    - https://www.emacswiki.org/emacs/ViewMode
     #+BEGIN_SRC emacs-lisp
       (use-package view
         :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
@@ -5244,8 +5249,9 @@
           (forward-line (line-number-at-pos (point-max)))))
     #+END_SRC
 
-*** ps-print sej/pdf-print-buffer-with-faces
+*** sej/pdf-print-buffer-with-faces (ps-print)
     - print file in the current buffer as pdf
+    - https://www.emacswiki.org/emacs/PsPrint
     #+BEGIN_SRC emacs-lisp
       (when (executable-find "ps2pdf")
         (use-package ps-print
@@ -5274,6 +5280,7 @@
 
 *** pdf-tools
     - PDF reader
+    - https://github.com/politza/pdf-tools
     #+BEGIN_SRC emacs-lisp
       (when (display-graphic-p)
         (use-package pdf-tools
@@ -5303,6 +5310,7 @@
 
 *** nov
     - Epub reader
+    - https://github.com/wasamasa/nov.el
     #+BEGIN_SRC emacs-lisp
       (use-package nov
         :mode ("\\.epub\\'" . nov-mode)
@@ -5313,6 +5321,7 @@
           (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
         :hook (nov-mode . my-nov-setup))
     #+END_SRC
+<<<here>>>
 ** org
 *** org
     #+BEGIN_SRC emacs-lisp
