@@ -8,6 +8,7 @@
 - <2019-10-29 Tue> Init SeJ
 - <2019-11-27 Wed> tangled done now working on efficiency
 - <2019-12-05 Thu> testing with clean install
+- <2019-12-23 Mon> add links to all packages
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -313,6 +314,9 @@
     #+END_SRC
 
 *** Use-Package set-up
+    - https://github.com/jwiegley/use-package
+    - https://github.com/emacsmirror/diminish
+    - https://github.com/jwiegley/use-package/blob/master/bind-key.el
     #+BEGIN_SRC emacs-lisp
       ;; Setup `use-package'
       (unless (package-installed-p 'use-package)
@@ -336,6 +340,7 @@
 
 ** environment system specific
    - Set environment variables based on current system & paths
+   - https://github.com/xahlee/xahk-mode.el
    #+BEGIN_SRC emacs-lisp
      (when sys/win32p
        (setenv "PATH"
@@ -394,6 +399,7 @@
 
 ** start server
    - but wait until sej/after-init
+   - http://wikemacs.org/wiki/Emacs_server
    #+BEGIN_SRC emacs-lisp
      (use-package server
        :ensure nil
@@ -412,6 +418,7 @@
       left and right command(apple) key do Meta
       spacebar acts as super key with other key
       karabiner.json backup files in dotfiles under .config directory
+    - https://github.com/pqrs-org/Karabiner-Elements
     #+BEGIN_SRC emacs-lisp
       (cond
        (sys/macp ; OSX
@@ -448,6 +455,7 @@
       RAlt::Alt modifier (RAlt::NumLock using Autohotkeys) **only works as tap & release
       Rwin is Alt (not used in current laptop)
       NOTE: only negative of this set-up is RAlt as numlock -> Alt is awkward push & release
+    - https://www.autohotkey.com/
     #+BEGIN_SRC emacs-lisp
       (cond
        (sys/win32p ; Microsoft Windows
@@ -520,7 +528,7 @@
 *** sej-mode-map set-up
     - Below is taken from stackexchange (Emacs)
       Main use is to have my key bindings have the highest priority
-    https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+    - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
     #+BEGIN_SRC emacs-lisp
       (defvar sej-mode-map (make-sparse-keymap)
         "Keymap for 'sej-mode'.")
@@ -647,6 +655,7 @@
 *** list-environment
     - environment variables tabulated
     - process environment editor
+    - https://github.com/dgtized/list-environment.el
     #+BEGIN_SRC emacs-lisp
       (use-package list-environment
         :commands list-environment)
@@ -654,6 +663,7 @@
 
 *** esup
     - Emacs startup profiler
+    - https://github.com/jschaf/esup
     #+BEGIN_SRC emacs-lisp
       (use-package esup
         :init
@@ -662,6 +672,7 @@
 
 *** try
     - for TRYing out a package in current Emacs instance
+    - https://github.com/larstvei/Try
     #+BEGIN_SRC emacs-lisp
       (use-package try)
     #+END_SRC
@@ -5608,7 +5619,7 @@
         > _ \n
         > "#+END_SRC" \n)
     #+END_SRC
-<<<here>>>
+
 * eshell & shell
 ** eshell
 *** eshell
