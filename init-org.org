@@ -1242,6 +1242,7 @@
 
 *** autorevert
     - Automatically reload files when modified by external program if not modified
+    - https://www.emacswiki.org/emacs/AutoRevertMode
     #+BEGIN_SRC emacs-lisp
       (use-package autorevert
         :ensure nil
@@ -1287,6 +1288,7 @@
 
 *** persistent-scratch
     - keep the scratch buffer from session to session
+    - https://github.com/Fanael/persistent-scratch
     #+BEGIN_SRC emacs-lisp
       (use-package persistent-scratch
         :preface
