@@ -9,6 +9,7 @@
 - <2019-11-27 Wed> tangled done now working on efficiency
 - <2019-12-05 Thu> testing with clean install
 - <2019-12-23 Mon> add links to all packages
+- <2020-01-04 Sat> linux changes
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
