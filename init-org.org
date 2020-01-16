@@ -318,6 +318,7 @@
     - https://github.com/jwiegley/use-package
     - https://github.com/emacsmirror/diminish
     - https://github.com/jwiegley/use-package/blob/master/bind-key.el
+    - https://github.com/jwiegley/use-package#use-package-ensure-system-package
     #+BEGIN_SRC emacs-lisp
       ;; Setup `use-package'
       (unless (package-installed-p 'use-package)
@@ -337,6 +338,11 @@
       ;; Required by `use-package'
       (use-package diminish)
       (use-package bind-key)
+
+      ;; Auto installing OS system packages
+      ;; :ensure-system-package keyword to ensure system binaries exist alongside your package
+      (use-package use-package-ensure-system-package)
+      (use-package helm-system-packages)
     #+END_SRC
 
 ** environment system specific
