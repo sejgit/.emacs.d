@@ -362,10 +362,9 @@
 
      (when (or sys/mac-x-p sys/linux-x-p)
        (setq exec-path (append exec-path '("/usr/local/bin")))
-       ;; (use-package exec-path-from-shell
-       ;;   ;; :demand t
-       ;;   :init
-       ;;   (exec-path-from-shell-initialize))
+       (use-package exec-path-from-shell
+         :init
+         (exec-path-from-shell-initialize))
        )
 
      (setq-default locate-command "which")
@@ -986,7 +985,7 @@
 *** font
     #+BEGIN_SRC emacs-lisp
       (when sys/macp
-        (set-default-font "SF Mono-14"))
+  (set-face-attribute 'default nil :font "SF Mono-13"))
     #+END_SRC
 
 ** frames

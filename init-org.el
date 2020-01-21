@@ -221,7 +221,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 (setq load-prefer-newer t)
 
 ;; Initialize packages
@@ -248,6 +248,11 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 (use-package diminish)
 (use-package bind-key)
 
+;; Auto installing OS system packages
+;; :ensure-system-package keyword to ensure system binaries exist alongside your package
+(use-package use-package-ensure-system-package)
+(use-package helm-system-packages)
+
 (when sys/win32p
   (setenv "PATH"
           (mapconcat
@@ -261,10 +266,9 @@ If Non-nil, use dashboard, otherwise will restore previous session."
 
 (when (or sys/mac-x-p sys/linux-x-p)
   (setq exec-path (append exec-path '("/usr/local/bin")))
-  ;; (use-package exec-path-from-shell
-  ;;   ;; :demand t
-  ;;   :init
-  ;;   (exec-path-from-shell-initialize))
+  (use-package exec-path-from-shell
+    :init
+    (exec-path-from-shell-initialize))
   )
 
 (setq-default locate-command "which")
@@ -694,7 +698,7 @@ output as per `sej/exec'. Otherwise, return nil."
       (sej/load-theme sej-theme))))
 
 (when sys/macp
-  (set-default-font "SF Mono-14"))
+(set-face-attribute 'default nil :font "SF Mono-13"))
 
 (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
 (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
@@ -976,6 +980,7 @@ buffer is not visiting a file."
   (setq golden-ratio-auto-scale t))
 
 (use-package shackle
+  :after undo-tree
   :commands shackle-display-buffer
   :hook (sej/after-init . shackle-mode)
   :config
@@ -1496,7 +1501,7 @@ buffer is not visiting a file."
 
 (cond
  (sys/linux-x-p
-  (bind-key "C-c s a" #'counsel-linux-app counsel-mode-map))
+  (bind-key "C-c s a" #'counsel-linux-app))
  (sys/macp
   (use-package counsel-osx-app
     :after counsel
@@ -1844,7 +1849,7 @@ buffer is not visiting a file."
               ("C-x u" . undo-tree-visualize)
               ("C-x r u" . undo-tree-save-state-to-register)
               ("C-x r U" . undo-tree-save-state-from-register))
-  :init (setq undo-tree-visualizer-timestamps t
+  :config (setq undo-tree-visualizer-timestamps t
               undo-tree-visualizer-diff t
               undo-tree-enable-undo-in-region nil
               undo-tree-auto-save-history nil
