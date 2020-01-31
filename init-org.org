@@ -10,6 +10,7 @@
 - <2019-12-05 Thu> testing with clean install
 - <2019-12-23 Mon> add links to all packages
 - <2020-01-04 Sat> linux changes
+- <2020-01-31 Fri> orgmode pretty changes
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
@@ -985,7 +986,9 @@
 *** font
     #+BEGIN_SRC emacs-lisp
       (when sys/macp
-  (set-face-attribute 'default nil :font "SF Mono-13"))
+        (set-face-attribute 'default nil :font "SF Mono-13")
+        (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend)
+        )
     #+END_SRC
 
 ** frames
@@ -3002,7 +3005,13 @@
                                       (">=>" . ?↣)
                                       ("&&" . ?∧)
                                       ("||" . ?∨)
-                                      ("not" . ?¬))))))
+                                      ("not" . ?¬)
+                                      ("=>" . "⇨")
+                                      ("#+BEGIN_SRC" . "†")
+                                      ("#+END_SRC" . "†")
+                                      ("#+begin_src" . "†")
+                                      ("#+end_src" . "†")
+                                      )))))
         :init (setq prettify-symbols-unprettify-at-point 'right-edge))
     #+END_SRC
 
@@ -5394,6 +5403,9 @@
         (defconst org-file-code (concat org-directory "/snippets.org"))
         (setq org-replace-disputed-keys t
               org-hide-emphasis-markers t
+              org-fontify-done-headline t
+              org-hide-leading-stars t
+              org-pretty-entities t
               org-default-notes-file org-file-notes
               org-capture-bookmark t
               org-refile-use-outline-path 'file
@@ -5413,10 +5425,14 @@
               org-src-tab-acts-natively t
               org-src-window-setup 'current-window
               org-startup-folded nil
+              org-highlight-latex-and-related '(latex)
               )
         (font-lock-add-keywords 'org-mode
                                 '(("^ *\\([-]\\) "
                                    (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+        (font-lock-add-keywords 'org-mode
+                                '(("^ *\\([+]\\) "
+                                   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
 
         (let* ((variable-tuple
                 (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
@@ -5558,8 +5574,10 @@
     - https://github.com/sabof/org-bullets
     #+BEGIN_SRC emacs-lisp
       (use-package org-bullets
-        :hook (org-mode . org-bullets-mode)
-        :config (org-bullets-mode 1))
+        :custom
+        (org-bullets-bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
+        (org-ellipsis "⤵")
+        :hook (org-mode . org-bullets-mode))
     #+END_SRC
 
 *** org-fancy-priorities
@@ -5592,6 +5610,33 @@
         :ensure t
         :bind (:map sej-mode-map
                     ("C-c s o" . poporg-dwim)))
+    #+END_SRC
+
+*** org-num
+    - outline numbering as overlays on Org mode headlines
+      in the org repo but not part of official orgmode
+      #+BEGIN_SRC emacs-lisp
+        (use-package org-num
+          :load-path "lisp/"
+          :after org
+          :hook (org-mode . org-num-mode))
+      #+END_SRC
+
+
+*** org-pretty-tags
+    #+BEGIN_SRC emacs-lisp
+      (use-package org-pretty-tags
+        :hook (org-mode . org-pretty-tags-global-mode)
+        :config
+        (setq org-pretty-tags-surrogate-strings
+              (quote
+               (("TOPIC" . "☆")
+                ("PROJECT" . "💡")
+                ("SERVICE" . "✍")
+                ("Blog" . "✍")
+                ("music" . "♬")
+                ("security" . "🔥"))))
+        (org-pretty-tags-global-mode))
     #+END_SRC
 
 *** sej/org-header skeleton
