@@ -12,9 +12,15 @@
 - <2020-01-04 Sat> linux changes
 - <2020-01-31 Fri> orgmode pretty changes
 
+- TODO description in every package
+- TODO link in every package
+- TODO sej-mode-map only for true ones
+- TODO perhaps use straight to get packages local
+
+
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
-- [[#customization][customization]]
+- [[#set-up-customize-emacs][set-up 'Customize Emacs']]
 - [[#initialize-basic][initialize basic]]
   - [[#environment-general][environment general]]
   - [[#initialize-package-system][initialize package system]]
@@ -65,6 +71,8 @@
   - [[#shell][shell]]
 
 * constants
+  - section for global constants
+
   #+BEGIN_SRC emacs-lisp
     (defconst sej-homepage
       "https://github.com/sejgit/.emacs.d"
@@ -108,7 +116,8 @@
 
   #+END_SRC
 
-* customization
+* set-up 'Customize Emacs'
+  - set-up Emacs customizations choices which can then be modified by custom.el
   #+BEGIN_SRC emacs-lisp
     (defgroup sej nil
       "SeJ Emacs customizations."
@@ -251,8 +260,8 @@
                (expand-file-name "site-lisp" user-emacs-directory)))
          (normal-top-level-add-subdirs-to-load-path)))
 
-     (advice-add #'package-initialize :after #'update-load-path)
-     (advice-add #'package-initialize :after #'add-subdirs-to-load-path)
+     ;;(advice-add #'package-initialize :after #'update-load-path)
+     ;;(advice-add #'package-initialize :after #'add-subdirs-to-load-path)
 
      (update-load-path)
 
@@ -290,7 +299,7 @@
 
 ** initialize package system
 *** Custom file hack
-    - HACK: DO NOT copy package-selected-packages to init/custom file forcibly.
+    - DO NOT copy package-selected-packages to init/custom file forcibly.
       https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
     #+BEGIN_SRC emacs-lisp
       (defun my-save-selected-packages (&optional value)
@@ -341,7 +350,7 @@
       (use-package bind-key)
 
       ;; Auto installing OS system packages
-      ;; :ensure-system-package keyword to ensure system binaries exist alongside your package
+      ;; ensure-system-package keyword to ensure system binaries exist alongside your package
       (use-package use-package-ensure-system-package)
       (use-package helm-system-packages)
     #+END_SRC
@@ -401,7 +410,7 @@
 
      (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
      ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
-     (add-hook 'emacs-startup-hook 'sej/frame-resize-full)
+     (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
    #+END_SRC
 
 ** start server
@@ -1099,7 +1108,7 @@
       (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
       (define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
       (define-key sej-mode-map (kbd "<A-M-right>") 'sej/frame-resize-r)
-       ;; last one is for non MACOS or just in case BTT is not installed on MACOS
+      ;; last one is for non MACOS or just in case BTT is not installed on MACOS
       (defun sej/frame-resize-r ()
         "Set frame full height and 1/2 wide, position at screen right."
         (interactive)
@@ -1156,7 +1165,7 @@
       (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
     #+end_src
 
-*** bs.el settings
+*** bs.el cycle buffer settings
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
       (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
@@ -1256,7 +1265,7 @@
       (use-package autorevert
         :ensure nil
         :diminish
-        :hook (sej/after-init . global-auto-revert-mode))
+        :hook (emacs-startup . global-auto-revert-mode))
     #+END_SRC
 
 *** scratch buffer set-up
@@ -1384,9 +1393,10 @@
 
 *** golden-ratio
     - keep windows balanced with in-focus window larger
+    - https://github.com/roman/golden-ratio.el
     #+BEGIN_SRC emacs-lisp
       (use-package golden-ratio
-        :hook (sej/after-init . golden-ratio-mode)
+        :hook (emacs-startup . golden-ratio-mode)
         :defines sej-mode-map
         :diminish golden-ratio-mode
         :config
@@ -1397,11 +1407,12 @@
 
 *** shackle
     - define behaviour of popup windows by type
+    - https://github.com/wasamasa/shackle
     #+BEGIN_SRC emacs-lisp
       (use-package shackle
         :after undo-tree
         :commands shackle-display-buffer
-        :hook (sej/after-init . shackle-mode)
+        :hook (emacs-startup . shackle-mode)
         :config
         ;; Enforce rules for popups
         (defvar shackle--popup-window-list nil) ; all popup windows
@@ -1753,10 +1764,11 @@
 
 *** ivy
     - better mini-buffer completion
+    - https://github.com/abo-abo/swiper
     #+BEGIN_SRC emacs-lisp
       (use-package ivy
         :diminish
-        :hook (sej/after-init . ivy-mode)
+        :hook (emacs-startup . ivy-mode)
         :bind ( ("s-b" . ivy-switch-buffer)
                 ("C-c C-r" . ivy-resume)
                 ("C-c v p" . ivy-push-view)
@@ -1778,6 +1790,7 @@
 
 *** swiper
     - an alternative to isearch that uses Ivy to show an overview of all matches
+    - https://github.com/abo-abo/swiper
     #+BEGIN_SRC emacs-lisp
       (use-package swiper
         :after ivy
@@ -1789,6 +1802,7 @@
 
 *** counsel
     - versions of common Emacs commands that make the best of Ivy
+    - https://github.com/abo-abo/swiper
     #+BEGIN_SRC emacs-lisp
       (use-package counsel
         :after ivy
@@ -1920,19 +1934,21 @@
 *** amx
     - an alternative interface for M-x which is a fork for smex
     - uses ivy as backend
+    - https://github.com/DarwinAwardWinner/amx
     #+ BEGIN_SRC emacs-lisp
     (use-package amx
     :after ivy
-    :hook (sej/after-init . amx-mode)
+    :hook (emacs-startup . amx-mode)
     :config (setq amx-backend 'ivy))
     #+END_SRC
 
 *** counsel-projectile
     - Ivy integration for Projectile
+    - https://github.com/ericdanan/counsel-projectile
     #+BEGIN_SRC emacs-lisp
       (use-package counsel-projectile
         :after counsel
-        :hook (sej/after-init . counsel-projectile-mode)
+        :hook (emacs-startup . counsel-projectile-mode)
         :config
         (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
         (counsel-projectile-mode 1))
@@ -2322,9 +2338,10 @@
 
 *** dtrt-indent
     - automatically set the right indent for other people's files
+    - https://github.com/jscheid/dtrt-indent
     #+BEGIN_SRC emacs-lisp
       (use-package dtrt-indent
-        :hook (sej/after-init . dtrt-indent-mode)
+        :hook (emacs-startup . dtrt-indent-mode)
         :diminish)
     #+END_SRC
 
@@ -2377,39 +2394,45 @@
     #+END_SRC
 
 ** history packages
-*** undo-tree
-    - Treat undo history as a tree
+*** undo-fu
+    - Simple, stable linear undo with redo for Emacs.
+    - https://gitlab.com/ideasman42/emacs-undo-fu
+
     #+BEGIN_SRC emacs-lisp
-      (use-package undo-tree
+      (use-package undo-fu
         :diminish
-        :hook (sej/after-init . global-undo-tree-mode)
         :bind (:map sej-mode-map
-                    ("C-z" . undo-tree-undo)
-                    ("C-r" . undo-tree-redo)
-                    ("C-x u" . undo-tree-visualize)
-                    ("C-x r u" . undo-tree-save-state-to-register)
-                    ("C-x r U" . undo-tree-save-state-from-register))
-        :config (setq undo-tree-visualizer-timestamps t
-                    undo-tree-visualizer-diff t
-                    undo-tree-enable-undo-in-region nil
-                    undo-tree-auto-save-history nil
-                    undo-tree-history-directory-alist
-                    `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))  )
+                    ("C-z" . undo-fu-only-undo)
+                    ("C-S-z" . undo-fu-only-redo))
+        :config (setq undo-fu-allow-undo-in-region t))
     #+END_SRC
+
+*** undo-fu-session
+    - Save & recover undo steps between Emacs sessions.
+    - https://gitlab.com/ideasman42/emacs-undo-fu-session
+
+      #+BEGIN_SRC emacs-lisp
+        (use-package undo-fu-session
+          :after undo-fu
+          :config (global-undo-fu-session-mode))
+      #+END_SRC
+
 *** saveplace
-    - wait until sej/after-init
+    - automatically save place in files so return to same place in next session
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
     #+BEGIN_SRC emacs-lisp
       (use-package saveplace
         :ensure nil
-        :hook (sej/after-init . save-place-mode))
+        :hook (emacs-startup . save-place-mode))
     #+END_SRC
 
 *** recentf
-    - wait until sej/after-init
+    - recent file history list settings
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
     #+BEGIN_SRC emacs-lisp
       (use-package recentf
         :ensure nil
-        :hook (sej/after-init . recentf-mode)
+        :hook (emacs-startup . recentf-mode)
         :config
         (setq recentf-max-saved-items 200)
         (setq recentf-exclude '((expand-file-name package-user-dir)
@@ -2427,7 +2450,8 @@
     #+END_SRC
 
 *** savehist
-    - wait until sej/after-init
+    - recent buffer history settings
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
     #+BEGIN_SRC emacs-lisp
       (use-package savehist
         :ensure nil
@@ -2690,11 +2714,14 @@
 
 *** ace-link
     - Quickly follow links
+    - https://github.com/abo-abo/ace-link
     #+BEGIN_SRC emacs-lisp
       (use-package ace-link
-        :bind (:map sej-mode-map
-                    ("H-u" . ace-link-addr)
-                    ("C-c s u" . ace-link-addr)) )
+        :bind (("H-u" . ace-link-addr)
+               ("C-c s u" . ace-link-addr)
+               :map org-mode-map
+               ("H-u" . ace-link-org))
+        :config (ace-link-setup-default))
     #+END_SRC
 
 *** restclient
@@ -2984,35 +3011,31 @@
     - Prettify Symbols
     - e.g. display “lambda” as “λ”
     #+BEGIN_SRC emacs-lisp
-      (use-package prog-mode
-        :ensure nil
-        :hook ((prog-mode . global-prettify-symbols-mode)
-               (prog-mode . (lambda ()
-                              (setq prettify-symbols-alist
-                                    '(("lambda" . ?λ)
-                                      ("->" . ?→)
-                                      ("->>" . ?↠)
-                                      ("=>" . ?⇒)
-                                      ("map" . ?↦)
-                                      ("/=" . ?≠)
-                                      ("!=" . ?≠)
-                                      ("==" . ?≡)
-                                      ("<=" . ?≤)
-                                      (">=" . ?≥)
-                                      ("=<<" . (?= (Br . Bl) ?≪))
-                                      (">>=" . (?≫ (Br . Bl) ?=))
-                                      ("<=<" . ?↢)
-                                      (">=>" . ?↣)
-                                      ("&&" . ?∧)
-                                      ("||" . ?∨)
-                                      ("not" . ?¬)
-                                      ("=>" . "⇨")
-                                      ("#+BEGIN_SRC" . "†")
-                                      ("#+END_SRC" . "†")
-                                      ("#+begin_src" . "†")
-                                      ("#+end_src" . "†")
-                                      )))))
-        :init (setq prettify-symbols-unprettify-at-point 'right-edge))
+      (setq-default prettify-symbols-alist '(("lambda" . ?λ)
+                                             ("->" . ?→)
+                                             ("->>" . ?↠)
+                                             ("=>" . ?⇒)
+                                             ("map" . ?↦)
+                                             ("/=" . ?≠)
+                                             ("!=" . ?≠)
+                                             ("==" . ?≡)
+                                             ("<=" . ?≤)
+                                             (">=" . ?≥)
+                                             ("=<<" . (?= (Br . Bl) ?≪))
+                                             (">>=" . (?≫ (Br . Bl) ?=))
+                                             ("<=<" . ?↢)
+                                             (">=>" . ?↣)
+                                             ("&&" . ?∧)
+                                             ("||" . ?∨)
+                                             ("not" . ?¬)
+                                             ("=>" . ?⇨)
+                                             ("#+BEGIN_SRC" . ?†)
+                                             ("#+END_SRC" . ?†)
+                                             ("#+begin_src" . ?†)
+                                             ("#+end_src" . ?†)
+                                             ))
+      (setq prettify-symbols-unprettify-at-point 'right-edge)
+      (global-prettify-symbols-mode)
     #+END_SRC
 
 *** format-all
@@ -3550,7 +3573,7 @@
           (kill-buffer commit-buf)))
 
       (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
-     #+END_SRC
+    #+END_SRC
 
 ** completion
 *** hippie-expand
@@ -3839,6 +3862,17 @@
 
       ;; enable dash for Emacs lisp highlighting
       (eval-after-load "dash" '(dash-enable-font-lock))
+
+      (defun sej/eval-last-sexp-or-region (prefix)
+        "Eval region from BEG to END if active, otherwise the last sexp."
+        (interactive "P")
+        (if (and (mark) (use-region-p))
+            (eval-region (min (point) (mark)) (max (point) (mark)))
+          (pp-eval-last-sexp prefix)))
+
+      (global-set-key [remap eval-expression] 'pp-eval-expression)
+
+      (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
     #+END_SRC
 
 *** lispy
@@ -3887,7 +3921,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package elisp-slime-nav
         :diminish elisp-slime-nav-mode
-        :hook (emacs-lisp-mode . elisp-slime-nav-mode)
+        :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
         :config
         (global-unset-key (kbd "C-c C-d d"))
         (global-unset-key (kbd "C-c C-d C-d")))
@@ -3915,7 +3949,7 @@
         (call-interactively 'ielm))
 
       (define-key sej-mode-map (kbd "s-i") 'sej/ielm-other-window)
-     #+END_SRC
+    #+END_SRC
 
 *** sej/remove-elc-on-save
     - When saving an elisp file, remove its compiled version if
@@ -4118,8 +4152,8 @@
     - Live browser JavaScript, CSS, and HTML interaction
     - M-x run-skewer to attach a browser to Emacs
       C-x C-e: Evaluate the form before the point and display the result in the
-               minibuffer. If given a prefix argument, insert the result into the
-               current buffer.
+      minibuffer. If given a prefix argument, insert the result into the
+      current buffer.
       C-M-x: Evaluate the top-level form around the point.
       C-c C-k: Load the current buffer.
       C-c C-z: Select the REPL buffer
@@ -5360,180 +5394,180 @@
 
 ** org
 *** org
-   - org mode for keeping notes, maintaining lists, planning
-   - https://orgmode.org/
-    #+BEGIN_SRC emacs-lisp
-      (use-package org
-        :ensure org-plus-contrib
-        :defines
-        sej-mode-map
-        org-capture-bookmark
-        org-capture-templates
-        org-agenda-window-setup
-        org-agenda-span
-        org-agenda-skip-scheduled-if-deadline-is-shown
-        org-agenda-todo-ignore-deadlines
-        org-agenda-todo-ignore-scheduled
-        org-agenda-sorting-strategy
-        org-agenda-skip-deadline-prewarning-if-scheduled
-        :functions
-        sej/org-capture-get-src-block-string
-        which-function
-        :mode ("\\.org$" . org-mode)
-        :hook ((org-mode . flyspell-mode)
-               (org-mode . writegood-mode)
-               (org-mode . visual-line-mode))
-        :bind (:map sej-mode-map
-                    ("<f1>" . org-mode)
-                    ("C-c l" . org-store-link)
-                    ("C-c c" . org-capture)
-                    ("C-c a" . org-agenda)
-                    :map org-mode-map
-                    ("C-M-\\" . org-indent-region)
-                    ("S-<left>" . org-shiftleft)
-                    ("S-<right>" . org-shiftright)
-                    )
-        :config
-        (setq org-directory sej-org-directory)
-        (defconst org-file-inbox (concat org-directory "/inbox.org"))
-        (defconst org-file-someday (concat org-directory "/someday.org"))
-        (defconst org-file-gtd (concat org-directory "/gtd.org"))
-        (defconst org-file-journal (concat org-directory "/journal.org"))
-        (defconst org-file-notes (concat org-directory "/notes.org"))
-        (defconst org-file-code (concat org-directory "/snippets.org"))
-        (setq org-replace-disputed-keys t
-              org-hide-emphasis-markers t
-              org-fontify-done-headline t
-              org-hide-leading-stars t
-              org-pretty-entities t
-              org-default-notes-file org-file-notes
-              org-capture-bookmark t
-              org-refile-use-outline-path 'file
-              org-log-done 'note
-              org-log-done t
-              org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
-                                  (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
-                                  (sequence "|" "CANCELED(x)"))
-              org-todo-keyword-faces '(("TODO" . org-warning)
-                                       ("WAITING" . (:foreground "blue" :weight bold))
-                                       ("DONE" . (:foreground "green" :weight bold))
-                                       ("DELIGATE" . (:foreground "blue" :weight bold))
-                                       ("VERIFIED" . (:foreground "green" :weight bold))
-                                       ("CANCELED" . (:foreground "grey" :weight bold)))
-              org-confirm-babel-evaluate nil
-              org-src-fontify-natively t
-              org-src-tab-acts-natively t
-              org-src-window-setup 'current-window
-              org-startup-folded nil
-              org-highlight-latex-and-related '(latex)
-              )
-        (font-lock-add-keywords 'org-mode
-                                '(("^ *\\([-]\\) "
-                                   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-        (font-lock-add-keywords 'org-mode
-                                '(("^ *\\([+]\\) "
-                                   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
+    - org mode for keeping notes, maintaining lists, planning
+    - https://orgmode.org/
+      #+BEGIN_SRC emacs-lisp
+        (use-package org
+          :ensure org-plus-contrib
+          :defines
+          sej-mode-map
+          org-capture-bookmark
+          org-capture-templates
+          org-agenda-window-setup
+          org-agenda-span
+          org-agenda-skip-scheduled-if-deadline-is-shown
+          org-agenda-todo-ignore-deadlines
+          org-agenda-todo-ignore-scheduled
+          org-agenda-sorting-strategy
+          org-agenda-skip-deadline-prewarning-if-scheduled
+          :functions
+          sej/org-capture-get-src-block-string
+          which-function
+          :mode ("\\.org$" . org-mode)
+          :hook ((org-mode . flyspell-mode)
+                 (org-mode . writegood-mode)
+                 (org-mode . visual-line-mode))
+          :bind (:map sej-mode-map
+                      ("<f1>" . org-mode)
+                      ("C-c l" . org-store-link)
+                      ("C-c c" . org-capture)
+                      ("C-c a" . org-agenda)
+                      :map org-mode-map
+                      ("C-M-\\" . org-indent-region)
+                      ("S-<left>" . org-shiftleft)
+                      ("S-<right>" . org-shiftright)
+                      )
+          :config
+          (setq org-directory sej-org-directory)
+          (defconst org-file-inbox (concat org-directory "/inbox.org"))
+          (defconst org-file-someday (concat org-directory "/someday.org"))
+          (defconst org-file-gtd (concat org-directory "/gtd.org"))
+          (defconst org-file-journal (concat org-directory "/journal.org"))
+          (defconst org-file-notes (concat org-directory "/notes.org"))
+          (defconst org-file-code (concat org-directory "/snippets.org"))
+          (setq org-replace-disputed-keys t
+                org-hide-emphasis-markers t
+                org-fontify-done-headline t
+                org-hide-leading-stars t
+                org-pretty-entities t
+                org-default-notes-file org-file-notes
+                org-capture-bookmark t
+                org-refile-use-outline-path 'file
+                org-log-done 'note
+                org-log-done t
+                org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+                                    (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
+                                    (sequence "|" "CANCELED(x)"))
+                org-todo-keyword-faces '(("TODO" . org-warning)
+                                         ("WAITING" . (:foreground "blue" :weight bold))
+                                         ("DONE" . (:foreground "green" :weight bold))
+                                         ("DELIGATE" . (:foreground "blue" :weight bold))
+                                         ("VERIFIED" . (:foreground "green" :weight bold))
+                                         ("CANCELED" . (:foreground "grey" :weight bold)))
+                org-confirm-babel-evaluate nil
+                org-src-fontify-natively t
+                org-src-tab-acts-natively t
+                org-src-window-setup 'current-window
+                org-startup-folded nil
+                org-highlight-latex-and-related '(latex)
+                )
+          (font-lock-add-keywords 'org-mode
+                                  '(("^ *\\([-]\\) "
+                                     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+          (font-lock-add-keywords 'org-mode
+                                  '(("^ *\\([+]\\) "
+                                     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
 
-        (let* ((variable-tuple
-                (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-                      ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-                      ((x-list-fonts "Verdana")         '(:font "Verdana"))
-                      ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-                      (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-               (base-font-color     (face-foreground 'default nil 'default))
-               (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+          (let* ((variable-tuple
+                  (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                        ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                        ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                        ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                        (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+                 (base-font-color     (face-foreground 'default nil 'default))
+                 (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
+            (custom-theme-set-faces
+             'user
+             `(org-level-8 ((t (,@headline ,@variable-tuple))))
+             `(org-level-7 ((t (,@headline ,@variable-tuple))))
+             `(org-level-6 ((t (,@headline ,@variable-tuple))))
+             `(org-level-5 ((t (,@headline ,@variable-tuple))))
+             `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+             `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+             `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+             `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+             `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
 
           (custom-theme-set-faces
            'user
-           `(org-level-8 ((t (,@headline ,@variable-tuple))))
-           `(org-level-7 ((t (,@headline ,@variable-tuple))))
-           `(org-level-6 ((t (,@headline ,@variable-tuple))))
-           `(org-level-5 ((t (,@headline ,@variable-tuple))))
-           `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-           `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-           `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-           `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-           `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+           '(org-block ((t (:inherit fixed-pitch))))
+           '(org-code ((t (:inherit (shadow fixed-pitch)))))
+           '(org-document-info ((t (:foreground "dark orange"))))
+           '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+           '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+           '(org-link ((t (:foreground "royal blue" :underline t))))
+           '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+           '(org-property-value ((t (:inherit fixed-pitch))) t)
+           '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+           '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+           '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+           '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
-        (custom-theme-set-faces
-         'user
-         '(org-block ((t (:inherit fixed-pitch))))
-         '(org-code ((t (:inherit (shadow fixed-pitch)))))
-         '(org-document-info ((t (:foreground "dark orange"))))
-         '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-         '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-         '(org-link ((t (:foreground "royal blue" :underline t))))
-         '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-         '(org-property-value ((t (:inherit fixed-pitch))) t)
-         '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-         '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-         '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-         '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+          (define-skeleton org-skeleton
+            "Header info for a emacs-org file."
+            "Title: "
+            "#+TITLE:" str " \n"
+            "#+DATE:" '(org-date-from-calendar) " \n"
+            "#+AUTHOR: " '(sej-full-name) "\n"
+            "#+email: " '(sej-mail-address) "\n"
+            "#+INFOJS_OPT: \n"
+            "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
+            "-----\n\n")
+          (global-set-key [C-S-f4] 'org-skeleton)
 
-        (define-skeleton org-skeleton
-          "Header info for a emacs-org file."
-          "Title: "
-          "#+TITLE:" str " \n"
-          "#+DATE:" '(org-date-from-calendar) " \n"
-          "#+AUTHOR: " '(sej-full-name) "\n"
-          "#+email: " '(sej-mail-address) "\n"
-          "#+INFOJS_OPT: \n"
-          "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
-          "-----\n\n")
-        (global-set-key [C-S-f4] 'org-skeleton)
+          (setq sej-project-org-capture-list (list
+                                              "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
 
-        (setq sej-project-org-capture-list (list
-                                            "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
+          (setq org-capture-templates (append
+                                       '(
+                                         ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
+                                         ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
+                                         ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
+                                         ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
+                                         ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                         ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                          "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                         )
+                                       (list sej-project-org-capture-list)))
 
-        (setq org-capture-templates (append
-                                     '(
-                                       ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
-                                       ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
-                                       ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
-                                       ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
-                                       ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
-                                       ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-                                        "* %?\n%(my/org-capture-code-snippet \"%F\")")
-                                       )
-                                     (list sej-project-org-capture-list)))
+          ;; org-mode agenda options
+          (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
+                org-refile-targets '((org-file-gtd :maxlevel . 3)
+                                     (org-file-someday :maxlevel . 1))
+                org-agenda-window-setup (quote current-window) ;open agenda in current window
+                org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
+                org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+                org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
+                org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+                org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+                (quote
+                 ((agenda deadline-up priority-down)
+                  (todo priority-down category-keep)
+                  (tags priority-down category-keep)
+                  (search category-keep))))
 
-        ;; org-mode agenda options
-        (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
-              org-refile-targets '((org-file-gtd :maxlevel . 3)
-                                   (org-file-someday :maxlevel . 1))
-              org-agenda-window-setup (quote current-window) ;open agenda in current window
-              org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
-              org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
-              org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
-              org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-              org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
-              (quote
-               ((agenda deadline-up priority-down)
-                (todo priority-down category-keep)
-                (tags priority-down category-keep)
-                (search category-keep))))
+          (setq org-confirm-babel-evaluate nil
+                org-src-fontify-natively t
+                org-src-tab-acts-natively t)
 
-        (setq org-confirm-babel-evaluate nil
-              org-src-fontify-natively t
-              org-src-tab-acts-natively t)
+          (defvar load-language-list '((emacs-lisp . t)
+                                       (ein . t)
+                                       (perl . t)
+                                       (python . t)
+                                       (ein . t)
+                                       (ruby . t)
+                                       (js . t)
+                                       (css . t)
+                                       (sass . t)
+                                       (C . t)
+                                       (java . t)
+                                       (arduino . t)
+                                       (shell . t)))
 
-        (defvar load-language-list '((emacs-lisp . t)
-                                     (ein . t)
-                                     (perl . t)
-                                     (python . t)
-                                     (ein . t)
-                                     (ruby . t)
-                                     (js . t)
-                                     (css . t)
-                                     (sass . t)
-                                     (C . t)
-                                     (java . t)
-                                     (arduino . t)
-                                     (shell . t)))
-
-        (org-babel-do-load-languages 'org-babel-load-languages
-                                     load-language-list) )
-    #+END_SRC
+          (org-babel-do-load-languages 'org-babel-load-languages
+                                       load-language-list) )
+      #+END_SRC
 
 *** ob-go
     - org-bable functions for go evaluations
@@ -5621,7 +5655,6 @@
           :after org
           :hook (org-mode . org-num-mode))
       #+END_SRC
-
 
 *** org-pretty-tags
     #+BEGIN_SRC emacs-lisp
