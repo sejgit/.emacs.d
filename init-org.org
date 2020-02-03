@@ -72,7 +72,6 @@
 
 * constants
   - section for global constants
-
   #+BEGIN_SRC emacs-lisp
     (defconst sej-homepage
       "https://github.com/sejgit/.emacs.d"
@@ -107,14 +106,13 @@
       "Are you using ROOT user?")
 
     (defconst emacs/>=26p
-      (>= emacs-major-version 26)
+      ( >= emacs-major-version 26 )
       "Emacs is 26 or above.")
 
     (defconst emacs/>=27p
       (>= emacs-major-version 27)
       "Emacs is 27 or above.")
-
-  #+END_SRC
+#+END_SRC
 
 * set-up 'Customize Emacs'
   - set-up Emacs customizations choices which can then be modified by custom.el
@@ -1173,19 +1171,6 @@
       (setq-default bs-default-configuration "all-intern-last")
     #+END_SRC
 
-*** minibuffer garbage collection
-    - make sure garbage collection does not happen in minibuffer mode
-    #+BEGIN_SRC emacs-lisp
-      (defun sej/minibuffer-setup-hook ()
-        (setq gc-cons-threshold most-positive-fixnum))
-
-      (defun sej/minibuffer-exit-hook ()
-        (setq gc-cons-threshold gc-cons-threshold-original))
-
-      (add-hook 'minibuffer-setup-hook #'sej/minibuffer-setup-hook)
-      (add-hook 'minibuffer-exit-hook #'sej/minibuffer-exit-hook)
-    #+END_SRC
-
 *** sej/sudo-edit
     - function to edit the curent file as root.
       defined as C-c C-s in sej-mode-map bindings
@@ -1283,7 +1268,7 @@
 
 *** sej/create-scratch-buffer
     - as name suggests
-      defined as C-c b in above keymappings
+    - defined as C-c b
     #+BEGIN_SRC emacs-lisp
       (defun sej/create-scratch-buffer nil
         "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
@@ -1750,16 +1735,19 @@
     #+END_SRC
 
 ** search
-*** imenu
+*** imenu (using helm-semantic-or-imenu)
     - Framework for mode-specific buffer indexes
+    - https://www.emacswiki.org/emacs/ImenuMode
+    - https://emacs-helm.github.io/helm/
     #+BEGIN_SRC emacs-lisp
-      (use-package imenu
-        :ensure nil
+      (use-package helm
         :bind (:map sej-mode-map
-                    ("C-." . imenu))
+                    ("C-." . helm-semantic-or-imenu) )
         :hook
         (org-mode . imenu-add-menubar-index)
-        (prog-mode . imenu-add-menubar-index) )
+        (prog-mode . imenu-add-menubar-index)
+        :config
+        (setq org-imenu-depth 6))
     #+END_SRC
 
 *** ivy
@@ -1935,7 +1923,7 @@
     - an alternative interface for M-x which is a fork for smex
     - uses ivy as backend
     - https://github.com/DarwinAwardWinner/amx
-    #+ BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
     (use-package amx
     :after ivy
     :hook (emacs-startup . amx-mode)
@@ -1956,13 +1944,12 @@
 
 *** google-this
     - send this to google and search
+    - https://github.com/Malabarba/emacs-google-this
     #+BEGIN_SRC emacs-lisp
       (use-package google-this
         :diminish google-this-mode
-        :defines sej-mode-map
-        :bind (:map sej-mode-map
-                    ("s-g" . google-this)
-                    ("C-c g" . google-this))
+        :bind ( ("s-g" . google-this)
+                ("C-c g" . google-this))
         :config
         (google-this-mode 1))
     #+END_SRC
@@ -2347,10 +2334,11 @@
 
 *** aggressive-indent
     - Minor mode to aggressively keep your code always indented
+    - https://github.com/Malabarba/aggressive-indent-mode
     #+BEGIN_SRC emacs-lisp
       (use-package aggressive-indent
         :diminish
-        :hook (after-init . global-aggressive-indent-mode)
+        :hook (emacs-startup . global-aggressive-indent-mode)
         :config
         ;; Disable in some modes
         (dolist (mode '(asm-mode web-mode html-mode css-mode go-mode))
@@ -2379,6 +2367,7 @@
 
 *** smart-tab
     - indent and complete dwim when <tab> is pressed
+    - https://github.com/genehack/smart-tab/blob/master/smart-tab.el
     #+BEGIN_SRC emacs-lisp
       (use-package smart-tab
         :diminish ""
@@ -2397,20 +2386,17 @@
 *** undo-fu
     - Simple, stable linear undo with redo for Emacs.
     - https://gitlab.com/ideasman42/emacs-undo-fu
-
     #+BEGIN_SRC emacs-lisp
       (use-package undo-fu
         :diminish
-        :bind (:map sej-mode-map
-                    ("C-z" . undo-fu-only-undo)
-                    ("C-S-z" . undo-fu-only-redo))
+        :bind ( ("C-z" . undo-fu-only-undo)
+                ("C-S-z" . undo-fu-only-redo))
         :config (setq undo-fu-allow-undo-in-region t))
     #+END_SRC
 
 *** undo-fu-session
     - Save & recover undo steps between Emacs sessions.
     - https://gitlab.com/ideasman42/emacs-undo-fu-session
-
       #+BEGIN_SRC emacs-lisp
         (use-package undo-fu-session
           :after undo-fu
@@ -2455,7 +2441,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package savehist
         :ensure nil
-        :hook (sej/after-init . savehist-mode)
+        :hook (emacs-startup . savehist-mode)
         :config
         (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
               history-length 1000
@@ -2469,22 +2455,22 @@
 
 ** movement
 *** crux
+    - a Colection of Rediculously Useful eXtensions
     - smart moving to beginning of line or to beginning of text on line
+    - https://github.com/bbatsov/crux
     #+BEGIN_SRC emacs-lisp
       (use-package crux
-        :defines sej-mode-map
-        :bind (:map sej-mode-map
-                    ("C-c o" . crux-open-with)
-                    ("C-k" . crux-smart-kill-line)
-                    ("C-S-RET" . crux-smart-open-line-above)
-                    ([(shift return)] . crux-smart-open-line)
-                    ("C-c n" . crux-cleanup-buffer-or-region)
-                    ("C-c u" . crux-view-url)
-                    ("s-d" . crux-duplicate-current-line-or-region)
-                    ("C-c C-k" . crux-duplicate-current-line-or-region)
-                    ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
-                    ([remap kill-whole-line] . crux-kill-whole-line)
-                    ("C-<backspace>" . crux-kill-line-backwards))
+        :bind ( ("C-c o" . crux-open-with)
+                ("C-k" . crux-smart-kill-line)
+                ("C-S-RET" . crux-smart-open-line-above)
+                ([(shift return)] . crux-smart-open-line)
+                ("C-c n" . crux-cleanup-buffer-or-region)
+                ("C-c u" . crux-view-url)
+                ("s-d" . crux-duplicate-current-line-or-region)
+                ("C-c C-k" . crux-duplicate-current-line-or-region)
+                ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+                ([remap kill-whole-line] . crux-kill-whole-line)
+                ("C-<backspace>" . crux-kill-line-backwards))
         :config
         (crux-with-region-or-buffer indent-region)
         (crux-with-region-or-buffer untabify)
@@ -2496,44 +2482,47 @@
 *** mwim
     - better than crux for C-e mwim-end
     - will cycle between end of code and end-of-code plus comments
+    - https://github.com/alezost/mwim.el
       #+BEGIN_SRC emacs-lisp
         (use-package mwim
-          :bind (:map sej-mode-map
-                      ("C-a" . mwim-beginning)
-                      ("C-e" . mwim-end))) ; better than crux
+          :bind ( ("C-a" . mwim-beginning)
+                  ("C-e" . mwim-end))) ; better than crux
       #+END_SRC
 
 *** avy
     - Jump to things in Emacs tree-style
+    - https://github.com/abo-abo/avy
     #+BEGIN_SRC emacs-lisp
       (use-package avy
-        :bind (:map sej-mode-map
-                    ("C-'" . avy-goto-char)
-                    ("H-'" . avy-goto-char-2)
-                    ("M-g l" . avy-goto-line)
-                    ("H-l" . avy-goto-line)
-                    ("M-g w" . avy-goto-word-1)
-                    ("H-w" . avy-goto-word-1))
+        :bind ( ("C-'" . avy-goto-char)
+                ("H-'" . avy-goto-char-2)
+                ("M-g l" . avy-goto-line)
+                ("H-l" . avy-goto-line)
+                ("M-g w" . avy-goto-word-1)
+                ("H-w" . avy-goto-word-1))
         :config (setq avy-background t))
     #+END_SRC
 
 *** goto-chg
     - goto the last changes made in buffer
+    - https://github.com/emacs-evil/goto-chg
     #+BEGIN_SRC emacs-lisp
       (use-package goto-chg
-        :defines sej-mode-map
-        :bind ("C-," . goto-last-change))
+        :bind ( ("H-." . goto-last-change)
+                ("H-," . goto-last-change-reverse)) )
     #+END_SRC
 
 *** beginend
     - smart moves redefining M-< and M-> for some modes
+    - https://github.com/DamienCassou/beginend
     #+BEGIN_SRC emacs-lisp
       (use-package beginend               ; smart M-< & M->
-        :hook (sej/after-init . beginend-global-mode))
+        :hook (emacs-startup . beginend-global-mode))
     #+END_SRC
 
 *** subword
     - Handling capitalized subwords in a nomenclature
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
     #+BEGIN_SRC emacs-lisp
       (use-package subword
         :ensure nil
@@ -2548,29 +2537,31 @@
 
 *** string inflection
     - underscore -> UPCASE -> Camelcase conversion
+    - https://github.com/akicho8/string-inflection
     #+BEGIN_SRC emacs-lisp
       (use-package string-inflection
-        :bind (:map sej-mode-map
-                    ("M-u" . string-inflection-all-cycle)))
+        :bind ( ("M-u" . string-inflection-all-cycle)))
     #+END_SRC
 
 *** sej/push-mark-no-activate
-    - defined in sej-mode-map as C-`
+    - defined in sej-mode-map as C-S-<SPC>
     #+BEGIN_SRC emacs-lisp
-      (defun sej/push-mark-no-activate ()
-        "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
-        (interactive)
-        (push-mark (point) t nil)
-        (message "Pushed mark to ring"))
+            (defun sej/push-mark-no-activate ()
+              "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
+              (interactive)
+              (push-mark (point) t nil)
+              (message "Pushed mark to ring"))
 
-      ;; push and jump to mark functions
-      (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
+            ;; push and jump to mark functions
+            (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
     #+END_SRC
 
 ** regions
 *** easy-kill-extras
     - This package contains extra functions for easy-kill/easy-mark.
     - Kill & Mark things easily
+    - https://github.com/leoliu/easy-kill
+    - https://github.com/knu/easy-kill-extras.el
     #+BEGIN_SRC emacs-lisp
       (setq kill-ring-max 200)
 
@@ -2629,15 +2620,16 @@
 
 *** avy-zap
     - Kill text between the point and the character CHAR
+    - https://github.com/cute-jumper/avy-zap
     #+BEGIN_SRC emacs-lisp
       (use-package avy-zap
-        :bind (:map sej-mode-map
-                    ("M-z" . avy-zap-to-char-dwim)
-                    ("M-Z" . avy-zap-up-to-char-dwim)))
+        :bind ( ("M-z" . avy-zap-to-char-dwim)
+                ("M-Z" . avy-zap-up-to-char-dwim)))
     #+END_SRC
 
 *** delsel
     - Do not delete selection if you insert
+    - https://github.com/typester/emacs/blob/master/lisp/delsel.el
     #+BEGIN_SRC emacs-lisp
       (use-package delsel
         :ensure nil
@@ -2646,6 +2638,7 @@
 
 *** rect
     - Rectangle
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el
     #+BEGIN_SRC emacs-lisp
       (use-package rect
         :ensure nil)
@@ -2653,22 +2646,24 @@
 
 *** drag-stuff
     - Drag stuff (lines, words, region, etc...) around
+    - https://github.com/rejeep/drag-stuff.el
     #+BEGIN_SRC emacs-lisp
       (use-package drag-stuff
         :diminish
-        :bind (:map sej-mode-map
-                    ("M-<down>" . drag-stuff-down)
-                    ("H-n" . drag-stuff-down)
-                    ("M-<up>" . drag-stuff-up)
-                    ("H-p" . drag-stuff-up))
-        ;; :hook (after-init . drag-stuff-global-mode)
+        :bind ( ("M-<down>" . drag-stuff-down)
+                ("H-n" . drag-stuff-down)
+                ("M-<up>" . drag-stuff-up)
+                ("H-p" . drag-stuff-up))
         :config
+        (drag-stuff-global-mode)
+        (drag-stuff-define-keys)
         (add-to-list 'drag-stuff-except-modes 'org-mode))
     #+END_SRC
 
 *** smart-region
     - Smartly select region, rectangle, multi cursors
     - remaping set-mark-command to smart-region
+    - https://github.com/uk-ar/smart-region
     #+BEGIN_SRC emacs-lisp
       (use-package smart-region
         :bind ([remap set-mark-command] . smart-region) ; C-SPC
@@ -2677,27 +2672,28 @@
 
 *** expand-region
     - expand selection region larger & smaller
+    - https://github.com/magnars/expand-region.el
     #+BEGIN_SRC emacs-lisp
       (use-package expand-region
-        :defines sej-mode-map
-        :bind (:map sej-mode-map
-                    ("s-=" . er/expand-region)
-                    ("s--" . er/contract-region)))
+        :bind ( ("s-=" . er/expand-region)
+                ("s--" . er/contract-region)))
     #+END_SRC
 
 *** smart-hungry-delete
     - Hungry deletion
+    - https://github.com/hrehfeld/emacs-smart-hungry-delete
     #+BEGIN_SRC emacs-lisp
       (use-package smart-hungry-delete
         :diminish
         :bind (("<backspace>" . smart-hungry-delete-backward-char)
                ("C-d" . smart-hungry-delete-forward-char))
-        :hook (sej/after-init . smart-hungry-delete-add-default-hooks))
+        :config (smart-hungry-delete-add-default-hooks))
     #+END_SRC
 
 ** url actions
 *** sej/insert-url
     - from jcs (Irreal) blog to copy url from safari and paste at point
+    - https://irreal.org/blog/?p=2895
     #+BEGIN_SRC emacs-lisp
       (when sys/macp
         (defun sej/retrieve-url ()
@@ -2725,6 +2721,7 @@
     #+END_SRC
 
 *** restclient
+    - Allows query of a restclient with the results left into the buffer
     - use GET or POST plus http:10.0.1.1/rest/
       then use C-c to execute (check examples directory for more)
     - https://github.com/pashky/restclient.el
@@ -2735,14 +2732,16 @@
 ** highlighting faces fonts
 *** hl-line
     - Highlight the current line
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
     #+BEGIN_SRC emacs-lisp
       (use-package hl-line
         :ensure nil
-        :hook (sej/after-init . global-hl-line-mode))
+        :hook (emacs-startup . global-hl-line-mode))
     #+END_SRC
 
 *** symbol-overlay
-    - Highlight symbols
+    - Highlight symbols and move between them
+    - https://github.com/wolray/symbol-overlay
     #+BEGIN_SRC emacs-lisp
       (use-package symbol-overlay
         :diminish
@@ -2764,16 +2763,19 @@
 
 *** dimmer
     - minor mode that indicates currently active buffer by dimming the faces in others
+    - https://github.com/gonewest818/dimmer.el
     #+BEGIN_SRC emacs-lisp
       (use-package dimmer
-        :defer 5
         :config
         (setq dimmer-fraction 0.20)
-        (dimmer-mode))
+        (dimmer-configure-which-key)
+        (dimmer-configure-helm)
+        (dimmer-mode t))
     #+END_SRC
 
 *** highlight-numbers
     - hightlight-numbers in a special way
+    - https://github.com/Fanael/highlight-numbers
     #+BEGIN_SRC emacs-lisp
       (use-package highlight-numbers
         :hook (prog-mode . highlight-numbers-mode))
@@ -2781,6 +2783,7 @@
 
 *** highlight-indent-guides
     - Highlight indentations
+    - https://github.com/DarthFennec/highlight-indent-guides
     #+BEGIN_SRC emacs-lisp
       (when (display-graphic-p)
         (use-package highlight-indent-guides
@@ -2788,11 +2791,12 @@
           :hook (prog-mode . highlight-indent-guides-mode)
           :config
           (setq highlight-indent-guides-method 'character)
-          (setq highlight-indent-guides-responsive 'top)))
+          (setq highlight-indent-guides-responsive 'stack)))
     #+END_SRC
 
 *** rainbow-mode
     - Colorize color names in buffers
+    - https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
     #+BEGIN_SRC emacs-lisp
       (use-package rainbow-mode
         :diminish
@@ -2801,17 +2805,18 @@
 
 *** hl-todo
     - Highlight TODO and similar keywords in comments and strings
+    - https://github.com/tarsius/hl-todo
     #+BEGIN_SRC emacs-lisp
       (use-package hl-todo
         :custom-face (hl-todo ((t (:box t :inherit))))
         :bind (:map hl-todo-mode-map
                     ([C-f3] . hl-todo-occur)
                     ("C-c t o" . hl-todo-occur)
-                    ("H-o" . hl-todo-occur)
+                    ("H-t" . hl-todo-occur)
                     ("C-c t p" . hl-todo-previous)
-                    ("H-p" . hl-todo-previous)
                     ("C-c t n" . hl-todo-next)
-                    ("H-n" . hl-todo-next))
+                    ("H-P" . hl-todo-previous)
+                    ("H-N" . hl-todo-next) )
         :hook ((sej/after-init . global-hl-todo-mode)
                (prog-mode . hl-todo-mode)
                (org-mode . hl-todo-mode))
@@ -2841,6 +2846,7 @@
 
 *** diff-hl
     - Highlight uncommitted changes
+    - https://github.com/dgutov/diff-hl
     #+BEGIN_SRC emacs-lisp
       (use-package diff-hl
         :defines (diff-hl-margin-symbols-alist desktop-minor-mode-table)
@@ -2851,7 +2857,7 @@
         (diff-hl-insert ((t (:background "#98be65"))))
         :bind (:map diff-hl-command-map
                     ("SPC" . diff-hl-mark-hunk))
-        :hook ((after-init . global-diff-hl-mode)
+        :hook ((emacs-startup . global-diff-hl-mode)
                (dired-mode . diff-hl-dired-mode))
         :config
         ;; Highlight on-the-fly
@@ -2888,41 +2894,24 @@
 
 *** whitespace
     - Visualize TAB, (HARD) SPACE, NEWLINE
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/whitespace.el
     #+BEGIN_SRC emacs-lisp
       (use-package whitespace
         :ensure nil
         :diminish
         :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
         :config
-        (setq whitespace-line-column fill-column) ;; limit line length
         ;; automatically clean up bad whitespace
         (setq whitespace-action '(auto-cleanup))
         ;; only show bad whitespace
-        (setq whitespace-style '(face
-                                 trailing space-before-tab
-                                 indentation empty space-after-tab))
-
-        (with-eval-after-load 'popup
-          ;; advice for whitespace-mode conflict with popup
-          (defvar my-prev-whitespace-mode nil)
-          (make-local-variable 'my-prev-whitespace-mode)
-
-          (defadvice popup-draw (before my-turn-off-whitespace activate compile)
-            "Turn off whitespace mode before showing autocomplete box."
-            (if whitespace-mode
-                (progn
-                  (setq my-prev-whitespace-mode t)
-                  (whitespace-mode -1))
-              (setq my-prev-whitespace-mode nil)))
-
-          (defadvice popup-delete (after my-restore-whitespace activate compile)
-            "Restore previous whitespace mode when deleting autocomplete box."
-            (if my-prev-whitespace-mode
-                (whitespace-mode 1)))))
+        (setq whitespace-style '(face trailing space-before-tab empty space-after-tab))
+        (setq whitespace-line-column fill-column) ;; limit line length
+        )
     #+END_SRC
 
 *** pulse
     - Pulse current line
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/cedet/pulse.el
     #+BEGIN_SRC emacs-lisp
       (use-package pulse
         :ensure nil
@@ -2965,6 +2954,7 @@
 
 *** rainbow-delimiters
     - rainbow-delimiters-mode - multicoloured brackets
+    - https://github.com/Fanael/rainbow-delimiters
     #+BEGIN_SRC emacs-lisp
       (use-package rainbow-delimiters
         :diminish rainbow-delimiters-mode
@@ -2985,6 +2975,7 @@
 
 *** mic-paren
     - show parens even off screen
+    - https://github.com/emacsattic/mic-paren/blob/d0410c7d805c9aaf51a1bcefaaef092bed5824c4/mic-paren.el
     #+BEGIN_SRC emacs-lisp
       (use-package mic-paren
         :hook (prog-mode . paren-activate)
