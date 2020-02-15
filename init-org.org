@@ -815,7 +815,7 @@
           (byte-recompile-directory package-user-dir 0 t)))
     #+END_SRC
 
-*** Sej/recompile-site-lisp
+*** sej/recompile-site-lisp
     - Recompile packages in site-lisp directory.
     - Useful if you switch Emacs versions.
     - not bound
@@ -1343,6 +1343,7 @@
     - quickly selecting a window to switch to
     - C-u prefex to move window
     - C-u C-u prefex to delete window
+    - https://github.com/abo-abo/ace-window
     #+BEGIN_SRC emacs-lisp
       (use-package ace-window
         :bind (([remap other-window] . ace-window)
@@ -1357,6 +1358,7 @@
 
 *** winner
     - Restore old window configurations
+    - https://github.com/abo-abo/ace-window
     #+BEGIN_SRC emacs-lisp
       (use-package winner
         :ensure nil
@@ -1491,6 +1493,9 @@
                 (tabulated-list-mode :align 'below))))
     #+END_SRC
 ** mode-line
+*** doom-modeline
+    - A fancy and fast mode-line inspired by minimalism design
+    - https://github.com/seagle0128/doom-modeline
    #+BEGIN_SRC emacs-lisp
      (use-package doom-modeline
        :hook (after-init . doom-modeline-mode)
@@ -1506,7 +1511,12 @@
        "Get current height of mode-line."
        (- (elt (window-pixel-edges) 3)
           (elt (window-inside-pixel-edges) 3)))
+    #+END_SRC
 
+*** hide-mode-line
+    - A minor mode that hides (or masks) the mode-line in your current buffer
+    - https://github.com/hlissner/emacs-hide-mode-line
+    #+BEGIN_SRC emacs-lisp
      (use-package hide-mode-line
        :hook (((completion-list-mode
                 completion-in-region-mode
@@ -1517,6 +1527,7 @@
 
 ** all-the-icons
    - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
+   - https://github.com/domtronn/all-the-icons.el
    #+BEGIN_SRC emacs-lisp
      (use-package all-the-icons
        :if (display-graphic-p)
@@ -1565,6 +1576,7 @@
 ** line numbers
 *** display-line-numbers
     - only in prog modes
+    - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
     #+BEGIN_SRC emacs-lisp
       (use-package display-line-numbers
         :ensure nil
@@ -1574,6 +1586,7 @@
 *** goto-line-preview
     - Preview line when executing goto-line command.
     - M-g g
+    - https://github.com/jcs-elpa/goto-line-preview
     #+BEGIN_SRC emacs-lisp
       (use-package goto-line-preview
         :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
@@ -1701,6 +1714,7 @@
 ** multi-edit
 *** iedit
     - Edit multiple regions in the same way simultaneously
+    - https://github.com/victorhge/iedit
     #+BEGIN_SRC emacs-lisp
       (use-package iedit
         :defines desktop-minor-mode-table
@@ -1719,6 +1733,7 @@
 
 *** multiple cursors
     - Multiple cursors
+    - https://github.com/magnars/multiple-cursors.el
     #+BEGIN_SRC emacs-lisp
       (use-package multiple-cursors
         :bind ((:map sej-mode-map
@@ -1956,6 +1971,7 @@
 
 *** ag
     - searching with the silver searcher
+    - https://github.com/Wilfred/ag.el
     #+BEGIN_SRC emacs-lisp
       (when (executable-find "ag")
         (use-package ag
@@ -1971,6 +1987,7 @@
 
 *** ivy-yasnippet
     - Integrate yasnippet
+    - https://github.com/mkcms/ivy-yasnippet
     #+BEGIN_SRC emacs-lisp
       (use-package ivy-yasnippet
         :after ivy yasnippet
@@ -1981,6 +1998,7 @@
 
 *** ivy-xref
     - Select from xref candidates with Ivy
+    - https://github.com/alexmurray/ivy-xref
     #+BEGIN_SRC emacs-lisp
       (use-package ivy-xref
         :after ivy
@@ -1991,6 +2009,7 @@
 
 *** flyspell-correct-ivy
     - Correcting words with flyspell via Ivy
+    - https://github.com/d12frosted/flyspell-correct/blob/master/flyspell-correct-ivy.el
     #+BEGIN_SRC emacs-lisp
       (use-package flyspell-correct-ivy
         :after flyspell ivy
@@ -2002,8 +2021,9 @@
         (setq flyspell-correct-interface #'flyspell-correct-ivy))
     #+END_SRC
 
-*** counsel-linux-app / counsel-osx-app
+***  counsel-osx-app
     - Quick launch apps
+    - https://github.com/d12frosted/counsel-osx-app
     #+BEGIN_SRC emacs-lisp
       (cond
        (sys/linux-x-p
@@ -2016,6 +2036,7 @@
 
 *** counsel-tramp
     - Tramp ivy interface
+    - https://github.com/masasam/emacs-counsel-tramp
     #+BEGIN_SRC emacs-lisp
       (use-package counsel-tramp
         :after counsel
@@ -2024,6 +2045,7 @@
 
 *** ivy-rich
     - More friendly display transformer for Ivy
+    - https://github.com/Yevgnen/ivy-rich
     #+BEGIN_SRC emacs-lisp
       (use-package ivy-rich
         :after ivy all-the-icons
@@ -2277,6 +2299,7 @@
 
 *** re-builder
     - set built in regex helper to string format
+    - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
     #+BEGIN_SRC emacs-lisp
       (use-package re-builder
         :ensure nil
@@ -2886,6 +2909,7 @@
 
 *** volatile-highlights
     - Highlight some buffer region operations
+    - https://github.com/k-talo/volatile-highlights.el
     #+BEGIN_SRC emacs-lisp
       (use-package volatile-highlights
         :diminish
@@ -4287,6 +4311,7 @@
 ** other program modes
 *** csv-mode
     - major mode for csv
+    - https://www.emacswiki.org/emacs/csv-mode.el
     #+BEGIN_SRC emacs-lisp
       (use-package csv-mode
         :mode "\\.[Cc][Ss][Vv]\\'"
@@ -5640,6 +5665,7 @@
 *** org-num
     - outline numbering as overlays on Org mode headlines
       in the org repo but not part of official orgmode
+    - https://github.com/bzg/org-mode/blob/master/lisp/org-num.el
       #+BEGIN_SRC emacs-lisp
         (use-package org-num
           :load-path "lisp/"
@@ -5648,6 +5674,8 @@
       #+END_SRC
 
 *** org-pretty-tags
+    - Display text or image surrogates for Org mode tags.
+    - https://gitlab.com/marcowahl/org-pretty-tags
     #+BEGIN_SRC emacs-lisp
       (use-package org-pretty-tags
         :hook (org-mode . org-pretty-tags-global-mode)
