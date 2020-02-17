@@ -1641,6 +1641,10 @@
      ;; Add proper word wrapping
      (global-visual-line-mode t)
 
+     ;; automatically save place in files so return to same place in next session
+     ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
+     (save-place-mode 1)
+
      (setq-default backup-directory-alist
                    '(("." . ".saves")))    ; don't litter my fs tree
 
@@ -2425,15 +2429,6 @@
           :after undo-fu
           :config (global-undo-fu-session-mode))
       #+END_SRC
-
-*** saveplace
-    - automatically save place in files so return to same place in next session
-    - https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
-    #+BEGIN_SRC emacs-lisp
-      (use-package saveplace
-        :ensure nil
-        :hook (emacs-startup . save-place-mode))
-    #+END_SRC
 
 *** recentf
     - recent file history list settings
