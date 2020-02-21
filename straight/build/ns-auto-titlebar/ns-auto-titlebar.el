@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/ns-auto-titlebar/ns-auto-titlebar.el

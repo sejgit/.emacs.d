@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/ibuffer-projectile/ibuffer-projectile.el

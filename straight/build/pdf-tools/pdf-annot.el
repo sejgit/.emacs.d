@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/pdf-tools/lisp/pdf-annot.el

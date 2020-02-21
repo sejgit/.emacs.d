@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/org-rich-yank/org-rich-yank.el

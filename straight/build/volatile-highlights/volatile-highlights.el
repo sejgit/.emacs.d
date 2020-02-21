@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/volatile-highlights.el/volatile-highlights.el

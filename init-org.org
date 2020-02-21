@@ -12,21 +12,17 @@
 - <2020-01-04 Sat> linux changes
 - <2020-01-31 Fri> orgmode pretty changes
 
-- TODO description in every package
-- TODO link in every package
-- TODO sej-mode-map only for true ones
 - TODO perhaps use straight to get packages local
 
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
-- [[#set-up-customize-emacs][set-up 'Customize Emacs']]
+- [[#customization-setting][customization setting]]
 - [[#initialize-basic][initialize basic]]
   - [[#environment-general][environment general]]
   - [[#initialize-package-system][initialize package system]]
   - [[#environment-system-specific][environment system specific]]
-  - [[#sejafter-init-hook][sej/after-init-hook]]
-  - [[#start-server][start server]]
+  - [[#after-init--server][after-init & server]]
 - [[#general---keybindings][general - keybindings]]
   - [[#modifiers---os-specific][modifiers - OS specific]]
   - [[#keybindings-global][keybindings global]]
@@ -114,7 +110,7 @@
       "Emacs is 27 or above.")
 #+END_SRC
 
-* set-up 'Customize Emacs'
+* customization setting
   - set-up Emacs customizations choices which can then be modified by custom.el
   #+BEGIN_SRC emacs-lisp
     (defgroup sej nil
@@ -258,9 +254,6 @@
                (expand-file-name "site-lisp" user-emacs-directory)))
          (normal-top-level-add-subdirs-to-load-path)))
 
-     ;;(advice-add #'package-initialize :after #'update-load-path)
-     ;;(advice-add #'package-initialize :after #'add-subdirs-to-load-path)
-
      (update-load-path)
 
      ;; turn on syntax highlightng for all buffers
@@ -300,26 +293,42 @@
     - DO NOT copy package-selected-packages to init/custom file forcibly.
       https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
     #+BEGIN_SRC emacs-lisp
-      (defun my-save-selected-packages (&optional value)
-        "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
-        (when value
-          (setq package-selected-packages value)))
-      (advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
+      ;; (defun my-save-selected-packages (&optional value)
+      ;;   "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
+      ;;   (when value
+      ;;     (setq package-selected-packages value)))
+      ;; (advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
+
     #+END_SRC
 
 *** Package set-up
     #+BEGIN_SRC emacs-lisp
-      (require 'package)
-      (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-      (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
-      (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-      (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
-      (setq load-prefer-newer t)
+      ;; (require 'package)
+      ;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+      ;; (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
+      ;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+      ;; (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+      ;; (setq load-prefer-newer t)
 
-      ;; Initialize packages
-      (unless (bound-and-true-p package--initialized) ; To avoid warnings in 27
-        (setq package-enable-at-startup nil)          ; To prevent initializing twice
-        (package-initialize))
+      ;; ;; Initialize packages
+      ;; (unless (bound-and-true-p package--initialized) ; To avoid warnings in 27
+      ;;   (setq package-enable-at-startup nil)          ; To prevent initializing twice
+      ;;   (package-initialize))
+
+      (setq straight-use-package-by-default t)
+      (defvar bootstrap-version)
+      (let ((bootstrap-file
+             (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+            (bootstrap-version 5))
+        (unless (file-exists-p bootstrap-file)
+          (with-current-buffer
+              (url-retrieve-synchronously
+               "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+               'silent 'inhibit-cookies)
+            (goto-char (point-max))
+            (eval-print-last-sexp)))
+        (load bootstrap-file nil 'nomessage))
+
     #+END_SRC
 
 *** Use-Package set-up
@@ -329,9 +338,11 @@
     - https://github.com/jwiegley/use-package#use-package-ensure-system-package
     #+BEGIN_SRC emacs-lisp
       ;; Setup `use-package'
-      (unless (package-installed-p 'use-package)
-        (package-refresh-contents)
-        (package-install 'use-package))
+      ;; (unless (package-installed-p 'use-package)
+      ;;   (package-refresh-contents)
+      ;;   (package-install 'use-package))
+
+      (straight-use-package 'use-package)
 
       ;; Should set before loading `use-package'
       (eval-and-compile
@@ -383,42 +394,12 @@
                              invocation-name invocation-directory)))
    #+END_SRC
 
-** sej/after-init-hook
+** after-init & server
    - to delay some items until after we get going
-   #+BEGIN_SRC emacs-lisp
-     ;; add my custom hook
-     (defvar sej/after-init-hook nil
-       "Hook called after emacs-init and some time.")
-
-     (defvar sej/idle-timer 5
-       "Var to set time in seconds for idle timer.")
-     (when sys/macp
-       (setq sej/idle-timer 1))
-
-     (defun sej/run-my-after-init-hook ()
-       "Function to define when to run my startup hooks"
-       (interactive)
-       (message "set-up my hooks")
-       (run-with-idle-timer sej/idle-timer nil
-                            (lambda ()
-                              (message "start running my hooks")
-                              (run-hooks 'sej/after-init-hook)
-                              (message "done running my hooks")
-                              )))
-
-     (add-hook 'after-init-hook 'sej/run-my-after-init-hook)
-     ;; (remove-hook 'after-init-hook 'sej/run-my-after-init-hook)
-     (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
-   #+END_SRC
-
-** start server
-   - but wait until sej/after-init
    - http://wikemacs.org/wiki/Emacs_server
    #+BEGIN_SRC emacs-lisp
-     (use-package server
-       :ensure nil
-       :hook (sej/after-init . server-mode)
-       )
+     (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
+     (add-hook 'emacs-startup-hook 'server-mode)
    #+END_SRC
 
 * general - keybindings
@@ -714,13 +695,11 @@
     #+BEGIN_SRC emacs-lisp
       (use-package helpful
         :after counsel
-        :defines sej-mode-map
-        :bind (:map sej-mode-map
-                    ("C-c C-d" . helpful-at-point)
-                    ("C-h c" . helpful-command)
-                    ("C-h C" . helpful-command)
-                    ("C-h k" . helpful-key)
-                    ("C-h M" . helpful-macro))
+        :bind ( ("C-c C-d" . helpful-at-point)
+                ("C-h c" . helpful-command)
+                ("C-h C" . helpful-command)
+                ("C-h k" . helpful-key)
+                ("C-h M" . helpful-macro))
         :config
         (setq counsel-describe-function-function #'helpful-callable)
         (setq counsel-describe-variable-function #'helpful-variable)
@@ -1248,7 +1227,7 @@
     - https://www.emacswiki.org/emacs/AutoRevertMode
     #+BEGIN_SRC emacs-lisp
       (use-package autorevert
-        :ensure nil
+        :straight (autorevert :type built-in)
         :diminish
         :hook (emacs-startup . global-auto-revert-mode))
     #+END_SRC
@@ -1285,8 +1264,8 @@
           (emacs-lisp-mode)
           ))
       (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-      (define-key sej-mode-map (kbd "C-c b") 'sej/create-scratch-buffer)
-      (define-key sej-mode-map (kbd "C-c s s") 'sej/create-scratch-buffer)
+      (define-key sej-mode-map (kbd "C-c S") 'sej/create-scratch-buffer)
+      (define-key sej-mode-map (kbd "C-c s S") 'sej/create-scratch-buffer)
     #+END_SRC
 
 *** persistent-scratch
@@ -1361,11 +1340,10 @@
     - https://github.com/abo-abo/ace-window
     #+BEGIN_SRC emacs-lisp
       (use-package winner
-        :ensure nil
+        :straight (winner :type built-in)
         :commands (winner-undo winner-redo)
-        :bind (:map sej-mode-map
-                    ("C-c <left>" . winner-undo)
-                    ("C-c <right>" . winner-redo))
+        :bind ( ("C-c <left>" . winner-undo)
+                ("C-c <right>" . winner-redo))
         :init (setq winner-boring-buffers '("*Completions*"
                                             "*Compile-Log*"
                                             "*inferior-lisp*"
@@ -1384,7 +1362,6 @@
     #+BEGIN_SRC emacs-lisp
       (use-package golden-ratio
         :hook (emacs-startup . golden-ratio-mode)
-        :defines sej-mode-map
         :diminish golden-ratio-mode
         :config
         (add-to-list 'golden-ratio-extra-commands 'ace-window)
@@ -1392,106 +1369,6 @@
         (setq golden-ratio-auto-scale t))
     #+END_SRC
 
-*** shackle
-    - define behaviour of popup windows by type
-    - https://github.com/wasamasa/shackle
-    #+BEGIN_SRC emacs-lisp
-      (use-package shackle
-        :after undo-tree
-        :commands shackle-display-buffer
-        :hook (emacs-startup . shackle-mode)
-        :config
-        ;; Enforce rules for popups
-        (defvar shackle--popup-window-list nil) ; all popup windows
-        (defvar-local shackle--current-popup-window nil) ; current popup window
-        (put 'shackle--current-popup-window 'permanent-local t)
-
-        (eval-and-compile
-          (defun shackle-last-popup-buffer ()
-            "View last popup buffer."
-            (interactive)
-            (ignore-errors
-              (display-buffer shackle-last-buffer)))
-          (bind-key "C-h z" #'shackle-last-popup-buffer)
-
-          ;; Add keyword: `autoclose'
-          (defun shackle-display-buffer-hack (fn buffer alist plist)
-            (let ((window (funcall fn buffer alist plist)))
-              (setq shackle--current-popup-window window)
-
-              (when (plist-get plist :autoclose)
-                (push (cons window buffer) shackle--popup-window-list))
-              window))
-
-          (defun shackle-close-popup-window-hack (&rest _)
-            "Close current popup window via `C-g'."
-            (setq shackle--popup-window-list
-                  (cl-loop for (window . buffer) in shackle--popup-window-list
-                           if (and (window-live-p window)
-                                   (equal (window-buffer window) buffer))
-                           collect (cons window buffer)))
-            ;; `C-g' can deactivate region
-            (when (and (called-interactively-p 'interactive)
-                       (not (region-active-p)))
-              (let (window buffer)
-                (if (one-window-p)
-                    (progn
-                      (setq window (selected-window))
-                      (when (equal (buffer-local-value 'shackle--current-popup-window
-                                                       (window-buffer window))
-                                   window)
-                        (winner-undo)))
-                  (setq window (caar shackle--popup-window-list))
-                  (setq buffer (cdar shackle--popup-window-list))
-                  (when (and (window-live-p window)
-                             (equal (window-buffer window) buffer))
-                    (delete-window window)
-
-                    (pop shackle--popup-window-list))))))
-
-          (advice-add #'keyboard-quit :before #'shackle-close-popup-window-hack)
-          (advice-add #'shackle-display-buffer :around #'shackle-display-buffer-hack))
-
-        ;; rules
-        (setq shackle-default-size 0.4)
-        (setq shackle-default-alignment 'below)
-        (setq shackle-default-rule nil)
-        (setq shackle-rules
-              '(("*Help*" :select t :size 0.3 :align 'below :autoclose t)
-                ("*compilation*" :size 0.3 :align 'below :autoclose t)
-                ("*Completions*" :size 0.3 :align 'below :autoclose t)
-                ("*Pp Eval Output*" :size 15 :align 'below :autoclose t)
-                ("*ert*" :align 'below :autoclose t)
-                ("*Backtrace*" :select t :size 15 :align 'below)
-                ("*Warnings*" :size 0.3 :align 'below :autoclose t)
-                ("*Messages*" :size 0.3 :align 'below :autoclose t)
-                ("^\\*.*Shell Command.*\\*$" :regexp t :size 0.3 :align 'below :autoclose t)
-                ("\\*[Wo]*Man.*\\*" :regexp t :select t :align 'below :autoclose t)
-                ("*Calendar*" :select t :size 0.3 :align 'below)
-                (" *undo-tree*" :select t)
-                ("*Paradox Report*" :size 0.3 :align 'below :autoclose t)
-                ("*quickrun*" :select t :size 15 :align 'below)
-                ("*tldr*" :align 'below :autoclose t)
-                ("*Finder*" :select t :size 0.3 :align 'below :autoclose t)
-                ("^\\*elfeed-entry" :regexp t :size 0.7 :align 'below :autoclose t)
-
-                (ag-mode :select t :align 'below)
-                (grep-mode :select t :align 'below)
-                (ivy-occur-grep-mode :select t :align 'below)
-                (pt-mode :select t :align 'below)
-                (rg-mode :select t :align 'below)
-
-                (flycheck-error-list-mode :select t :size 0.3 :align 'below :autoclose t)
-                (flymake-diagnostics-buffer-mode :select t :size 0.3 :align 'below :autoclose t)
-
-                (Buffer-menu-mode :select t :size 20 :align 'below :autoclose t)
-                (comint-mode :align 'below)
-                (helpful-mode :select t :size 0.4 :align 'below :autoclose t)
-                (process-menu-mode :select t :size 0.3 :align 'below :autoclose t)
-                (list-environment-mode :select t :size 0.3 :align 'below :autoclose t)
-                (profiler-report-mode :select t :size 0.5 :align 'below)
-                (tabulated-list-mode :align 'below))))
-    #+END_SRC
 ** mode-line
 *** doom-modeline
     - A fancy and fast mode-line inspired by minimalism design
@@ -1579,7 +1456,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
     #+BEGIN_SRC emacs-lisp
       (use-package display-line-numbers
-        :ensure nil
+        :straight (display-lne-numbers :type built-in)
         :hook (prog-mode . display-line-numbers-mode))
     #+END_SRC
 
@@ -1740,15 +1617,13 @@
     - https://github.com/magnars/multiple-cursors.el
     #+BEGIN_SRC emacs-lisp
       (use-package multiple-cursors
-        :bind ((:map sej-mode-map
-                     ("C-S-c C-S-c"   . mc/edit-lines)
-                     ("C->"           . mc/mark-next-like-this)
-                     ("C-<"           . mc/mark-previous-like-this)
-                     ("C-c C-<"       . mc/mark-all-like-this)
-                     ("C-M->"         . mc/skip-to-next-like-this)
-                     ("C-M-<"         . mc/skip-to-previous-like-this)
-                     ("s-<mouse-1>"   . mc/add-cursor-on-click)
-                     ("C-S-<mouse-1>" . mc/add-cursor-on-click))
+        :bind (( ("C-S-c C-S-c"   . mc/edit-lines)
+                 ("C->"           . mc/mark-next-like-this)
+                 ("C-<"           . mc/mark-previous-like-this)
+                 ("C-c C-<"       . mc/mark-all-like-this)
+                 ("C-M->"         . mc/skip-to-next-like-this)
+                 ("C-M-<"         . mc/skip-to-previous-like-this)
+                 ("s-<mouse-1>"   . mc/add-cursor-on-click))
                (:map mc/keymap
                      ("C-|" . mc/vertical-align-with-space))))
     #+END_SRC
@@ -2306,7 +2181,7 @@
     - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
     #+BEGIN_SRC emacs-lisp
       (use-package re-builder
-        :ensure nil
+        :straight (re-builder :type built-in)
         :config (setq reb-re-syntax 'string))
     #+END_SRC
 
@@ -2389,7 +2264,7 @@
       (defun sej/indent-buffer ()
         (interactive)
         (indent-region (point-min) (point-max)))
-      (define-key sej-mode-map (kbd "C-c <tab>") 'sej/indent-buffer)
+      (define-key sej-mode-map (kbd "C-c s <tab>") 'sej/indent-buffer)
     #+END_SRC
 
 *** smart-tab
@@ -2435,7 +2310,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
     #+BEGIN_SRC emacs-lisp
       (use-package recentf
-        :ensure nil
+        :straight (recentf :type built-in)
         :hook (emacs-startup . recentf-mode)
         :config
         (setq recentf-max-saved-items 200)
@@ -2458,7 +2333,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
     #+BEGIN_SRC emacs-lisp
       (use-package savehist
-        :ensure nil
+        :straight (savehist :type built-in)
         :hook (emacs-startup . savehist-mode)
         :config
         (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
@@ -2484,7 +2359,7 @@
                 ([(shift return)] . crux-smart-open-line)
                 ("C-c n" . crux-cleanup-buffer-or-region)
                 ("C-c u" . crux-view-url)
-                ("s-d" . crux-duplicate-current-line-or-region)
+                ("s-k" . crux-duplicate-current-line-or-region)
                 ("C-c C-k" . crux-duplicate-current-line-or-region)
                 ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
                 ([remap kill-whole-line] . crux-kill-whole-line)
@@ -2543,7 +2418,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
     #+BEGIN_SRC emacs-lisp
       (use-package subword
-        :ensure nil
+        :straight (subword :type built-in)
         :diminish
         :hook ((prog-mode . subword-mode)
                (minibuffer-setup . subword-mode))
@@ -2650,7 +2525,7 @@
     - https://github.com/typester/emacs/blob/master/lisp/delsel.el
     #+BEGIN_SRC emacs-lisp
       (use-package delsel
-        :ensure nil
+        :straight (delsel :type built-in)
         :config (setq-default delete-selection-mode nil))
     #+END_SRC
 
@@ -2659,7 +2534,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el
     #+BEGIN_SRC emacs-lisp
       (use-package rect
-        :ensure nil)
+        :straight (rect :type built-in))
     #+END_SRC
 
 *** drag-stuff
@@ -2753,7 +2628,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
     #+BEGIN_SRC emacs-lisp
       (use-package hl-line
-        :ensure nil
+        :straight (hl-line :type built-in)
         :hook (emacs-startup . global-hl-line-mode))
     #+END_SRC
 
@@ -2835,7 +2710,7 @@
                     ("C-c t n" . hl-todo-next)
                     ("H-P" . hl-todo-previous)
                     ("H-N" . hl-todo-next) )
-        :hook ((sej/after-init . global-hl-todo-mode)
+        :hook ((emacs-startup . global-hl-todo-mode)
                (prog-mode . hl-todo-mode)
                (org-mode . hl-todo-mode))
         :config
@@ -2908,7 +2783,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package volatile-highlights
         :diminish
-        :hook (sej/after-init . volatile-highlights-mode))
+        :hook (emacs-startup . volatile-highlights-mode))
     #+END_SRC
 
 *** whitespace
@@ -2916,7 +2791,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/whitespace.el
     #+BEGIN_SRC emacs-lisp
       (use-package whitespace
-        :ensure nil
+        :straight (whitespace :type built-in)
         :diminish
         :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
         :config
@@ -2933,7 +2808,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/cedet/pulse.el
     #+BEGIN_SRC emacs-lisp
       (use-package pulse
-        :ensure nil
+        :straight (pulse :type built-in)
         :preface
         (defun my-pulse-momentary-line (&rest _)
           "Pulse the current line."
@@ -3131,7 +3006,7 @@
     - https://www.gnu.org/software/emacs/manual/html_mono/ediff.html
     #+BEGIN_SRC emacs-lisp
       (use-package ediff
-        :ensure nil
+        :straight (ediff :type built-in)
         :hook(;; show org ediffs unfolded
               (ediff-prepare-buffer . outline-show-all)
               ;; restore window layout when done
@@ -3148,7 +3023,7 @@
     - https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
     #+BEGIN_SRC emacs-lisp
       (use-package elec-pair
-        :ensure nil
+        :straight (elec-pair :type built-in)
         :hook (prog-mode . electric-pair-mode)
         :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
         :config
@@ -3169,7 +3044,7 @@
     - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
     #+BEGIN_SRC emacs-lisp
       (use-package compile
-        :ensure nil
+        :straight (compile :type built-in)
         :preface
         ;; ANSI Coloring
         ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
@@ -3186,7 +3061,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package dumb-jump
         :after hydra
-        :hook (sej/after-init . dumb-jump-mode)
+        :hook (emacs-startup . dumb-jump-mode)
         :defines sej-mode-map
         :functions dumb-jump-hydra/body
         :bind (:map sej-mode-map
@@ -3234,7 +3109,7 @@
     - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
     #+BEGIN_SRC emacs-lisp
       (use-package flymake
-        :ensure t
+        :straight (flymake :type built-in)
         :defines sej-mode-map
         :hook (post-command . flymake-error-at-point)
         :bind (:map sej-mode-map
@@ -3397,7 +3272,7 @@
     - https://github.com/alphapapa/magit-todos
     #+BEGIN_SRC emacs-lisp
       (use-package magit-todos
-        :hook (sej/after-init . magit-todos-mode))
+        :hook (emacs-startup . magit-todos-mode))
     #+END_SRC
 
 *** git-timemachine
@@ -3412,33 +3287,12 @@
                     ("t" . git-timemachine)))
     #+END_SRC
 
-*** git-messenger
-    - Pop up last commit information of current line
-    - https://github.com/syohex/emacs-git-messenger
-    #+BEGIN_SRC emacs-lisp
-      (use-package git-messenger
-        :bind (
-               :map sej-mode-map
-               (
-                ("C-x v p" . git-messenger:popup-message)
-                ("C-x M" . git-messenger:popup-message)
-                ("H-m" . git-messenger:popup-message)
-                )
-               :map vc-prefix-map
-               ("p" . git-messenger:popup-message)
-               :map git-messenger-map
-               ("m" . git-messenger:copy-message))
-        :init
-        ;; Use magit-show-commit for showing status/diff commands
-        (setq git-messenger:use-magit-popup t))
-    #+END_SRC
-
 *** smerge-mode
     - Resolve diff3 conflicts
     - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
     #+BEGIN_SRC emacs-lisp
       (use-package smerge-mode
-        :ensure nil
+        :straight (smerge-mode :type built-in)
         :after hydra
         :diminish
         :commands (smerge-mode
@@ -3509,7 +3363,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package browse-at-remote
         :bind (:map sej-mode-map
-                    (("C-c s b" . browse-at-remote)
+                    (("C-c s B" . browse-at-remote)
                      ("C-x v B" . browse-at-remote))
                     :map vc-prefix-map
                     ("B" . browse-at-remote)))
@@ -3543,7 +3397,7 @@
       (use-package gist
         :defines sej-mode-map
         :bind  (:map sej-mode-map
-                     ("C-x G" . gist-list)
+                     ("C-c s G" . gist-list)
                      ("H-G" . gist-list)))
     #+END_SRC
 
@@ -3582,7 +3436,9 @@
             (kill-buffer log-buf))
           (kill-buffer commit-buf)))
 
+      (define-key sej-mode-map (kbd "C-c s b") 'sej/git-blame-line)
       (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
+
     #+END_SRC
 
 ** completion
@@ -3591,7 +3447,7 @@
     - https://www.emacswiki.org/emacs/HippieExpand
     #+BEGIN_SRC emacs-lisp
       (use-package hippie-expand
-        :ensure nil
+        :straight (hippie-expand :type built-in)
         :bind (:map sej-mode-map
                     ("M-/" . hippie-expand))
         :init
@@ -3617,16 +3473,14 @@
       (use-package company
         :diminish company-mode
         :defines
-        sej-mode-map
         company-dabbrev-ignore-case
         company-dabbrev-downcase
         company-dabbrev-code-modes
         company-dabbrev-code-ignore-case
         :commands company-abort
         :bind (
-               ("<backtab>" . company-yasnippet)
-               :map sej-mode-map
                (("C-<tab>" . company-complete)
+                ("<backtab>" . company-yasnippet)
                 ("M-<tab>" . company-complete))
                :map company-active-map
                (("C-n" . company-select-next)
@@ -3637,7 +3491,7 @@
                :map company-search-map
                (("C-p" . company-select-previous)
                 ("C-n" . company-select-next)))
-        :hook (sej/after-init . global-company-mode)
+        :hook (emacs-startup . global-company-mode)
         :init
         (defun my-company-yasnippet ()
           (interactive)
@@ -3759,7 +3613,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package company-statistics
         :after company
-        :hook (sej/after-init . company-statistics-mode))
+        :hook (emacs-startup . company-statistics-mode))
     #+END_SRC
 
 *** company-try-hard
@@ -3788,7 +3642,7 @@
           (add-to-list 'company-backends '(company-shell
                                            company-shell-env
                                            company-fish-shell)) )
-        :hook (sej/after-init . sej/company-shell-hook) )
+        :hook (emacs-startup . sej/company-shell-hook) )
     #+END_SRC
 
 *** company-jedi
@@ -3836,7 +3690,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package yasnippet
         :diminish yas-minor-mode
-        :hook ((sej/after-init . yas-reload-all)
+        :hook ((emacs-startup . yas-reload-all)
                ((prog-mode org-mode) . yas-minor-mode))
         :bind (:map yas-minor-mode-map
                     ("<tab>" . nil)
@@ -3861,9 +3715,9 @@
 *** lisp settings
     - some lisp stuff from Getting Started with Emacs Lisp
     #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "<s-return>") 'eval-last-sexp)
-      (define-key sej-mode-map (kbd "<H-return>") 'eval-buffer)
-      (define-key sej-mode-map (kbd "<A-return>") 'eval-region)
+      (define-key emacs-lisp-mode-map (kbd "<s-return>") 'eval-last-sexp)
+      (define-key emacs-lisp-mode-map (kbd "<H-return>") 'eval-buffer)
+      (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
 
       (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 
@@ -3988,7 +3842,7 @@
     - http://wikemacs.org/wiki/Python
     #+BEGIN_SRC emacs-lisp
       (use-package python
-        :ensure nil
+        :straight (python :type built-in)
         :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
         :interpreter "python"
         :bind (:map python-mode-map
@@ -4235,7 +4089,7 @@
     - https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
     #+BEGIN_SRC emacs-lisp
       (use-package nxml-mode
-        :ensure nil
+        :straight (nxml-mode :type built-in)
         :mode (("\\.xaml$" . xml-mode)))
     #+END_SRC
 
@@ -4245,7 +4099,7 @@
     - https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
     #+BEGIN_SRC emacs-lisp
       (use-package cc-mode
-        :ensure nil
+        :straight (cc-mode :type built-in)
         :bind (:map c-mode-base-map
                     ("C-c c" . compile))
         :hook ((c-mode-common . flycheck-mode)
@@ -4328,7 +4182,7 @@
     - https://www.emacswiki.org/emacs/IbufferMode
     #+BEGIN_SRC emacs-lisp
       (use-package ibuffer
-        :ensure nil
+        :straight (ibuffer :type built-in)
         :functions (all-the-icons-icon-for-file
                     all-the-icons-icon-for-mode
                     all-the-icons-auto-mode-match?
@@ -4397,8 +4251,8 @@
       (i for init.el, r for this file) to jump to it.
     - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
     #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-                                              ; (kbd "C-x r j") is built-in global
+      (define-key sej-mode-map (kbd "H-r") 'jump-to-register)
+      ;; (kbd "C-x r j") is built-in global
       (set-register ?b '(file . "~/.ssh/custom-post.el"))
       (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
       (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
@@ -4845,7 +4699,8 @@
     - https://github.com/m00natic/vlfi
     #+BEGIN_SRC emacs-lisp
       (use-package vlf-setup
-        :ensure vlf
+        :straight (vlf :host github
+                       :repo "m00natic/vlfi")
         :commands (vlf vlf-occur-load vlf-ediff-files))
     #+END_SRC
 
@@ -4855,7 +4710,7 @@
     - https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
     #+BEGIN_SRC emacs-lisp
       (use-package dired
-        :ensure nil
+        :straight (dired :type built-in)
         :bind (:map dired-mode-map
                     ("C-c C-p" . wdired-change-to-wdired-mode))
         :config
@@ -4931,7 +4786,8 @@
     - auxiliary functionality of dired
     - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
     #+BEGIN_SRC emacs-lisp
-      (use-package dired-aux :ensure nil)
+      (use-package dired-aux
+        :straight (dired-aux :type built-in))
     #+END_SRC
 
 *** dired-x
@@ -4939,7 +4795,7 @@
     - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
     #+BEGIN_SRC emacs-lisp
       (use-package dired-x
-        :ensure nil
+        :straight (autorevert :type built-in)
         :demand
         :config
         (let ((cmd (cond
@@ -4972,6 +4828,7 @@
       (use-package quick-preview
         :defines sej-mode-map
         :bind (:map sej-mode-map
+                    ("C-c s q" . quick-preview-at-point)
                     ("C-c q" . quick-preview-at-point)
                     :map dired-mode-map
                     ("Q" . quick-preview-at-point)))
@@ -5003,7 +4860,8 @@
         :defines sej-mode-map deft-text-mode
         :bind (:map sej-mode-map
                     ("<f7>" . deft)
-                    ("C-c d" . deft))
+                    ("C-c s D" . deft)
+                    ("C-c D" . deft))
         :config
         (setq deft-directory sej-org-directory)
         (setq deft-use-filename-as-title t
@@ -5160,8 +5018,8 @@
     - https://www.emacswiki.org/emacs/AbbrevMode
     #+BEGIN_SRC emacs-lisp
       (use-package abbrev
-        :ensure nil
-        :hook ((sej/after-init org-mode) . abbrev-mode)
+        :straight (abbrev :type built-in)
+        :hook ((emacs-startup org-mode) . abbrev-mode)
         :diminish abbrev-mode
         :config
         (setq abbrev-file-name             ;; tell emacs where to read abbrev
@@ -5212,7 +5070,7 @@
                 (forward-line 1)))
         (goto-char start))
 
-      (define-key sej-mode-map (kbd "C-c s n") 'sej/number-rectangle)
+      (define-key sej-mode-map (kbd "C-c s N") 'sej/number-rectangle)
       (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
     #+END_SRC
 
@@ -5280,9 +5138,7 @@
       (use-package define-word
         :unless sys/macp
         :bind (:map sej-mode-map
-                    ("C-c s w" . define-word-at-point)
-                    ("H-d" . define-word-at-point)
-                    ("H-D" . define-word)
+                    ("C-c s s" . define-word-at-point)
                     ("s-\\" . define-word-at-point)))
     #+END_SRC
 
@@ -5296,10 +5152,8 @@
         :if sys/macp
         :defines sej-mode-map
         :bind (:map sej-mode-map
-                    ("C-c s w" . osx-dictionary-search-word-at-point)
+                    ("C-c s s" . osx-dictionary-search-word-at-point)
                     ("s-\\" . osx-dictionary-search-word-at-point)
-                    ("H-d" . osx-dictionary-search-word-at-point)
-                    ("H-D" . osx-dictionary-search-pointer)
                     ("C-c s i" . osx-dictionary-search-input)
                     ))
     #+END_SRC
@@ -5409,7 +5263,6 @@
     - https://orgmode.org/
       #+BEGIN_SRC emacs-lisp
         (use-package org
-          :ensure org-plus-contrib
           :defines
           sej-mode-map
           org-capture-bookmark
@@ -5439,6 +5292,7 @@
                       ("S-<right>" . org-shiftright)
                       )
           :config
+          (use-package org-plus-contrib)
           (setq org-directory sej-org-directory)
           (defconst org-file-inbox (concat org-directory "/inbox.org"))
           (defconst org-file-someday (concat org-directory "/someday.org"))
@@ -5663,8 +5517,7 @@
     - https://github.com/bzg/org-mode/blob/master/lisp/org-num.el
       #+BEGIN_SRC emacs-lisp
         (use-package org-num
-          :load-path "lisp/"
-          :after org
+          :straight(org-num :local-repo "org/lisp/")
           :hook (org-mode . org-num-mode))
       #+END_SRC
 
@@ -6000,7 +5853,7 @@
                (comint-output-filter-functions . comint-strip-ctrl-m)
                (comint-output-filter-functions . comint-truncate-buffer))
         :bind  (:map sej-mode-map
-                     ("H-s" . shell)
+                     ("H-S" . shell)
                      ("C-c s S" . shell))
         :config
         (defun n-shell-simple-send (proc command)
@@ -6091,5 +5944,5 @@
     - https://github.com/tarsius/keychain-environment
     #+BEGIN_SRC emacs-lisp
       (use-package keychain-environment
-        :hook (sej/after-init . keychain-refresh-environment))
+        :hook (emacs-startup . keychain-refresh-environment))
     #+END_SRC

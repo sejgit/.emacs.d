@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/git-modes/gitconfig-mode.el

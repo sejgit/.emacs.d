@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/company-try-hard/company-try-hard.el

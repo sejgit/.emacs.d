@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/emacs-smart-hungry-delete/smart-hungry-delete.el

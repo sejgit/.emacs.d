@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/goto-line-preview/goto-line-preview.el

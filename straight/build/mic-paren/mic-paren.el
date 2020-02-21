@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/mic-paren/mic-paren.el

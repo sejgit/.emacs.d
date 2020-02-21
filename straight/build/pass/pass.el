@@ -1,0 +1,1 @@
+/Users/stephenjenkins/.emacs.d/straight/repos/pass/pass.el
