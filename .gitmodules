@@ -1,0 +1,3 @@
+[submodule "straight/repos/xahk-mode.el"]
+	path = straight/repos/xahk-mode.el
+	url = https://github.com/xahlee/xahk-mode.el.git

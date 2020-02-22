@@ -11,18 +11,16 @@
 - <2019-12-23 Mon> add links to all packages
 - <2020-01-04 Sat> linux changes
 - <2020-01-31 Fri> orgmode pretty changes
-
-- TODO perhaps use straight to get packages local
-
+- <2020-02-21 Fri> package -> straight
 
 * table of contents                                                     :TOC:
 - [[#constants][constants]]
 - [[#customization-setting][customization setting]]
 - [[#initialize-basic][initialize basic]]
   - [[#environment-general][environment general]]
-  - [[#initialize-package-system][initialize package system]]
+  - [[#initialize-straight-package-system][initialize Straight package system]]
   - [[#environment-system-specific][environment system specific]]
-  - [[#after-init--server][after-init & server]]
+  - [[#emacs-startup--server][emacs-startup & server]]
 - [[#general---keybindings][general - keybindings]]
   - [[#modifiers---os-specific][modifiers - OS specific]]
   - [[#keybindings-global][keybindings global]]
@@ -132,13 +130,13 @@
     (defcustom sej-theme 'default
       "Set color theme."
       :type '(choice
-              (const :tag "Default theme" default)
-              (const :tag "Classic theme" classic)
-              (const :tag "Doom theme" doom)
-              (const :tag "Dark theme" dark)
-              (const :tag "Light theme" light)
-              (const :tag "Daylight theme" daylight)
-              symbol))
+	      (const :tag "Default theme" default)
+	      (const :tag "Classic theme" classic)
+	      (const :tag "Doom theme" doom)
+	      (const :tag "Dark theme" dark)
+	      (const :tag "Light theme" light)
+	      (const :tag "Daylight theme" daylight)
+	      symbol))
 
     (defcustom sej-dashboard t
       "Use dashboard at startup or not.
@@ -148,9 +146,9 @@
     (defcustom sej-lsp 'lsp-mode
       "Set language server."
       :type '(choice
-              (const :tag "LSP Mode" 'lsp-mode)
-              (const :tag "eglot" 'eglot)
-              nil))
+	      (const :tag "LSP Mode" 'lsp-mode)
+	      (const :tag "eglot" 'eglot)
+	      nil))
 
     (defcustom sej-benchmark nil
       "Enable the init benchmark or not."
@@ -177,28 +175,28 @@
     (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
     (let ((custom-template-file
-           (expand-file-name "custom-template.el" user-emacs-directory)))
+	   (expand-file-name "custom-template.el" user-emacs-directory)))
       (if (and (file-exists-p custom-template-file)
-               (not (file-exists-p custom-file)))
-          (copy-file custom-template-file custom-file)))
+	       (not (file-exists-p custom-file)))
+	  (copy-file custom-template-file custom-file)))
 
     (if (file-exists-p custom-file)
-        (load custom-file))
+	(load custom-file))
 
     ;; Load `custom-post.el'
     ;; Put personal configurations to override defaults here.
     ;; place to hold specific & secret stuff ~/.ssh is best
     (add-hook 'after-init-hook
-              (progn
-                (let ((file
-                       (expand-file-name "custom-post.el" user-emacs-directory)))
-                  (if (file-exists-p file)
-                      (load file)))
-                (let ((file
-                       (expand-file-name "custom-post.el" "~/.ssh/")))
-                  (if (file-exists-p file)
-                      (load file)))
-                ))
+	      (progn
+		(let ((file
+		       (expand-file-name "custom-post.el" user-emacs-directory)))
+		  (if (file-exists-p file)
+		      (load file)))
+		(let ((file
+		       (expand-file-name "custom-post.el" "~/.ssh/")))
+		  (if (file-exists-p file)
+		      (load file)))
+		))
   #+END_SRC
 
 * initialize basic
@@ -210,12 +208,12 @@
 
      ;; Use a hook so the message doesn't get clobbered by other messages.
      (add-hook 'emacs-startup-hook
-               (lambda ()
-                 (message "Emacs ready in %s with %d garbage collections."
-                          (format "%.2f seconds"
-                                  (float-time
-                                   (time-subtract after-init-time before-init-time)))
-                          gcs-done)))
+	       (lambda ()
+		 (message "Emacs ready in %s with %d garbage collections."
+			  (format "%.2f seconds"
+				  (float-time
+				   (time-subtract after-init-time before-init-time)))
+			  gcs-done)))
 
      ;; Turn off mouse interface early in startup to avoid momentary display
      (menu-bar-mode t)
@@ -237,24 +235,9 @@
 
      ;; Set deferred timer to reset them
      (run-with-idle-timer 5 nil
-                          (lambda ()
-                            (setq gc-cons-threshold gc-cons-threshold-original)
-                            (setq file-name-handler-alist file-name-handler-alist-original)))
-
-     ;; Load path
-     ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
-     (defun update-load-path (&rest _)
-       "Update `load-path'."
-       (push (expand-file-name "site-lisp" user-emacs-directory) load-path)
-       (push (expand-file-name "lisp" user-emacs-directory) load-path))
-
-     (defun add-subdirs-to-load-path (&rest _)
-       "Add subdirectories to `load-path'."
-       (let ((default-directory
-               (expand-file-name "site-lisp" user-emacs-directory)))
-         (normal-top-level-add-subdirs-to-load-path)))
-
-     (update-load-path)
+			  (lambda ()
+			    (setq gc-cons-threshold gc-cons-threshold-original)
+			    (setq file-name-handler-alist file-name-handler-alist-original)))
 
      ;; turn on syntax highlightng for all buffers
      (global-font-lock-mode t)
@@ -288,33 +271,9 @@
        (setq x-gtk-use-system-tooltips nil))
    #+END_SRC
 
-** initialize package system
-*** Custom file hack
-    - DO NOT copy package-selected-packages to init/custom file forcibly.
-      https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
+** initialize Straight package system
+*** Straight package manager set-up
     #+BEGIN_SRC emacs-lisp
-      ;; (defun my-save-selected-packages (&optional value)
-      ;;   "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
-      ;;   (when value
-      ;;     (setq package-selected-packages value)))
-      ;; (advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
-
-    #+END_SRC
-
-*** Package set-up
-    #+BEGIN_SRC emacs-lisp
-      ;; (require 'package)
-      ;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-      ;; (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
-      ;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-      ;; (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
-      ;; (setq load-prefer-newer t)
-
-      ;; ;; Initialize packages
-      ;; (unless (bound-and-true-p package--initialized) ; To avoid warnings in 27
-      ;;   (setq package-enable-at-startup nil)          ; To prevent initializing twice
-      ;;   (package-initialize))
-
       (setq straight-use-package-by-default t)
       (defvar bootstrap-version)
       (let ((bootstrap-file
@@ -328,7 +287,6 @@
             (goto-char (point-max))
             (eval-print-last-sexp)))
         (load bootstrap-file nil 'nomessage))
-
     #+END_SRC
 
 *** Use-Package set-up
@@ -337,11 +295,6 @@
     - https://github.com/jwiegley/use-package/blob/master/bind-key.el
     - https://github.com/jwiegley/use-package#use-package-ensure-system-package
     #+BEGIN_SRC emacs-lisp
-      ;; Setup `use-package'
-      ;; (unless (package-installed-p 'use-package)
-      ;;   (package-refresh-contents)
-      ;;   (package-install 'use-package))
-
       (straight-use-package 'use-package)
 
       ;; Should set before loading `use-package'
@@ -370,31 +323,33 @@
    #+BEGIN_SRC emacs-lisp
      (when sys/win32p
        (setenv "PATH"
-               (mapconcat
-                #'identity exec-path path-separator))
+	       (mapconcat
+		#'identity exec-path path-separator))
        ;; set exec-path for latex installation
        (setq exec-path (append (list sej-latex-directory
-                                     "c:/msys64/mingw64/bin"
-                                     "/mingw64/bin/") exec-path))
+				     "c:/msys64/mingw64/bin"
+				     "/mingw64/bin/") exec-path))
        ;; load AutoHotkey mode
-       (load-library "xahk-mode"))
+       (use-package xahk-mode
+	 :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el")
+	 ))
 
      (when (or sys/mac-x-p sys/linux-x-p)
        (setq exec-path (append exec-path '("/usr/local/bin")))
        (use-package exec-path-from-shell
-         :init
-         (exec-path-from-shell-initialize))
+	 :init
+	 (exec-path-from-shell-initialize))
        )
 
      (setq-default locate-command "which")
 
      ;; The EMACS environment variable being set to the binary path of emacs.
      (setenv "EMACS"
-             (file-truename (expand-file-name
-                             invocation-name invocation-directory)))
+	     (file-truename (expand-file-name
+			     invocation-name invocation-directory)))
    #+END_SRC
 
-** after-init & server
+** emacs-startup & server
    - to delay some items until after we get going
    - http://wikemacs.org/wiki/Emacs_server
    #+BEGIN_SRC emacs-lisp
@@ -665,13 +620,6 @@
         (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
     #+END_SRC
 
-*** try
-    - for TRYing out a package in current Emacs instance
-    - https://github.com/larstvei/Try
-    #+BEGIN_SRC emacs-lisp
-      (use-package try)
-    #+END_SRC
-
 ** help
 *** which-key
     - minibuffer keybinding prompts
@@ -679,7 +627,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package which-key
         :diminish which-key-mode
-        :hook (after-init . which-key-mode)
+        :hook (emacs-startup . which-key-mode)
         :commands which-key-mode
         :defines sej-mode-map
         :bind (:map sej-mode-map
@@ -1284,7 +1232,7 @@
                   (persistent-scratch-save)
                   (message "Wrote %s" scratch-name))
               (save-buffer))))
-        :hook (after-init . persistent-scratch-setup-default)
+        :hook (emacs-startup . persistent-scratch-setup-default)
         :bind (:map lisp-interaction-mode-map
                     ("C-x C-s" . my-save-buffer)))
     #+END_SRC
@@ -1330,7 +1278,7 @@
         :custom-face
         (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
         (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
-        :hook (after-init . ace-window-display-mode)
+        :hook (emacs-startup . ace-window-display-mode)
         :config
         (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
     #+END_SRC
@@ -1375,7 +1323,7 @@
     - https://github.com/seagle0128/doom-modeline
    #+BEGIN_SRC emacs-lisp
      (use-package doom-modeline
-       :hook (after-init . doom-modeline-mode)
+       :hook (emacs-startup . doom-modeline-mode)
        (after-save . doom-modeline-update-buffer-file-name)
        (after-save . doom-modeline-update-buffer-file-state-icon)
        :init
@@ -3272,7 +3220,9 @@
     - https://github.com/alphapapa/magit-todos
     #+BEGIN_SRC emacs-lisp
       (use-package magit-todos
-        :hook (emacs-startup . magit-todos-mode))
+        :hook (emacs-startup . magit-todos-mode)
+        :config
+        (setq magit-todos-exclude-globs '("*.map" "*.html")))
     #+END_SRC
 
 *** git-timemachine
