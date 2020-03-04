@@ -14,18 +14,18 @@
 - <2020-02-21 Fri> package -> straight
 
 * table of contents                                                     :TOC:
-- [[#constants][constants]]
-- [[#customization-setting][customization setting]]
-- [[#initialize-basic][initialize basic]]
-  - [[#environment-general][environment general]]
-  - [[#initialize-straight-package-system][initialize Straight package system]]
-  - [[#environment-system-specific][environment system specific]]
-  - [[#emacs-startup--server][emacs-startup & server]]
-- [[#general---keybindings][general - keybindings]]
-  - [[#modifiers---os-specific][modifiers - OS specific]]
+- [[#initialize-environment][initialize environment]]
+  - [[#system-constants][system constants]]
+  - [[#customization-variables-set][customization variables set]]
+  - [[#general-settings][general settings]]
+  - [[#straight-package-manager-set-up][Straight package manager set-up]]
+  - [[#use-package-set-up][Use-Package set-up]]
+  - [[#system-settings][system settings]]
+- [[#general-keybindings][general keybindings]]
+  - [[#modifiers][modifiers]]
   - [[#keybindings-global][keybindings global]]
   - [[#keybindings-sej-mode-map][keybindings sej-mode-map]]
-- [[#general---functions--packages][general - functions / packages]]
+- [[#general-functions--packages][general functions / packages]]
   - [[#help][help]]
   - [[#update][update]]
   - [[#network-proxy][network proxy]]
@@ -64,143 +64,143 @@
   - [[#eshell][eshell]]
   - [[#shell][shell]]
 
-* constants
-  - section for global constants
-  #+BEGIN_SRC emacs-lisp
-    (defconst sej-homepage
-      "https://github.com/sejgit/.emacs.d"
-      "The Github page of SeJ Emacs.")
+* initialize environment
+** system constants
+   - section for global constants
+   #+BEGIN_SRC emacs-lisp
+     (defconst sej-homepage
+       "https://github.com/sejgit/.emacs.d"
+       "The Github page of SeJ Emacs.")
 
-    (defconst sys/win32p
-      (eq system-type 'windows-nt)
-      "Are we running on a WinTel system?")
+     (defconst sys/win32p
+       (eq system-type 'windows-nt)
+       "Are we running on a WinTel system?")
 
-    (defconst sys/linuxp
-      (eq system-type 'gnu/linux)
-      "Are we running on a GNU/Linux system?")
+     (defconst sys/linuxp
+       (eq system-type 'gnu/linux)
+       "Are we running on a GNU/Linux system?")
 
-    (defconst sys/macp
-      (eq system-type 'darwin)
-      "Are we running on a Mac system?")
+     (defconst sys/macp
+       (eq system-type 'darwin)
+       "Are we running on a Mac system?")
 
-    (defconst sys/mac-x-p
-      (and (display-graphic-p) sys/macp)
-      "Are we running under X on a Mac system?")
+     (defconst sys/mac-x-p
+       (and (display-graphic-p) sys/macp)
+       "Are we running under X on a Mac system?")
 
-    (defconst sys/linux-x-p
-      (and (display-graphic-p) sys/linuxp)
-      "Are we running under X on a GNU/Linux system?")
+     (defconst sys/linux-x-p
+       (and (display-graphic-p) sys/linuxp)
+       "Are we running under X on a GNU/Linux system?")
 
-    (defconst sys/cygwinp
-      (eq system-type 'cygwin)
-      "Are we running on a Cygwin system?")
+     (defconst sys/cygwinp
+       (eq system-type 'cygwin)
+       "Are we running on a Cygwin system?")
 
-    (defconst sys/rootp
-      (string-equal "root" (getenv "USER"))
-      "Are you using ROOT user?")
+     (defconst sys/rootp
+       (string-equal "root" (getenv "USER"))
+       "Are you using ROOT user?")
 
-    (defconst emacs/>=26p
-      ( >= emacs-major-version 26 )
-      "Emacs is 26 or above.")
+     (defconst emacs/>=26p
+       ( >= emacs-major-version 26 )
+       "Emacs is 26 or above.")
 
-    (defconst emacs/>=27p
-      (>= emacs-major-version 27)
-      "Emacs is 27 or above.")
-#+END_SRC
+     (defconst emacs/>=27p
+       (>= emacs-major-version 27)
+       "Emacs is 27 or above.")
+ #+END_SRC
 
-* customization setting
-  - set-up Emacs customizations choices which can then be modified by custom.el
-  #+BEGIN_SRC emacs-lisp
-        (defgroup sej nil
-          "SeJ Emacs customizations."
-          :group 'convenience)
+** customization variables set
+   - set-up Emacs customizations choices which are then modified by custom.el
+   #+BEGIN_SRC emacs-lisp
+       (defgroup sej nil
+         "SeJ Emacs customizations."
+         :group 'convenience)
 
-        (defcustom sej-full-name "Stephen Jenkins"
-          "Set user full name."
-          :type 'string)
+       (defcustom sej-full-name "Stephen Jenkins"
+         "Set user full name."
+         :type 'string)
 
-        (defcustom sej-mail-address "stephenearljenkins@gmail.com"
-          "Set user email address."
-          :type 'string)
+       (defcustom sej-mail-address "stephenearljenkins@gmail.com"
+         "Set user email address."
+         :type 'string)
 
-        (defcustom sej-proxy "localhost:80"
-          "Set network proxy."
-          :type 'string)
+       (defcustom sej-proxy "localhost:80"
+         "Set network proxy."
+         :type 'string)
 
-        (defcustom sej-theme 'default
-          "Set color theme."
-          :type '(choice
-            (const :tag "Default theme" default)
-            (const :tag "Classic theme" classic)
-            (const :tag "Doom theme" doom)
-            (const :tag "Dark theme" dark)
-            (const :tag "Light theme" light)
-            (const :tag "Daylight theme" daylight)
-            symbol))
+       (defcustom sej-theme 'default
+         "Set color theme."
+         :type '(choice
+           (const :tag "Default theme" default)
+           (const :tag "Classic theme" classic)
+           (const :tag "Doom theme" doom)
+           (const :tag "Dark theme" dark)
+           (const :tag "Light theme" light)
+           (const :tag "Daylight theme" daylight)
+           symbol))
 
-        (defcustom sej-dashboard t
-          "Use dashboard at startup or not.
-        If Non-nil, use dashboard, otherwise will restore previous session."
-          :type 'boolean)
+       (defcustom sej-dashboard t
+         "Use dashboard at startup or not.
+       If Non-nil, use dashboard, otherwise will restore previous session."
+         :type 'boolean)
 
-        (defcustom sej-lsp 'lsp-mode
-          "Set language server."
-          :type '(choice
-            (const :tag "LSP Mode" 'lsp-mode)
-            (const :tag "eglot" 'eglot)
-            nil))
+     (defcustom sej-lsp 'eglot
+         "Set language server."
+         :type '(choice
+           (const :tag "LSP Mode" 'lsp-mode)
+           (const :tag "eglot" 'eglot)
+           nil))
 
-        (defcustom sej-benchmark nil
-          "Enable the init benchmark or not."
-          :type 'boolean)
+       (defcustom sej-benchmark nil
+         "Enable the init benchmark or not."
+         :type 'boolean)
 
-        (defcustom sej-org-directory "~/Documents/orgtodo"
-          "Set org directory"
-          :type 'string)
+       (defcustom sej-org-directory "~/Documents/orgtodo"
+         "Set org directory"
+         :type 'string)
 
-        (defcustom sej-project-org-capture-text "Project"
-          "Text for the Label for the Org Capture Project journal"
-          :type 'string)
+       (defcustom sej-project-org-capture-text "Project"
+         "Text for the Label for the Org Capture Project journal"
+         :type 'string)
 
-        (defcustom sej-project-org-capture-file "~/Documents/orgtodo/journal.org"
-          "Filename for the Org Capture Project Journal"
-          :type 'string)
+       (defcustom sej-project-org-capture-file "~/Documents/orgtodo/journal.org"
+         "Filename for the Org Capture Project Journal"
+         :type 'string)
 
-        (defcustom sej-latex-directory "/Library/TeX/texbin"
-          "Directory for Latex"
-          :type 'string)
+       (defcustom sej-latex-directory "/Library/TeX/texbin"
+         "Directory for Latex"
+         :type 'string)
 
-        ;; Load `custom-file'
-        ;; If it doesn't exist, copy from the template, then load it.
-        (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+       ;; Load `custom-file'
+       ;; If it doesn't exist, copy from the template, then load it.
+       (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
-        (let ((custom-template-file
-         (expand-file-name "custom-template.el" user-emacs-directory)))
-          (if (and (file-exists-p custom-template-file)
-             (not (file-exists-p custom-file)))
-        (copy-file custom-template-file custom-file)))
+       (let ((custom-template-file
+        (expand-file-name "custom-template.el" user-emacs-directory)))
+         (if (and (file-exists-p custom-template-file)
+            (not (file-exists-p custom-file)))
+       (copy-file custom-template-file custom-file)))
 
-        (if (file-exists-p custom-file)
-      (load custom-file))
+       (if (file-exists-p custom-file)
+     (load custom-file))
 
-        ;; Load `custom-post.el'
-        ;; Put personal configurations to override defaults here.
-        ;; place to hold specific & secret stuff ~/.ssh is best
-        (add-hook 'after-init-hook
-            (progn
-        (let ((file
-               (expand-file-name "custom-post.el" user-emacs-directory)))
-          (if (file-exists-p file)
-              (load file)))
-        (let ((file
-               (expand-file-name "custom-post.el" "~/.ssh/")))
-          (if (file-exists-p file)
-              (load file)))
-        ))
-  #+END_SRC
+       ;; Load `custom-post.el'
+       ;; Put personal configurations to override defaults here.
+       ;; place to hold specific & secret stuff ~/.ssh is best
+       (add-hook 'after-init-hook
+           (progn
+       (let ((file
+              (expand-file-name "custom-post.el" user-emacs-directory)))
+         (if (file-exists-p file)
+             (load file)))
+       (let ((file
+              (expand-file-name "custom-post.el" "~/.ssh/")))
+         (if (file-exists-p file)
+             (load file)))
+       ))
+   #+END_SRC
 
-* initialize basic
-** environment general
+** general settings
    #+BEGIN_SRC emacs-lisp
      (when (not emacs/>=26p)
        (error "This requires Emacs 26 and above")
@@ -269,97 +269,93 @@
      ;; Don't use GTK+ tooltip
      (when (boundp 'x-gtk-use-system-tooltips)
        (setq x-gtk-use-system-tooltips nil))
-   #+END_SRC
-
-** initialize Straight package system
-*** Straight package manager set-up
-    #+BEGIN_SRC emacs-lisp
-      (setq straight-use-package-by-default t)
-      (defvar bootstrap-version)
-      (let ((bootstrap-file
-             (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-            (bootstrap-version 5))
-        (unless (file-exists-p bootstrap-file)
-          (with-current-buffer
-              (url-retrieve-synchronously
-               "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-               'silent 'inhibit-cookies)
-            (goto-char (point-max))
-            (eval-print-last-sexp)))
-        (load bootstrap-file nil 'nomessage))
-    #+END_SRC
-
-*** Use-Package set-up
-    - https://github.com/jwiegley/use-package
-    - https://github.com/emacsmirror/diminish
-    - https://github.com/jwiegley/use-package/blob/master/bind-key.el
-    - https://github.com/jwiegley/use-package#use-package-ensure-system-package
-    #+BEGIN_SRC emacs-lisp
-      (straight-use-package 'use-package)
-
-      ;; Should set before loading `use-package'
-      (eval-and-compile
-        (setq use-package-always-ensure t)
-        (setq use-package-always-defer t)
-        (setq use-package-expand-minimally t)
-        (setq use-package-enable-imenu-support t))
-
-      (eval-when-compile
-        (require 'use-package))
-
-      ;; Required by `use-package'
-      (use-package diminish)
-      (use-package bind-key)
-
-      ;; Auto installing OS system packages
-      ;; ensure-system-package keyword to ensure system binaries exist alongside your package
-      (use-package use-package-ensure-system-package)
-      (use-package helm-system-packages)
-    #+END_SRC
-
-** environment system specific
-   - Set environment variables based on current system & paths
-   - https://github.com/xahlee/xahk-mode.el
-   #+BEGIN_SRC emacs-lisp
-     (when sys/win32p
-       (setenv "PATH"
-         (mapconcat
-		#'identity exec-path path-separator))
-       ;; set exec-path for latex installation
-       (setq exec-path (append (list sej-latex-directory
-             "c:/msys64/mingw64/bin"
-             "/mingw64/bin/") exec-path))
-       ;; load AutoHotkey mode
-       (use-package xahk-mode
-	 :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el")
-	 ))
-
-     (when (or sys/mac-x-p sys/linux-x-p)
-       (setq exec-path (append exec-path '("/usr/local/bin")))
-       (use-package exec-path-from-shell
-	 :init
-	 (exec-path-from-shell-initialize))
-       )
 
      (setq-default locate-command "which")
 
-     ;; The EMACS environment variable being set to the binary path of emacs.
+     ;; The EMACS environment variable set to the binary path of emacs.
      (setenv "EMACS"
        (file-truename (expand-file-name
            invocation-name invocation-directory)))
    #+END_SRC
 
-** emacs-startup & server
-   - to delay some items until after we get going
-   - http://wikemacs.org/wiki/Emacs_server
+** Straight package manager set-up
    #+BEGIN_SRC emacs-lisp
-     (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
-     (add-hook 'emacs-startup-hook 'server-mode)
+     (setq straight-use-package-by-default t)
+     (defvar bootstrap-version)
+     (let ((bootstrap-file
+            (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+           (bootstrap-version 5))
+       (unless (file-exists-p bootstrap-file)
+         (with-current-buffer
+             (url-retrieve-synchronously
+              "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+              'silent 'inhibit-cookies)
+           (goto-char (point-max))
+           (eval-print-last-sexp)))
+       (load bootstrap-file nil 'nomessage))
    #+END_SRC
 
-* general - keybindings
-** modifiers - OS specific
-*** MAC OS Apple keyboard
+** Use-Package set-up
+   - https://github.com/jwiegley/use-package
+   - https://github.com/emacsmirror/diminish
+   - https://github.com/jwiegley/use-package/blob/master/bind-key.el
+   - https://github.com/jwiegley/use-package#use-package-ensure-system-package
+   #+BEGIN_SRC emacs-lisp
+     (straight-use-package 'use-package)
+
+     ;; Should set before loading `use-package'
+     (eval-and-compile
+       (setq use-package-always-ensure t)
+       (setq use-package-always-defer t)
+       (setq use-package-expand-minimally t)
+       (setq use-package-enable-imenu-support t))
+
+     (eval-when-compile
+       (require 'use-package))
+
+     ;; Required by `use-package'
+     (use-package diminish)
+     (use-package bind-key
+       :bind ("H-d" . describe-personal-keybindings))
+
+     ;; Auto installing OS system packages
+     ;; ensure-system-package keyword to ensure system binaries exist alongside your package
+     (use-package use-package-ensure-system-package)
+     (use-package helm-system-packages)
+   #+END_SRC
+
+** system settings
+   - Set environment variables based on current system
+*** OSX & Linux
+   - https://github.com/xahlee/xahk-mode.el
+   #+BEGIN_SRC emacs-lisp
+     (when (or sys/macp sys/linuxp)
+       (setq exec-path (append exec-path '("/usr/local/bin")))
+       (use-package exec-path-from-shell
+         :init
+         (exec-path-from-shell-initialize))
+       (add-hook 'emacs-startup-hook 'server-mode))
+   #+END_SRC
+
+*** Windows
+   - https://github.com/xahlee/xahk-mode.el
+   #+BEGIN_SRC emacs-lisp
+     (when sys/win32p
+       (setenv "PATH"
+               (mapconcat
+                #'identity exec-path path-separator))
+       ;; set exec-path for latex installation
+       (setq exec-path (append (list sej-latex-directory
+                                     "c:/msys64/mingw64/bin"
+                                     "/mingw64/bin/") exec-path))
+       ;; load AutoHotkey mode
+       (use-package xahk-mode
+         :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el") ))
+   #+END_SRC
+
+* general keybindings
+** modifiers
+*** OSX Apple keyboard
     - caps lock is control (through karabiner)
       Fn key do Hyper
       LControl key do RControl (karabiner) which is Super (emacs)
@@ -396,7 +392,7 @@
               )))))
     #+END_SRC
 
-*** PC keyboard
+*** Windows keyboard
     - CapsLock::LControl through AutoHotkeys
       scroll lock do hyper (tab to scroll lock using AutoHotkeys)
       Left control key do super (LControl::Appskey using AutoHotkeys)
@@ -438,6 +434,15 @@
     #+END_SRC
 
 ** keybindings global
+**** shorthand for interactive lambdas
+     #+BEGIN_SRC emacs-lisp
+       (defmacro λ (&rest body)
+         "Shorthand for interactive lambdas (BODY)."
+         `(lambda ()
+            (interactive)
+            ,@body))
+     #+END_SRC
+
 **** transpose lines/words/sexps/params global
      - Transpose stuff with M-t
      #+BEGIN_SRC emacs-lisp
@@ -446,15 +451,6 @@
        (global-set-key (kbd "M-t w") 'transpose-words)
        (global-set-key (kbd "M-t s") 'transpose-sexps)
        (global-set-key (kbd "M-t p") 'transpose-params)
-     #+END_SRC
-
-**** shorthand for interactive lambdas
-     #+BEGIN_SRC emacs-lisp
-       (defmacro λ (&rest body)
-         "Shorthand for interactive lambdas (BODY)."
-         `(lambda ()
-            (interactive)
-            ,@body))
      #+END_SRC
 
 **** special character definitions
@@ -476,7 +472,7 @@
 
 ** keybindings sej-mode-map
 *** sej-mode-map set-up
-    - Below is taken from stackexchange (Emacs)
+    - Below taken from stackexchange (Emacs)
       Main use is to have my key bindings have the highest priority
     - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
     #+BEGIN_SRC emacs-lisp
@@ -550,7 +546,7 @@
       (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
     #+END_SRC
 
-* general - functions / packages
+* general functions / packages
 *** sej/save-macro
     - save last macro to init file
     #+BEGIN_SRC emacs-lisp
@@ -631,7 +627,7 @@
         :commands which-key-mode
         :defines sej-mode-map
         :bind (:map sej-mode-map
-                    ("C-h <ret>" . which-key-show-major-mode)
+                    ("C-h RET" . which-key-show-major-mode)
                     ("C-h C-k" . which-key-show-top-level))
         :config
         (which-key-setup-minibuffer))
@@ -898,6 +894,9 @@
       ;; Don't open a file in a new frame
       (when (boundp 'ns-pop-up-frames)
         (setq ns-pop-up-frames nil))
+
+      ;; Resize frame to left half after startup
+      (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
     #+end_src
 
 *** mac specific frame settings
@@ -1015,11 +1014,11 @@
     #+END_SRC
 
 *** fullscreen
-    - WORKAROUND: To address blank screen issue with child-frame in fullscreen
+    - To address blank screen issue with child-frame in fullscreen
     #+BEGIN_SRC emacs-lisp
       (when sys/mac-x-p
         (setq ns-use-native-fullscreen nil))
-      (bind-keys ("H-C-k" . toggle-frame-fullscreen)
+      (bind-keys ("H-C-f" . toggle-frame-fullscreen)
                  ("C-c s F" . toggle-frame-fullscreen))
     #+END_SRC
 
@@ -1038,9 +1037,6 @@
 
       ;;added tips from pragmatic emacs
       (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
-
-      ;; toggle two most recent buffers
-      (define-key sej-mode-map (kbd "s-o") 'quick-switch-buffer)
     #+end_src
 
 *** bs.el cycle buffer settings
@@ -1121,16 +1117,6 @@
         (local-set-key (kbd "q") 'kill-buffer-and-window))
       (add-hook 'special-mode 'sej/quit-and-kill-auxiliary-windows)
       (add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
-    #+END_SRC
-
-*** autorevert
-    - Automatically reload files when modified by external program if not modified
-    - https://www.emacswiki.org/emacs/AutoRevertMode
-    #+BEGIN_SRC emacs-lisp
-      (use-package autorevert
-        :straight (autorevert :type built-in)
-        :diminish
-        :hook (emacs-startup . global-auto-revert-mode))
     #+END_SRC
 
 *** scratch buffer set-up
@@ -1593,7 +1579,6 @@
         :defines (projectile-completion-system magit-completing-read-function)
         :bind-keymap ("H-c" . counsel-mode-map)
         :bind (
-               ([remap execute-extended-command] . counsel-M-x)
                ("C-x C-f" . counsel-find-file)
                ("M-y" . counsel-yank-pop)
                :map counsel-mode-map
@@ -4487,8 +4472,8 @@
                 (insert "\n")
 
                 (insert (concat
-                         (propertize (format "%d packages loaded in %s"
-                                             (length package-activated-list) (emacs-init-time))
+                         (propertize (format "loaded in %s"
+                                             (emacs-init-time))
                                      'face 'font-lock-comment-face)))
                 (insert "\n")
                 )))

@@ -1,3 +1,18 @@
 [submodule "straight/repos/xahk-mode.el"]
 	path = straight/repos/xahk-mode.el
 	url = https://github.com/xahlee/xahk-mode.el.git
+[submodule "straight/repos/remind-bindings.el"]
+	path = straight/repos/remind-bindings.el
+	url = https://github.com/mtekman/remind-bindings.el.git
+[submodule "straight/repos/popwin"]
+	path = straight/repos/popwin
+	url = https://github.com/emacsorphanage/popwin.git
+[submodule "straight/repos/omni-quotes.el"]
+	path = straight/repos/omni-quotes.el
+	url = https://github.com/AdrieanKhisbe/omni-quotes.el.git
+[submodule "straight/repos/omni-log.el"]
+	path = straight/repos/omni-log.el
+	url = https://github.com/AdrieanKhisbe/omni-log.el.git
+[submodule "straight/repos/map"]
+	path = straight/repos/map
+	url = https://github.com/emacsmirror/map.git
