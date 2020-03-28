@@ -6,6 +6,47 @@
 ;;;### (autoloads nil "dimmer" "dimmer.el" (0 0 0 0))
 ;;; Generated autoloads from dimmer.el
 
+(autoload 'dimmer-configure-company-box "dimmer" "\
+Convenience setting for company-box users.
+This predicate prevents dimming the buffer you are editing when
+company-box pops up a list of completion." nil nil)
+
+(autoload 'dimmer-configure-helm "dimmer" "\
+Convenience settings for helm users." nil nil)
+
+(autoload 'dimmer-configure-gnus "dimmer" "\
+Convenience settings for gnus users." nil nil)
+
+(autoload 'dimmer-configure-hydra "dimmer" "\
+Convenience settings for hydra users." nil nil)
+
+(autoload 'dimmer-configure-magit "dimmer" "\
+Convenience settings for magit users." nil nil)
+
+(autoload 'dimmer-configure-org "dimmer" "\
+Convenience settings for org users." nil nil)
+
+(autoload 'dimmer-configure-posframe "dimmer" "\
+Convenience settings for packages depending on posframe.
+
+Note, packages that use posframe aren't required to be consistent
+about how they name their buffers, but many of them tend to
+include the words \"posframe\" and \"buffer\" in the buffer's
+name.  Examples include:
+
+  - \" *ivy-posframe-buffer*\"
+  - \" *company-posframe-buffer*\"
+  - \" *flycheck-posframe-buffer*\"
+  - \" *ddskk-posframe-buffer*\"
+
+If this setting doesn't work for you, you still have the option
+of adding another regular expression to catch more things, or
+in some cases you can customize the other package and ensure it
+uses a buffer name that fits this pattern." nil nil)
+
+(autoload 'dimmer-configure-which-key "dimmer" "\
+Convenience settings for which-key-users." nil nil)
+
 (defvar dimmer-mode nil "\
 Non-nil if Dimmer mode is enabled.
 See the `dimmer-mode' command

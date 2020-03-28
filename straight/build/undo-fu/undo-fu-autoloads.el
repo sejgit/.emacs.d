@@ -6,6 +6,13 @@
 ;;;### (autoloads nil "undo-fu" "undo-fu.el" (0 0 0 0))
 ;;; Generated autoloads from undo-fu.el
 
+(autoload 'undo-fu-disable-checkpoint "undo-fu" "\
+Remove the undo-fu checkpoint, making all future actions unconstrained.
+
+This command is needed when `undo-fu-ignore-keyboard-quit' is t,
+since in this case `keyboard-quit' cannot be used
+to perform unconstrained undo/redo actions." t nil)
+
 (autoload 'undo-fu-only-redo-all "undo-fu" "\
 Redo all actions until the initial undo step.
 

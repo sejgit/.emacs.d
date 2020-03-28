@@ -29,7 +29,7 @@ Forge User and Developer Manual
 Forge allows you to work with Git forges, such as Github and Gitlab,
 from the comfort of Magit and the rest of Emacs.
 
-This manual is for Forge version 0.1.0 (v0.1.0-297-gb8baf139+1).
+This manual is for Forge version 0.1.0 (v0.1.0-304-g0ade907a+1).
 
      Copyright (C) 2018-2020 Jonas Bernoulli <jonas@bernoul.li>
 
@@ -422,7 +422,7 @@ Magit's status buffer and/or from Magit's transient commands.
 `''     (`forge-dispatch')
      This prefix command is available in any Magit buffer and provides
      access to several of the available Forge commands.  Most of these
-     commands are also bound elsewhere, but some or not.  See the
+     commands are also bound elsewhere, but some are not.  See the
      following sections for information about the available commands.
 
 * Menu:
@@ -714,12 +714,16 @@ separate buffers.
      This command toggles whether the above two functions list recently
      closed issues in the current buffer.
 
-   The following two functions are also suitable for
+   The following three functions are also suitable for
 `magit-status-sections-hook':
 
  -- Function: forge-insert-assigned-pullreqs
      This function inserts a list of open pull-requests that are
      assigned to you.
+
+ -- Function: forge-insert-requested-reviews
+     This function inserts a list of open pull-requests that are
+     awaiting your review.
 
  -- Function: forge-insert-assigned-issues
      This function inserts a list of open issues that are assigned to
@@ -752,7 +756,7 @@ dedicated buffers:
      This command lists the current repository's open pull-requests that
      are assigned to you in a separate buffer.
 
- -- Command: forge-list-requested-pullreqs
+ -- Command: forge-list-requested-reviews
      This command lists pull-requests of the current repository that are
      awaiting your review in a separate buffer.
 
@@ -886,7 +890,7 @@ File: forge.info,  Node: Miscellaneous,  Prev: Working with Topics,  Up: Usage
      has to be created first by forking it to an account the user has
      access to.
 
-     Currently this only support Github.com.
+     Currently this only supports Github and Gitlab.
 
    * Key ' a, forge-add-repository
 
@@ -964,15 +968,15 @@ Node: Getting Started8383
 Node: Initial Pull10323
 Node: Token Creation11873
 Node: Usage14162
-Node: Pulling15406
-Node: Branching18206
-Node: Working with Topics24211
-Node: Visiting Topics24584
-Node: Listing Topics and Notifications26239
-Node: Creating Topics29955
-Node: Editing Topics and Posts30484
-Node: Miscellaneous33722
-Node: FAQ36019
-Node: Is it possible to create a single pull-request without pulling everything?36195
+Node: Pulling15407
+Node: Branching18207
+Node: Working with Topics24212
+Node: Visiting Topics24585
+Node: Listing Topics and Notifications26240
+Node: Creating Topics30095
+Node: Editing Topics and Posts30624
+Node: Miscellaneous33862
+Node: FAQ36167
+Node: Is it possible to create a single pull-request without pulling everything?36343
 
 End Tag Table

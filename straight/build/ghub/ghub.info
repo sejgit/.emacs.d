@@ -49,7 +49,7 @@ wide adoption would make life easier for users and maintainers alike,
 because then all packages that talk to forge APIs could be configured
 the same way.
 
-This manual is for Ghub version 3.3.0.
+This manual is for Ghub version 3.3.0 (v3.3.0-1-g4ebe60b+1).
 
      Copyright (C) 2017-2020 Jonas Bernoulli <jonas@bernoul.li>
 
@@ -178,7 +178,7 @@ this should be true even when configuring the very first token.
 
    * Unfortunately only Github supports the creation of tokens by using
      the API.  If you want to access another forge, then you have to
-     create the token manually as describe in *Note Manually Creating
+     create the token manually as described in *Note Manually Creating
      and Storing a Token::.  Also see *Note Support for Other Forges::.
 
    * If you want to access a Github Enterprise instance, then you have
@@ -196,7 +196,7 @@ this should be true even when configuring the very first token.
      `github.git.example.com/api/v3.user' to `jtribbiani'.  The latter
      is necessary even if your username on Github.com is the same.
 
-     For some Github Enterprice instances `/api' has to be used instead
+     For some Github Enterprise instances `/api' has to be used instead
      of `/api/v3' as shown above.  If the wizard fails in both cases,
      then try creating the token manually.
 
@@ -215,7 +215,7 @@ this should be true even when configuring the very first token.
      and repeat the request to trigger the wizard again.
 
    * The setup wizard should work even if you have enabled two-factor
-     authentication.  However if your Github Enterprise instance
+     authentication.  However, if your Github Enterprise instance
      enforces Single Sign-On as an additional security measure, then
      you are out of luck and have to create the token manually as
      described in *Note Manually Creating and Storing a Token::.
@@ -356,7 +356,7 @@ of the doubts that you might have:
      Auth-Source:: for instructions on how to save the token more
      securely.
 
-   * When creating a token it is necessary to provide a token
+   * When creating a token, it is necessary to provide a token
      description.  Ghub uses descriptions that have the form "Emacs
      package PACKAGE @ LOCAL-MACHINE".
 
@@ -631,7 +631,7 @@ File: ghub.info,  Node: Making Requests,  Next: Authentication,  Up: API
         * If `SILENT' is non-nil, then progress reports and the like
           are not messaged.
 
-        * If `UNPAGINATE' is t, then this function make as many
+        * If `UNPAGINATE' is t, then this function makes as many
           requests as necessary to get all values.  If `UNPAGINATE' is
           a natural number, then it gets at most that many pages.  For
           any other non-nil value it raises an error.
@@ -655,7 +655,7 @@ File: ghub.info,  Node: Making Requests,  Next: Authentication,  Up: API
         * Each package that uses Ghub should use its own token.  If
           `AUTH' is `nil' or unspecified, then the generic `ghub' token
           is used instead.  This is only acceptable for personal
-          utilities.  A packages that is distributed to other users
+          utilities.  A package that is distributed to other users
           should always use this argument to identify itself, using a
           symbol matching its name.
 
@@ -842,7 +842,7 @@ File: ghub.info,  Node: Making Requests,  Next: Authentication,  Up: API
      a request for its creation, then you might have to wait for it to
      actually be created.  This function can be used to do so.  It
      repeatedly tries to access the resource until it becomes available
-     or until the timeout exceeds.  In the latter case it signals
+     or until a timeout is reached.  In the latter case it signals
      `ghub-error'.
 
      `RESOURCE' specifies the resource that this function waits for.
@@ -1046,7 +1046,7 @@ more opinionated.
  -- Function: ghub-graphql-vacuum query variables callback &optional
           until &key narrow username auth host forge
      This function is an opinionated alternative to `ghub-graphql'.  It
-     relies and dark magic to get the job done.
+     relies on dark magic to get the job done.
 
      It makes an initial request using `QUERY'.  It then looks for
      paginated edges in the returned data and makes more requests to
@@ -1282,21 +1282,21 @@ File: ghub.info,  Node: Forge Limitations and Notes,  Prev: Forge Functions and 
 
 Tag Table:
 Node: Top867
-Node: Introduction3332
-Node: Getting Started6334
-Node: Setting the Username10197
-Node: Interactively Creating and Storing a Token11596
-Node: Manually Creating and Storing a Token17179
-Node: How Ghub uses Auth-Source18380
-Node: Using Ghub in Personal Scripts20291
-Node: Using Ghub in a Package21715
-Node: API24275
-Node: Making Requests25062
-Node: Authentication38680
-Node: Configuration Variables40485
-Node: GraphQL Support44160
-Node: Support for Other Forges50638
-Node: Forge Functions and Variables50855
-Node: Forge Limitations and Notes55123
+Node: Introduction3354
+Node: Getting Started6356
+Node: Setting the Username10221
+Node: Interactively Creating and Storing a Token11620
+Node: Manually Creating and Storing a Token17204
+Node: How Ghub uses Auth-Source18405
+Node: Using Ghub in Personal Scripts20316
+Node: Using Ghub in a Package21740
+Node: API24300
+Node: Making Requests25087
+Node: Authentication38706
+Node: Configuration Variables40511
+Node: GraphQL Support44186
+Node: Support for Other Forges50663
+Node: Forge Functions and Variables50880
+Node: Forge Limitations and Notes55148
 
 End Tag Table

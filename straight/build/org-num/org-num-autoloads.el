@@ -1,15 +1,14 @@
-;;; template.el --- template for elisp programs
-
-;;; Commentary:
-;; to be auto inserted in all new elisp files
-
-;;; Log
-;; 2017 05 12 init SeJ
-
+;;; org-num-autoloads.el --- automatically extracted autoloads
+;;
 ;;; Code:
 
-(provide 'template)
-;;; template.el ends here
+
+;;;### (autoloads nil "ob-C" "ob-C.el" (0 0 0 0))
+;;; Generated autoloads from ob-C.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-C" '("org-babel-")))
+
+;;;***
 
 ;;;### (autoloads nil "ob-J" "ob-J.el" (0 0 0 0))
 ;;; Generated autoloads from ob-J.el
@@ -917,9 +916,11 @@
 
 ;;;***
 
-;;;### (autoloads nil "ob-C" "ob-C.el" (0 0 0 0))
-;;; Generated autoloads from ob-C.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-C" '("org-babel-")))
-
-;;;***
+(provide 'org-num-autoloads)
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; coding: utf-8
+;; End:
+;;; org-num-autoloads.el ends here

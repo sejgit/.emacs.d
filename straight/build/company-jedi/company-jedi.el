@@ -1,1 +1,1 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/emacs-company-jedi/company-jedi.el
+/Users/stephenjenkins/.emacs.d/straight/repos/company-jedi/company-jedi.el

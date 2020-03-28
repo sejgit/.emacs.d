@@ -1757,7 +1757,8 @@
       (use-package ivy-yasnippet
         :after ivy yasnippet
         :commands ivy-yasnippet--preview
-        :bind ("C-c C-y" . ivy-yasnippet)
+        :bind (("C-c s y" . ivy-yasnippet)
+               ("H-y" . ivy-yasnippet))
         :config (advice-add #'ivy-yasnippet--preview :override #'ignore))
     #+END_SRC
 
@@ -2475,16 +2476,27 @@
     - https://irreal.org/blog/?p=2895
     #+BEGIN_SRC emacs-lisp
       (when sys/macp
-        (defun sej/retrieve-url ()
-          "Retrieve the URL of the current Safari page as a string."
-          (org-trim (shell-command-to-string
-                     "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
-        (defun sej/insert-url ()
-          "Insert URL of current browser page into Emacs buffer."
-          (interactive)
-          (insert (sej/retrieve-url)))
+        ;; (defun sej/retrieve-url ()
+        ;;   "Retrieve the URL of the current Safari page as a string."
+        ;;   (org-trim (shell-command-to-string
+        ;;              "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+        ;; (defun sej/insert-url ()
+        ;;   "Insert URL of current browser page into Emacs buffer."
+        ;;   (interactive)
+        ;;   (insert (sej/retrieve-url)))
 
-        (define-key sej-mode-map (kbd "C-H-u") 'sej/insert-url))
+        (defun sej/jcs-get-link (link)
+          "Retrieve URL from current Safari page and prompt for description.
+      Insert an Org link at point."
+          (interactive "sLink Description: ")
+          (let ((result (shell-command-to-string
+                         "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+            (insert (format "[[%s][%s]]" (org-trim result) link))))
+
+        (define-key sej-mode-map (kbd "C-H-u") 'sej/jcs-get-link))
+
+
+
     #+END_SRC
 
 *** ace-link
@@ -3326,7 +3338,6 @@
 
       (define-key sej-mode-map (kbd "C-c s b") 'sej/git-blame-line)
       (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
-
     #+END_SRC
 
 ** completion
@@ -3603,28 +3614,28 @@
 *** lisp settings
     - some lisp stuff from Getting Started with Emacs Lisp
     #+BEGIN_SRC emacs-lisp
-      (define-key emacs-lisp-mode-map (kbd "<s-return>") 'eval-last-sexp)
-      (define-key emacs-lisp-mode-map (kbd "<H-return>") 'eval-buffer)
-      (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
+                        (define-key emacs-lisp-mode-map (kbd "<s-return>") 'eval-last-sexp)
+                        (define-key emacs-lisp-mode-map (kbd "<H-return>") 'eval-buffer)
+                        (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
 
-      (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
+                        (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 
-      ;; use flycheck in elisp
-      (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+                        ;; use flycheck in elisp
+                        (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
-      ;; enable dash for Emacs lisp highlighting
-      (eval-after-load "dash" '(dash-enable-font-lock))
+                        ;; enable dash for Emacs lisp highlighting
+                        (eval-after-load "dash" '(dash-enable-font-lock))
 
-      (defun sej/eval-last-sexp-or-region (prefix)
-        "Eval region from BEG to END if active, otherwise the last sexp."
-        (interactive "P")
-        (if (and (mark) (use-region-p))
-            (eval-region (min (point) (mark)) (max (point) (mark)))
-          (pp-eval-last-sexp prefix)))
+                        (defun sej/eval-last-sexp-or-region (prefix)
+                          "Eval region from BEG to END if active, otherwise the last sexp."
+                          (interactive "P")
+                          (if (and (mark) (use-region-p))
+                              (eval-region (min (point) (mark)) (max (point) (mark)))
+                            (pp-eval-last-sexp prefix)))
 
-      (global-set-key [remap eval-expression] 'pp-eval-expression)
+                        (global-set-key [remap eval-expression] 'pp-eval-expression)
 
-      (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
+                        (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
     #+END_SRC
 
 *** lispy
@@ -4139,7 +4150,7 @@
       (i for init.el, r for this file) to jump to it.
     - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
     #+BEGIN_SRC emacs-lisp
-      (define-key sej-mode-map (kbd "H-r") 'jump-to-register)
+      (define-key sej-mode-map (kbd "H-j") 'jump-to-register)
       ;; (kbd "C-x r j") is built-in global
       (set-register ?b '(file . "~/.ssh/custom-post.el"))
       (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))

@@ -69,6 +69,23 @@ You may use ARGS to pass options to the package manager.
 
 \(fn PACK &optional ARGS)" t nil)
 
+(autoload 'system-packages-owning-file "system-packages" "\
+Search for packages containing FILE.
+
+Search only locally installed packages by default.  With a prefix
+argument, try to search packages not yet installed.
+
+You may use ARGS to pass options to the package manager.
+
+\(fn FILE &optional ARGS)" t nil)
+
+(autoload 'system-packages-change-log "system-packages" "\
+Show the change log of PACK.
+
+You may use ARGS to pass options to the package manager.
+
+\(fn PACK &optional ARGS)" t nil)
+
 (autoload 'system-packages-update "system-packages" "\
 Update system packages.
 

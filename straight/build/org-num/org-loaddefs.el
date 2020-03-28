@@ -1,15 +1,219 @@
-;;; template.el --- template for elisp programs
-
-;;; Commentary:
-;; to be auto inserted in all new elisp files
-
-;;; Log
-;; 2017 05 12 init SeJ
-
+;;; org-loaddefs.el --- automatically extracted autoloads
+;;
 ;;; Code:
 
-(provide 'template)
-;;; template.el ends here
+
+;;;### (autoloads nil "ob-core" "ob-core.el" "268e4369656bcdf42d531ebf7a35dd17")
+;;; Generated autoloads from ob-core.el
+
+(autoload 'org-babel-execute-safely-maybe "ob-core" nil nil nil)
+
+(autoload 'org-babel-execute-maybe "ob-core" nil t nil)
+
+(autoload 'org-babel-view-src-block-info "ob-core" "\
+Display information on the current source block.
+This includes header arguments, language and name, and is largely
+a window into the `org-babel-get-src-block-info' function." t nil)
+
+(autoload 'org-babel-expand-src-block-maybe "ob-core" "\
+Conditionally expand a source block.
+Detect if this is context for an org-babel src-block and if so
+then run `org-babel-expand-src-block'." t nil)
+
+(autoload 'org-babel-load-in-session-maybe "ob-core" "\
+Conditionally load a source block in a session.
+Detect if this is context for an org-babel src-block and if so
+then run `org-babel-load-in-session'." t nil)
+
+(autoload 'org-babel-pop-to-session-maybe "ob-core" "\
+Conditionally pop to a session.
+Detect if this is context for an org-babel src-block and if so
+then run `org-babel-switch-to-session'." t nil)
+
+(autoload 'org-babel-execute-src-block "ob-core" "\
+Execute the current source code block.
+Insert the results of execution into the buffer.  Source code
+execution and the collection and formatting of results can be
+controlled through a variety of header arguments.
+
+With prefix argument ARG, force re-execution even if an existing
+result cached in the buffer would otherwise have been returned.
+
+Optionally supply a value for INFO in the form returned by
+`org-babel-get-src-block-info'.
+
+Optionally supply a value for PARAMS which will be merged with
+the header arguments specified at the front of the source code
+block.
+
+\(fn &optional ARG INFO PARAMS)" t nil)
+
+(autoload 'org-babel-expand-src-block "ob-core" "\
+Expand the current source code block.
+Expand according to the source code block's header
+arguments and pop open the results in a preview buffer.
+
+\(fn &optional ARG INFO PARAMS)" t nil)
+
+(autoload 'org-babel-check-src-block "ob-core" "\
+Check for misspelled header arguments in the current code block." t nil)
+
+(autoload 'org-babel-insert-header-arg "ob-core" "\
+Insert a header argument selecting from lists of common args and values.
+
+\(fn &optional HEADER-ARG VALUE)" t nil)
+
+(autoload 'org-babel-load-in-session "ob-core" "\
+Load the body of the current source-code block.
+Evaluate the header arguments for the source block before
+entering the session.  After loading the body this pops open the
+session.
+
+\(fn &optional ARG INFO)" t nil)
+
+(autoload 'org-babel-initiate-session "ob-core" "\
+Initiate session for current code block.
+If called with a prefix argument then resolve any variable
+references in the header arguments and assign these variables in
+the session.  Copy the body of the code block to the kill ring.
+
+\(fn &optional ARG INFO)" t nil)
+
+(autoload 'org-babel-switch-to-session "ob-core" "\
+Switch to the session of the current code block.
+Uses `org-babel-initiate-session' to start the session.  If called
+with a prefix argument then this is passed on to
+`org-babel-initiate-session'.
+
+\(fn &optional ARG INFO)" t nil)
+
+(autoload 'org-babel-switch-to-session-with-code "ob-core" "\
+Switch to code buffer and display session.
+
+\(fn &optional ARG INFO)" t nil)
+
+(autoload 'org-babel-do-in-edit-buffer "ob-core" "\
+Evaluate BODY in edit buffer if there is a code block at point.
+Return t if a code block was found at point, nil otherwise.
+
+\(fn &rest BODY)" nil t)
+
+(autoload 'org-babel-open-src-block-result "ob-core" "\
+Open results of source block at point.
+
+If `point' is on a source block then open the results of the source
+code block, otherwise return nil.  With optional prefix argument
+RE-RUN the source-code block is evaluated even if results already
+exist.
+
+\(fn &optional RE-RUN)" t nil)
+
+(autoload 'org-babel-map-src-blocks "ob-core" "\
+Evaluate BODY forms on each source-block in FILE.
+If FILE is nil evaluate BODY forms on source blocks in current
+buffer.  During evaluation of BODY the following local variables
+are set relative to the currently matched code block.
+
+full-block ------- string holding the entirety of the code block
+beg-block -------- point at the beginning of the code block
+end-block -------- point at the end of the matched code block
+lang ------------- string holding the language of the code block
+beg-lang --------- point at the beginning of the lang
+end-lang --------- point at the end of the lang
+switches --------- string holding the switches
+beg-switches ----- point at the beginning of the switches
+end-switches ----- point at the end of the switches
+header-args ------ string holding the header-args
+beg-header-args -- point at the beginning of the header-args
+end-header-args -- point at the end of the header-args
+body ------------- string holding the body of the code block
+beg-body --------- point at the beginning of the body
+end-body --------- point at the end of the body
+
+\(fn FILE &rest BODY)" nil t)
+
+(function-put 'org-babel-map-src-blocks 'lisp-indent-function '1)
+
+(autoload 'org-babel-map-inline-src-blocks "ob-core" "\
+Evaluate BODY forms on each inline source block in FILE.
+If FILE is nil evaluate BODY forms on source blocks in current
+buffer.
+
+\(fn FILE &rest BODY)" nil t)
+
+(function-put 'org-babel-map-inline-src-blocks 'lisp-indent-function '1)
+
+(autoload 'org-babel-map-call-lines "ob-core" "\
+Evaluate BODY forms on each call line in FILE.
+If FILE is nil evaluate BODY forms on source blocks in current
+buffer.
+
+\(fn FILE &rest BODY)" nil t)
+
+(function-put 'org-babel-map-call-lines 'lisp-indent-function '1)
+
+(autoload 'org-babel-map-executables "ob-core" "\
+Evaluate BODY forms on each active Babel code in FILE.
+If FILE is nil evaluate BODY forms on source blocks in current
+buffer.
+
+\(fn FILE &rest BODY)" nil t)
+
+(function-put 'org-babel-map-executables 'lisp-indent-function '1)
+
+(autoload 'org-babel-execute-buffer "ob-core" "\
+Execute source code blocks in a buffer.
+Call `org-babel-execute-src-block' on every source block in
+the current buffer.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-babel-execute-subtree "ob-core" "\
+Execute source code blocks in a subtree.
+Call `org-babel-execute-src-block' on every source block in
+the current subtree.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-babel-sha1-hash "ob-core" "\
+Generate a sha1 hash based on the value of INFO.
+CONTEXT specifies the context of evaluation.  It can be `:eval',
+`:export', `:tangle'.  A nil value means `:eval'.
+
+\(fn &optional INFO CONTEXT)" t nil)
+
+(autoload 'org-babel-hide-result-toggle-maybe "ob-core" "\
+Toggle visibility of result at point." t nil)
+
+(autoload 'org-babel-goto-src-block-head "ob-core" "\
+Go to the beginning of the current code block." t nil)
+
+(autoload 'org-babel-goto-named-src-block "ob-core" "\
+Go to a named source-code block.
+
+\(fn NAME)" t nil)
+
+(autoload 'org-babel-goto-named-result "ob-core" "\
+Go to a named result.
+
+\(fn NAME)" t nil)
+
+(autoload 'org-babel-next-src-block "ob-core" "\
+Jump to the next source block.
+With optional prefix argument ARG, jump forward ARG many source blocks.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-babel-previous-src-block "ob-core" "\
+Jump to the previous source block.
+With optional prefix argument ARG, jump backward ARG many source blocks.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-babel-mark-block "ob-core" "\
+Mark current source block." t nil)
+
+;;;***
 
 ;;;### (autoloads nil "ob-lob" "ob-lob.el" "6d57273b1605eda4687aec918974697a")
 ;;; Generated autoloads from ob-lob.el
@@ -62,7 +266,7 @@ matching a regular expression.
 
 ;;;***
 
-;;;### (autoloads nil "ol" "ol.el" "6421082a6b22ec3e773473abb37c725e")
+;;;### (autoloads nil "ol" "ol.el" "fa20e9527c3970cdb2b5ed615faee8a3")
 ;;; Generated autoloads from ol.el
 
 (autoload 'org-next-link "ol" "\
@@ -164,11 +368,13 @@ Also refresh fontification if needed." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "ol-bbdb" "ol-bbdb.el" "ff7dcbc135dc2c61f4629125393f8aa0")
+;;;### (autoloads nil "ol-bbdb" "ol-bbdb.el" "b11a30105e559ea96b66bfe905bb13b6")
 ;;; Generated autoloads from ol-bbdb.el
 
 (autoload 'org-bbdb-anniversaries "ol-bbdb" "\
-Extract anniversaries from BBDB for display in the agenda." nil nil)
+Extract anniversaries from BBDB for display in the agenda.
+When called programmatically, this function expects the `date'
+variable to be globally bound." nil nil)
 
 ;;;***
 
@@ -180,7 +386,7 @@ Dispatch to the appropriate function to store a link to an IRC session." nil nil
 
 ;;;***
 
-;;;### (autoloads nil "org" "org.el" "f3f4bc866be84ca26f91f5148218d25e")
+;;;### (autoloads nil "org" "org.el" "3a7afcc10890042512c7289b9bca75c3")
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -372,7 +578,7 @@ Call the customize function with org as argument." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "org-agenda" "org-agenda.el" "403a199f53c51e8b40ef8df6a5382895")
+;;;### (autoloads nil "org-agenda" "org-agenda.el" "65a395cb1be37d231a6f36691d71dc7f")
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -646,7 +852,7 @@ to override `appt-message-warning-time'.
 
 ;;;***
 
-;;;### (autoloads nil "org-archive" "org-archive.el" "b23c3c9a0a08d737a08ea8df933c8bb7")
+;;;### (autoloads nil "org-archive" "org-archive.el" "bf79cd878babfc671b63ae5e6d14112b")
 ;;; Generated autoloads from org-archive.el
 
 (autoload 'org-add-archive-files "org-archive" "\
@@ -700,7 +906,7 @@ This command is set with the variable `org-archive-default-command'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "org-attach" "org-attach.el" "e50070f052ab6c1a8acb138be6b6752e")
+;;;### (autoloads nil "org-attach" "org-attach.el" "3144ea9789ce68b8c3597ea0851263b5")
 ;;; Generated autoloads from org-attach.el
 
 (autoload 'org-attach "org-attach" "\
@@ -717,7 +923,7 @@ Idea taken from `gnus-dired-attach'.
 
 ;;;***
 
-;;;### (autoloads nil "org-capture" "org-capture.el" "54e719675af5e7f69087ad730dd2e9d8")
+;;;### (autoloads nil "org-capture" "org-capture.el" "b69cf992f31fab3fc7076814b007e11a")
 ;;; Generated autoloads from org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -761,7 +967,7 @@ Set `org-capture-templates' to be similar to `org-remember-templates'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "org-clock" "org-clock.el" "a7d35dfa50c3199744b245c5b0872f31")
+;;;### (autoloads nil "org-clock" "org-clock.el" "7c93a720bf961b5c06e523ea9b79b901")
 ;;; Generated autoloads from org-clock.el
 
 (autoload 'org-resolve-clocks "org-clock" "\
@@ -1001,7 +1207,7 @@ Turn on or update column view in the agenda." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "org-compat" "org-compat.el" "8ae3bd441dd961a8079e3f3655f820fe")
+;;;### (autoloads nil "org-compat" "org-compat.el" "9c39742059b77885d93892f063794000")
 ;;; Generated autoloads from org-compat.el
 
 (autoload 'org-check-version "org-compat" "\
@@ -1096,7 +1302,7 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads nil "org-element" "org-element.el" "3e59631f9f62c0df01c6b09b7c208ee0")
+;;;### (autoloads nil "org-element" "org-element.el" "f7e6d2f65a7f0ced4bd7d3a9b65f52d9")
 ;;; Generated autoloads from org-element.el
 
 (autoload 'org-element-update-syntax "org-element" "\
@@ -1244,7 +1450,7 @@ With a prefix argument, use the alternative interface: e.g., if
 
 ;;;***
 
-;;;### (autoloads nil "org-id" "org-id.el" "96dfb6c3a64a8306f8eb8d32c6d8bde6")
+;;;### (autoloads nil "org-id" "org-id.el" "a9380ecd54dcc833065800810fd61bc0")
 ;;; Generated autoloads from org-id.el
 
 (autoload 'org-id-get-create "org-id" "\
@@ -1498,7 +1704,7 @@ prefix argument (`C-u C-u C-u C-c C-w').
 
 ;;;***
 
-;;;### (autoloads nil "org-table" "org-table.el" "8ea6a5ce3ad1ad233f9e214b114ca4f6")
+;;;### (autoloads nil "org-table" "org-table.el" "6cd49c499425a18887fd553c98aa0206")
 ;;; Generated autoloads from org-table.el
 
 (autoload 'org-table-header-line-mode "org-table" "\
@@ -2232,7 +2438,7 @@ which will prompt for the width.
 
 ;;;***
 
-;;;### (autoloads nil "org-timer" "org-timer.el" "07f32a33f71c5980a9088d2e532ebb14")
+;;;### (autoloads nil "org-timer" "org-timer.el" "abbafa059d33aa97ce4010c59f3e3bea")
 ;;; Generated autoloads from org-timer.el
 
 (autoload 'org-timer-start "org-timer" "\
@@ -2307,7 +2513,7 @@ using three `C-u' prefix arguments.
 
 ;;;***
 
-;;;### (autoloads nil "ox" "ox.el" "a5a7ef39b123f8c139a291bcb2c163b3")
+;;;### (autoloads nil "ox" "ox.el" "9c463f77ea02441898b6da90ec381785")
 ;;; Generated autoloads from ox.el
 
 (autoload 'org-export-get-backend "ox" "\
@@ -2496,7 +2702,7 @@ When ARG is `\\[universal-argument] \\[universal-argument]', display the asynchr
 
 ;;;***
 
-;;;### (autoloads nil "ox-ascii" "ox-ascii.el" "37312ea4a655604f22f267ff29ff1d78")
+;;;### (autoloads nil "ox-ascii" "ox-ascii.el" "94a67ae2fda33070e09c3b249818a37c")
 ;;; Generated autoloads from ox-ascii.el
 
 (autoload 'org-ascii-convert-region-to-ascii "ox-ascii" "\
@@ -2740,7 +2946,7 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-html" "ox-html.el" "fdca86667272826068a7a34711e1b600")
+;;;### (autoloads nil "ox-html" "ox-html.el" "17145e335b85370a28795cbe4a43dd97")
 ;;; Generated autoloads from ox-html.el
 
 (put 'org-html-head-include-default-style 'safe-local-variable 'booleanp)
@@ -2892,7 +3098,7 @@ The file is stored under the name chosen in
 
 ;;;***
 
-;;;### (autoloads nil "ox-latex" "ox-latex.el" "f8b3ac2256130aa7cb9e9a2458e3743b")
+;;;### (autoloads nil "ox-latex" "ox-latex.el" "ae5c642c5090c1f04f2c9f81c41ac634")
 ;;; Generated autoloads from ox-latex.el
 
 (autoload 'org-latex-make-preamble "ox-latex" "\
@@ -3026,7 +3232,7 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-md" "ox-md.el" "955190137eb6be0dbc8cda7cd8f5d9d7")
+;;;### (autoloads nil "ox-md" "ox-md.el" "b15e8f0c74569cb2049c62f07954fb07")
 ;;; Generated autoloads from ox-md.el
 
 (autoload 'org-md-export-as-markdown "ox-md" "\
@@ -3096,7 +3302,7 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-odt" "ox-odt.el" "6c1ad0e287503330a4c9054b65d831fe")
+;;;### (autoloads nil "ox-odt" "ox-odt.el" "b5dc2dbc590c3d1607b0926a186bc318")
 ;;; Generated autoloads from ox-odt.el
 
 (put 'org-odt-preferred-output-format 'safe-local-variable 'stringp)
@@ -3277,7 +3483,7 @@ the project.
 
 ;;;***
 
-;;;### (autoloads nil "ox-texinfo" "ox-texinfo.el" "a45b68212f0d8071c783f970696775ba")
+;;;### (autoloads nil "ox-texinfo" "ox-texinfo.el" "0e53478c69c8a6e3e1db19fca0ac161d")
 ;;; Generated autoloads from ox-texinfo.el
 
 (autoload 'org-texinfo-export-to-texinfo "ox-texinfo" "\
@@ -3362,214 +3568,11 @@ command to convert it." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "ob-core" "ob-core.el" "64a110fd6cd41977553731f137e4637e")
-;;; Generated autoloads from ob-core.el
-
-(autoload 'org-babel-execute-safely-maybe "ob-core" nil nil nil)
-
-(autoload 'org-babel-execute-maybe "ob-core" nil t nil)
-
-(autoload 'org-babel-view-src-block-info "ob-core" "\
-Display information on the current source block.
-This includes header arguments, language and name, and is largely
-a window into the `org-babel-get-src-block-info' function." t nil)
-
-(autoload 'org-babel-expand-src-block-maybe "ob-core" "\
-Conditionally expand a source block.
-Detect if this is context for an org-babel src-block and if so
-then run `org-babel-expand-src-block'." t nil)
-
-(autoload 'org-babel-load-in-session-maybe "ob-core" "\
-Conditionally load a source block in a session.
-Detect if this is context for an org-babel src-block and if so
-then run `org-babel-load-in-session'." t nil)
-
-(autoload 'org-babel-pop-to-session-maybe "ob-core" "\
-Conditionally pop to a session.
-Detect if this is context for an org-babel src-block and if so
-then run `org-babel-switch-to-session'." t nil)
-
-(autoload 'org-babel-execute-src-block "ob-core" "\
-Execute the current source code block.
-Insert the results of execution into the buffer.  Source code
-execution and the collection and formatting of results can be
-controlled through a variety of header arguments.
-
-With prefix argument ARG, force re-execution even if an existing
-result cached in the buffer would otherwise have been returned.
-
-Optionally supply a value for INFO in the form returned by
-`org-babel-get-src-block-info'.
-
-Optionally supply a value for PARAMS which will be merged with
-the header arguments specified at the front of the source code
-block.
-
-\(fn &optional ARG INFO PARAMS)" t nil)
-
-(autoload 'org-babel-expand-src-block "ob-core" "\
-Expand the current source code block.
-Expand according to the source code block's header
-arguments and pop open the results in a preview buffer.
-
-\(fn &optional ARG INFO PARAMS)" t nil)
-
-(autoload 'org-babel-check-src-block "ob-core" "\
-Check for misspelled header arguments in the current code block." t nil)
-
-(autoload 'org-babel-insert-header-arg "ob-core" "\
-Insert a header argument selecting from lists of common args and values.
-
-\(fn &optional HEADER-ARG VALUE)" t nil)
-
-(autoload 'org-babel-load-in-session "ob-core" "\
-Load the body of the current source-code block.
-Evaluate the header arguments for the source block before
-entering the session.  After loading the body this pops open the
-session.
-
-\(fn &optional ARG INFO)" t nil)
-
-(autoload 'org-babel-initiate-session "ob-core" "\
-Initiate session for current code block.
-If called with a prefix argument then resolve any variable
-references in the header arguments and assign these variables in
-the session.  Copy the body of the code block to the kill ring.
-
-\(fn &optional ARG INFO)" t nil)
-
-(autoload 'org-babel-switch-to-session "ob-core" "\
-Switch to the session of the current code block.
-Uses `org-babel-initiate-session' to start the session.  If called
-with a prefix argument then this is passed on to
-`org-babel-initiate-session'.
-
-\(fn &optional ARG INFO)" t nil)
-
-(autoload 'org-babel-switch-to-session-with-code "ob-core" "\
-Switch to code buffer and display session.
-
-\(fn &optional ARG INFO)" t nil)
-
-(autoload 'org-babel-do-in-edit-buffer "ob-core" "\
-Evaluate BODY in edit buffer if there is a code block at point.
-Return t if a code block was found at point, nil otherwise.
-
-\(fn &rest BODY)" nil t)
-
-(autoload 'org-babel-open-src-block-result "ob-core" "\
-Open results of source block at point.
-
-If `point' is on a source block then open the results of the source
-code block, otherwise return nil.  With optional prefix argument
-RE-RUN the source-code block is evaluated even if results already
-exist.
-
-\(fn &optional RE-RUN)" t nil)
-
-(autoload 'org-babel-map-src-blocks "ob-core" "\
-Evaluate BODY forms on each source-block in FILE.
-If FILE is nil evaluate BODY forms on source blocks in current
-buffer.  During evaluation of BODY the following local variables
-are set relative to the currently matched code block.
-
-full-block ------- string holding the entirety of the code block
-beg-block -------- point at the beginning of the code block
-end-block -------- point at the end of the matched code block
-lang ------------- string holding the language of the code block
-beg-lang --------- point at the beginning of the lang
-end-lang --------- point at the end of the lang
-switches --------- string holding the switches
-beg-switches ----- point at the beginning of the switches
-end-switches ----- point at the end of the switches
-header-args ------ string holding the header-args
-beg-header-args -- point at the beginning of the header-args
-end-header-args -- point at the end of the header-args
-body ------------- string holding the body of the code block
-beg-body --------- point at the beginning of the body
-end-body --------- point at the end of the body
-
-\(fn FILE &rest BODY)" nil t)
-
-(function-put 'org-babel-map-src-blocks 'lisp-indent-function '1)
-
-(autoload 'org-babel-map-inline-src-blocks "ob-core" "\
-Evaluate BODY forms on each inline source block in FILE.
-If FILE is nil evaluate BODY forms on source blocks in current
-buffer.
-
-\(fn FILE &rest BODY)" nil t)
-
-(function-put 'org-babel-map-inline-src-blocks 'lisp-indent-function '1)
-
-(autoload 'org-babel-map-call-lines "ob-core" "\
-Evaluate BODY forms on each call line in FILE.
-If FILE is nil evaluate BODY forms on source blocks in current
-buffer.
-
-\(fn FILE &rest BODY)" nil t)
-
-(function-put 'org-babel-map-call-lines 'lisp-indent-function '1)
-
-(autoload 'org-babel-map-executables "ob-core" "\
-Evaluate BODY forms on each active Babel code in FILE.
-If FILE is nil evaluate BODY forms on source blocks in current
-buffer.
-
-\(fn FILE &rest BODY)" nil t)
-
-(function-put 'org-babel-map-executables 'lisp-indent-function '1)
-
-(autoload 'org-babel-execute-buffer "ob-core" "\
-Execute source code blocks in a buffer.
-Call `org-babel-execute-src-block' on every source block in
-the current buffer.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'org-babel-execute-subtree "ob-core" "\
-Execute source code blocks in a subtree.
-Call `org-babel-execute-src-block' on every source block in
-the current subtree.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'org-babel-sha1-hash "ob-core" "\
-Generate a sha1 hash based on the value of INFO.
-CONTEXT specifies the context of evaluation.  It can be `:eval',
-`:export', `:tangle'.  A nil value means `:eval'.
-
-\(fn &optional INFO CONTEXT)" t nil)
-
-(autoload 'org-babel-hide-result-toggle-maybe "ob-core" "\
-Toggle visibility of result at point." t nil)
-
-(autoload 'org-babel-goto-src-block-head "ob-core" "\
-Go to the beginning of the current code block." t nil)
-
-(autoload 'org-babel-goto-named-src-block "ob-core" "\
-Go to a named source-code block.
-
-\(fn NAME)" t nil)
-
-(autoload 'org-babel-goto-named-result "ob-core" "\
-Go to a named result.
-
-\(fn NAME)" t nil)
-
-(autoload 'org-babel-next-src-block "ob-core" "\
-Jump to the next source block.
-With optional prefix argument ARG, jump forward ARG many source blocks.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'org-babel-previous-src-block "ob-core" "\
-Jump to the previous source block.
-With optional prefix argument ARG, jump backward ARG many source blocks.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'org-babel-mark-block "ob-core" "\
-Mark current source block." t nil)
-
-;;;***
+(provide 'org-loaddefs)
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; coding: utf-8
+;; End:
+;;; org-loaddefs.el ends here

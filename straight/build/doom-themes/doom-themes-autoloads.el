@@ -59,6 +59,14 @@
 
 ;;;***
 
+;;;### (autoloads nil "doom-ephemeral-theme" "doom-ephemeral-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-ephemeral-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-ephemeral-theme" '("doom-ephemeral")))
+
+;;;***
+
 ;;;### (autoloads nil "doom-fairy-floss-theme" "doom-fairy-floss-theme.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from doom-fairy-floss-theme.el
@@ -112,6 +120,22 @@
 ;;; Generated autoloads from doom-molokai-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-molokai-theme" '("doom-molokai")))
+
+;;;***
+
+;;;### (autoloads nil "doom-monokai-classic-theme" "doom-monokai-classic-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-monokai-classic-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-monokai-classic-theme" '("doom-monokai-classic")))
+
+;;;***
+
+;;;### (autoloads nil "doom-monokai-pro-theme" "doom-monokai-pro-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-monokai-pro-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-monokai-pro-theme" '("doom-monokai-pro")))
 
 ;;;***
 
@@ -208,6 +232,14 @@
 ;;; Generated autoloads from doom-peacock-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-peacock-theme" '("doom-peacock")))
+
+;;;***
+
+;;;### (autoloads nil "doom-rouge-theme" "doom-rouge-theme.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from doom-rouge-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-rouge-theme" '("doom-rouge")))
 
 ;;;***
 

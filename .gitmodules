@@ -16,3 +16,6 @@
 [submodule "straight/repos/map"]
 	path = straight/repos/map
 	url = https://github.com/emacsmirror/map.git
+[submodule "straight/repos/company-jedi"]
+	path = straight/repos/company-jedi
+	url = https://github.com/emacsorphanage/company-jedi.git

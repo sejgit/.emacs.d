@@ -17,6 +17,42 @@
 
 ;;;***
 
+;;;### (autoloads nil "ein-connect" "ein-connect.el" (0 0 0 0))
+;;; Generated autoloads from ein-connect.el
+
+(autoload 'ein:connect-to-notebook-command "ein-connect" "\
+Connect to notebook.  When the prefix argument is given,
+you can choose any notebook on your server including the ones
+not yet opened.  Otherwise, already chose from already opened
+notebooks.
+
+\(fn &optional NOT-YET-OPENED)" t nil)
+
+(autoload 'ein:connect-to-notebook "ein-connect" "\
+Connect any buffer to notebook and its kernel.
+
+\(fn NBPATH &optional BUFFER NO-RECONNECTION)" t nil)
+
+(autoload 'ein:connect-to-notebook-buffer "ein-connect" "\
+Connect any buffer to opened notebook and its kernel.
+
+\(fn BUFFER-OR-NAME)" t nil)
+
+(autoload 'ein:connect-buffer-to-notebook "ein-connect" "\
+Connect BUFFER to NOTEBOOK.
+
+\(fn NOTEBOOK &optional BUFFER NO-RECONNECTION)" nil nil)
+
+(autoload 'ein:connect-to-default-notebook "ein-connect" "\
+Connect to the default notebook specified by
+`ein:connect-default-notebook'.  Set this to `python-mode-hook'
+to automatically connect any python-mode buffer to the
+notebook." nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-connect" '("ein:")))
+
+;;;***
+
 ;;;### (autoloads nil "ein-contents-api" "ein-contents-api.el" (0
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from ein-contents-api.el
@@ -273,7 +309,7 @@ Deal with security before main entry of ein:notebooklist-open*.
 CALLBACK takes two arguments, the buffer created by ein:notebooklist-open--success
 and the url-or-port argument of ein:notebooklist-open*.
 
-\(fn URL-OR-PORT CALLBACK &optional COOKIE-PLIST)" t nil)
+\(fn URL-OR-PORT CALLBACK &optional COOKIE-PLIST TOKEN)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-notebooklist" '("ein:" "generate-breadcrumbs" "render-")))
 

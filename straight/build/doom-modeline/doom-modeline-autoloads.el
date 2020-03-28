@@ -42,13 +42,16 @@ Set message mode-line." nil nil)
 (autoload 'doom-modeline-set-pdf-modeline "doom-modeline" "\
 Set pdf mode-line." nil nil)
 
-(autoload 'doom-modeline-set-timemachine-modeline "doom-modeline" "\
-Set timemachine mode-line." nil nil)
+(autoload 'doom-modeline-set-org-src-modeline "doom-modeline" "\
+Set org-src mode-line." nil nil)
 
 (autoload 'doom-modeline-set-helm-modeline "doom-modeline" "\
 Set helm mode-line.
 
 \(fn &rest _)" nil nil)
+
+(autoload 'doom-modeline-set-timemachine-modeline "doom-modeline" "\
+Set timemachine mode-line." nil nil)
 
 (defvar doom-modeline-mode nil "\
 Non-nil if Doom-Modeline mode is enabled.
