@@ -1,7 +1,7 @@
 #+TITLE: init-org.org
 #+AUTHOR: SeJ
 #+DATE: <2019-11-03 Sun>
-#+STARTUP: content latexpreview logdone hidestars hideblocks
+#+STARTUP: content logdone hidestars hideblocks
 
 #+COMMENTARY: My attempt at an ORG tangled init file.
 #+LOG: Update Log
@@ -327,12 +327,13 @@
 ** system settings
    - Set environment variables based on current system
 *** OSX & Linux
-   - https://github.com/xahlee/xahk-mode.el
+   - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
    #+BEGIN_SRC emacs-lisp
      (when (or sys/macp sys/linuxp)
        (setq exec-path (append exec-path '("/usr/local/bin")))
        (use-package exec-path-from-shell
          :init
+         (setq exec-path-from-shell-arguments nil)
          (exec-path-from-shell-initialize))
        (add-hook 'emacs-startup-hook 'server-mode))
    #+END_SRC
@@ -639,7 +640,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package helpful
         :after counsel
-        :bind ( ("C-c C-d" . helpful-at-point)
+        :bind ( ("C-h C-d" . helpful-at-point)
                 ("C-h c" . helpful-command)
                 ("C-h C" . helpful-command)
                 ("C-h k" . helpful-key)
@@ -2471,7 +2472,7 @@
     #+END_SRC
 
 ** url actions
-*** sej/insert-url
+*** sej/url-insert
     - from jcs (Irreal) blog to copy url from safari and paste at point
     - https://irreal.org/blog/?p=2895
     #+BEGIN_SRC emacs-lisp
@@ -2485,7 +2486,7 @@
         ;;   (interactive)
         ;;   (insert (sej/retrieve-url)))
 
-        (defun sej/jcs-get-link (link)
+        (defun sej/url-insert (link)
           "Retrieve URL from current Safari page and prompt for description.
       Insert an Org link at point."
           (interactive "sLink Description: ")
@@ -2493,9 +2494,7 @@
                          "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
             (insert (format "[[%s][%s]]" (org-trim result) link))))
 
-        (define-key sej-mode-map (kbd "C-H-u") 'sej/jcs-get-link))
-
-
+        (define-key sej-mode-map (kbd "C-H-u") 'sej/url-insert))
 
     #+END_SRC
 
@@ -2934,7 +2933,9 @@
                   (equal major-mode 'yaml-mode))
               'no-indent
             nil))
-        (add-hook 'electric-indent-functions 'electric-indent-ignore-mode))
+        ;; (add-hook 'electric-indent-functions 'electric-indent-ignore-mode)
+
+        )
     #+END_SRC
 
 *** compile
@@ -3109,6 +3110,7 @@
         (setq projectile-sort-order 'recentf)
         (setq projectile-use-git-grep t)
         (setq projectile-completion-system 'ivy)
+        (setq projectile-git-submodule-command nil)
         :config
         ;; global ignores
         (add-to-list 'projectile-globally-ignored-files ".tern-port")
@@ -3170,9 +3172,14 @@
     - https://github.com/alphapapa/magit-todos
     #+BEGIN_SRC emacs-lisp
       (use-package magit-todos
-        :hook (emacs-startup . magit-todos-mode)
+        :commands(magit-todos-mode)
         :config
-        (setq magit-todos-exclude-globs '("*.map" "*.html")))
+        (setq magit-todos-recursive t
+              magit-todos-depth 100)
+        (custom-set-variables
+         '(magit-todos-keywords (list "TODO(SeJ)"))
+         '(magit-todos-ignore-file-suffixes '("todo"))
+         '(magit-todos-exclude-globs '("*.map" "*.html"))))
     #+END_SRC
 
 *** git-timemachine
@@ -3589,7 +3596,7 @@
     #+BEGIN_SRC emacs-lisp
       (use-package yasnippet
         :diminish yas-minor-mode
-        :hook ((emacs-startup . yas-reload-all)
+        :hook ( (emacs-startup . yas-reload-all)
                ((prog-mode org-mode) . yas-minor-mode))
         :bind (:map yas-minor-mode-map
                     ("<tab>" . nil)
@@ -4158,7 +4165,7 @@
       (set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
       (set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
       (set-register ?d '(file . "~/.emacs.d/lisp/"))
-      (set-register ?i '(file . "~/.emacs.d/init.el"))
+      (set-register ?i '(file . "~/.emacs.d/init-org.org"))
     #+END_SRC
 
 *** dashboard
@@ -4167,54 +4174,22 @@
     #+BEGIN_SRC emacs-lisp
       (when sej-dashboard
         (use-package dashboard
-          :after hydra
           :diminish (dashboard-mode page-break-lines-mode)
-          :defines (persp-save-dir persp-special-last-buffer sej-mode-map)
-          :functions (all-the-icons-faicon
-                      all-the-icons-material
-                      open-custom-file
-                      persp-get-buffer-or-null
-                      persp-load-state-from-file
-                      persp-switch-to-buffer
-                      winner-undo
-                      widget-forward)
-          :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
           :bind (("<f6>" . open-dashboard)
                  (:map sej-mode-map
-                       ("C-c s d" . open-dashboard))
-                 (:map dashboard-mode-map
-                       ("H" . browse-homepage)
-                       ("R" . restore-session)
-                       ("L" . persp-load-state-from-file)
-                       ("S" . open-custom-file)
-                       ("U" . sej-update)
-                       ("q" . quit-dashboard)
-                       ("C-p" . widget-backward)
-                       ("C-n" . widget-forward)
-                       ("<up>" . widget-backward)
-                       ("<down>" . widget-forward)
-                       ("<tab>" . widget-forward)
-                       ("C-i" . widget-forward)
-                       ("<backtab>" . widget-backward)
-                       ))
-          :hook (dashboard-mode . (lambda ()
-                                    (setq-local frame-title-format "")
-                                    (setq-local tab-width 1)))
-          :init (dashboard-setup-startup-hook)
+                       ("C-c s d" . sej/open-dashboard)))
+          :hook ( (emacs-startup . dashboard-setup-startup-hook)
+                  (emacs-startup . sej/open-dashboard) )
           :config
-          ;; (setq dashboard-banner-logo-title "SeJ EMACS")
-          (setq dashboard-startup-banner nil)
-          (setq dashboard-center-content nil)
-          (setq dashboard-show-shortcuts t)
+          (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+          (setq dashboard-startup-banner 'logo)
+          (setq dashboard-set-init-info t)
           (setq dashboard-items '((recents  . 15)
                                   (bookmarks . 15)
                                   (projects . 10)
                                   (registers . 10)))
 
-          (defvar dashboard-recover-layout-p nil
-            "Wether recovers the layout.")
-
-          (defun open-dashboard ()
+          (defun sej/open-dashboard ()
             "Open the *dashboard* buffer and jump to the first widget."
             (interactive)
             ;; Check if need to recover layout
@@ -4230,314 +4205,15 @@
 
             ;; Jump to the first section
             (goto-char (point-min))
-            (dashboard-goto-recent-files))
-
-          (defun restore-session ()
-            "Restore last session."
-            (interactive)
-            (when (bound-and-true-p persp-mode)
-              (message "Restoring session...")
-              (condition-case-unless-debug err
-                  (persp-load-state-from-file)
-                (error
-                 (message "Error: Unable to restore last session -- %s" err)))
-              (when (persp-get-buffer-or-null persp-special-last-buffer)
-                (persp-switch-to-buffer persp-special-last-buffer))))
-
-          (defun quit-dashboard ()
-            "Quit dashboard window."
-            (interactive)
-            (quit-window t)
-            (when (and dashboard-recover-layout-p
-                       (bound-and-true-p winner-mode))
-              (winner-undo)
-              (setq dashboard-recover-layout-p nil)))
+            (dashboard-goto-recent-files) )
 
           (defun dashboard-goto-recent-files ()
             "Go to recent files."
             (interactive)
             (funcall (local-key-binding "r")))
 
-          (defun dashboard-goto-projects ()
-            "Go to projects."
-            (interactive)
-            (funcall (local-key-binding "p")))
+          ))
 
-          (defun dashboard-goto-bookmarks ()
-            "Go to bookmarks."
-            (interactive)
-            (funcall (local-key-binding "m")))
-
-          (defun dashboard-goto-registers ()
-            "Go to registers."
-            (interactive)
-            (funcall (local-key-binding "e")))
-
-          ;; Add heading icons
-          (defun dashboard-insert-heading-icon (heading &optional _shortcut)
-            (when (display-graphic-p)
-              ;; Load `all-the-icons' if it's unavailable
-              (unless (featurep 'all-the-icons)
-                (require 'all-the-icons nil t))
-
-              (insert (cond
-                       ((string-equal heading "Recent Files:")
-                        (all-the-icons-octicon "file-text" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                       ((string-equal heading "Bookmarks:")
-                        (all-the-icons-octicon "bookmark" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                       ((string-equal heading "Registers:")
-                        (all-the-icons-octicon "clippy" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))
-                       ((string-equal heading "Projects:")
-                        (all-the-icons-octicon "file-directory" :height 1.2 :v-adjust 0.0 :face 'dashboard-heading))))
-              (insert " ")))
-          (advice-add #'dashboard-insert-heading :before #'dashboard-insert-heading-icon)
-
-          ;; Add file icons
-          ;; MUST redefine the sections because of the macro `dashboard-insert-section-list'
-          (defmacro dashboard-insert-section-list (section-name list action &rest rest)
-            "Insert into SECTION-NAME a LIST of items, expanding ACTION and passing REST to widget creation."
-            `(when (car ,list)
-               (mapc (lambda (el)
-                       (let ((widget nil))
-                         (insert "\n    ")
-                         (when (display-graphic-p)
-                           (insert (if-let ((path (car (last (split-string ,@rest " - ")))))
-                                       (if (file-directory-p path)
-                                           (cond
-                                            ((and (fboundp 'tramp-tramp-file-p)
-                                                  (tramp-tramp-file-p default-directory))
-                                             (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
-                                            ((file-symlink-p path)
-                                             (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
-                                            ((all-the-icons-dir-is-submodule path)
-                                             (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
-                                            ((file-exists-p (format "%s/.git" path))
-                                             (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
-                                            (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
-                                                 (apply (car matcher) (list (cadr matcher) :v-adjust 0.01)))))
-                                         (all-the-icons-icon-for-file (file-name-nondirectory path)))
-                                     (all-the-icons-octicon "clippy" :height 1.0 :v-adjust 0.01)
-                                     ))
-                           (insert "\t"))
-                         (setq widget
-                               (widget-create 'push-button
-                                              :action ,action
-                                              :mouse-face 'highlight
-                                              :button-prefix ""
-                                              :button-suffix ""
-                                              :format "%[%t%]"
-                                              ,@rest))))
-                     ,list)))
-
-          (defmacro dashboard-insert-shortcut (shortcut-char
-                                               search-label
-                                               &optional no-next-line)
-            "Insert a shortcut SHORTCUT-CHAR for a given SEARCH-LABEL.
-      Optionally, provide NO-NEXT-LINE to move the cursor forward a line."
-            `(progn
-               (eval-when-compile (defvar dashboard-mode-map))
-               (let ((sym (make-symbol (format "Jump to \"%s\"" ,search-label))))
-                 (fset sym (lambda ()
-                             (interactive)
-                             (unless (search-forward ,search-label (point-max) t)
-                               (search-backward ,search-label (point-min) t))
-                             ,@(unless no-next-line
-                                 '((forward-line 1)))
-                             (back-to-indentation)
-                             (if (display-graphic-p) (widget-forward 1))))
-                 (eval-after-load 'dashboard
-                   (define-key dashboard-mode-map ,shortcut-char sym)))))
-
-          ;; Recentf
-          (defun dashboard-insert-recents (list-size)
-            "Add the list of LIST-SIZE items from recently edited files."
-            (recentf-mode)
-            (dashboard-insert-section
-             "Recent Files:"
-             recentf-list
-             list-size
-             "r"
-             `(lambda (&rest ignore) (find-file-existing ,el))
-             (abbreviate-file-name el)))
-
-          ;; Bookmarks
-          (defun dashboard-insert-bookmarks (list-size)
-            "Add the list of LIST-SIZE items of bookmarks."
-            (require 'bookmark)
-            (dashboard-insert-section
-             "Bookmarks:"
-             (dashboard-subseq (bookmark-all-names)
-                               0 list-size)
-             list-size
-             "m"
-             `(lambda (&rest ignore) (bookmark-jump ,el))
-             (let ((file (bookmark-get-filename el)))
-               (if file
-                   (format "%s - %s" el (abbreviate-file-name file))
-                 el))))
-
-          ;; Projectile
-          (defun dashboard-insert-projects (list-size)
-            "Add the list of LIST-SIZE items of projects."
-            (require 'projectile)
-            (projectile-load-known-projects)
-            (dashboard-insert-section
-             "Projects:"
-             (dashboard-subseq (projectile-relevant-known-projects)
-                               0 list-size)
-             list-size
-             "p"
-             `(lambda (&rest ignore) (projectile-switch-project-by-name ,el))
-             (abbreviate-file-name el)))
-
-          ;;
-          ;; Registers
-          ;;
-          (defun dashboard-insert-registers (list-size)
-            "Add the list of LIST-SIZE items of registers."
-            (require 'register)
-            (dashboard-insert-section
-             "Registers:"
-             register-alist
-             list-size
-             "e"
-             (lambda (&rest ignore) (jump-to-register (car el)))
-             (format "%c - %s" (car el) (register-describe-oneline (car el)))))
-
-          (defun dashboard-insert-buttons ()
-            "Insert buttions after the banner."
-            (interactive)
-            (with-current-buffer (get-buffer dashboard-buffer-name)
-              (let ((inhibit-read-only t))
-                (goto-char (point-min))
-                (search-forward dashboard-banner-logo-title nil t)
-
-                (insert "")
-                (widget-create 'url-link
-                               :tag (concat
-                                     (if (display-graphic-p)
-                                         (concat
-                                          (all-the-icons-octicon "mark-github"
-                                                                 :height 1.1
-                                                                 :v-adjust 0.0
-                                                                 :face 'font-lock-keyword-face)
-                                          (propertize " " 'face 'variable-pitch)))
-                                     (propertize "Homepage" 'face 'font-lock-keyword-face))
-                               :help-echo "Browse homepage"
-                               :mouse-face 'highlight
-                               sej-homepage)
-                (insert " ")
-                (widget-create 'push-button
-                               :help-echo "Restore previous session"
-                               :action (lambda (&rest _) (restore-session))
-                               :mouse-face 'highlight
-                               :tag (concat
-                                     (if (display-graphic-p)
-                                         (concat
-                                          (all-the-icons-material "restore"
-                                                                  :height 1.35
-                                                                  :v-adjust -0.24
-                                                                  :face 'font-lock-keyword-face)
-                                          (propertize " " 'face 'variable-pitch)))
-                                     (propertize "Session" 'face 'font-lock-keyword-face)))
-                (insert " ")
-                (widget-create 'file-link
-                               :tag (concat
-                                     (if (display-graphic-p)
-                                         (concat
-                                          (all-the-icons-octicon "tools"
-                                                                 :height 1.1
-                                                                 :v-adjust 0.0
-                                                                 :face 'font-lock-keyword-face)
-                                          (propertize " " 'face 'variable-pitch)))
-                                     (propertize "Settings" 'face 'font-lock-keyword-face))
-                               :help-echo "Open custom file"
-                               :mouse-face 'highlight
-                               custom-file)
-                (insert " ")
-                (widget-create 'push-button
-                               :help-echo "Update SeJ Emacs"
-                               :action (lambda (&rest _) (sej-update))
-                               :mouse-face 'highlight
-                               :tag (concat
-                                     (if (display-graphic-p)
-                                         (concat
-                                          (all-the-icons-material "update"
-                                                                  :height 1.35
-                                                                  :v-adjust -0.24
-                                                                  :face 'font-lock-keyword-face)
-                                          (propertize " " 'face 'variable-pitch)))
-                                     (propertize "Update" 'face 'font-lock-keyword-face)))
-                (insert " ")
-                (widget-create 'push-button
-                               :help-echo "Help (?/h)"
-                               :action (lambda (&rest _) (hydra-dashboard/body))
-                               :mouse-face 'highlight
-                               :tag (concat
-                                     (if (display-graphic-p)
-                                         (all-the-icons-faicon "question"
-                                                               :height 1.2
-                                                               :v-adjust -0.1
-                                                               :face 'font-lock-string-face)
-                                       (propertize "?" 'face 'font-lock-string-face))))
-                (insert "\n")
-
-                (insert (concat
-                         (propertize (format "loaded in %s"
-                                             (emacs-init-time))
-                                     'face 'font-lock-comment-face)))
-                (insert "\n")
-                )))
-          (add-hook 'dashboard-mode-hook #'dashboard-insert-buttons)
-
-          (defun dashboard-insert-footer ()
-            "Insert footer of dashboard."
-            (interactive)
-            (with-current-buffer (get-buffer dashboard-buffer-name)
-              (let ((inhibit-read-only t))
-                (goto-char (point-max))
-
-                (insert "\n\n")
-                (insert " ")
-                (insert (propertize
-                         (format "SeJ, %s" (format-time-string "%Y"))
-                         'face font-lock-doc-face))
-                (insert "\n"))))
-          (add-hook 'dashboard-mode-hook #'dashboard-insert-footer)
-
-          (defhydra hydra-dashboard (:color red :hint none)
-            "
-      ^Head^               ^Section^            ^Item^                  ^Dashboard^
-      ^^───────────────────^^───────────────────^^──────────────────────^^───────────────
-      _U_pdate             _r_: Recent Files    _RET_: Open             _<f2>_: Open
-      _H_omePage           _m_: Bookmarks       _<tab>_/_C-i_: Next       _Q_: Quit
-      _R_ecover session    _p_: Projects        _<backtab>_: Previous
-      _L_ist sessions      _e_: Registers       _C-n_: Next line
-      _S_ettings                                _C-p_: Previous Line
-      "
-            ("<tab>" widget-forward)
-            ("C-i" widget-forward)
-            ("<backtab>" widget-backward)
-            ("RET" widget-button-press :exit t)
-            ("g" dashboard-refresh-buffer :exit t)
-            ("r" dashboard-goto-recent-files)
-            ("p" dashboard-goto-projects)
-            ("m" dashboard-goto-bookmarks)
-            ("e" dashboard-goto-registers)
-            ("H" browse-homepage :exit t)
-            ("R" restore-session :exit t)
-            ("L" persp-load-state-from-file :exit t)
-            ("S" open-custom-file :exit t)
-            ("U" sej-update :exit t)
-            ("C-n" next-line)
-            ("C-p" previous-line)
-            ("<f2>" open-dashboard :exit t)
-            ("Q" quit-dashboard :exit t)
-            ("q" nil "quit")
-            ("C-g" nil "quit"))
-          (bind-keys :map dashboard-mode-map
-                     ("h" . hydra-dashboard/body)
-                     ("?" . hydra-dashboard/body))))
     #+END_SRC
 
 *** page-break-lines
@@ -5191,6 +4867,7 @@
                       ("S-<right>" . org-shiftright)
                       )
           :config
+          (setq org-ellipsis "⤵")
           (use-package org-plus-contrib)
           (setq org-directory sej-org-directory)
           (defconst org-file-inbox (concat org-directory "/inbox.org"))
@@ -5367,15 +5044,32 @@
                     ("C-M-y" . org-rich-yank)))
     #+END_SRC
 
-*** org-bullets
+*** org-bullets (not used, see org-superstar)
     - Show org-mode bullets as UTF-8 characters
     - https://github.com/sabof/org-bullets
     #+BEGIN_SRC emacs-lisp
-      (use-package org-bullets
-        :custom
-        (org-bullets-bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
-        (org-ellipsis "⤵")
-        :hook (org-mode . org-bullets-mode))
+      ;;; not currently used, switched to org-superstar
+      ;; (use-package org-bullets
+      ;;   :custom
+      ;;   (org-bullets-bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
+      ;;   (org-ellipsis "⤵")
+      ;;   :hook (org-mode . org-bullets-mode))
+    #+END_SRC
+
+*** org-superstar-mode
+    - Show org-mode bullets as UTF-8 characters ( rewritten org-bullets )
+    - [[https://github.com/integral-dw/org-superstar-mode][github org-superstar-mode]]
+    - https://github.com/sabof/org-bullets
+    #+BEGIN_SRC emacs-lisp
+      (use-package org-superstar
+        :hook (org-mode . org-superstar-mode)
+        :config
+        (setq org-superstar-special-todo-items t)
+        (setq org-superstar-prettify-item-bullets t)
+        ;; :custom
+        ;; (org-superstar-headline--bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
+        )
+
     #+END_SRC
 
 *** org-fancy-priorities

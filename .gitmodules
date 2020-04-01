@@ -19,3 +19,6 @@
 [submodule "straight/repos/company-jedi"]
 	path = straight/repos/company-jedi
 	url = https://github.com/emacsorphanage/company-jedi.git
+[submodule "straight/repos/org-superstar-mode"]
+	path = straight/repos/org-superstar-mode
+	url = https://github.com/integral-dw/org-superstar-mode.git

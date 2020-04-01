@@ -40,10 +40,6 @@
 ;;; Code:
 (message "Emacs start")
 
-;; debugger
-;; (setq debug-on-error nil)
-;; (setq debug-on-quit nil)
-
 ;; org-tangle load-file
 (org-babel-load-file (concat user-emacs-directory "init-org.org"))
 
