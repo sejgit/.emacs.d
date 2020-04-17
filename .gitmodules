@@ -22,3 +22,6 @@
 [submodule "straight/repos/org-superstar-mode"]
 	path = straight/repos/org-superstar-mode
 	url = https://github.com/integral-dw/org-superstar-mode.git
+[submodule "straight/repos/whole-line-or-region"]
+	path = straight/repos/whole-line-or-region
+	url = https://github.com/purcell/whole-line-or-region.git
