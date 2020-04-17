@@ -2470,6 +2470,14 @@
                ("C-d" . smart-hungry-delete-forward-char))
         :config (smart-hungry-delete-add-default-hooks))
     #+END_SRC
+*** whole-line or region
+    - operate on current line if region undefined
+    - [[https://github.com/purcell/whole-line-or-region][purcell/whole-line-or-region]]
+    #+BEGIN_SRC emacs-lisp
+      (use-package whole-line-or-region
+        :hook
+        (emacs-startup . whole-line-or-region-global-mode))
+    #+END_SRC
 
 ** url actions
 *** sej/url-insert
