@@ -4167,12 +4167,8 @@
     #+BEGIN_SRC emacs-lisp
       (define-key sej-mode-map (kbd "H-j") 'jump-to-register)
       ;; (kbd "C-x r j") is built-in global
-      (set-register ?b '(file . "~/.ssh/custom-post.el"))
-      (set-register ?s '(file . "~/.emacs.d/lisp/init-bindings.el"))
-      (set-register ?a '(file . "~/.emacs.d/lisp/init-appearance.el"))
-      (set-register ?m '(file . "~/.emacs.d/lisp/init-misc-pkgs.el"))
-      (set-register ?r '(file . "~/.emacs.d/lisp/init-registers.el"))
-      (set-register ?d '(file . "~/.emacs.d/lisp/"))
+      (set-register ?c '(file . "~/.ssh/custom-post.el"))
+      (set-register ?d '(file . "~/.dotfiles/"))
       (set-register ?i '(file . "~/.emacs.d/init-org.org"))
     #+END_SRC
 
