@@ -4873,6 +4873,7 @@
           :config
           (setq org-ellipsis "⤵")
           (use-package org-plus-contrib)
+          (require 'org-protocol)
           (setq org-directory sej-org-directory)
           (defconst org-file-inbox (concat org-directory "/inbox.org"))
           (defconst org-file-someday (concat org-directory "/someday.org"))
@@ -4970,7 +4971,7 @@
                                          ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
                                          ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
                                          ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
-                                         ;;("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                         ("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
                                          ("c" "code snippet" entry (file+headline org-file-code "code snippets")
                                           "* %?\n%(my/org-capture-code-snippet \"%F\")")
                                          )
