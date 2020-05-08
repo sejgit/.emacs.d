@@ -107,97 +107,97 @@
      (defconst emacs/>=27p
        (>= emacs-major-version 27)
        "Emacs is 27 or above.")
- #+END_SRC
+   #+END_SRC
 
 ** customization variables set
    - set-up Emacs customizations choices which are then modified by custom.el
    #+BEGIN_SRC emacs-lisp
-       (defgroup sej nil
-         "SeJ Emacs customizations."
-         :group 'convenience)
+     (defgroup sej nil
+       "SeJ Emacs customizations."
+       :group 'convenience)
 
-       (defcustom sej-full-name "Stephen Jenkins"
-         "Set user full name."
-         :type 'string)
+     (defcustom sej-full-name "Stephen Jenkins"
+       "Set user full name."
+       :type 'string)
 
-       (defcustom sej-mail-address "stephenearljenkins@gmail.com"
-         "Set user email address."
-         :type 'string)
+     (defcustom sej-mail-address "stephenearljenkins@gmail.com"
+       "Set user email address."
+       :type 'string)
 
-       (defcustom sej-proxy "localhost:80"
-         "Set network proxy."
-         :type 'string)
+     (defcustom sej-proxy "localhost:80"
+       "Set network proxy."
+       :type 'string)
 
-       (defcustom sej-theme 'default
-         "Set color theme."
-         :type '(choice
-           (const :tag "Default theme" default)
-           (const :tag "Classic theme" classic)
-           (const :tag "Doom theme" doom)
-           (const :tag "Dark theme" dark)
-           (const :tag "Light theme" light)
-           (const :tag "Daylight theme" daylight)
-           symbol))
+     (defcustom sej-theme 'default
+       "Set color theme."
+       :type '(choice
+               (const :tag "Default theme" default)
+               (const :tag "Classic theme" classic)
+               (const :tag "Doom theme" doom)
+               (const :tag "Dark theme" dark)
+               (const :tag "Light theme" light)
+               (const :tag "Daylight theme" daylight)
+               symbol))
 
-       (defcustom sej-dashboard t
-         "Use dashboard at startup or not.
+     (defcustom sej-dashboard t
+       "Use dashboard at startup or not.
        If Non-nil, use dashboard, otherwise will restore previous session."
-         :type 'boolean)
+       :type 'boolean)
 
      (defcustom sej-lsp 'eglot
-         "Set language server."
-         :type '(choice
-           (const :tag "LSP Mode" 'lsp-mode)
-           (const :tag "eglot" 'eglot)
-           nil))
+       "Set language server."
+       :type '(choice
+               (const :tag "LSP Mode" 'lsp-mode)
+               (const :tag "eglot" 'eglot)
+               nil))
 
-       (defcustom sej-benchmark nil
-         "Enable the init benchmark or not."
-         :type 'boolean)
+     (defcustom sej-benchmark nil
+       "Enable the init benchmark or not."
+       :type 'boolean)
 
-       (defcustom sej-org-directory "~/Documents/orgtodo"
-         "Set org directory"
-         :type 'string)
+     (defcustom sej-org-directory "~/Documents/orgtodo"
+       "Set org directory"
+       :type 'string)
 
-       (defcustom sej-project-org-capture-text "Project"
-         "Text for the Label for the Org Capture Project journal"
-         :type 'string)
+     (defcustom sej-project-org-capture-text "Project"
+       "Text for the Label for the Org Capture Project journal"
+       :type 'string)
 
-       (defcustom sej-project-org-capture-file "~/Documents/orgtodo/journal.org"
-         "Filename for the Org Capture Project Journal"
-         :type 'string)
+     (defcustom sej-project-org-capture-file "~/Documents/orgtodo/journal.org"
+       "Filename for the Org Capture Project Journal"
+       :type 'string)
 
-       (defcustom sej-latex-directory "/Library/TeX/texbin"
-         "Directory for Latex"
-         :type 'string)
+     (defcustom sej-latex-directory "/Library/TeX/texbin"
+       "Directory for Latex"
+       :type 'string)
 
-       ;; Load `custom-file'
-       ;; If it doesn't exist, copy from the template, then load it.
-       (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+     ;; Load `custom-file'
+     ;; If it doesn't exist, copy from the template, then load it.
+     (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
-       (let ((custom-template-file
-        (expand-file-name "custom-template.el" user-emacs-directory)))
-         (if (and (file-exists-p custom-template-file)
-            (not (file-exists-p custom-file)))
-       (copy-file custom-template-file custom-file)))
+     (let ((custom-template-file
+            (expand-file-name "custom-template.el" user-emacs-directory)))
+       (if (and (file-exists-p custom-template-file)
+                (not (file-exists-p custom-file)))
+           (copy-file custom-template-file custom-file)))
 
-       (if (file-exists-p custom-file)
-     (load custom-file))
+     (if (file-exists-p custom-file)
+         (load custom-file))
 
-       ;; Load `custom-post.el'
-       ;; Put personal configurations to override defaults here.
-       ;; place to hold specific & secret stuff ~/.ssh is best
-       (add-hook 'after-init-hook
-           (progn
-       (let ((file
-              (expand-file-name "custom-post.el" user-emacs-directory)))
-         (if (file-exists-p file)
-             (load file)))
-       (let ((file
-              (expand-file-name "custom-post.el" "~/.ssh/")))
-         (if (file-exists-p file)
-             (load file)))
-       ))
+     ;; Load `custom-post.el'
+     ;; Put personal configurations to override defaults here.
+     ;; place to hold specific & secret stuff ~/.ssh is best
+     (add-hook 'after-init-hook
+               (progn
+                 (let ((file
+                        (expand-file-name "custom-post.el" user-emacs-directory)))
+                   (if (file-exists-p file)
+                       (load file)))
+                 (let ((file
+                        (expand-file-name "custom-post.el" "~/.ssh/")))
+                   (if (file-exists-p file)
+                       (load file)))
+                 ))
    #+END_SRC
 
 ** general settings
@@ -208,12 +208,12 @@
 
      ;; Use a hook so the message doesn't get clobbered by other messages.
      (add-hook 'emacs-startup-hook
-         (lambda ()
-		 (message "Emacs ready in %s with %d garbage collections."
-        (format "%.2f seconds"
-          (float-time
-           (time-subtract after-init-time before-init-time)))
-        gcs-done)))
+               (lambda ()
+                 (message "Emacs ready in %s with %d garbage collections."
+                          (format "%.2f seconds"
+                                  (float-time
+                                   (time-subtract after-init-time before-init-time)))
+                          gcs-done)))
 
      ;; Turn off mouse interface early in startup to avoid momentary display
      (menu-bar-mode t)
@@ -235,9 +235,9 @@
 
      ;; Set deferred timer to reset them
      (run-with-idle-timer 5 nil
-        (lambda ()
-          (setq gc-cons-threshold gc-cons-threshold-original)
-          (setq file-name-handler-alist file-name-handler-alist-original)))
+                          (lambda ()
+                            (setq gc-cons-threshold gc-cons-threshold-original)
+                            (setq file-name-handler-alist file-name-handler-alist-original)))
 
      ;; turn on syntax highlightng for all buffers
      (global-font-lock-mode t)
@@ -274,8 +274,8 @@
 
      ;; The EMACS environment variable set to the binary path of emacs.
      (setenv "EMACS"
-       (file-truename (expand-file-name
-           invocation-name invocation-directory)))
+             (file-truename (expand-file-name
+                             invocation-name invocation-directory)))
    #+END_SRC
 
 ** Straight package manager set-up
@@ -327,32 +327,32 @@
 ** system settings
    - Set environment variables based on current system
 *** OSX & Linux
-   - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
-   #+BEGIN_SRC emacs-lisp
-     (when (or sys/macp sys/linuxp)
-       (setq exec-path (append exec-path '("/usr/local/bin")))
-       (use-package exec-path-from-shell
-         :init
-         (setq exec-path-from-shell-arguments nil)
-         (exec-path-from-shell-initialize))
-       (add-hook 'emacs-startup-hook 'server-mode))
-   #+END_SRC
+    - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
+    #+BEGIN_SRC emacs-lisp
+      (when (or sys/macp sys/linuxp)
+        (setq exec-path (append exec-path '("/usr/local/bin")))
+        (use-package exec-path-from-shell
+          :init
+          (setq exec-path-from-shell-arguments nil)
+          (exec-path-from-shell-initialize))
+        (add-hook 'emacs-startup-hook 'server-mode))
+    #+END_SRC
 
 *** Windows
-   - https://github.com/xahlee/xahk-mode.el
-   #+BEGIN_SRC emacs-lisp
-     (when sys/win32p
-       (setenv "PATH"
-               (mapconcat
-                #'identity exec-path path-separator))
-       ;; set exec-path for latex installation
-       (setq exec-path (append (list sej-latex-directory
-                                     "c:/msys64/mingw64/bin"
-                                     "/mingw64/bin/") exec-path))
-       ;; load AutoHotkey mode
-       (use-package xahk-mode
-         :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el") ))
-   #+END_SRC
+    - https://github.com/xahlee/xahk-mode.el
+    #+BEGIN_SRC emacs-lisp
+      (when sys/win32p
+        (setenv "PATH"
+                (mapconcat
+                 #'identity exec-path path-separator))
+        ;; set exec-path for latex installation
+        (setq exec-path (append (list sej-latex-directory
+                                      "c:/msys64/mingw64/bin"
+                                      "/mingw64/bin/") exec-path))
+        ;; load AutoHotkey mode
+        (use-package xahk-mode
+          :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el") ))
+    #+END_SRC
 
 * general keybindings
 ** modifiers
@@ -1261,34 +1261,34 @@
 *** doom-modeline
     - A fancy and fast mode-line inspired by minimalism design
     - https://github.com/seagle0128/doom-modeline
-   #+BEGIN_SRC emacs-lisp
-     (use-package doom-modeline
-       :hook (emacs-startup . doom-modeline-mode)
-       (after-save . doom-modeline-update-buffer-file-name)
-       (after-save . doom-modeline-update-buffer-file-state-icon)
-       :init
-       (setq doom-modeline-major-mode-color-icon t)
-       (setq doom-modeline-github t)
-       (setq doom-modeline-indent-info t)
-       (setq doom-modeline-persp-name nil))
+    #+BEGIN_SRC emacs-lisp
+      (use-package doom-modeline
+        :hook (emacs-startup . doom-modeline-mode)
+        (after-save . doom-modeline-update-buffer-file-name)
+        (after-save . doom-modeline-update-buffer-file-state-icon)
+        :init
+        (setq doom-modeline-major-mode-color-icon t)
+        (setq doom-modeline-github t)
+        (setq doom-modeline-indent-info t)
+        (setq doom-modeline-persp-name nil))
 
-     (defun mode-line-height ()
-       "Get current height of mode-line."
-       (- (elt (window-pixel-edges) 3)
-          (elt (window-inside-pixel-edges) 3)))
+      (defun mode-line-height ()
+        "Get current height of mode-line."
+        (- (elt (window-pixel-edges) 3)
+           (elt (window-inside-pixel-edges) 3)))
     #+END_SRC
 
 *** hide-mode-line
     - A minor mode that hides (or masks) the mode-line in your current buffer
     - https://github.com/hlissner/emacs-hide-mode-line
     #+BEGIN_SRC emacs-lisp
-     (use-package hide-mode-line
-       :hook (((completion-list-mode
-                completion-in-region-mode
-                neotree-mode
-                treemacs-mode)
-               . hide-mode-line-mode)))
-   #+END_SRC
+      (use-package hide-mode-line
+        :hook (((completion-list-mode
+                 completion-in-region-mode
+                 neotree-mode
+                 treemacs-mode)
+                . hide-mode-line-mode)))
+    #+END_SRC
 
 ** all-the-icons
    - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
@@ -1705,10 +1705,10 @@
     - uses ivy as backend
     - https://github.com/DarwinAwardWinner/amx
     #+BEGIN_SRC emacs-lisp
-    (use-package amx
-    :after ivy
-    :hook (emacs-startup . amx-mode)
-    :config (setq amx-backend 'ivy))
+      (use-package amx
+        :after ivy
+        :hook (emacs-startup . amx-mode)
+        :config (setq amx-backend 'ivy))
     #+END_SRC
 
 *** counsel-projectile
@@ -2327,14 +2327,14 @@
 *** sej/push-mark-no-activate
     - defined in sej-mode-map as C-S-<SPC>
     #+BEGIN_SRC emacs-lisp
-            (defun sej/push-mark-no-activate ()
-              "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
-              (interactive)
-              (push-mark (point) t nil)
-              (message "Pushed mark to ring"))
+      (defun sej/push-mark-no-activate ()
+        "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
+        (interactive)
+        (push-mark (point) t nil)
+        (message "Pushed mark to ring"))
 
-            ;; push and jump to mark functions
-            (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
+      ;; push and jump to mark functions
+      (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
     #+END_SRC
 
 ** regions
@@ -3159,7 +3159,7 @@
         (if (fboundp 'transient-append-suffix)
             ;; Add switch: --tags
             (transient-append-suffix 'magit-fetch
-              "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+                                     "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
     #+END_SRC
 
 *** forge
@@ -3605,7 +3605,7 @@
       (use-package yasnippet
         :diminish yas-minor-mode
         :hook ( (emacs-startup . yas-reload-all)
-               ((prog-mode org-mode) . yas-minor-mode))
+                ((prog-mode org-mode) . yas-minor-mode))
         :bind (:map yas-minor-mode-map
                     ("<tab>" . nil)
                     ("TAB" . nil)
@@ -3629,28 +3629,28 @@
 *** lisp settings
     - some lisp stuff from Getting Started with Emacs Lisp
     #+BEGIN_SRC emacs-lisp
-                        (define-key emacs-lisp-mode-map (kbd "<s-return>") 'eval-last-sexp)
-                        (define-key emacs-lisp-mode-map (kbd "<H-return>") 'eval-buffer)
-                        (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
+      (define-key emacs-lisp-mode-map (kbd "<s-return>") 'eval-last-sexp)
+      (define-key emacs-lisp-mode-map (kbd "<H-return>") 'eval-buffer)
+      (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
 
-                        (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
+      (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 
-                        ;; use flycheck in elisp
-                        (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+      ;; use flycheck in elisp
+      (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
-                        ;; enable dash for Emacs lisp highlighting
-                        (eval-after-load "dash" '(dash-enable-font-lock))
+      ;; enable dash for Emacs lisp highlighting
+      (eval-after-load "dash" '(dash-enable-font-lock))
 
-                        (defun sej/eval-last-sexp-or-region (prefix)
-                          "Eval region from BEG to END if active, otherwise the last sexp."
-                          (interactive "P")
-                          (if (and (mark) (use-region-p))
-                              (eval-region (min (point) (mark)) (max (point) (mark)))
-                            (pp-eval-last-sexp prefix)))
+      (defun sej/eval-last-sexp-or-region (prefix)
+        "Eval region from BEG to END if active, otherwise the last sexp."
+        (interactive "P")
+        (if (and (mark) (use-region-p))
+            (eval-region (min (point) (mark)) (max (point) (mark)))
+          (pp-eval-last-sexp prefix)))
 
-                        (global-set-key [remap eval-expression] 'pp-eval-expression)
+      (global-set-key [remap eval-expression] 'pp-eval-expression)
 
-                        (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
+      (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
     #+END_SRC
 
 *** lispy
@@ -4963,19 +4963,35 @@
           (global-set-key [C-S-f4] 'org-skeleton)
 
           (setq sej-project-org-capture-list (list
-                                              "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" ) "* %i%?\n %U"))
+                                              "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
+                                              "* %U\n %l\n %i%?\n"))
+          ;; Bookmarks in Safari
+          ;;
+          ;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
+          ;;                               +'&url='+encodeURIComponent(window.location.href)
+          ;;                               +'&title='+encodeURIComponent(document.title)
+          ;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
+          ;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
+          ;;                               +'url='+encodeURIComponent(location.href)
+          ;;                               +'&title='+encodeURIComponent(document.title) ;
 
           (setq org-capture-templates (append
                                        '(
-                                         ("i" "Inbox" entry (file+headline org-file-inbox  "Inbox") "* %i%?\n %U")
-                                         ("j" "Journal" entry (file+olp+datetree org-file-journal "Journal")  "* %i%?\n %U")
-                                         ("n" "Notes" entry (file+headline org-file-notes  "Notes") "* %i%?\n %U")
-                                         ("s" "Someday" entry (file+headline org-file-someday  "Someday") "* %i%?\n %U")
-                                         ("t" "Todo" entry (file+headline org-file-gtd  "Todo") "* TODO %i%?")
+                                         ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
+                                          "* %U\n %l\n %i%?\n")
+                                         ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
+                                          "* %U\n %:annotation\n i=%i%?\n")
+                                         ("n" "Notes" entry (file+headline org-file-notes  "Notes")
+                                          "* %U\n %i%?\n")
+                                         ("s" "Someday" entry (file+headline org-file-someday  "Someday")
+                                          "* %?\n %i\n %a")
+                                         ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
+                                          "* TODO %?\n %i\n %a")
                                          ("c" "code snippet" entry (file+headline org-file-code "code snippets")
                                           "* %?\n%(my/org-capture-code-snippet \"%F\")")
                                          )
                                        (list sej-project-org-capture-list)))
+
 
           ;; org-mode agenda options
           (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
