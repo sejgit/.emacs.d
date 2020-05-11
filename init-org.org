@@ -1,7 +1,7 @@
 #+TITLE: init-org.org
 #+AUTHOR: SeJ
 #+DATE: <2019-11-03 Sun>
-#+STARTUP: content logdone hidestars hideblocks
+#+STARTUP: showall logdone hidestars hideblocks
 
 #+COMMENTARY: My attempt at an ORG tangled init file.
 #+LOG: Update Log
@@ -68,6 +68,8 @@
 ** system constants
    - section for global constants
    #+BEGIN_SRC emacs-lisp
+     (setq debug-on-error t)
+
      (defconst sej-homepage
        "https://github.com/sejgit/.emacs.d"
        "The Github page of SeJ Emacs.")
@@ -322,21 +324,37 @@
      ;; ensure-system-package keyword to ensure system binaries exist alongside your package
      (use-package use-package-ensure-system-package)
      (use-package helm-system-packages)
+
    #+END_SRC
 
 ** system settings
    - Set environment variables based on current system
 *** OSX & Linux
     - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
-    #+BEGIN_SRC emacs-lisp
-      (when (or sys/macp sys/linuxp)
-        (setq exec-path (append exec-path '("/usr/local/bin")))
-        (use-package exec-path-from-shell
-          :init
-          (setq exec-path-from-shell-arguments nil)
-          (exec-path-from-shell-initialize))
-        (add-hook 'emacs-startup-hook 'server-mode))
-    #+END_SRC
+    - set-up exec-path and hook for server-start
+   #+BEGIN_SRC emacs-lisp
+     (when (or sys/macp sys/linuxp)
+       (setq exec-path (append exec-path '("/usr/local/bin")))
+       (use-package exec-path-from-shell
+         :init
+         (setq exec-path-from-shell-arguments nil)
+         (exec-path-from-shell-initialize))
+       (add-hook 'emacs-startup-hook 'sej/server-mode)
+
+       (require 'warnings)
+       (customize-save-variable 'warning-suppress-types (quote ((server))))
+
+       (defun sej/server-mode ()
+         "Start server-mode without errors"
+         (interactive)
+         (with-demoted-errors
+             (message "Server exists -- not starting new one.")
+           (server-mode)
+           )
+         )
+
+       )
+   #+END_SRC
 
 *** Windows
     - https://github.com/xahlee/xahk-mode.el
@@ -897,7 +915,8 @@
         (setq ns-pop-up-frames nil))
 
       ;; Resize frame to left half after startup
-      (add-hook 'emacs-startup-hook 'sej/frame-resize-l)
+      (if (display-graphic-p)
+          (add-hook 'emacs-startup-hook 'sej/frame-resize-l) )
     #+end_src
 
 *** mac specific frame settings
@@ -4842,8 +4861,7 @@
     - https://orgmode.org/
       #+BEGIN_SRC emacs-lisp
         (use-package org
-          :defines
-          sej-mode-map
+          :defines  sej-mode-map
           org-capture-bookmark
           org-capture-templates
           org-agenda-window-setup
@@ -4857,9 +4875,9 @@
           sej/org-capture-get-src-block-string
           which-function
           :mode ("\\.org$" . org-mode)
-          :hook ((org-mode . flyspell-mode)
-                 (org-mode . writegood-mode)
-                 (org-mode . visual-line-mode))
+          :hook ( (org-mode . flyspell-mode)
+                  (org-mode . writegood-mode)
+                  (org-mode . visual-line-mode))
           :bind (:map sej-mode-map
                       ("<f1>" . org-mode)
                       ("C-c l" . org-store-link)
@@ -4907,21 +4925,20 @@
                 org-startup-folded nil
                 org-highlight-latex-and-related '(latex)
                 )
-          (font-lock-add-keywords 'org-mode
-                                  '(("^ *\\([-]\\) "
-                                     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-          (font-lock-add-keywords 'org-mode
-                                  '(("^ *\\([+]\\) "
-                                     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
 
           (let* ((variable-tuple
-                  (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-                        ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-                        ((x-list-fonts "Verdana")         '(:font "Verdana"))
-                        ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-                        (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+                  (if (display-graphic-p)
+                      (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                            ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                            ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                            ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                            (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro.")))
+                    nil
+                    )
+                  )
                  (base-font-color     (face-foreground 'default nil 'default))
                  (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
 
             (custom-theme-set-faces
              'user
@@ -4949,18 +4966,6 @@
            '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
            '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
            '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
-
-          (define-skeleton org-skeleton
-            "Header info for a emacs-org file."
-            "Title: "
-            "#+TITLE:" str " \n"
-            "#+DATE:" '(org-date-from-calendar) " \n"
-            "#+AUTHOR: " '(sej-full-name) "\n"
-            "#+email: " '(sej-mail-address) "\n"
-            "#+INFOJS_OPT: \n"
-            "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
-            "-----\n\n")
-          (global-set-key [C-S-f4] 'org-skeleton)
 
           (setq sej-project-org-capture-list (list
                                               "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
@@ -4998,7 +5003,7 @@
                 org-refile-targets '((org-file-gtd :maxlevel . 3)
                                      (org-file-someday :maxlevel . 1))
                 org-agenda-window-setup (quote current-window) ;open agenda in current window
-                org-deadline-warning-days 7     ;warn me of any deadlines in next 7 days
+                org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
                 org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
                 org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
                 org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
@@ -5028,8 +5033,24 @@
                                        (shell . t)))
 
           (org-babel-do-load-languages 'org-babel-load-languages
-                                       load-language-list) )
+                                       load-language-list))
       #+END_SRC
+
+*** org-skeleton
+    - skeleton template for new org file
+    #+BEGIN_SRC emacs-lisp
+      (define-skeleton org-skeleton
+        "Header info for a emacs-org file."
+        "Title: "
+        "#+TITLE:" str " \n"
+        "#+DATE:" '(org-date-from-calendar) " \n"
+        "#+AUTHOR: " '(sej-full-name) "\n"
+        "#+email: " '(sej-mail-address) "\n"
+        "#+INFOJS_OPT: \n"
+        "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
+        "-----\n\n")
+      (global-set-key [C-S-f4] 'org-skeleton)
+    #+END_SRC
 
 *** ob-go
     - org-bable functions for go evaluations
