@@ -1842,7 +1842,6 @@
                     all-the-icons-icon-for-mode
                     all-the-icons-icon-family
                     all-the-icons-match-to-alist
-                    all-the-icons-faicon
                     all-the-icons-octicon
                     all-the-icons-dir-is-submodule)
         :preface

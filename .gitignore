@@ -12,7 +12,7 @@ init-org.el
 .saves/
 .dap-*
 .vscode/
-/straight/build/
+straight/
 /.agignore
 /.elfeed
 /.emacs*.desktop
