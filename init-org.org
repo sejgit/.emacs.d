@@ -55,6 +55,7 @@
   - [[#python][python]]
   - [[#web-modes][web modes]]
   - [[#c-program-modes][c program modes]]
+  - [[#go-lang][go lang]]
   - [[#other-program-modes][other program modes]]
 - [[#files][files]]
 - [[#dired][dired]]
@@ -337,7 +338,7 @@
        (setq exec-path (append exec-path '("/usr/local/bin")))
        (use-package exec-path-from-shell
          :init
-         (setq exec-path-from-shell-arguments nil)
+         (setq exec-path-from-shell t)
          (exec-path-from-shell-initialize))
        (add-hook 'emacs-startup-hook 'sej/server-mode)
 
@@ -3623,7 +3624,7 @@
       (use-package yasnippet
         :diminish yas-minor-mode
         :hook ( (emacs-startup . yas-reload-all)
-                ((prog-mode org-mode) . yas-minor-mode))
+                ((prog-mode org-mode go-mode) . yas-minor-mode))
         :bind (:map yas-minor-mode-map
                     ("<tab>" . nil)
                     ("TAB" . nil)
@@ -4089,6 +4090,36 @@
         :config (setq rust-format-on-save t))
     #+END_SRC
 
+** go lang
+   - two different ways to configure
+   - [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
+     - need to install golang and go get golang/x/tools/gopls
+   - [[https://sandyuraz.com/articles/go-emacs/][go-mode native completion]]
+   #+BEGIN_SRC emacs-lisp
+     (use-package go-mode
+       :mode ("\\.go\\'" . go-mode)
+       :init
+       (setq compile-command "echo Building... && go build -v && echo Testing... && go test -v && echo Linter... && golint")
+       (setq compilation-read-command nil)
+       :bind (("C-c s c" . compile)
+              ;; ("M-." . godef-jump)
+              )
+       :config
+       (setq compilation-window-height 14)
+       (defun sej/compilation-hook ()
+         (when (not (get-buffer-window "*compilation*"))
+           (save-selected-window
+             (save-excursion
+               (let* ((w (split-window-vertically))
+                      (h (window-height w)))
+                 (select-window w)
+                 (switch-to-buffer "*compilation*")
+                 (shrink-window (- h compilation-window-height)))))))
+       (add-hook 'compilation-mode-hook 'sej/compilation-hook)
+
+       (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+       (setq compilation-scroll-output t))
+   #+END_SRC
 ** other program modes
 *** csv-mode
     - major mode for csv
