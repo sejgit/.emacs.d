@@ -3653,6 +3653,7 @@
       (define-key emacs-lisp-mode-map (kbd "<A-return>") 'eval-region)
 
       (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
+      (global-set-key (kbd "C-c s E") 'toggle-debug-on-error)
 
       ;; use flycheck in elisp
       (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
@@ -5275,8 +5276,9 @@
                                  (eshell/alias "emacs" "find-file $1")
                                  (eshell/alias "fo" "find-file-other-window $1")
                                  (eshell/alias "d" "dired $1")
-                                 (eshell/alias "ll" "ls  -AlohG --color=always $1")
-                                 (eshell/alias "la" "ls -al $1")
+                                 (eshell/alias "ll" "ls  -al $1")
+                                 (eshell/alias "la" "ls -a $1")
+                                 (eshell/alias "l" "ls -a $1")
                                  (eshell/alias "gd" "magit-diff-unstaged")
                                  (eshell/alias "gds" "magit-diff-staged")
                                  (bind-keys :map eshell-mode-map
@@ -5285,7 +5287,6 @@
                                             ("M-R" . eshell-previous-matching-input)
                                             ("C-l" . eshell/clear)
                                             )
-                                 (sej/eshell-prompt)
                                  )))
 
         :bind (
@@ -5335,6 +5336,8 @@
 
         ;; turn off semantic-mode in eshell buffers
         (semantic-mode -1))
+
+
     #+END_SRC
 
 *** eshell-prompt-extras
