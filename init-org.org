@@ -2268,7 +2268,7 @@
                 ("C-c u" . crux-view-url)
                 ("s-k" . crux-duplicate-current-line-or-region)
                 ("C-c C-k" . crux-duplicate-current-line-or-region)
-                ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+                ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
                 ([remap kill-whole-line] . crux-kill-whole-line)
                 ("C-<backspace>" . crux-kill-line-backwards))
         :config
@@ -2489,6 +2489,7 @@
                ("C-d" . smart-hungry-delete-forward-char))
         :config (smart-hungry-delete-add-default-hooks))
     #+END_SRC
+
 *** whole-line or region
     - operate on current line if region undefined
     - [[https://github.com/purcell/whole-line-or-region][purcell/whole-line-or-region]]
