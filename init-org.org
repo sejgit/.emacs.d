@@ -894,6 +894,22 @@
         )
     #+END_SRC
 
+*** outshine  pretty-outlines
+    #+BEGIN_SRC emacs-lisp
+    (use-package outshine
+      :hook ((prog-mode          . outline-minor-mode)
+       (outline-minor-mode . outshine-mode)))
+
+    (use-package pretty-outlines
+      :straight (.spacemacs.d :type git :host github
+            :repo "ekaschalk/.spacemacs.d"
+            :files ("layers/display/local/pretty-outlines/*.el"))
+      :hook ((outline-mode       . pretty-outlines-set-display-table)
+       (outline-minor-mode . pretty-outlines-set-display-table)
+       (emacs-lisp-mode . pretty-outlines-add-bullets)
+       (python-mode     . pretty-outlines-add-bullets)))
+    #+END_SRC
+
 ** frames
 *** general frames key-bindings
     #+BEGIN_SRC emacs-lisp
@@ -3674,7 +3690,7 @@
       (define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
     #+END_SRC
 
-*** lispy
+*** lispy /**not used**/
     - This package reimagines Paredit
     - https://github.com/abo-abo/lispy
     - a popular method to navigate and edit LISP code in Emacs.
@@ -3692,8 +3708,8 @@
     paredit-backward-slurp-sexp C-(        >     lispy-slurp
     paredit-backward-barf-sexp  C-{        <     lispy-barf
     #+BEGIN_SRC emacs-lisp
-      (use-package lispy
-        :hook (emacs-lisp-mode . lispy-mode))
+;;      (use-package lispy
+;;        :hook (emacs-lisp-mode . lispy-mode))
     #+END_SRC
 
 *** eldoc

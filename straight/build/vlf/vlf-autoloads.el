@@ -1,15 +1,7 @@
-;;; template.el --- template for elisp programs
-
-;;; Commentary:
-;; to be auto inserted in all new elisp files
-
-;;; Log
-;; 2017 05 12 init SeJ
-
+;;; vlf-autoloads.el --- automatically extracted autoloads
+;;
 ;;; Code:
 
-(provide 'template)
-;;; template.el ends here
 
 ;;;### (autoloads nil "vlf" "vlf.el" (0 0 0 0))
 ;;; Generated autoloads from vlf.el
@@ -23,6 +15,13 @@ Return newly created buffer.
 \(fn FILE &optional MINIMAL)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vlf" '("vlf-")))
+
+;;;***
+
+;;;### (autoloads nil "vlf-base" "vlf-base.el" (0 0 0 0))
+;;; Generated autoloads from vlf-base.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vlf-base" '("vlf-")))
 
 ;;;***
 
@@ -86,9 +85,11 @@ Load serialized `vlf-occur' results from current buffer." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "vlf-base" "vlf-base.el" (0 0 0 0))
-;;; Generated autoloads from vlf-base.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vlf-base" '("vlf-")))
-
-;;;***
+(provide 'vlf-autoloads)
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; coding: utf-8
+;; End:
+;;; vlf-autoloads.el ends here

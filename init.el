@@ -40,10 +40,9 @@
 ;;; Code:
 (message "Emacs start")
 
-;; org-tangle load-file
-;(org-babel-tangle (concat user-emacs-directory "init-org.org"))
-(org-babel-load-file (concat user-emacs-directory "init-org.org"))
-;; load("init_new.el")
+;; load-file
+;; (org-babel-load-file (concat user-emacs-directory "init-org.org"))
+(load-file (concat user-emacs-directory "init-new.el"))
 
 (message "init.el ends here")
 ;;; init.el ends here
