@@ -17,42 +17,6 @@
 
 ;;;***
 
-;;;### (autoloads nil "ein-connect" "ein-connect.el" (0 0 0 0))
-;;; Generated autoloads from ein-connect.el
-
-(autoload 'ein:connect-to-notebook-command "ein-connect" "\
-Connect to notebook.  When the prefix argument is given,
-you can choose any notebook on your server including the ones
-not yet opened.  Otherwise, already chose from already opened
-notebooks.
-
-\(fn &optional NOT-YET-OPENED)" t nil)
-
-(autoload 'ein:connect-to-notebook "ein-connect" "\
-Connect any buffer to notebook and its kernel.
-
-\(fn NBPATH &optional BUFFER NO-RECONNECTION)" t nil)
-
-(autoload 'ein:connect-to-notebook-buffer "ein-connect" "\
-Connect any buffer to opened notebook and its kernel.
-
-\(fn BUFFER-OR-NAME)" t nil)
-
-(autoload 'ein:connect-buffer-to-notebook "ein-connect" "\
-Connect BUFFER to NOTEBOOK.
-
-\(fn NOTEBOOK &optional BUFFER NO-RECONNECTION)" nil nil)
-
-(autoload 'ein:connect-to-default-notebook "ein-connect" "\
-Connect to the default notebook specified by
-`ein:connect-default-notebook'.  Set this to `python-mode-hook'
-to automatically connect any python-mode buffer to the
-notebook." nil nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-connect" '("ein:")))
-
-;;;***
-
 ;;;### (autoloads nil "ein-contents-api" "ein-contents-api.el" (0
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from ein-contents-api.el
@@ -105,6 +69,13 @@ Open a buffer with bug report template." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "ein-gat" "ein-gat.el" (0 0 0 0))
+;;; Generated autoloads from ein-gat.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-gat" '("ein:gat-")))
+
+;;;***
+
 ;;;### (autoloads nil "ein-ipdb" "ein-ipdb.el" (0 0 0 0))
 ;;; Generated autoloads from ein-ipdb.el
 
@@ -121,7 +92,7 @@ A simple mode for ipynb file.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '(".*\\.ipynb\\'" . ein:ipynb-mode))
+(add-to-list 'auto-mode-alist '("\\.ipynb\\'" . ein:ipynb-mode))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-ipynb-mode" '("ein:ipynb-parent-mode")))
 
@@ -161,19 +132,6 @@ server command.
 \(fn &optional FORCE LOG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-jupyter" '("*ein:jupyter-server-" "ein:")))
-
-;;;***
-
-;;;### (autoloads nil "ein-jupyterhub" "ein-jupyterhub.el" (0 0 0
-;;;;;;  0))
-;;; Generated autoloads from ein-jupyterhub.el
-
-(autoload 'ein:jupyterhub-connect "ein-jupyterhub" "\
-Log on to a jupyterhub server using PAM authentication. Requires jupyterhub version 0.8 or greater.  CALLBACK takes two arguments, the resulting buffer and the singleuser url-or-port
-
-\(fn URL-OR-PORT USERNAME PASSWORD CALLBACK)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-jupyterhub" '("*ein:jupyterhub-connections*" "ein:")))
 
 ;;;***
 
@@ -226,7 +184,7 @@ Major mode for editing ein:markdown files.
 ;;;### (autoloads nil "ein-node" "ein-node.el" (0 0 0 0))
 ;;; Generated autoloads from ein-node.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-node" '("ein:")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-node" '("ein:node-")))
 
 ;;;***
 
@@ -269,7 +227,7 @@ Reload current Notebook list.
 (autoload 'ein:notebooklist-new-notebook "ein-notebooklist" "\
 
 
-\(fn URL-OR-PORT KERNELSPEC &optional CALLBACK NO-POP RETRY)" t nil)
+\(fn URL-OR-PORT KERNELSPEC &optional CALLBACK NO-POP RETRY EXPLICIT-PATH)" t nil)
 
 (autoload 'ein:notebooklist-new-notebook-with-name "ein-notebooklist" "\
 Upon notebook-open, rename the notebook, then funcall CALLBACK.
@@ -341,14 +299,22 @@ and the url-or-port argument of ein:notebooklist-open*.
 ;;;### (autoloads nil "ein-process" "ein-process.el" (0 0 0 0))
 ;;; Generated autoloads from ein-process.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-process" '("ein:")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-process" '("ein:process-")))
+
+;;;***
+
+;;;### (autoloads nil "ein-python-send" "ein-python-send.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from ein-python-send.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-python-send" '("ein:python-send-")))
 
 ;;;***
 
 ;;;### (autoloads nil "ein-pytools" "ein-pytools.el" (0 0 0 0))
 ;;; Generated autoloads from ein-pytools.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-pytools" '("ein:pytools-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ein-pytools" '("ein:pytools-jump-")))
 
 ;;;***
 
@@ -422,7 +388,7 @@ Show full traceback in traceback viewer." t nil)
 ;;;### (autoloads nil "ob-ein" "ob-ein.el" (0 0 0 0))
 ;;; Generated autoloads from ob-ein.el
 
-(if (featurep 'org) (let* ((orig (get 'org-babel-load-languages 'custom-type)) (orig-cdr (cdr orig)) (choices (plist-get orig-cdr :key-type))) (push '(const :tag "Ein" ein) (nthcdr 1 choices)) (put 'org-babel-load-languages 'custom-type (cons (car orig) (plist-put orig-cdr :key-type choices)))))
+(when (featurep 'org) (let* ((orig (get 'org-babel-load-languages 'custom-type)) (orig-cdr (cdr orig)) (choices (plist-get orig-cdr :key-type))) (push '(const :tag "Ein" ein) (nthcdr 1 choices)) (put 'org-babel-load-languages 'custom-type (cons (car orig) (plist-put orig-cdr :key-type choices)))))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-ein" '("*ob-ein-sentinel*" "ob-ein-")))
 

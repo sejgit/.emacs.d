@@ -892,6 +892,21 @@ Create agenda view for contacts matching NAME.
 ;;;### (autoloads nil "org-crypt" "org-crypt.el" (0 0 0 0))
 ;;; Generated autoloads from org-crypt.el
 
+(autoload 'org-encrypt-entry "org-crypt" "\
+Encrypt the content of the current headline." t nil)
+
+(autoload 'org-decrypt-entry "org-crypt" "\
+Decrypt the content of the current headline." t nil)
+
+(autoload 'org-encrypt-entries "org-crypt" "\
+Encrypt all top-level entries in the current buffer." t nil)
+
+(autoload 'org-decrypt-entries "org-crypt" "\
+Decrypt all entries in the current buffer." t nil)
+
+(autoload 'org-crypt-use-before-save-magic "org-crypt" "\
+Add a hook to automatically encrypt entries before a file is saved to disk." nil nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-crypt" '("org-")))
 
 ;;;***
@@ -1173,10 +1188,13 @@ With prefix argument PREVIOUS, move the previous link instead of
 the next link.
 
 Non-interactively, use the text between BEG and END as the
-description, moving the next (or previous) link relative BEG and
-END.
+description, moving the next (or previous) link relative to BEG
+and END.  By default, refuse to overwrite an existing
+description.  If OVERWRITE is `ask', prompt for confirmation
+before overwriting; for any other non-nil value, overwrite
+without asking.
 
-\(fn &optional PREVIOUS BEG END)" t nil)
+\(fn &optional PREVIOUS BEG END OVERWRITE)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-link-edit" '("org-link-edit--")))
 

@@ -38,6 +38,11 @@ for a file to visit if current buffer is not visiting a file.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'sudo-edit-find-file "sudo-edit" "\
+Edit FILENAME as another user, by default `sudo-edit-user'.
+
+\(fn FILENAME)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sudo-edit" '("sudo-edit-")))
 
 ;;;***

@@ -19,6 +19,9 @@ ARG is `toggle'; disable the mode otherwise.
 (autoload 'turn-on-diff-hl-mode "diff-hl" "\
 Turn on `diff-hl-mode' or `diff-hl-dir-mode' in a buffer if appropriate." nil nil)
 
+(autoload 'diff-hl--global-turn-on "diff-hl" "\
+Call `turn-on-diff-hl-mode' if the current major mode is applicable." nil nil)
+
 (put 'global-diff-hl-mode 'globalized-minor-mode t)
 
 (defvar global-diff-hl-mode nil "\
@@ -38,7 +41,7 @@ otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
 Diff-Hl mode is enabled in all buffers where
-`turn-on-diff-hl-mode' would do it.
+`diff-hl--global-turn-on' would do it.
 See `diff-hl-mode' for more information on Diff-Hl mode.
 
 \(fn &optional ARG)" t nil)

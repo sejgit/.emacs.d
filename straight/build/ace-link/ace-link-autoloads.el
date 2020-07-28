@@ -22,7 +22,13 @@ Open a visible link in a `man' buffer." t nil)
 Open a visible link in a `woman-mode' buffer." t nil)
 
 (autoload 'ace-link-eww "ace-link" "\
-Open a visible link in an `eww-mode' buffer." t nil)
+Open a visible link in an `eww-mode' buffer.
+If EXTERNAL is single prefix, browse the URL using
+`browse-url-secondary-browser-function'.
+
+If EXTERNAL is double prefix, browse in new buffer.
+
+\(fn &optional EXTERNAL)" t nil)
 
 (autoload 'ace-link-w3m "ace-link" "\
 Open a visible link in an `w3m-mode' buffer." t nil)
@@ -35,6 +41,18 @@ Open a visible link in a `gnus-article-mode' buffer." t nil)
 
 (autoload 'ace-link-mu4e "ace-link" "\
 Open a visible link in an `mu4e-view-mode' buffer." t nil)
+
+(autoload 'ace-link-notmuch-plain "ace-link" "\
+Open a visible link in a `notmuch-show' buffer.
+Only consider the 'text/plain' portion of the buffer." t nil)
+
+(autoload 'ace-link-notmuch-html "ace-link" "\
+Open a visible link in a `notmuch-show' buffer.
+Only consider the 'text/html' portion of the buffer." t nil)
+
+(autoload 'ace-link-notmuch "ace-link" "\
+Open a visible link in `notmuch-show' buffer.
+Consider both the links in 'text/plain' and 'text/html'." t nil)
 
 (autoload 'ace-link-org "ace-link" "\
 Open a visible link in an `org-mode' buffer." t nil)

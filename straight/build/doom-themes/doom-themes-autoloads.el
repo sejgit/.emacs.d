@@ -75,11 +75,27 @@
 
 ;;;***
 
+;;;### (autoloads nil "doom-gruvbox-light-theme" "doom-gruvbox-light-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-gruvbox-light-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-gruvbox-light-theme" '("doom-gruvbox-light")))
+
+;;;***
+
 ;;;### (autoloads nil "doom-gruvbox-theme" "doom-gruvbox-theme.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from doom-gruvbox-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-gruvbox-theme" '("doom-gruvbox")))
+
+;;;***
+
+;;;### (autoloads nil "doom-henna-theme" "doom-henna-theme.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from doom-henna-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-henna-theme" '("doom-henna")))
 
 ;;;***
 
@@ -136,6 +152,14 @@
 ;;; Generated autoloads from doom-monokai-pro-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-monokai-pro-theme" '("doom-monokai-pro")))
+
+;;;***
+
+;;;### (autoloads nil "doom-monokai-spectrum-theme" "doom-monokai-spectrum-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-monokai-spectrum-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-monokai-spectrum-theme" '("doom-monokai-spectrum")))
 
 ;;;***
 
@@ -429,6 +453,14 @@ Enable flashing the mode-line on error." nil nil)
 ;;; Generated autoloads from doom-wilmersdorf-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-wilmersdorf-theme" '("doom-wilmersdorf")))
+
+;;;***
+
+;;;### (autoloads nil "doom-zenburn-theme" "doom-zenburn-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from doom-zenburn-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-zenburn-theme" '("doom-zenburn")))
 
 ;;;***
 

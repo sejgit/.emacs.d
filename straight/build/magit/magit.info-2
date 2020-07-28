@@ -632,21 +632,6 @@ buffer, but doing it this way has the advantage that you usually get to
 see the diff, which is useful because it increases the odds that you
 spot potential issues.
 
-The Built-In VC Package
-.......................
-
-Emacs comes with a version control interface called "VC", see *Note
-Version Control: (emacs)Version Control.  It is enabled be default, and
-if you don't use it in addition to Magit, then you should disable it to
-keep it from performing unnecessary work:
-
-     (setq vc-handled-backends nil)
-
-   You can also disable its use for Git but keep using it when using
-another version control system:
-
-     (setq vc-handled-backends (delq 'Git vc-handled-backends))
-
 
 File: magit.info,  Node: Microsoft Windows Performance,  Next: MacOS Performance,  Up: Performance
 
@@ -877,7 +862,7 @@ refresh because that also automatically moves to the next change.
      input.
 
      INPUT should be a buffer or the name of an existing buffer.  The
-     content of that buffer is used as the process' standard input.
+     content of that buffer is used as the process's standard input.
      After the process returns a refresh is performed.
 
      As a special case, INPUT may also be nil.  In that case the content
@@ -888,9 +873,9 @@ refresh because that also automatically moves to the next change.
      for the process to return, so the function itself is synchronous.
 
  -- Function: magit-run-git-with-logfile file &rest args
-     Calls git synchronously with ARGS.  The process' output is saved in
-     FILE.  This is rarely useful and so this function might be removed
-     in the future.
+     Calls git synchronously with ARGS.  The process's output is saved
+     in FILE.  This is rarely useful and so this function might be
+     removed in the future.
 
      This function actually runs git asynchronously.  But then it waits
      for the process to return, so the function itself is synchronous.
@@ -1493,6 +1478,7 @@ A.1 FAQ - How to ...?
 * How to show diffs for gpg-encrypted files?::
 * How does branching and pushing work?::
 * Can Magit be used as `ediff-version-control-package'?::
+* Should I disable VC?::
 
 
 File: magit.info,  Node: How to show git's output?,  Next: How to install the gitman info manual?,  Up: FAQ - How to ...?
@@ -1555,7 +1541,7 @@ Please see *Note Branching:: and
 `http://emacsair.me/2016/01/18/magit-2.4'
 
 
-File: magit.info,  Node: Can Magit be used as `ediff-version-control-package'?,  Prev: How does branching and pushing work?,  Up: FAQ - How to ...?
+File: magit.info,  Node: Can Magit be used as `ediff-version-control-package'?,  Next: Should I disable VC?,  Prev: How does branching and pushing work?,  Up: FAQ - How to ...?
 
 A.1.5 Can Magit be used as `ediff-version-control-package'?
 -----------------------------------------------------------
@@ -1589,6 +1575,23 @@ conflicts, in which case you *can* use these commands, which then use
 `ediff-magit-merge-internal'.  Instead we provide the more useful
 command `magit-ediff-resolve' which only shows yet-to-be resolved
 conflicts.
+
+
+File: magit.info,  Node: Should I disable VC?,  Prev: Can Magit be used as `ediff-version-control-package'?,  Up: FAQ - How to ...?
+
+A.1.6 Should I disable VC?
+--------------------------
+
+If you don't use VC (the built-in version control interface) then you
+might be tempted to disable it, not least because we used to recommend
+that you do that.
+
+   We no longer recommend that you disable VC.  Doing so would break
+useful third-party packages (such as `diff-hl'), which depend on VC
+being enabled.
+
+   If you choose to disable VC anyway, then you can do so by changing
+the value of `vc-handled-backends'.
 
 
 File: magit.info,  Node: FAQ - Issues and Errors,  Prev: FAQ - How to ...?,  Up: FAQ
@@ -1722,15 +1725,12 @@ that information, and can be told to do so more often:
    But doing so isn't good for performance.  For more (overly
 optimistic) information see *Note VC Mode Line: (emacs)VC Mode Line.
 
-   If you don't really care about seeing that information in the
+   If you don't really care about seeing this information in the
 mode-line, but just don't want to see _incorrect_ information, then
-consider disabling VC when using Git:
+consider simply not displaying it in the mode-line:
 
-     (setq vc-handled-backends (delq 'Git vc-handled-backends))
-
-   Or to disable it completely:
-
-     (setq vc-handled-backends nil)
+     (setq-default mode-line-format
+                   (delete '(vc-mode vc-mode) mode-line-format))
 
 
 File: magit.info,  Node: A branch and tag sharing the same name breaks SOMETHING,  Next: My Git hooks work on the command-line but not inside Magit,  Prev: The mode-line information isn't always up-to-date,  Up: FAQ - Issues and Errors
@@ -1903,10 +1903,10 @@ Appendix A Keystroke Index
                                                               (line  49)
 * ! p:                                   Running Git Manually.
                                                               (line  23)
-* ! s:                                   Running Git Manually.
-                                                              (line  32)
 * ! S:                                   Running Git Manually.
                                                               (line  36)
+* ! s:                                   Running Git Manually.
+                                                              (line  32)
 * $:                                     Viewing Git Output.  (line  16)
 * %:                                     Worktree.            (line   8)
 * % b:                                   Worktree.            (line  12)
@@ -1914,10 +1914,10 @@ Appendix A Keystroke Index
 * % g:                                   Worktree.            (line  25)
 * % k:                                   Worktree.            (line  21)
 * % m:                                   Worktree.            (line  18)
-* + <1>:                                 Log Buffer.          (line  53)
-* +:                                     Refreshing Diffs.    (line  60)
-* - <1>:                                 Log Buffer.          (line  56)
-* -:                                     Refreshing Diffs.    (line  57)
+* + <1>:                                 Refreshing Diffs.    (line  60)
+* +:                                     Log Buffer.          (line  53)
+* - <1>:                                 Refreshing Diffs.    (line  57)
+* -:                                     Log Buffer.          (line  56)
 * 0:                                     Refreshing Diffs.    (line  63)
 * 1:                                     Section Visibility.  (line  22)
 * 2:                                     Section Visibility.  (line  23)
@@ -1925,26 +1925,24 @@ Appendix A Keystroke Index
 * 4:                                     Section Visibility.  (line  27)
 * =:                                     Log Buffer.          (line  48)
 * ^:                                     Section Movement.    (line  27)
-* A:                                     Cherry Picking.      (line   8)
 * a:                                     Applying.            (line  33)
-* A A:                                   Cherry Picking.      (line  83)
+* A:                                     Cherry Picking.      (line   8)
 * A a:                                   Cherry Picking.      (line  89)
 * A A:                                   Cherry Picking.      (line  16)
-* A a:                                   Cherry Picking.      (line  22)
 * A d:                                   Cherry Picking.      (line  50)
 * A h:                                   Cherry Picking.      (line  39)
 * A n:                                   Cherry Picking.      (line  60)
 * A s:                                   Cherry Picking.      (line  86)
-* b:                                     Branch Commands.     (line  12)
-* B:                                     Bisecting.           (line   8)
 * b <1>:                                 Editing Rebase Sequences.
                                                               (line  69)
-* b:                                     Blaming.             (line 101)
+* b <2>:                                 Blaming.             (line 101)
+* b:                                     Branch Commands.     (line  12)
+* B:                                     Bisecting.           (line   8)
 * B b:                                   Bisecting.           (line  28)
-* B B:                                   Bisecting.           (line  15)
 * b b:                                   Branch Commands.     (line  50)
-* b C:                                   Branch Commands.     (line  28)
+* B B:                                   Bisecting.           (line  15)
 * b c:                                   Branch Commands.     (line  66)
+* b C:                                   Branch Commands.     (line  28)
 * B g:                                   Bisecting.           (line  32)
 * b k:                                   Branch Commands.     (line 143)
 * B k:                                   Bisecting.           (line  36)
@@ -1956,39 +1954,39 @@ Appendix A Keystroke Index
 * B s:                                   Bisecting.           (line  22)
 * b S:                                   Branch Commands.     (line 122)
 * b x:                                   Branch Commands.     (line 127)
-* c:                                     Initiating a Commit. (line   8)
 * C:                                     Cloning Repository.  (line  19)
-* c <1>:                                 Blaming.             (line 127)
-* c:                                     Editing Rebase Sequences.
+* c <1>:                                 Editing Rebase Sequences.
                                                               (line  58)
+* c <2>:                                 Initiating a Commit. (line   8)
+* c:                                     Blaming.             (line 127)
 * c A:                                   Initiating a Commit. (line  58)
 * c a:                                   Initiating a Commit. (line  17)
 * C b:                                   Cloning Repository.  (line  37)
-* c c:                                   Initiating a Commit. (line  13)
 * C C:                                   Cloning Repository.  (line  27)
+* c c:                                   Initiating a Commit. (line  13)
 * C d:                                   Cloning Repository.  (line  49)
-* C e:                                   Cloning Repository.  (line  55)
 * c e:                                   Initiating a Commit. (line  20)
+* C e:                                   Cloning Repository.  (line  55)
 * c F:                                   Initiating a Commit. (line  45)
 * c f:                                   Initiating a Commit. (line  38)
 * C m:                                   Cloning Repository.  (line  41)
-* c s:                                   Initiating a Commit. (line  48)
 * C s:                                   Cloning Repository.  (line  31)
 * c S:                                   Initiating a Commit. (line  55)
+* c s:                                   Initiating a Commit. (line  48)
 * c w:                                   Initiating a Commit. (line  29)
 * C-<return>:                            Visiting Files and Blobs from a Diff.
                                                               (line  50)
 * C-<tab>:                               Section Visibility.  (line  12)
 * C-c C-a:                               Commit Pseudo Headers.
                                                               (line  15)
-* C-c C-b <1>:                           Refreshing Diffs.    (line  79)
-* C-c C-b:                               Log Buffer.          (line  19)
-* C-c C-c <1>:                           Select from Log.     (line  20)
-* C-c C-c <2>:                           Editing Commit Messages.
+* C-c C-b <1>:                           Log Buffer.          (line  19)
+* C-c C-b:                               Refreshing Diffs.    (line  79)
+* C-c C-c <1>:                           Editing Commit Messages.
                                                               (line  17)
-* C-c C-c <3>:                           Editing Rebase Sequences.
+* C-c C-c <2>:                           Transient Commands.  (line  18)
+* C-c C-c <3>:                           Select from Log.     (line  20)
+* C-c C-c:                               Editing Rebase Sequences.
                                                               (line   6)
-* C-c C-c:                               Transient Commands.  (line  18)
 * C-c C-d <1>:                           Refreshing Diffs.    (line  70)
 * C-c C-d:                               Editing Commit Messages.
                                                               (line  53)
@@ -1999,10 +1997,10 @@ Appendix A Keystroke Index
 * C-c C-i:                               Commit Pseudo Headers.
                                                               (line  12)
 * C-c C-k <1>:                           Select from Log.     (line  25)
-* C-c C-k <2>:                           Editing Commit Messages.
-                                                              (line  21)
-* C-c C-k:                               Editing Rebase Sequences.
+* C-c C-k <2>:                           Editing Rebase Sequences.
                                                               (line  10)
+* C-c C-k:                               Editing Commit Messages.
+                                                              (line  21)
 * C-c C-n:                               Log Buffer.          (line  25)
 * C-c C-o:                               Commit Pseudo Headers.
                                                               (line  27)
@@ -2012,31 +2010,31 @@ Appendix A Keystroke Index
                                                               (line  18)
 * C-c C-s:                               Commit Pseudo Headers.
                                                               (line  21)
-* C-c C-t <1>:                           Commit Pseudo Headers.
-                                                              (line  24)
-* C-c C-t:                               Commands Available in Diffs.
+* C-c C-t <1>:                           Commands Available in Diffs.
                                                               (line  15)
+* C-c C-t:                               Commit Pseudo Headers.
+                                                              (line  24)
 * C-c C-w:                               Using the Revision Stack.
                                                               (line   6)
 * C-c M-g:                               Minor Mode for Buffers Visiting Files.
                                                               (line  53)
-* C-c M-g B <1>:                         Blaming.             (line  21)
-* C-c M-g B:                             Minor Mode for Buffers Visiting Files.
-                                                              (line 113)
 * C-c M-g b:                             Blaming.             (line  31)
+* C-c M-g B <1>:                         Minor Mode for Buffers Visiting Files.
+                                                              (line 113)
+* C-c M-g B:                             Blaming.             (line  21)
 * C-c M-g B b:                           Blaming.             (line  32)
 * C-c M-g B e:                           Blaming.             (line  66)
 * C-c M-g B f:                           Blaming.             (line  57)
 * C-c M-g B r:                           Blaming.             (line  48)
 * C-c M-g c:                             Minor Mode for Buffers Visiting Files.
                                                               (line  64)
-* C-c M-g d:                             Minor Mode for Buffers Visiting Files.
-                                                              (line  80)
 * C-c M-g D:                             Minor Mode for Buffers Visiting Files.
                                                               (line  70)
-* C-c M-g e <1>:                         Minor Mode for Buffers Visiting Files.
+* C-c M-g d:                             Minor Mode for Buffers Visiting Files.
+                                                              (line  80)
+* C-c M-g e <1>:                         Blaming.             (line  65)
+* C-c M-g e:                             Minor Mode for Buffers Visiting Files.
                                                               (line 125)
-* C-c M-g e:                             Blaming.             (line  65)
 * C-c M-g f:                             Blaming.             (line  56)
 * C-c M-g l:                             Minor Mode for Buffers Visiting Files.
                                                               (line  99)
@@ -2055,37 +2053,37 @@ Appendix A Keystroke Index
                                                               (line  34)
 * C-c M-s:                               Editing Commit Messages.
                                                               (line  32)
-* C-w:                                   Common Commands.     (line  26)
+* C-w:                                   Common Commands.     (line  10)
 * C-x g:                                 Status Buffer.       (line  22)
 * C-x u:                                 Editing Rebase Sequences.
                                                               (line  76)
-* D:                                     Refreshing Diffs.    (line  11)
 * d:                                     Diffing.             (line  21)
+* D:                                     Refreshing Diffs.    (line  11)
 * d c:                                   Diffing.             (line  62)
 * d d:                                   Diffing.             (line  26)
 * D f:                                   Refreshing Diffs.    (line  40)
 * D F:                                   Refreshing Diffs.    (line  44)
 * D g:                                   Refreshing Diffs.    (line  16)
 * d p:                                   Diffing.             (line  55)
-* d r:                                   Diffing.             (line  29)
 * D r:                                   Refreshing Diffs.    (line  36)
-* D s:                                   Refreshing Diffs.    (line  20)
+* d r:                                   Diffing.             (line  29)
 * d s:                                   Diffing.             (line  47)
+* D s:                                   Refreshing Diffs.    (line  20)
 * d t:                                   Diffing.             (line  66)
 * D t:                                   Refreshing Diffs.    (line  33)
 * d u:                                   Diffing.             (line  52)
 * D w:                                   Refreshing Diffs.    (line  26)
 * d w:                                   Diffing.             (line  42)
-* DEL <1>:                               Commands Available in Diffs.
+* DEL <1>:                               Log Buffer.          (line  39)
+* DEL <2>:                               Commands Available in Diffs.
                                                               (line  57)
-* DEL <2>:                               Log Buffer.          (line  39)
-* DEL <3>:                               Blaming.             (line  89)
-* DEL:                                   Editing Rebase Sequences.
+* DEL <3>:                               Editing Rebase Sequences.
                                                               (line  24)
-* e <1>:                                 Editing Rebase Sequences.
-                                                              (line  45)
+* DEL:                                   Blaming.             (line  89)
 * e:                                     Ediffing.            (line   9)
 * E:                                     Ediffing.            (line  20)
+* e:                                     Editing Rebase Sequences.
+                                                              (line  45)
 * E c:                                   Ediffing.            (line  57)
 * E i:                                   Ediffing.            (line  51)
 * E m:                                   Ediffing.            (line  32)
@@ -2094,39 +2092,39 @@ Appendix A Keystroke Index
 * E u:                                   Ediffing.            (line  48)
 * E w:                                   Ediffing.            (line  54)
 * E z:                                   Ediffing.            (line  60)
-* F:                                     Pulling.             (line   9)
 * f <1>:                                 Fetching.            (line   9)
 * f:                                     Editing Rebase Sequences.
                                                               (line  51)
+* F:                                     Pulling.             (line   9)
 * f a:                                   Fetching.            (line  44)
 * f C:                                   Branch Commands.     (line  29)
 * F C:                                   Branch Commands.     (line  31)
-* F e:                                   Pulling.             (line  27)
 * f e:                                   Fetching.            (line  33)
+* F e:                                   Pulling.             (line  27)
 * f m:                                   Fetching.            (line  47)
 * f o:                                   Fetching.            (line  36)
-* f p:                                   Fetching.            (line  14)
 * F p:                                   Pulling.             (line  13)
+* f p:                                   Fetching.            (line  14)
 * f r:                                   Fetching.            (line  40)
 * f u:                                   Fetching.            (line  21)
 * F u:                                   Pulling.             (line  20)
-* G:                                     Automatic Refreshing of Magit Buffers.
-                                                              (line  32)
 * g:                                     Automatic Refreshing of Magit Buffers.
                                                               (line  24)
+* G:                                     Automatic Refreshing of Magit Buffers.
+                                                              (line  32)
 * j:                                     Commands Available in Diffs.
                                                               (line  44)
-* k <1>:                                 Stashing.            (line  81)
-* k <2>:                                 Viewing Git Output.  (line  23)
+* k <1>:                                 Viewing Git Output.  (line  23)
+* k <2>:                                 Stashing.            (line  81)
 * k <3>:                                 Applying.            (line  39)
 * k:                                     Editing Rebase Sequences.
                                                               (line  55)
-* l:                                     Logging.             (line  29)
-* L:                                     Refreshing Logs.     (line  11)
+* L <1>:                                 Log Margin.          (line  55)
+* L:                                     Log Buffer.          (line   6)
 * l:                                     Editing Rebase Sequences.
                                                               (line  94)
-* L <1>:                                 Log Buffer.          (line   6)
-* L:                                     Log Margin.          (line  55)
+* L:                                     Refreshing Logs.     (line  11)
+* l:                                     Logging.             (line  29)
 * l a:                                   Logging.             (line  54)
 * l b:                                   Logging.             (line  51)
 * L d:                                   Log Margin.          (line  69)
@@ -2137,14 +2135,14 @@ Appendix A Keystroke Index
 * L l:                                   Log Margin.          (line  66)
 * L L:                                   Log Margin.          (line  63)
 * l L:                                   Logging.             (line  48)
-* l o:                                   Logging.             (line  39)
 * l O:                                   Reflog.              (line  14)
+* l o:                                   Logging.             (line  39)
 * l r:                                   Reflog.              (line  11)
 * L s:                                   Refreshing Logs.     (line  20)
 * L t:                                   Refreshing Logs.     (line  33)
 * L w:                                   Refreshing Logs.     (line  26)
-* m:                                     Merging.             (line   9)
 * M:                                     Remote Commands.     (line  13)
+* m:                                     Merging.             (line   9)
 * M a:                                   Remote Commands.     (line  48)
 * m a:                                   Merging.             (line  41)
 * M C:                                   Remote Commands.     (line  32)
@@ -2154,8 +2152,8 @@ Appendix A Keystroke Index
 * m m:                                   Merging.             (line  81)
 * m n:                                   Merging.             (line  35)
 * M P:                                   Remote Commands.     (line  67)
-* M p:                                   Remote Commands.     (line  63)
 * m p:                                   Merging.             (line  74)
+* M p:                                   Remote Commands.     (line  63)
 * M r:                                   Remote Commands.     (line  52)
 * m s:                                   Merging.             (line  66)
 * M u:                                   Remote Commands.     (line  56)
@@ -2166,21 +2164,21 @@ Appendix A Keystroke Index
 * M-<tab>:                               Section Visibility.  (line  15)
 * M-n <1>:                               Editing Rebase Sequences.
                                                               (line  39)
-* M-n <2>:                               Section Movement.    (line  23)
-* M-n:                                   Editing Commit Messages.
+* M-n <2>:                               Editing Commit Messages.
                                                               (line  40)
-* M-p <1>:                               Editing Rebase Sequences.
-                                                              (line  36)
-* M-p <2>:                               Section Movement.    (line  18)
-* M-p:                                   Editing Commit Messages.
+* M-n:                                   Section Movement.    (line  23)
+* M-p <1>:                               Editing Commit Messages.
                                                               (line  35)
-* M-w <1>:                               Blaming.             (line 120)
-* M-w:                                   Common Commands.     (line  10)
+* M-p <2>:                               Section Movement.    (line  18)
+* M-p:                                   Editing Rebase Sequences.
+                                                              (line  36)
+* M-w <1>:                               Common Commands.     (line  26)
+* M-w:                                   Blaming.             (line 120)
 * M-x magit-debug-git-executable <1>:    Debugging Tools.     (line  33)
 * M-x magit-debug-git-executable:        Git Executable.      (line  43)
-* M-x magit-describe-section-briefly <1>: Matching Sections.  (line   6)
-* M-x magit-describe-section-briefly:    Section Types and Values.
+* M-x magit-describe-section-briefly <1>: Section Types and Values.
                                                               (line  13)
+* M-x magit-describe-section-briefly:    Matching Sections.   (line   6)
 * M-x magit-emacs-Q-command:             Debugging Tools.     (line  15)
 * M-x magit-init:                        Creating Repository. (line   6)
 * M-x magit-reset-index:                 Staging and Unstaging.
@@ -2201,15 +2199,15 @@ Appendix A Keystroke Index
                                                               (line 102)
 * Mt:                                    Editing Rebase Sequences.
                                                               (line 108)
-* n <1>:                                 Editing Rebase Sequences.
-                                                              (line  33)
+* n <1>:                                 Blaming.             (line 104)
 * n <2>:                                 Section Movement.    (line  15)
-* n <3>:                                 Blaming.             (line 104)
+* n:                                     Editing Rebase Sequences.
+                                                              (line  33)
+* N:                                     Blaming.             (line 107)
 * n:                                     Minor Mode for Buffers Visiting Blobs.
                                                               (line  15)
-* N:                                     Blaming.             (line 107)
-* o:                                     Submodule Transient. (line   6)
 * O:                                     Subtree.             (line   8)
+* o:                                     Submodule Transient. (line   6)
 * o a:                                   Submodule Transient. (line  19)
 * o d:                                   Submodule Transient. (line  44)
 * O e:                                   Subtree.             (line  36)
@@ -2226,14 +2224,14 @@ Appendix A Keystroke Index
 * o r:                                   Submodule Transient. (line  25)
 * o s:                                   Submodule Transient. (line  39)
 * o u:                                   Submodule Transient. (line  35)
-* p <1>:                                 Minor Mode for Buffers Visiting Blobs.
+* p <1>:                                 Editing Rebase Sequences.
+                                                              (line  30)
+* p:                                     Minor Mode for Buffers Visiting Blobs.
                                                               (line  12)
-* p <2>:                                 Section Movement.    (line  10)
+* P:                                     Pushing.             (line   9)
+* p <1>:                                 Section Movement.    (line  10)
 * p:                                     Blaming.             (line 110)
 * P:                                     Blaming.             (line 113)
-* p:                                     Editing Rebase Sequences.
-                                                              (line  30)
-* P:                                     Pushing.             (line   9)
 * P C:                                   Branch Commands.     (line  33)
 * P e:                                   Pushing.             (line  28)
 * P m:                                   Pushing.             (line  44)
@@ -2243,23 +2241,23 @@ Appendix A Keystroke Index
 * P T:                                   Pushing.             (line  58)
 * P t:                                   Pushing.             (line  51)
 * P u:                                   Pushing.             (line  21)
-* q <1>:                                 Quitting Windows.    (line   6)
+* q <1>:                                 Log Buffer.          (line  13)
 * q <2>:                                 Minor Mode for Buffers Visiting Blobs.
                                                               (line  18)
-* q <3>:                                 Log Buffer.          (line  13)
-* q:                                     Blaming.             (line 116)
-* r <1>:                                 Rebasing.            (line  10)
-* r:                                     Editing Rebase Sequences.
+* q <3>:                                 Blaming.             (line 116)
+* q:                                     Quitting Windows.    (line   6)
+* r <1>:                                 Editing Rebase Sequences.
                                                               (line  42)
+* r:                                     Rebasing.            (line  10)
 * r a:                                   Rebasing.            (line 111)
-* r e:                                   Rebasing.            (line  42)
+* r e:                                   Rebasing.            (line 107)
 * r f:                                   Rebasing.            (line  79)
 * r i:                                   Rebasing.            (line  76)
 * r k:                                   Rebasing.            (line  91)
 * r m:                                   Rebasing.            (line  83)
 * r p:                                   Rebasing.            (line  28)
 * r r:                                   Rebasing.            (line  97)
-* r s:                                   Rebasing.            (line 103)
+* r s:                                   Rebasing.            (line  47)
 * r u:                                   Rebasing.            (line  35)
 * r w:                                   Rebasing.            (line  87)
 * RET <1>:                               References Buffer.   (line 171)
@@ -2287,12 +2285,12 @@ Appendix A Keystroke Index
 * t:                                     Tagging.             (line   8)
 * T a:                                   Notes.               (line  46)
 * T c:                                   Notes.               (line  42)
-* t k:                                   Tagging.             (line  37)
+* t k:                                   Tagging.             (line  36)
 * T m:                                   Notes.               (line  34)
-* t p:                                   Tagging.             (line  43)
 * T p:                                   Notes.               (line  27)
-* t r:                                   Tagging.             (line  17)
+* t p:                                   Tagging.             (line  42)
 * T r:                                   Notes.               (line  20)
+* t r:                                   Tagging.             (line  17)
 * t t:                                   Tagging.             (line  13)
 * T T:                                   Notes.               (line  13)
 * TAB:                                   Section Visibility.  (line   9)
@@ -2305,41 +2303,43 @@ Appendix A Keystroke Index
 * V a:                                   Reverting.           (line  34)
 * V A:                                   Reverting.           (line  28)
 * V s:                                   Reverting.           (line  31)
-* V v:                                   Reverting.           (line  19)
 * V V:                                   Reverting.           (line  14)
-* W:                                     Plain Patches.       (line   6)
+* V v:                                   Reverting.           (line  19)
 * w:                                     Maildir Patches.     (line   9)
+* W:                                     Plain Patches.       (line   6)
 * w a <1>:                               Maildir Patches.     (line  38)
-* w a:                                   Plain Patches.       (line  19)
+* w a <2>:                               Plain Patches.       (line  19)
+* w a:                                   Maildir Patches.     (line  23)
 * W c:                                   Plain Patches.       (line  11)
 * w m:                                   Maildir Patches.     (line  20)
-* W s:                                   Plain Patches.       (line  25)
 * w s:                                   Maildir Patches.     (line  34)
-* w w:                                   Maildir Patches.     (line  31)
-* x <1>:                                 Editing Rebase Sequences.
+* W s:                                   Plain Patches.       (line  25)
+* w w:                                   Maildir Patches.     (line  14)
+* x <1>:                                 Resetting.           (line   8)
+* x:                                     Editing Rebase Sequences.
                                                               (line  61)
-* x:                                     Resetting.           (line   8)
-* X f:                                   Resetting.           (line  38)
+* X f:                                   Resetting.           (line  43)
 * X h:                                   Resetting.           (line  23)
-* X i:                                   Resetting.           (line  27)
+* X i:                                   Resetting.           (line  32)
+* X k:                                   Resetting.           (line  27)
 * X m:                                   Resetting.           (line  14)
 * X s:                                   Resetting.           (line  18)
-* X w <1>:                               Resetting.           (line  33)
+* X w <1>:                               Resetting.           (line  38)
 * X w:                                   Wip Modes.           (line  63)
-* y <1>:                                 References Buffer.   (line   6)
-* y:                                     Editing Rebase Sequences.
-                                                              (line  73)
 * Y:                                     Cherries.            (line  17)
+* y <1>:                                 Editing Rebase Sequences.
+                                                              (line  73)
+* y:                                     References Buffer.   (line   6)
 * y c:                                   References Buffer.   (line  24)
 * y o:                                   References Buffer.   (line  29)
 * y y:                                   References Buffer.   (line  20)
 * z:                                     Stashing.            (line   8)
 * z a:                                   Stashing.            (line  51)
-* z B:                                   Stashing.            (line  73)
 * z b:                                   Stashing.            (line  69)
+* z B:                                   Stashing.            (line  73)
 * z f:                                   Stashing.            (line  78)
-* z i:                                   Stashing.            (line  19)
 * z I:                                   Stashing.            (line  41)
+* z i:                                   Stashing.            (line  19)
 * z k:                                   Stashing.            (line  62)
 * z l:                                   Stashing.            (line  84)
 * z p:                                   Stashing.            (line  56)
@@ -2438,19 +2438,20 @@ Appendix B Command Index
 * magit-bisect-run:                      Bisecting.           (line  22)
 * magit-bisect-skip:                     Bisecting.           (line  36)
 * magit-bisect-start:                    Bisecting.           (line  15)
-* magit-blame <1>:                       Minor Mode for Buffers Visiting Files.
+* magit-blame <1>:                       Blaming.             (line 101)
+* magit-blame <2>:                       Minor Mode for Buffers Visiting Files.
                                                               (line 113)
 * magit-blame:                           Blaming.             (line  21)
 * magit-blame-addition:                  Blaming.             (line  31)
 * magit-blame-copy-hash:                 Blaming.             (line 120)
 * magit-blame-cycle-style:               Blaming.             (line 127)
-* magit-blame-echo:                      Blaming.             (line  65)
+* magit-blame-echo:                      Blaming.             (line  66)
 * magit-blame-next-chunk:                Blaming.             (line 104)
 * magit-blame-next-chunk-same-commit:    Blaming.             (line 107)
 * magit-blame-previous-chunk:            Blaming.             (line 110)
 * magit-blame-previous-chunk-same-commit: Blaming.            (line 113)
 * magit-blame-quit:                      Blaming.             (line 116)
-* magit-blame-removal:                   Blaming.             (line  47)
+* magit-blame-removal:                   Blaming.             (line  48)
 * magit-blame-reverse:                   Blaming.             (line  57)
 * magit-blob-next:                       Minor Mode for Buffers Visiting Blobs.
                                                               (line  15)
@@ -2461,7 +2462,7 @@ Appendix B Command Index
 * magit-branch:                          Branch Commands.     (line  12)
 * magit-branch-and-checkout:             Branch Commands.     (line  66)
 * magit-branch-checkout:                 Branch Commands.     (line  72)
-* magit-branch-configure:                Branch Commands.     (line  28)
+* magit-branch-configure:                Branch Commands.     (line  33)
 * magit-branch-create:                   Branch Commands.     (line  57)
 * magit-branch-delete:                   Branch Commands.     (line 143)
 * magit-branch-or-checkout:              Branch Commands.     (line 248)
@@ -2505,14 +2506,14 @@ Appendix B Command Index
 * magit-copy-buffer-revision:            Common Commands.     (line  26)
 * magit-copy-section-value:              Common Commands.     (line  10)
 * magit-cycle-margin-style:              Log Margin.          (line  66)
-* magit-debug-git-executable <1>:        Debugging Tools.     (line  33)
-* magit-debug-git-executable:            Git Executable.      (line  43)
-* magit-describe-section-briefly <1>:    Matching Sections.   (line   6)
-* magit-describe-section-briefly:        Section Types and Values.
+* magit-debug-git-executable <1>:        Git Executable.      (line  43)
+* magit-debug-git-executable:            Debugging Tools.     (line  33)
+* magit-describe-section-briefly <1>:    Section Types and Values.
                                                               (line  13)
-* magit-diff <1>:                        Diffing.             (line  21)
-* magit-diff:                            Minor Mode for Buffers Visiting Files.
+* magit-describe-section-briefly:        Matching Sections.   (line   6)
+* magit-diff <1>:                        Minor Mode for Buffers Visiting Files.
                                                               (line  70)
+* magit-diff:                            Diffing.             (line  21)
 * magit-diff-buffer-file:                Minor Mode for Buffers Visiting Files.
                                                               (line  80)
 * magit-diff-default-context:            Refreshing Diffs.    (line  63)
@@ -2529,8 +2530,8 @@ Appendix B Command Index
 * magit-diff-set-default-arguments:      Refreshing Diffs.    (line  20)
 * magit-diff-show-or-scroll-down <1>:    Blaming.             (line  89)
 * magit-diff-show-or-scroll-down:        Log Buffer.          (line  39)
-* magit-diff-show-or-scroll-up <1>:      Blaming.             (line  80)
-* magit-diff-show-or-scroll-up:          Log Buffer.          (line  30)
+* magit-diff-show-or-scroll-up <1>:      Log Buffer.          (line  30)
+* magit-diff-show-or-scroll-up:          Blaming.             (line  80)
 * magit-diff-staged:                     Diffing.             (line  47)
 * magit-diff-switch-range-type:          Refreshing Diffs.    (line  36)
 * magit-diff-toggle-file-filter:         Refreshing Diffs.    (line  44)
@@ -2577,9 +2578,9 @@ Appendix B Command Index
 * magit-fetch-modules:                   Submodule Transient. (line  50)
 * magit-fetch-other:                     Fetching.            (line  33)
 * magit-fetch-refspec:                   Fetching.            (line  40)
-* magit-file-checkout <1>:               Minor Mode for Buffers Visiting Files.
+* magit-file-checkout <1>:               Resetting.           (line  43)
+* magit-file-checkout:                   Minor Mode for Buffers Visiting Files.
                                                               (line 149)
-* magit-file-checkout:                   Resetting.           (line  38)
 * magit-file-delete:                     Minor Mode for Buffers Visiting Files.
                                                               (line 143)
 * magit-file-dispatch:                   Minor Mode for Buffers Visiting Files.
@@ -2608,8 +2609,8 @@ Appendix B Command Index
 * magit-kill-this-buffer:                Minor Mode for Buffers Visiting Blobs.
                                                               (line  18)
 * magit-list-repositories:               Repository List.     (line   6)
-* magit-list-submodules <1>:             Submodule Transient. (line  47)
-* magit-list-submodules:                 Listing Submodules.  (line  13)
+* magit-list-submodules <1>:             Listing Submodules.  (line  13)
+* magit-list-submodules:                 Submodule Transient. (line  47)
 * magit-log <1>:                         Logging.             (line  29)
 * magit-log:                             Minor Mode for Buffers Visiting Files.
                                                               (line  89)
@@ -2653,8 +2654,8 @@ Appendix B Command Index
 * magit-notes-prune:                     Notes.               (line  27)
 * magit-notes-remove:                    Notes.               (line  20)
 * magit-patch:                           Plain Patches.       (line   6)
-* magit-patch-apply <1>:                 Maildir Patches.     (line  23)
-* magit-patch-apply:                     Plain Patches.       (line  19)
+* magit-patch-apply <1>:                 Plain Patches.       (line  19)
+* magit-patch-apply:                     Maildir Patches.     (line  23)
 * magit-patch-create:                    Plain Patches.       (line  11)
 * magit-patch-save:                      Plain Patches.       (line  25)
 * magit-pop-revision-stack:              Using the Revision Stack.
@@ -2706,14 +2707,15 @@ Appendix B Command Index
 * magit-remote-rename:                   Remote Commands.     (line  52)
 * magit-remote-set-url:                  Remote Commands.     (line  56)
 * magit-reset-hard:                      Resetting.           (line  23)
-* magit-reset-index <1>:                 Staging and Unstaging.
+* magit-reset-index <1>:                 Resetting.           (line  32)
+* magit-reset-index:                     Staging and Unstaging.
                                                               (line  82)
-* magit-reset-index:                     Resetting.           (line  27)
+* magit-reset-keep:                      Resetting.           (line  27)
 * magit-reset-mixed:                     Resetting.           (line  14)
 * magit-reset-quickly:                   Resetting.           (line   8)
 * magit-reset-soft:                      Resetting.           (line  18)
-* magit-reset-worktree <1>:              Wip Modes.           (line  63)
-* magit-reset-worktree:                  Resetting.           (line  33)
+* magit-reset-worktree <1>:              Resetting.           (line  38)
+* magit-reset-worktree:                  Wip Modes.           (line  63)
 * magit-reverse:                         Applying.            (line  42)
 * magit-reverse-in-index:                Staging and Unstaging.
                                                               (line  58)
@@ -2753,12 +2755,12 @@ Appendix B Command Index
 * magit-section-toggle:                  Section Visibility.  (line   9)
 * magit-section-toggle-children:         Section Visibility.  (line  63)
 * magit-section-up:                      Section Movement.    (line  27)
-* magit-sequence-abort <1>:              Cherry Picking.      (line  89)
-* magit-sequence-abort:                  Reverting.           (line  34)
-* magit-sequence-continue <1>:           Cherry Picking.      (line  83)
-* magit-sequence-continue:               Reverting.           (line  28)
-* magit-sequence-skip <1>:               Reverting.           (line  31)
-* magit-sequence-skip:                   Cherry Picking.      (line  86)
+* magit-sequence-abort <1>:              Reverting.           (line  34)
+* magit-sequence-abort:                  Cherry Picking.      (line  89)
+* magit-sequence-continue <1>:           Reverting.           (line  28)
+* magit-sequence-continue:               Cherry Picking.      (line  83)
+* magit-sequence-skip <1>:               Cherry Picking.      (line  86)
+* magit-sequence-skip:                   Reverting.           (line  31)
 * magit-shell-command:                   Running Git Manually.
                                                               (line  36)
 * magit-shell-command-topdir:            Running Git Manually.
@@ -2792,8 +2794,8 @@ Appendix B Command Index
 * magit-stash-keep-index:                Stashing.            (line  29)
 * magit-stash-list:                      Stashing.            (line  84)
 * magit-stash-pop:                       Stashing.            (line  56)
-* magit-stash-show <1>:                  Stashing.            (line  66)
-* magit-stash-show:                      Diffing.             (line  66)
+* magit-stash-show <1>:                  Diffing.             (line  66)
+* magit-stash-show:                      Stashing.            (line  66)
 * magit-stash-worktree:                  Stashing.            (line  23)
 * magit-status:                          Status Buffer.       (line  22)
 * magit-submodule:                       Submodule Transient. (line   6)
@@ -2815,12 +2817,12 @@ Appendix B Command Index
 * magit-subtree-split:                   Subtree.             (line  51)
 * magit-tag:                             Tagging.             (line   8)
 * magit-tag-create:                      Tagging.             (line  13)
-* magit-tag-delete:                      Tagging.             (line  37)
-* magit-tag-prune:                       Tagging.             (line  43)
+* magit-tag-delete:                      Tagging.             (line  36)
+* magit-tag-prune:                       Tagging.             (line  42)
 * magit-tag-release:                     Tagging.             (line  17)
 * magit-toggle-buffer-lock:              Modes and Buffers.   (line  17)
-* magit-toggle-margin <1>:               Refreshing Logs.     (line  33)
-* magit-toggle-margin:                   Log Margin.          (line  63)
+* magit-toggle-margin <1>:               Log Margin.          (line  63)
+* magit-toggle-margin:                   Refreshing Logs.     (line  33)
 * magit-toggle-margin-details:           Log Margin.          (line  69)
 * magit-toggle-verbose-refresh:          Debugging Tools.     (line  28)
 * magit-unstage:                         Staging and Unstaging.
@@ -2831,8 +2833,8 @@ Appendix B Command Index
                                                               (line  60)
 * magit-unstage-file:                    Staging from File-Visiting Buffers.
                                                               (line  17)
-* magit-version <1>:                     Git Executable.      (line  17)
-* magit-version:                         Debugging Tools.     (line  10)
+* magit-version <1>:                     Debugging Tools.     (line  10)
+* magit-version:                         Git Executable.      (line  17)
 * magit-visit-ref:                       References Buffer.   (line 171)
 * magit-wip-commit:                      Wip Modes.           (line  84)
 * magit-wip-log:                         Wip Modes.           (line  47)
@@ -2852,10 +2854,10 @@ Appendix B Command Index
 * with-editor-cancel:                    Editing Rebase Sequences.
                                                               (line  10)
 * with-editor-debug:                     Debugging Tools.     (line  40)
-* with-editor-finish <1>:                Editing Commit Messages.
-                                                              (line  17)
-* with-editor-finish:                    Editing Rebase Sequences.
+* with-editor-finish <1>:                Editing Rebase Sequences.
                                                               (line   6)
+* with-editor-finish:                    Editing Commit Messages.
+                                                              (line  17)
 
 
 File: magit.info,  Node: Function Index,  Next: Variable Index,  Prev: Command Index,  Up: Top
@@ -3009,7 +3011,6 @@ Appendix C Function Index
 * magit-insert-stashes:                  Status Sections.     (line  57)
 * magit-insert-status-headers:           Status Header Sections.
                                                               (line  13)
-* magit-insert-submodules:               Listing Submodules.  (line  34)
 * magit-insert-tags:                     References Sections. (line  23)
 * magit-insert-tags-header:              Status Header Sections.
                                                               (line  50)
@@ -3174,11 +3175,11 @@ Appendix D Variable Index
 * magit-bury-buffer-function:            Quitting Windows.    (line  15)
 * magit-cherry-margin:                   Cherries.            (line  23)
 * magit-clone-always-transient:          Cloning Repository.  (line  13)
-* magit-clone-default-directory:         Cloning Repository.  (line  83)
-* magit-clone-name-alist:                Cloning Repository.  (line  95)
+* magit-clone-default-directory:         Cloning Repository.  (line  84)
+* magit-clone-name-alist:                Cloning Repository.  (line  96)
 * magit-clone-set-remote-head:           Cloning Repository.  (line  63)
-* magit-clone-set-remote.pushDefault:    Cloning Repository.  (line  72)
-* magit-clone-url-format:                Cloning Repository.  (line 115)
+* magit-clone-set-remote.pushDefault:    Cloning Repository.  (line  73)
+* magit-clone-url-format:                Cloning Repository.  (line 116)
 * magit-commit-ask-to-stage:             Initiating a Commit. (line  67)
 * magit-commit-extend-override-date:     Initiating a Commit. (line  71)
 * magit-commit-reword-override-date:     Initiating a Commit. (line  74)

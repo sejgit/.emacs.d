@@ -8,8 +8,7 @@
 ;;; Generated autoloads from goto-line-preview.el
 
 (autoload 'goto-line-preview "goto-line-preview" "\
-Preview goto line.
-LINE-NUM : Target line number to navigate to." t nil)
+Preview goto line." t nil)
 
 (define-obsolete-function-alias 'goto-line-preview-goto-line 'goto-line-preview)
 

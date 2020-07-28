@@ -1,14 +1,15 @@
-;;; org-autoloads.el --- automatically extracted autoloads
-;;
+;;; template.el --- template for elisp programs
+
+;;; Commentary:
+;; to be auto inserted in all new elisp files
+
+;;; Log
+;; 2017 05 12 init SeJ
+
 ;;; Code:
 
-
-;;;### (autoloads nil "ob-C" "ob-C.el" (0 0 0 0))
-;;; Generated autoloads from ob-C.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-C" '("org-babel-")))
-
-;;;***
+(provide 'template)
+;;; template.el ends here
 
 ;;;### (autoloads nil "ob-J" "ob-J.el" (0 0 0 0))
 ;;; Generated autoloads from ob-J.el
@@ -581,6 +582,21 @@
 ;;;### (autoloads nil "org-crypt" "org-crypt.el" (0 0 0 0))
 ;;; Generated autoloads from org-crypt.el
 
+(autoload 'org-encrypt-entry "org-crypt" "\
+Encrypt the content of the current headline." t nil)
+
+(autoload 'org-decrypt-entry "org-crypt" "\
+Decrypt the content of the current headline." t nil)
+
+(autoload 'org-encrypt-entries "org-crypt" "\
+Encrypt all top-level entries in the current buffer." t nil)
+
+(autoload 'org-decrypt-entries "org-crypt" "\
+Decrypt all entries in the current buffer." t nil)
+
+(autoload 'org-crypt-use-before-save-magic "org-crypt" "\
+Add a hook to automatically encrypt entries before a file is saved to disk." nil nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-crypt" '("org-")))
 
 ;;;***
@@ -916,11 +932,9 @@
 
 ;;;***
 
-(provide 'org-autoloads)
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; no-update-autoloads: t
-;; coding: utf-8
-;; End:
-;;; org-autoloads.el ends here
+;;;### (autoloads nil "ob-C" "ob-C.el" (0 0 0 0))
+;;; Generated autoloads from ob-C.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-C" '("org-babel-")))
+
+;;;***

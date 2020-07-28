@@ -41,12 +41,40 @@ Find php.ini FILE by `php --ini'.
 
 ;;;***
 
+;;;### (autoloads nil "php-align" "php-align.el" (0 0 0 0))
+;;; Generated autoloads from php-align.el
+
+(autoload 'php-align-setup "php-align" "\
+Setup alignment configuration for PHP code." nil nil)
+
+(autoload 'php-align-mode "php-align" "\
+Alignment lines for PHP script.
+
+If called interactively, enable Php-Align mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
+\(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-align" '("php-align-")))
+
+;;;***
+
 ;;;### (autoloads nil "php-face" "php-face.el" (0 0 0 0))
 ;;; Generated autoloads from php-face.el
 
 (let ((loads (get 'php-faces 'custom-loads))) (if (member '"php-face" loads) nil (put 'php-faces 'custom-loads (cons '"php-face" loads))))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-face" '("php-annotations-annotation-face")))
+
+;;;***
+
+;;;### (autoloads nil "php-local-manual" "php-local-manual.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from php-local-manual.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-local-manual" '("php-local-manual-search")))
 
 ;;;***
 
@@ -132,6 +160,11 @@ Typically it is `pear', `drupal', `wordpress', `symfony2' and `psr2'.")
 
 (put 'php-project-coding-style 'safe-local-variable #'symbolp)
 
+(defvar-local php-project-align-lines t "\
+If T, automatically turn on `php-align-mode' by `php-align-setup'.")
+
+(put 'php-project-align-lines 'safe-local-variable #'booleanp)
+
 (defvar-local php-project-php-file-as-template 'auto "\
 
 `auto' (default)
@@ -182,14 +215,6 @@ Return list of bootstrap script." nil nil)
 Return path to current PHP project." nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-project" '("php-project-")))
-
-;;;***
-
-;;;### (autoloads nil "php-util-buffer" "php-util-buffer.el" (0 0
-;;;;;;  0 0))
-;;; Generated autoloads from php-util-buffer.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-util-buffer" '("php-util-buffer-")))
 
 ;;;***
 

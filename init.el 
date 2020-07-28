@@ -1,12 +1,45 @@
-;;; init.el --- my init file
-;; #+AUTHOR: SeJ
-;; #+DATE: <2019-11-03 Sun>
+;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t no-byte-compile: t; -*-
+
+;; Copyright (C) 2019 Stephen Jenkins
+
+;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; URL: https://github.com/sejgit/.emacs.d
+;; Version: 1.0
+;; Keywords: .emacs.d sejgit
+
+;; This file is not part of GNU Emacs.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+;; Floor, Boston, MA 02110-1301, USA.
+;;
+
 
 ;;; Commentary:
+;;
+;; SeJ Emacs configurations.
+;;
 ;; My attempt at an ORG tangled init file.
 ;; then back again to an outline / outshine / pretty-outlines file.
 
-;;; Update log:
+
+;;; Changelog
+;;
+;; - <2019-04-28> Merge from old .emacs.d
+;; - <2019-10-20> remove helm stuff; remove most messages
+;; - <2019-10-22> start to tangle in init-org.org
+;; - <2019-11-27> remove untangled files
 ;; - <2019-10-29 Tue> Init SeJ
 ;; - <2019-11-27 Wed> tangled done now working on efficiency
 ;; - <2019-12-05 Thu> testing with clean install
@@ -15,6 +48,15 @@
 ;; - <2020-01-31 Fri> orgmode pretty changes
 ;; - <2020-02-21 Fri> package -> straight
 ;; - <2020-05-17 Sun> try outline/outshine/pretty-outlines
+
+
+;;; Code:
+(message "Emacs start")
+
+;;;;; load-file Not used anymore
+;; load-file
+;; (org-babel-load-file (concat user-emacs-directory "init-org.org"))
+;; (load-file (concat user-emacs-directory "init-new.el"))
 
 
 ;;; initialize environment
@@ -1140,7 +1182,7 @@
 
 ;;;; windows
 ;;;;; window key-bindings
-
+;; super versions of C-x window bindings
 (define-key sej-mode-map (kbd "s-0") 'delete-window)
 (define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
 (define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
@@ -1150,11 +1192,54 @@
                                        (save-excursion
                                          (other-window 1)
                                          (quit-window))))
+
+;; wind move to multifram window
 (define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
+
+;; movement complementary to windmove / windswap
+(define-key sej-mode-map (kbd "H-h") 'left-char)
+(define-key sej-mode-map (kbd "H-j") 'up-char)
+(define-key sej-mode-map (kbd "H-k") 'down-char)
+(define-key sej-mode-map (kbd "H-l") 'right-char)
 
 ;;scroll window up/down by one line
 (define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
 (define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+
+
+;;;;; windmove
+;; built-in window movement
+;; down
+(define-key sej-mode-map (kbd "A-<down>") 'windmove-down)
+(define-key sej-mode-map (kbd "A-k") 'windmove-down)
+(define-key sej-mode-map (kbd "S-A-<down>") 'windmove-delete-down)
+(define-key sej-mode-map (kbd "A-K") 'windmove-delete-down)
+;; up
+(define-key sej-mode-map (kbd "A-<up>") 'windmove-up)
+(define-key sej-mode-map (kbd "A-j") 'windmove-up)
+(define-key sej-mode-map (kbd "S-A-<up>") 'windmove-delete-up)
+(define-key sej-mode-map (kbd "A-J") 'windmove-delete-up)
+;; left
+(define-key sej-mode-map (kbd "A-<left>") 'windmove-left)
+(define-key sej-mode-map (kbd "A-h") 'windmove-left)
+(define-key sej-mode-map (kbd "S-A-<left>") 'windmove-delete-left)
+(define-key sej-mode-map (kbd "A-H") 'windmove-delete-left)
+;; right
+(define-key sej-mode-map (kbd "A-<right>") 'windmove-right)
+(define-key sej-mode-map (kbd "A-l") 'windmove-right)
+(define-key sej-mode-map (kbd "S-A-<right>") 'windmove-delete-right)
+(define-key sej-mode-map (kbd "A-L") 'windmove-delete-right)
+
+
+;;;;; windswap
+;; complement to windmove to swap windows
+;; [[https://github.com/purcell/windswap][purcell/windswap]]
+(use-package windswap
+  :bind ((:map sej-mode-map
+               ("A-s-h" . windswap-left)
+               ("A-s-l" . windswap-right)
+               ("A-s-j" . windswap-up)
+               ("A-s-k" . windswap-down)))  )
 
 
 ;;;;; mouse & smooth scroll
@@ -1191,8 +1276,8 @@
 (use-package winner
   :straight (winner :type built-in)
   :commands (winner-undo winner-redo)
-  :bind ( ("C-c <left>" . winner-undo)
-          ("C-c <right>" . winner-redo))
+  :bind ( ("C-c w <left>" . winner-undo)
+          ("C-c w <right>" . winner-redo))
   :init (setq winner-boring-buffers '("*Completions*"
                                       "*Compile-Log*"
                                       "*inferior-lisp*"
@@ -2297,7 +2382,7 @@
 (define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
 
 
-;;;; ** regions
+;;;; regions
 ;;;;; easy-kill-extras
 ;; - This package contains extra functions for easy-kill/easy-mark.
 ;; - Kill & Mark things easily
@@ -2440,7 +2525,7 @@
   (emacs-startup . whole-line-or-region-global-mode))
 
 
-;;;; ** url actions
+;;;; url actions
 ;;;;; sej/url-insert
 ;; - from jcs (Irreal) blog to copy url from safari and paste at point
 ;; - https://irreal.org/blog/?p=2895
@@ -2496,7 +2581,7 @@
 (use-package restclient)
 
 
-;;;; ** highlighting faces fonts
+;;;; highlighting faces fonts
 ;;;;; hl-line
 ;; - Highlight the current line
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
@@ -3594,9 +3679,9 @@
 ;;;;; lisp settings
 ;; - some lisp stuff from Getting Started with Emacs Lisp
 
-(define-key emacs-lisp-mode-map (kbd "s-RET") 'eval-last-sexp)
-(define-key emacs-lisp-mode-map (kbd "H-RET") 'eval-buffer)
-(define-key emacs-lisp-mode-map (kbd "A-RET") 'eval-region)
+(define-key emacs-lisp-mode-map (kbd "s-<return>") 'eval-last-sexp)
+(define-key emacs-lisp-mode-map (kbd "H-<return>") 'eval-buffer)
+(define-key emacs-lisp-mode-map (kbd "A-<return>") 'eval-region)
 
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 (global-set-key (kbd "C-c s E") 'toggle-debug-on-error)
@@ -4014,9 +4099,11 @@
              :repo "motform/arduino-cli-mode")
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
-  ; :init (add-to-list 'auto-minor-mode-alist '("\\.ino\\'" . arduino-cli-mode))
-  :config (setq arduino-cli-warnings 'all
-                arduino-cli-verify t))
+  :config
+  (setq arduino-cli-warnings 'all
+        arduino-cli-verify t
+        arduino-cli-default-fqbn "esp8266:esp8266:d1"
+        arduino-cli-default-port "/dev/cu.wchusbserial1430"))
 
 
 ;;;;; arduino-mode
@@ -5560,5 +5647,6 @@
   :hook (emacs-startup . keychain-refresh-environment))
 
 ;;; init.el --- end
+(message "init.el ends here")
 ;; (provide 'init-new.el)
 ;; init-new.el ends here

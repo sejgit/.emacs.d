@@ -42,7 +42,7 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
-This manual is for With-Editor version 2.9.1.
+This manual is for With-Editor version 2.9.4.
 
      Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
 
@@ -62,6 +62,9 @@ This manual is for With-Editor version 2.9.1.
 * Using the With-Editor package::
 * Using With-Editor as a library::
 * Debugging::
+* Command Index::
+* Function Index::
+* Variable Index::
 
 --- The Detailed Node Listing ---
 
@@ -299,7 +302,7 @@ package::.
      NO-STANDARD-FILTER.  Then it calls FILTER.
 
 
-File: with-editor.info,  Node: Debugging,  Prev: Using With-Editor as a library,  Up: Top
+File: with-editor.info,  Node: Debugging,  Next: Command Index,  Prev: Using With-Editor as a library,  Up: Top
 
 3 Debugging
 ***********
@@ -317,14 +320,79 @@ commit in Magit, then please open a new issue at
 about your Emacs installation.  Most importantly how did you install
 Emacs and what is the output of `M-x with-editor-debug RET'.
 
+
+File: with-editor.info,  Node: Command Index,  Next: Function Index,  Prev: Debugging,  Up: Top
+
+Appendix A Command Index
+************************
+
+ [index ]
+* Menu:
+
+* with-editor-async-shell-command:       Using With-Editor commands.
+                                                               (line 17)
+* with-editor-export-editor:             Using With-Editor commands.
+                                                               (line 58)
+* with-editor-export-git-editor:         Using With-Editor commands.
+                                                               (line 63)
+* with-editor-export-hg-editor:          Using With-Editor commands.
+                                                               (line 67)
+* with-editor-shell-command:             Using With-Editor commands.
+                                                               (line 21)
+
+
+File: with-editor.info,  Node: Function Index,  Next: Variable Index,  Prev: Command Index,  Up: Top
+
+Appendix B Function Index
+*************************
+
+ [index ]
+* Menu:
+
+* with-editor:                           Using With-Editor as a library.
+                                                               (line 17)
+* with-editor-async-shell-command:       Using With-Editor commands.
+                                                               (line 18)
+* with-editor-export-editor:             Using With-Editor commands.
+                                                               (line 59)
+* with-editor-export-git-editor:         Using With-Editor commands.
+                                                               (line 64)
+* with-editor-export-hg-editor:          Using With-Editor commands.
+                                                               (line 68)
+* with-editor-locate-emacsclient:        Configuring With-Editor.
+                                                               (line 42)
+* with-editor-set-process-filter:        Using With-Editor as a library.
+                                                               (line 36)
+* with-editor-shell-command:             Using With-Editor commands.
+                                                               (line 22)
+
+
+File: with-editor.info,  Node: Variable Index,  Prev: Function Index,  Up: Top
+
+Appendix C Variable Index
+*************************
+
+ [index ]
+* Menu:
+
+* shell-command-with-editor-mode:        Using With-Editor commands.
+                                                               (line 36)
+* with-editor-emacsclient-executable:    Configuring With-Editor.
+                                                               (line 14)
+* with-editor-sleeping-editor:           Configuring With-Editor.
+                                                               (line 57)
+
 
 
 Tag Table:
 Node: Top890
-Node: Using the With-Editor package2618
-Node: Configuring With-Editor3198
-Node: Using With-Editor commands7635
-Node: Using With-Editor as a library10710
-Node: Debugging12624
+Node: Using the With-Editor package2674
+Node: Configuring With-Editor3254
+Node: Using With-Editor commands7691
+Node: Using With-Editor as a library10766
+Node: Debugging12680
+Node: Command Index13538
+Node: Function Index14420
+Node: Variable Index15740
 
 End Tag Table

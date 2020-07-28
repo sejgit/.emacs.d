@@ -6,6 +6,16 @@
 ;;;### (autoloads nil "all-the-icons" "all-the-icons.el" (0 0 0 0))
 ;;; Generated autoloads from all-the-icons.el
 
+(autoload 'all-the-icons-icon-for-dir "all-the-icons" "\
+Get the formatted icon for DIR.
+ARG-OVERRIDES should be a plist containining `:height',
+`:v-adjust' or `:face' properties like in the normal icon
+inserting functions.
+
+Note: You want chevron, please use `all-the-icons-icon-for-dir-with-chevron'.
+
+\(fn DIR &rest ARG-OVERRIDES)" nil nil)
+
 (autoload 'all-the-icons-icon-for-file "all-the-icons" "\
 Get the formatted icon for FILE.
 ARG-OVERRIDES should be a plist containining `:height',
@@ -31,14 +41,6 @@ inserting functions.
 
 \(fn URL &rest ARG-OVERRIDES)" nil nil)
 
-(autoload 'all-the-icons--icon-info-for-buffer "all-the-icons" "\
-Get icon info for the current buffer.
-
-When F is provided, the info function is calculated with the format
-`all-the-icons-icon-%s-for-file' or `all-the-icons-icon-%s-for-mode'.
-
-\(fn &optional F)" nil nil)
-
 (autoload 'all-the-icons-install-fonts "all-the-icons" "\
 Helper function to download and install the latests fonts based on OS.
 When PFX is non-nil, ignore the prompt and just install
@@ -52,7 +54,7 @@ When FAMILY is non-nil, limit the candidates to the icon set matching it.
 
 \(fn &optional ARG FAMILY)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons" '("all" "define-icon" "faicon" "fileicon" "material" "octicon" "wicon")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons" '("all-the-icons-")))
 
 ;;;***
 

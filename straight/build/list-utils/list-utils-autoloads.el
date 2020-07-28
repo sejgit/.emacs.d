@@ -10,7 +10,7 @@
 
 (require 'cl)
 
-(defstruct tconc head tail)
+(cl-defstruct tconc head tail)
 
 (autoload 'tconc-list "list-utils" "\
 Efficiently append LIST to TC.

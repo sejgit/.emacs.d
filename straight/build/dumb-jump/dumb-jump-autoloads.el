@@ -54,6 +54,13 @@ toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'dumb-jump-xref-activate "dumb-jump" "\
+Function to activate xref backend.
+Add this function to `xref-backend-functions' to dumb jump to be
+activiated, whenever it finds a project. It is recommended to add
+it to the end, so that it only gets activated when no better
+option is found." nil nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dumb-jump" '("dumb-jump-")))
 
 ;;;***

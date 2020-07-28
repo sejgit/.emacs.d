@@ -1693,7 +1693,7 @@ Other list functions not fit to be classified elsewhere.
      is identity (given that the lists are the same length).
 
      Note in particular that calling this on a list of two lists will
-     return a list of cons-cells such that the aboce identity works.
+     return a list of cons-cells such that the above identity works.
 
      See also: `-zip' (*note -zip::)
 
@@ -2753,7 +2753,7 @@ offered in a separate package: `dash-functional`.
      tested using EQUAL-TEST. If EQUAL-TEST is not specified,
      `equal' is used. For functions over the floating point
      numbers, it may be necessary to provide an appropriate
-     appoximate comparison test.
+     approximate comparison test.
 
      2. HALT-TEST returns a non-nil value. HALT-TEST defaults to a
      simple counter that returns t after `-fixfn-max-iterations',
@@ -3451,11 +3451,11 @@ Ref: -orfn90664
 Ref: -andfn91096
 Ref: -iteratefn91588
 Ref: -fixfn92284
-Ref: -prodfn93828
-Node: Development94881
-Node: Contribute95230
-Node: Changes95951
-Node: Contributors98565
-Node: Index100077
+Ref: -prodfn93829
+Node: Development94882
+Node: Contribute95231
+Node: Changes95952
+Node: Contributors98566
+Node: Index100078
 
 End Tag Table

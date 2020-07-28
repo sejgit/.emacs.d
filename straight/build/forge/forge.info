@@ -29,7 +29,7 @@ Forge User and Developer Manual
 Forge allows you to work with Git forges, such as Github and Gitlab,
 from the comfort of Magit and the rest of Emacs.
 
-This manual is for Forge version 0.1.0 (v0.1.0-304-g0ade907a+1).
+This manual is for Forge version 0.1.0 (v0.1.0-320-g639ce512+1).
 
      Copyright (C) 2018-2020 Jonas Bernoulli <jonas@bernoul.li>
 
@@ -51,6 +51,10 @@ This manual is for Forge version 0.1.0 (v0.1.0-304-g0ade907a+1).
 * Getting Started::
 * Usage::
 * FAQ::
+* Keystroke Index::
+* Command Index::
+* Function Index::
+* Variable Index::
 
 --- The Detailed Node Listing ---
 
@@ -58,6 +62,7 @@ Getting Started
 
 * Initial Pull::
 * Token Creation::
+* Repository Detection::
 
 Usage
 
@@ -145,9 +150,6 @@ also see *Note Getting Started::.
    * Gitlab
 
      Gitlab Caveats
-
-        * Forge cannot use Ghub's setup wizard to create the API token
-          because the Gitlab API does not support doing that.
 
         * Forge cannot provide notifications because the Gitlab API
           does not expose those.
@@ -275,12 +277,8 @@ File: forge.info,  Node: Getting Started,  Next: Usage,  Prev: Supported Forges 
 Getting started using Forge should be fairly easy, but there are a few
 caveats you should be aware of:
 
-   * Forge uses the Ghub package to access forge APIs.  That package
-     comes with a setup wizard that should make it easy to create and
-     store a Github API token.  Unfortunately the same cannot be done
-     for other forges and in the past it has failed for some users for
-     Github too, in particular when using two-factor authentication.
-     See *Note Token Creation:: for more information.
+   * Forge uses the Ghub package to access forge APIs.  For this purpose
+     you have to create a token as described in *Note Token Creation::.
 
    * Fetched information is stored in a database.  The table schemata of
      that database have not been finalized yet.  Until that has happened
@@ -315,6 +313,7 @@ something like this to your init file takes care of this:
 
 * Initial Pull::
 * Token Creation::
+* Repository Detection::
 
 
 File: forge.info,  Node: Initial Pull,  Next: Token Creation,  Up: Getting Started
@@ -352,29 +351,51 @@ forges because making a handful of GraphQL requests is much faster than
 making hundreds of REST requests.
 
 
-File: forge.info,  Node: Token Creation,  Prev: Initial Pull,  Up: Getting Started
+File: forge.info,  Node: Token Creation,  Next: Repository Detection,  Prev: Initial Pull,  Up: Getting Started
 
 3.2 Token Creation
 ==================
 
 Forge uses the Ghub package to access the APIs of supported Git forges.
-Ghub comes with a setup wizard that guides the user through the
-process of creating an API token for Github.com.  When accessing a
-Github Enterprise instance, then some manual setup is required before
-the wizard can be used.  Other forges don't support creating tokens
-using the API at all.  Before accessing such a forge you have to create
-a token using the respective web interface.
+How this works an how to create and store a token is documented in
+*Note Getting Started: (ghub)Getting Started.
 
-   Please consult Ghub's manual to learn more about token creation.  See
-*Note Getting Started: (ghub)Getting Started. in particular.
+   Ghub used to provide a setup wizard, but that had to be removed for
+reasons given in the manual just mentioned.  Nowadays there is no way
+around reading the documentation and doing this manually I am afraid.
 
-   Ghub does *not* associate a given local repository with a repository
-on a forge.  The Forge package itself takes care of this.  In doing so
-it ignores the Git variable `ghub.host' and other `FORGE.host'
-variables used by Ghub.  (But `github.user' and other variables used to
-specify the user are honored).  Forge associates the local repository
-with a forge repository by first determining which remote is associated
-with the upstream repository and then looking that up in `forge-alist'.
+   Forge requires the following token scopes.
+
+   * For Github these scopes are required.
+
+        * `repo' grants full read/write access to private and public
+          repositories.
+
+        * `user' grants access to profile information.
+
+        * `read:org' grants read-only access to organization membership.
+
+     More information about these and other scopes can be found at
+     `https://docs.github.com/en/developers/apps/scopes-for-oauth-apps'.
+
+   * For Gitlab instances `api' is the only required scope.  It gives
+     read and write access to everything.  The Gitlab API provides more
+     fine-grained scopes for read-only access, but when any write access
+     at all is required, then it is all or nothing.
+
+
+File: forge.info,  Node: Repository Detection,  Prev: Token Creation,  Up: Getting Started
+
+3.3 Repository Detection
+========================
+
+Ghub does *not* associate a given local repository with a repository on
+a forge.  The Forge package itself takes care of this.  In doing so it
+ignores the Git variable `ghub.host' and other `FORGE.host' variables
+used by Ghub.  (But `github.user' and other variables used to specify
+the user are honored).  Forge associates the local repository with a
+forge repository by first determining which remote is associated with
+the upstream repository and then looking that up in `forge-alist'.
 
    If only one remote exists, then Forge uses that unconditionally.  If
 several remotes exist, then a remote may be selected based on its name.
@@ -410,7 +431,7 @@ repository to the local database without pulling all the data, which is
 useful if you want to create a single pull-request.
 
 `' a'     (`forge-add-repository')
-     This commnand add a repository to the database.
+     This command add a repository to the database.
 
      It offers to either pull topics (now and in the future) or to only
      pull individual topics when the user invokes `forge-pull-topic'.
@@ -787,12 +808,12 @@ File: forge.info,  Node: Creating Topics,  Next: Editing Topics and Posts,  Prev
 4.3.3 Creating Topics
 ---------------------
 
-`' p'     (`forge-create-pullreq')
+`' c p'     (`forge-create-pullreq')
 
 `C-c C-n [on "Pull requests" section]'     (`forge-create-pullreq')
      This command creates a new pull-request for the current repository.
 
-`' i'     (`forge-create-issue')
+`' c i'     (`forge-create-issue')
 
 `C-c C-n [on "Issues" section]'     (`forge-create-pullreq')
      This command creates a new issue for the current repository.
@@ -857,6 +878,11 @@ a post visits that post in a browser.
 `C-c C-e [on "Review-Requests" section]'     (`forge-edit-topic-review-requests')
      This command reads a list of people who you would like to review an
      existing topic in the minibuffer.
+
+`C-c C-e [on "Note" section]'     (`forge-edit-topic-note')
+
+`M-x forge-edit-topic-note'     (`forge-edit-topic-note')
+     This lets you edit your private note about a topic.
 
 `C-c C-k [on a comment section]'     (`forge-delete-comment')
      This command deletes the comment at point.
@@ -940,7 +966,7 @@ File: forge.info,  Node: Miscellaneous,  Prev: Working with Topics,  Up: Usage
      still under heavy development.
 
 
-File: forge.info,  Node: FAQ,  Prev: Usage,  Up: Top
+File: forge.info,  Node: FAQ,  Next: Keystroke Index,  Prev: Usage,  Up: Top
 
 Appendix A FAQ
 **************
@@ -958,25 +984,215 @@ A.1 Is it possible to create a single pull-request without pulling everything?
 Yes.  `M-x forge-add-repository' offers to add a repository to the
 database without also fetching all pull-requests and issues.
 
+
+File: forge.info,  Node: Keystroke Index,  Next: Command Index,  Prev: FAQ,  Up: Top
+
+Appendix B Keystroke Index
+**************************
+
+ [index ]
+* Menu:
+
+* % y:                                   Branching.           (line 112)
+* ':                                     Usage.               (line  22)
+* ' a:                                   Usage.               (line  12)
+* ' c i:                                 Creating Topics.     (line  11)
+* ' c p:                                 Creating Topics.     (line   6)
+* ' I:                                   Listing Topics and Notifications.
+                                                              (line  66)
+* ' l:                                   Listing Topics and Notifications.
+                                                              (line  58)
+* ' P:                                   Listing Topics and Notifications.
+                                                              (line  62)
+* ' r:                                   Listing Topics and Notifications.
+                                                              (line  55)
+* b Y:                                   Branching.           (line  12)
+* b y:                                   Branching.           (line 107)
+* C-c C-c:                               Editing Topics and Posts.
+                                                              (line  77)
+* C-c C-e [on "Assignees" section]:      Editing Topics and Posts.
+                                                              (line  53)
+* C-c C-e [on "Labels" section]:         Editing Topics and Posts.
+                                                              (line  40)
+* C-c C-e [on "Marks" section]:          Editing Topics and Posts.
+                                                              (line  44)
+* C-c C-e [on "Note" section]:           Editing Topics and Posts.
+                                                              (line  61)
+* C-c C-e [on "Review-Requests" section]: Editing Topics and Posts.
+                                                              (line  57)
+* C-c C-e [on "State" section]:          Editing Topics and Posts.
+                                                              (line  36)
+* C-c C-e [on "Title" section]:          Editing Topics and Posts.
+                                                              (line  32)
+* C-c C-e [on a post section]:           Editing Topics and Posts.
+                                                              (line  27)
+* C-c C-k:                               Editing Topics and Posts.
+                                                              (line  81)
+* C-c C-k [on a comment section]:        Editing Topics and Posts.
+                                                              (line  66)
+* C-c C-n:                               Editing Topics and Posts.
+                                                              (line  15)
+* C-c C-n [on "Issues" section]:         Creating Topics.     (line  12)
+* C-c C-n [on "Pull requests" section]:  Creating Topics.     (line   7)
+* C-c C-r:                               Editing Topics and Posts.
+                                                              (line  16)
+* C-c C-v:                               Visiting Topics.     (line  27)
+* C-c C-w:                               Visiting Topics.     (line  15)
+* f Y:                                   Pulling.             (line  22)
+* f y:                                   Pulling.             (line  11)
+* M-x forge-edit-topic-note:             Editing Topics and Posts.
+                                                              (line  62)
+* M-x forge-pull-pullreq:                Pulling.             (line  44)
+* RET:                                   Visiting Topics.     (line  26)
+
+
+File: forge.info,  Node: Command Index,  Next: Function Index,  Prev: Keystroke Index,  Up: Top
+
+Appendix C Command Index
+************************
+
+ [index ]
+* Menu:
+
+* forge-add-organization-repositories:   Miscellaneous.       (line  33)
+* forge-add-repository:                  Usage.               (line  12)
+* forge-add-user-repositories:           Miscellaneous.       (line  26)
+* forge-branch-pullreq:                  Branching.           (line  12)
+* forge-browse-dwim:                     Visiting Topics.     (line  15)
+* forge-browse-TYPE:                     Visiting Topics.     (line  14)
+* forge-checkout-pullreq:                Branching.           (line 107)
+* forge-checkout-worktree:               Branching.           (line 112)
+* forge-create-issue:                    Creating Topics.     (line  11)
+* forge-create-post:                     Editing Topics and Posts.
+                                                              (line  16)
+* forge-create-pullreq:                  Creating Topics.     (line   7)
+* forge-delete-comment:                  Editing Topics and Posts.
+                                                              (line  66)
+* forge-dispatch:                        Usage.               (line  22)
+* forge-edit-post:                       Editing Topics and Posts.
+                                                              (line  27)
+* forge-edit-topic-assignees:            Editing Topics and Posts.
+                                                              (line  53)
+* forge-edit-topic-labels:               Editing Topics and Posts.
+                                                              (line  40)
+* forge-edit-topic-marks:                Editing Topics and Posts.
+                                                              (line  44)
+* forge-edit-topic-note:                 Editing Topics and Posts.
+                                                              (line  61)
+* forge-edit-topic-review-requests:      Editing Topics and Posts.
+                                                              (line  57)
+* forge-edit-topic-state:                Editing Topics and Posts.
+                                                              (line  36)
+* forge-edit-topic-title:                Editing Topics and Posts.
+                                                              (line  32)
+* forge-list-assigned-issues:            Listing Topics and Notifications.
+                                                              (line  75)
+* forge-list-assigned-pullreqs:          Listing Topics and Notifications.
+                                                              (line  71)
+* forge-list-issues:                     Listing Topics and Notifications.
+                                                              (line  66)
+* forge-list-notifications:              Listing Topics and Notifications.
+                                                              (line  58)
+* forge-list-owned-issues:               Listing Topics and Notifications.
+                                                              (line  89)
+* forge-list-owned-pullreqs:             Listing Topics and Notifications.
+                                                              (line  83)
+* forge-list-pull-requests:              Listing Topics and Notifications.
+                                                              (line  62)
+* forge-list-repositories:               Listing Topics and Notifications.
+                                                              (line  55)
+* forge-list-requested-reviews:          Listing Topics and Notifications.
+                                                              (line  79)
+* forge-post-cancel:                     Editing Topics and Posts.
+                                                              (line  81)
+* forge-post-submit:                     Editing Topics and Posts.
+                                                              (line  77)
+* forge-pull:                            Pulling.             (line  11)
+* forge-pull-notifications:              Pulling.             (line  22)
+* forge-pull-pullreq:                    Pulling.             (line  44)
+* forge-remove-repository:               Miscellaneous.       (line  40)
+* forge-remove-topic-locally:            Miscellaneous.       (line  44)
+* forge-reset-database:                  Miscellaneous.       (line  54)
+* forge-toggle-closed-visibility:        Listing Topics and Notifications.
+                                                              (line  33)
+* forge-visit-topic:                     Visiting Topics.     (line  27)
+* forge-visit-TYPE:                      Visiting Topics.     (line  26)
+
+
+File: forge.info,  Node: Function Index,  Next: Variable Index,  Prev: Command Index,  Up: Top
+
+Appendix D Function Index
+*************************
+
+ [index ]
+* Menu:
+
+* forge-add-organization-repositories:   Miscellaneous.        (line 34)
+* forge-add-user-repositories:           Miscellaneous.        (line 27)
+* forge-insert-assigned-issues:          Listing Topics and Notifications.
+                                                               (line 49)
+* forge-insert-assigned-pullreqs:        Listing Topics and Notifications.
+                                                               (line 41)
+* forge-insert-issues:                   Listing Topics and Notifications.
+                                                               (line 18)
+* forge-insert-pullreqs:                 Listing Topics and Notifications.
+                                                               (line 14)
+* forge-insert-requested-reviews:        Listing Topics and Notifications.
+                                                               (line 45)
+* forge-list-assigned-issues:            Listing Topics and Notifications.
+                                                               (line 76)
+* forge-list-assigned-pullreqs:          Listing Topics and Notifications.
+                                                               (line 72)
+* forge-list-owned-issues:               Listing Topics and Notifications.
+                                                               (line 90)
+* forge-list-owned-pullreqs:             Listing Topics and Notifications.
+                                                               (line 84)
+* forge-list-requested-reviews:          Listing Topics and Notifications.
+                                                               (line 80)
+* forge-remove-repository:               Miscellaneous.        (line 41)
+* forge-remove-topic-locally:            Miscellaneous.        (line 45)
+* forge-reset-database:                  Miscellaneous.        (line 55)
+* forge-toggle-closed-visibility:        Listing Topics and Notifications.
+                                                               (line 34)
+
+
+File: forge.info,  Node: Variable Index,  Prev: Function Index,  Up: Top
+
+Appendix E Variable Index
+*************************
+
+ [index ]
+* Menu:
+
+* forge-owned-accounts:                  Listing Topics and Notifications.
+                                                              (line  96)
+* forge-owned-blacklist:                 Listing Topics and Notifications.
+                                                              (line 100)
+
 
 
 Tag Table:
 Node: Top861
-Node: Introduction2214
-Node: Supported Forges and Hosts2775
-Node: Getting Started8383
-Node: Initial Pull10323
-Node: Token Creation11873
-Node: Usage14162
-Node: Pulling15407
-Node: Branching18207
-Node: Working with Topics24212
-Node: Visiting Topics24585
-Node: Listing Topics and Notifications26240
-Node: Creating Topics30095
-Node: Editing Topics and Posts30624
-Node: Miscellaneous33862
-Node: FAQ36167
-Node: Is it possible to create a single pull-request without pulling everything?36343
+Node: Introduction2315
+Node: Supported Forges and Hosts2876
+Node: Getting Started8350
+Node: Initial Pull10057
+Node: Token Creation11607
+Node: Repository Detection12883
+Node: Usage14596
+Node: Pulling15840
+Node: Branching18640
+Node: Working with Topics24645
+Node: Visiting Topics25018
+Node: Listing Topics and Notifications26673
+Node: Creating Topics30528
+Node: Editing Topics and Posts31061
+Node: Miscellaneous34476
+Node: FAQ36781
+Node: Is it possible to create a single pull-request without pulling everything?36981
+Node: Keystroke Index37382
+Node: Command Index41195
+Node: Function Index45914
+Node: Variable Index48080
 
 End Tag Table

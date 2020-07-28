@@ -76,6 +76,8 @@ Restore `solaire-mode' in buffers when `persp-mode' loads a session.
 
 \(fn &rest _)" nil nil)
 
+(advice-add #'load-theme :before (lambda (_theme &optional _no-confirm no-enable) (unless no-enable (disable-theme 'solaire-swap-bg-theme))))
+
 (advice-add #'load-theme :after (lambda (&rest _) (setq solaire-mode--pending-bg-swap (bound-and-true-p solaire-mode-auto-swap-bg))))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "solaire-mode" '("solaire-mode-")))

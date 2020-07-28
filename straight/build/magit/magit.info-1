@@ -34,7 +34,7 @@ to perform almost all of their daily version control tasks directly
 from within Emacs.  While many fine Git clients exist, only Magit and
 Git itself deserve to be called porcelains.
 
-This manual is for Magit version 2.90.1 (v2.90.1-948-ge293416ce+1).
+This manual is for Magit version 2.90.1 (v2.90.1-1023-g7d4bcd72+1).
 
      Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
 
@@ -304,6 +304,7 @@ FAQ - How to ...?
 * How to show diffs for gpg-encrypted files?::
 * How does branching and pushing work?::
 * Can Magit be used as `ediff-version-control-package'?::
+* Should I disable VC?::
 
 
 FAQ - Issues and Errors
@@ -4501,11 +4502,12 @@ how to enable them.
  -- User Option: magit-clone-set-remote-head
      This option controls whether cloning causes the reference
      `refs/remotes/<remote>/HEAD' to be created in the clone.  The
-     default is to do so.
-
-     Actually `git clone' itself does that and cannot be told to not do
-     it.  Therefore setting this to `nil' causes Magit to remove that
-     reference after cloning.
+     default is to delete the reference after running `git clone',
+     which insists on creating it.  This is because the reference has
+     not been found to be particularly useful as it is not
+     automatically updated when the `HEAD' of the remote changes.
+     Setting this option to `t' preserves Git's default behavior of
+     creating the reference.
 
  -- User Option: magit-clone-set-remote.pushDefault
      This option controls whether the value of the Git variable
@@ -5326,8 +5328,8 @@ them.  Those features are available from separate transient command.
 
  -- User Option: magit-branch-read-upstream-first
      When creating a branch, whether to read the upstream branch before
-     the name of the branch that is to be created.  The default is
-     `nil', and I recommend you leave it at that.
+     the name of the branch that is to be created.  The default is `t',
+     and I recommend you leave it at that.
 
  -- User Option: magit-branch-prefer-remote-upstream
      This option specifies whether remote upstreams are favored over
@@ -6370,6 +6372,11 @@ Also see *Note git-reset: (gitman)git-reset.
      Reset the `HEAD', index, and working tree to some commit read from
      the user and defaulting to the commit at point.
 
+`X k'     (`magit-reset-keep')
+     Reset the `HEAD', index, and working tree to some commit read from
+     the user and defaulting to the commit at point.  Uncommitted
+     changes are kept as-is.
+
 `X i'     (`magit-reset-index')
      Reset the index to some commit read from the user and defaulting to
      the commit at point.  Keep the `HEAD' and working tree as-is, so if
@@ -6948,24 +6955,23 @@ Also see *Note git-tag: (gitman)git-tag.
      prefix argument it creates an annotate tag.
 
 `t r'     (`magit-tag-release')
-     This commands creates an annotated release tag.  It assumes that
-     release tags match `magit-release-tag-regexp'.
+     This commands creates a release tag.  It assumes that release tags
+     match `magit-release-tag-regexp'.
 
      First it prompts for the name of the new tag using the highest
      existing tag as initial input and leaving it to the user to
-     increment the desired part of the version string.
+     increment the desired part of the version string.  If you use
+     unconventional release tags or version numbers (e.g.,
+     `v1.2.3-custom.1'), you can set the `magit-release-tag-regexp' and
+     `magit-tag-version-regexp-alist' variables.
 
-     Then it prompts for the message of the new tag.  The proposed tag
-     message is based on the message of the highest tag, provided that
-     that contains the corresponding version string and substituting the
-     new version string for that.  Otherwise it proposes something like
-     "Foo-Bar 1.2.3", given, for example, a TAG "v1.2.3" and a
-     repository located at something like "/path/to/foo-bar".
-
-     Then it calls "git tag -annotate -sign -m MSG TAG" to create the
-     tag, regardless of whether these arguments are enabled in the
-     transient.  Finally it shows the refs buffer to let the user
-     quickly review the result.
+     If `--annotate' is enabled then it prompts for the message of the
+     new tag.  The proposed tag message is based on the message of the
+     highest tag, provided that that contains the corresponding version
+     string and substituting the new version string for that.  Otherwise
+     it proposes something like "Foo-Bar 1.2.3", given, for example, a
+     TAG "v1.2.3" and a repository located at something like
+     "/path/to/foo-bar".
 
 `t k'     (`magit-tag-delete')
      This command deletes one or more tags.  If the region marks
@@ -7062,7 +7068,7 @@ File: magit.info,  Node: Listing Submodules,  Next: Submodule Transient,  Up: Su
 The command `magit-list-submodules' displays a list of the current
 repository's submodules in a separate buffer.  It's also possible to
 display information about submodules directly in the status buffer of
-the super-repository by adding `magit-insert-submodules' to the hook
+the super-repository by adding `magit-insert-modules' to the hook
 `magit-status-sections-hook' as described in *Note Status Module
 Sections::.
 
@@ -7085,16 +7091,6 @@ Sections::.
      and with `default-directory' bound to the toplevel of its working
      tree.  It has to return a string to be inserted or nil.  PROPS is
      an alist that supports the keys `:right-align' and `:pad-right'.
-
- -- Function: magit-insert-submodules
-     Insert sections for all submodules.  For each section insert the
-     path, the branch, and the output of `git describe --tags', or,
-     failing that, the abbreviated HEAD commit hash.
-
-     Press `RET' on such a submodule section to show its own status
-     buffer.  Press `RET' on the "Modules" section to display a list of
-     submodules in a separate buffer.  This shows additional
-     information not displayed in the super-repository's status buffer.
 
 
 File: magit.info,  Node: Submodule Transient,  Prev: Listing Submodules,  Up: Submodules
@@ -7250,7 +7246,7 @@ These are some of the commands that can be used in all buffers whose
 major-modes derive from `magit-mode'.  There are other common commands
 beside the ones below, but these didn't fit well anywhere else.
 
-`M-w'     (`magit-copy-section-value')
+`C-w'     (`magit-copy-section-value')
      This command saves the value of the current section to the
      `kill-ring', and, provided that the current section is a commit,
      branch, or tag section, it also pushes the (referenced) revision to
@@ -7266,7 +7262,7 @@ beside the ones below, but these didn't fit well anywhere else.
      within a hunk, it strips the outer diff marker column before saving
      the text.
 
-`C-w'     (`magit-copy-buffer-revision')
+`M-w'     (`magit-copy-buffer-revision')
      This command saves the revision being displayed in the current
      buffer to the `kill-ring' and also pushes it to the
      `magit-revision-stack'.  It is mainly intended for use in

@@ -16,6 +16,9 @@ If yapf exits with an error, the output will be shown in a help-window.
 (autoload 'yapfify-buffer "yapfify" "\
 Yapfify whole buffer." t nil)
 
+(autoload 'yapfify-region-or-buffer "yapfify" "\
+Yapfify the region if it is active. Otherwise, yapfify the buffer" t nil)
+
 (autoload 'yapf-mode "yapfify" "\
 Automatically run YAPF before saving.
 
@@ -26,7 +29,7 @@ enable the mode if ARG is omitted or nil, and toggle it if ARG is
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "yapfify" '("get-buffer-string" "yapfify-call-bin")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "yapfify" '("get-buffer-string" "yapfify-")))
 
 ;;;***
 

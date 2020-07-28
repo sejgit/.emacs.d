@@ -7,8 +7,8 @@
 ;;; Generated autoloads from company-jedi.el
 
 (autoload 'company-jedi "company-jedi" "\
-`company-mode' completion back-end for `jedi-code.el'.
-Provide completion info according to COMMAND and ARG.  IGNORED, not used.
+A `command:company-mode' completion back-end for jedi-core.
+Provide completion info according to COMMAND and ARG.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 

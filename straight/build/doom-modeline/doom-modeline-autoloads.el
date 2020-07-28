@@ -24,6 +24,9 @@ Set sepcial mode-line." nil nil)
 (autoload 'doom-modeline-set-project-modeline "doom-modeline" "\
 Set project mode-line." nil nil)
 
+(autoload 'doom-modeline-set-dashboard-modeline "doom-modeline" "\
+Set dashboard mode-line." nil nil)
+
 (autoload 'doom-modeline-set-vcs-modeline "doom-modeline" "\
 Set vcs mode-line." nil nil)
 
