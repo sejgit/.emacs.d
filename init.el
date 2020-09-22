@@ -50,7 +50,7 @@
 ;; - <2020-05-17 Sun> try outline/outshine/pretty-outlines
 ;; - <2020-07-26 Sun> clean-up init files final move from org tangled
 ;; - <2020-09-21 Mon> small mods
-
+;; - <2020-09-22 Tue> move to helm
 
 ;;; Code:
 (message "Emacs start")
@@ -333,10 +333,10 @@
     (setq exec-path-from-shell t)
     (setq exec-path-from-shell-check-startup-files nil)
     (exec-path-from-shell-initialize))
-    (add-hook 'emacs-startup-hook 'sej/server-mode)
+  (add-hook 'emacs-startup-hook 'sej/server-mode)
 
-    (require 'warnings)
-    (customize-save-variable 'warning-suppress-types (quote ((server))))
+  (require 'warnings)
+  (customize-save-variable 'warning-suppress-types (quote ((server))))
 
   (defun sej/server-mode ()
     "Start server-mode without errors"
@@ -535,6 +535,7 @@ USAGE: (unbind-from-modi-map \"key f\")."
 
 ;;;;; general sej-mode-map bindings
 
+(define-key global-map (kbd "C-c .") 'org-time-stamp)
 (define-key global-map (kbd "C-h C-h") nil)
 (define-key sej-mode-map (kbd "C-h C-h") nil)
 
@@ -645,25 +646,26 @@ Return its absolute path.  Otherwise, return nil."
 
 (use-package helpful
   :straight (helpful :type git :host github :repo "Wilfred/helpful")
-  :after counsel
   :bind ( ("C-h C-d" . helpful-at-point)
           ("C-h c" . helpful-command)
           ("C-h C" . helpful-command)
           ("C-h k" . helpful-key)
-          ("C-h M" . helpful-macro))
-  :config
-  (setq counsel-describe-function-function #'helpful-callable)
-  (setq counsel-describe-variable-function #'helpful-variable)
-  )
+          ("C-h M" . helpful-macro))  )
 
-;;;;; discover-my-major
+
+;;;;; helm-descbinds
+;; - Discover key bindings narrowing with helm
+;; - [[https://github.com/emacs-helm/helm-descbinds][helm-descbinds]]
+(use-package helm-descbinds
+  :bind (("C-h b" . helm-descbinds)
+         ("C-h w" . helm-descbinds)))
+
+
+;;;;; helm-describe-modes
 ;; - Discover key bindings and their meaning for the current Emacs major mode
-;; - https://github.com/jguenther/discover-my-major
-
-(use-package discover-my-major
-  :straight (disover-my-major :type git :host github :repo "jguenther/discover-my-major")
-  :bind (("C-h M-m" . discover-my-major)
-         ("C-h M-M" . discover-my-mode)))
+;; - [[https://github.com/emacs-helm/helm-describe-modes][helm-describe-modes]]
+(use-package helm-describe-modes
+  :bind (([remap describe-mode] . helm-describe-modes)))
 
 
 ;;;; update
@@ -807,7 +809,6 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; sej/load-theme
 ;; - functions to set-up menu of standard themes to load
-
 (defvar after-load-theme-hook nil
   "Hook run after a color theme is loaded using `load-theme'.")
 (defun run-after-load-theme-hook (&rest _)
@@ -820,10 +821,12 @@ Return its absolute path.  Otherwise, return nil."
   (pcase theme
     ('default 'doom-Iosvkem)
     ('classic 'doom-molokai)
-    ('doom 'doom-peacock)
+    ('peacock 'doom-peacock)
     ('dark 'doom-Iosvkem)
     ('light 'doom-one-light)
     ('daylight 'doom-tomorrow-day)
+    ('tomorrow-day 'color-theme-sanityinc-tomorrow-day)
+    ('tomorrow-night 'color-theme-sanityinc-tomorrow-night)
     (_ theme)))
 
 (defun sej/load-theme (theme)
@@ -831,50 +834,25 @@ Return its absolute path.  Otherwise, return nil."
   (interactive
    (list
     (intern (completing-read "Load theme: "
-                             '(default classic peacock dark light daylight)))))
+                             '(default classic peacock dark light daylight tomorrow-day tomorrow-night)))))
   (let ((theme (standardize-theme theme)))
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme t)))
 
 
 ;;;;; doom themes
-;; - load doom-themes package if selected theme is of the doom family
 ;; - https://github.com/hlissner/emacs-doom-themes
-;; - https://github.com/hlissner/emacs-solaire-mode
-
-(defun is-doom-theme-p (theme)
-  "Check whether the THEME is a doom theme. THEME is a symbol."
-  (string-prefix-p "doom" (symbol-name (standardize-theme theme))))
-
-(if (is-doom-theme-p sej-theme)
-    (progn
-      (use-package doom-themes
-        :straight (doom-themes :type git :host github :repo "hlissner/emacs-doom-themes")
-        :init (sej/load-theme sej-theme)
-        :config
-        ;; Enable flashing mode-line on errors
-        (doom-themes-visual-bell-config)
-        ;; Corrects (and improves) org-mode's native fontification.
-        (doom-themes-org-config))
-
-      ;; Make certain buffers grossly incandescent
-      (use-package solaire-mode
-        :straight (solaire-mode :type git :host github :repo "hlissner/emacs-solaire-mode")
-        :functions persp-load-state-from-file
-        :hook (((after-change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
-               (minibuffer-setup . solaire-mode-in-minibuffer)
-               (after-load-theme . solaire-mode-swap-bg))
-        :config
-        (solaire-mode-swap-bg)
-        (advice-add #'persp-load-state-from-file
-                    :after #'solaire-mode-restore-persp-mode-buffers)))
-  (progn
-    (ignore-errors
-      (sej/load-theme sej-theme))))
+(use-package doom-themes
+  :straight (doom-themes :type git :host github :repo "hlissner/emacs-doom-themes")
+  :init (sej/load-theme sej-theme)
+  :config
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 
 ;;;;; font
-
 (when sys/macp
   (set-face-attribute 'default nil :font "SF Mono-13")
   (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend)
@@ -1550,224 +1528,110 @@ buffer is not visiting a file."
 
 
 ;;;; search
-;;;;; imenu (using helm-semantic-or-imenu)
+;;;;; helm & imenu (using helm-semantic-or-imenu)
 ;; - Framework for mode-specific buffer indexes
 ;; - https://www.emacswiki.org/emacs/ImenuMode
 ;; - https://emacs-helm.github.io/helm/
-
 (use-package helm
-  :bind (:map sej-mode-map
-              ("C-." . helm-semantic-or-imenu) )
-  :hook
-  (org-mode . imenu-add-menubar-index)
-  (prog-mode . imenu-add-menubar-index)
+  :diminish helm-mode
+  :hook ((emacs-startup . helm-mode)
+         (org-mode . imenu-add-menubar-index)
+         (prog-mode . imenu-add-menubar-index))
+  :init (setq org-imenu-depth 6)
+  :bind (("M-y" . helm-show-kill-ring)
+         ("M-i" . helm-swoop)
+         ("M-x" . helm-M-x)
+         ("C-x b" . helm-mini)
+         ("C-h g" . helm-google-suggest)
+         ("C-c ," . helm-calcul-expression)
+         ("C-c g" . helm-gid)
+         ("C-c i" . helm-imenu)
+         ("C-c I" . helm-imenu-in-all-buffers)
+         ("C-h C-s" . helm-occur)
+         ("C-h f" . helm-find)
+         ("C-h i" . helm-info-at-point)
+         ("C-h r" . helm-info-emacs)
+         ("C-h s" . helm-swoop)
+         ("C-x C-d" .   helm-browse-project)
+	 ("M-g a" .     helm-do-grep-ag)
+         ("C-x r b" . helm-filtered-bookmarks)
+         ("C-x C-f" . helm-find-files)
+         ("C-c C-f" . helm-recentf)
+         ("C-c SPC" . helm-all-mark-rings)
+         ([remap jump-to-register] . helm-register)
+         ([remap list-buffers]     . helm-buffers-list)
+         ([remap dabbrev-expand]   . helm-dabbrev)
+         ([remap find-tag]         . helm-etags-select)
+         ([remap xref-find-definitions] . helm-etags-select)
+         (:map helm-map
+               ("<tab" . helm-execute-persistent-action) ; rebind tab to run persistent action
+               ("C-i" . helm-execute-persistent-action) ; make TAB work in terminal
+               ("C-z" . helm-select-action) ; list actions using C-z
+               )
+         (:map sej-mode-map
+               ("C-." . helm-semantic-or-imenu) ))
   :config
-  (setq org-imenu-depth 6))
+  (require 'helm-config)
+  (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
+  (when (executable-find "curl")
+    (setq helm-google-suggest-use-curl-p t))
+
+  (setq helm-candidate-number-limit 100
+        helm-idle-delay 0.0 ; update fast sources immediately (doesn't).
+        helm-input-idle-delay 0.01  ; this actually updates things quickly.
+        helm-yas-display-key-on-candidate t
+        helm-quick-update t
+        helm-M-x-requires-pattern nil
+        helm-ff-skip-boring-files t
+        helm-split-window-in-side-p  t ; open helm buffer inside current window
+        helm-move-to-line-cycle-in-source  t ; move to end or beginning of source.
+        helm-ff-search-library-in-sexp  t ; search for library in `require' and `declare-function' sexp.
+        helm-scroll-amount  8 ; scroll 8 lines other window using M-<next>/M-<prior>
+        helm-ff-file-name-history-use-recentf  t
+        helm-echo-input-in-header-line  t
+        helm-autoresize-max-height 0
+        helm-autoresize-min-height 20)
+
+  (helm-autoresize-mode 1))
 
 
-;;;;; ivy
-;; - better mini-buffer completion
-;; - https://github.com/abo-abo/swiper
-
-(use-package ivy
-  :diminish
-  :hook (emacs-startup . ivy-mode)
-  :bind (
-         ("C-x b"   . ivy-switch-buffer)
-         ("s-b"     . ivy-switch-buffer)
-         ("C-c v p" . ivy-push-view)
-         ("C-c v o" . ivy-pop-view)
-         ("C-c v ." . ivy-switch-view)
-         ("C-c C-r" . ivy-resume)
-         :map ivy-minibuffer-map
-         ("M-j" . ivy-yank-word))
-  :config (ivy-mode 1)
-  (setq ivy-use-selectable-prompt t)
-  (setq enable-recursive-minibuffers t) ; Allow commands in minibuffers
-  (setq ivy-use-selectable-prompt t)
-  (setq ivy-use-virtual-buffers t)      ; Enable bookmarks and recentf
-  (setq ivy-height 10)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-on-del-error-function nil)
-  ;; (setq ivy-format-function 'ivy-format-function-arrow)
-  (setq ivy-initial-inputs-alist nil))
-
-
-;;;;; swiper
-;; - an alternative to isearch that uses Ivy to show an overview of all matches
-;; - https://github.com/abo-abo/swiper
-
-(use-package swiper
-  :after ivy
-  :bind (("C-s" . swiper-isearch)
-         ("C-S-s" . swiper-all)
-         :map swiper-map
-         ("M-q" . swiper-query-replace)) )
-
-
-;;;;; counsel
-;; - versions of common Emacs commands that make the best of Ivy
-;; - https://github.com/abo-abo/swiper
-
-(use-package counsel
-  :after ivy
-  :diminish
-  :defines (projectile-completion-system magit-completing-read-function)
-  :bind-keymap ("H-c" . counsel-mode-map)
-  :bind (
-         ("C-x C-f" . counsel-find-file)
-         ("M-y" . counsel-yank-pop)
-         :map counsel-mode-map
-         ([remap dired] . counsel-dired)
-         ("C-x C-r" . counsel-recentf)
-         ("C-c s j" . counsel-mark-ring)
-         ("C-x r b" . counsel-bookmark)
-         ("H-SPC" . counsel-mark-ring)
-         ("C-c L" . counsel-load-library)
-         ("C-c f" . counsel-find-library)
-         ("C-c g" . counsel-grep)
-         ("C-c h" . counsel-command-history)
-         ("C-c i" . counsel-git)
-         ("C-c j" . counsel-git-grep)
-         ("C-c k" . counsel-ag)
-         ("H-a"   . counsel-ag)
-         ("C-c l" . counsel-locate)
-         ("C-c r" . counsel-rg)
-         ("C-c z" . counsel-fzf)
-         ("C-c c L" . counsel-load-library)
-         ("C-c c P" . counsel-package)
-         ("C-c c a" . counsel-apropos)
-         ("C-c c e" . counsel-colors-emacs)
-         ("C-c c f" . counsel-find-library)
-         ("C-c c h" . counsel-command-history)
-         ("C-c c i" . counsel-git)
-         ("C-c c j" . counsel-git-grep)
-         ("C-c c l" . counsel-locate)
-         ("C-c c m" . counsel-minibuffer-history)
-         ("C-c c o" . counsel-outline)
-         ("C-c c g" . counsel-grep)
-         ("C-c c p" . counsel-pt)
-         ("C-c c r" . counsel-rg)
-         ("C-c c s" . counsel-ag)
-         ("C-c c t" . counsel-load-theme)
-         ("C-c c u" . counsel-unicode-char)
-         ("C-c c w" . counsel-colors-web)
-         ("C-c c z" . counsel-fzf)
-         :map counsel-find-file-map
-         ("C-h" . counsel-up-directory)
-         )
-  :hook ((ivy-mode . counsel-mode))
+;;;;; helm-swoop
+;; - i-search enhancement
+;; - [[https://github.com/emacsorphanage/helm-swoop][helm-swoop]]
+(use-package helm-swoop
+  :after helm
+  :bind (("M-i" . helm-swoop)
+         ("M-I" . helm-swoop-back-to-last-point)
+         ("C-c M-i" . helm-multi-swoop)
+         ("C-x M-i" . helm-multi-swoop-all)
+         (:map isearch-mode-map
+               ("M-i" . helm-swoop-from-isearch))
+         (:map helm-swoop-map
+               ("M-i" . helm-multi-swoop-all-from-helm-swoop)
+               ("M-m" . helm-multi-swoop-current-mode-from-helm-swoop))  )
   :config
-  (setq ivy-re-builders-alist
-        '((swiper . ivy--regex-plus)
-          (swiper-all . ivy--regex-plus)
-          (swiper-isearch . ivy--regex-plus)
-          (counsel-ag . ivy--regex-plus)
-          (counsel-rg . ivy--regex-plus)
-          (counsel-pt . ivy--regex-plus)
-          (counsel-ack . ivy--regex-plus)
-          (counsel-grep . ivy--regex-plus)
-          (t . ivy--regex-fuzzy)))
+  ;; Save buffer when helm-multi-swoop-edit complete
+  (setq helm-multi-swoop-edit-save t)
 
-  (setq counsel-find-file-at-point t)
-  (setq counsel-yank-pop-separator "\n-------\n")
+  ;; If this value is t, split window inside the current window
+  (setq helm-swoop-split-with-multiple-windows nil)
 
-  ;; Use faster search tools: ripgrep or the silver search
-  (let ((cmd (cond ((executable-find "rg")
-                    "rg -S --no-heading --line-number --color never '%s' %s")
-                   ((executable-find "ag")
-                    "ag -S --noheading --nocolor --nofilename --numbers '%s' %s")
-                   (t counsel-grep-base-command))))
-    (setq counsel-grep-base-command cmd))
+  ;; Split direcion. 'split-window-vertically or 'split-window-horizontally
+  (setq helm-swoop-split-direction 'split-window-vertically)
 
-  ;; Pre-fill search keywords
-  ;; @see https://www.reddit.com/r/emacs/comments/b7g1px/withemacs_execute_commands_like_marty_mcfly/
-  (defvar my-ivy-fly-commands
-    '(query-replace-regexp
-      flush-lines
-      keep-lines
-      ivy-read
-      swiper
-      swiper-all
-      swiper-isearch
-      counsel-grep-or-swiper
-      counsel-grep
-      counsel-ack
-      counsel-ag
-      counsel-rg
-      counsel-pt))
+  ;; If nil, you can slightly boost invoke speed in exchange for text color
+  (setq helm-swoop-speed-or-color nil)
 
-  (defun my-ivy-fly-back-to-present ()
-    (remove-hook 'pre-command-hook 'my-ivy-fly-back-to-present t)
-    (cond ((and (memq last-command my-ivy-fly-commands)
-                (equal (this-command-keys-vector) (kbd "M-p")))
-           ;; repeat one time to get straight to the first history item
-           (setq unread-command-events
-                 (append unread-command-events
-                         (listify-key-sequence (kbd "M-p")))))
-          ((memq this-command '(self-insert-command
-                                ivy-yank-word))
-           (delete-region (point)
-                          (point-max)))))
+  ;; ;; Go to the opposite side of line from the end or beginning of line
+  (setq helm-swoop-move-to-line-cycle t)
 
-  (defun my-ivy-fly-time-travel ()
-    (when (memq this-command my-ivy-fly-commands)
-      (let* ((kbd (kbd "M-n"))
-             (cmd (key-binding kbd))
-             (future (and cmd
-                          (with-temp-buffer
-                            (when (ignore-errors
-                                    (call-interactively cmd) t)
-                              (buffer-string))))))
-        (when future
-          (save-excursion
-            (insert (propertize future 'face 'shadow)))
-          (add-hook 'pre-command-hook 'my-ivy-fly-back-to-present nil t)))))
+  ;; Optional face for line numbers
+  ;; Face name is `helm-swoop-line-number-face`
+  (setq helm-swoop-use-line-number-face t)
 
-  (add-hook 'minibuffer-setup-hook #'my-ivy-fly-time-travel)
-
-  ;; Integration with `projectile'
-  (with-eval-after-load 'projectile
-    (setq projectile-completion-system 'ivy))
-
-  ;; Integration with `magit'
-  (with-eval-after-load 'magit
-    (setq magit-completing-read-function 'ivy-completing-read)))
-
-
-;;;;; amx
-;; - an alternative interface for M-x which is a fork for smex
-;; - uses ivy as backend
-;; - https://github.com/DarwinAwardWinner/amx
-
-(use-package amx
-  :after ivy
-  :hook (emacs-startup . amx-mode)
-  :config (setq amx-backend 'ivy))
-
-
-;;;;; counsel-projectile
-;; - Ivy integration for Projectile
-;; - https://github.com/ericdanan/counsel-projectile
-
-(use-package counsel-projectile
-  :after counsel
-  :hook (emacs-startup . counsel-projectile-mode)
-  :config
-  (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
-  (counsel-projectile-mode 1))
-
-
-;;;;; google-this
-;; - send this to google and search
-;; - https://github.com/Malabarba/emacs-google-this
-
-(use-package google-this
-  :diminish google-this-mode
-  :bind ( ("s-g" . google-this)
-          ("C-c g" . google-this))
-  :config
-  (google-this-mode 1))
+  ;; If you prefer fuzzy matching
+  (setq helm-swoop-use-fuzzy-match t)
+)
 
 
 ;;;;; ag
@@ -1776,326 +1640,24 @@ buffer is not visiting a file."
 
 (when (executable-find "ag")
   (use-package ag
-    :after counsel
+    ;; :after counsel
     :commands ag
-    :bind (:map sej-mode-map
-                ("s-a" . counsel-projectile-ag)
-                ("H-a" . counsel-ag))
+    ;; :bind (:map sej-mode-map
+    ;;             ("s-a" . counsel-projectile-ag)
+    ;;             ("H-a" . counsel-ag)
+    ;; )
     :config
     (setq ag-executable (executable-find "ag")))
-  (setq-default ag-highlight-search t))
+  (setq-default ag-highlight-search t)
 
-
-;;;;; ivy-yasnippet
-;; - Integrate yasnippet
-;; - https://github.com/mkcms/ivy-yasnippet
-
-(use-package ivy-yasnippet
-  :after ivy yasnippet
-  :commands ivy-yasnippet--preview
-  :bind (("C-c s y" . ivy-yasnippet)
-         ("H-y" . ivy-yasnippet))
-  :config (advice-add #'ivy-yasnippet--preview :override #'ignore))
-
-
-;;;;; ivy-xref
-;; - Select from xref candidates with Ivy
-;; - https://github.com/alexmurray/ivy-xref
-
-(use-package ivy-xref
-  :after ivy
-  :init (if (< emacs-major-version 27)
-            (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
-          (setq xref-show-definitions-function #'ivy-xref-show-defs)))
-
-
-;;;;; flyspell-correct-ivy
-;; - Correcting words with flyspell via Ivy
-;; - https://github.com/d12frosted/flyspell-correct/blob/master/flyspell-correct-ivy.el
-
-(use-package flyspell-correct-ivy
-  :after flyspell ivy
-  :bind (:map flyspell-mode-map
-              ("C-;" . flyspell-correct-wrapper)
-              ("C-M-;" . flyspell-correct-wrapper)
-              ([remap flyspell-correct-word-before-point] . flyspell-correct-previous-word-generic))
-  :init
-  (setq flyspell-correct-interface #'flyspell-correct-ivy))
-
-
-;;;;; counsel-osx-app
-;; - Quick launch apps
-;; - https://github.com/d12frosted/counsel-osx-app
-
-(cond
- (sys/linux-x-p
-  (bind-key "C-c s a" #'counsel-linux-app))
- (sys/macp
-  (use-package counsel-osx-app
-    :after counsel
-    :bind ("C-c s a" . counsel-osx-app))))
-
-
-;;;;; counsel-tramp
-;; - Tramp ivy interface
-;; - https://github.com/masasam/emacs-counsel-tramp
-
-(use-package counsel-tramp
-  :after counsel
-  :bind ("C-c s v" . counsel-tramp))
-
-
-;;;;; ivy-rich
-;; - More friendly display transformer for Ivy
-;; - https://github.com/Yevgnen/ivy-rich
-
-(use-package ivy-rich
-  :after ivy all-the-icons
-  :defines (all-the-icons-icon-alist
-            all-the-icons-dir-icon-alist
-            bookmark-alist)
-  :functions (all-the-icons-icon-for-file
-              all-the-icons-icon-for-mode
-              all-the-icons-icon-family
-              all-the-icons-match-to-alist
-              all-the-icons-octicon
-              all-the-icons-dir-is-submodule)
-  :preface
-  (defun ivy-rich-bookmark-name (candidate)
-    (car (assoc candidate bookmark-alist)))
-
-  (defun ivy-rich-buffer-icon (candidate)
-    "Display buffer icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (let* ((buffer (get-buffer candidate))
-             (buffer-file-name (buffer-file-name buffer))
-             (major-mode (buffer-local-value 'major-mode buffer))
-             (icon (if (and buffer-file-name
-                            (all-the-icons-auto-mode-match?))
-                       (all-the-icons-icon-for-file (file-name-nondirectory buffer-file-name) :v-adjust -0.05)
-                     (all-the-icons-icon-for-mode major-mode :v-adjust -0.05))))
-        (if (symbolp icon)
-            (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
-          icon))))
-
-  (defun ivy-rich-file-icon (candidate)
-    "Display file icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (let* ((path (concat ivy--directory candidate))
-             (file (file-name-nondirectory path))
-             (icon (cond
-                    ((file-directory-p path)
-                     (cond
-                      ((and (fboundp 'tramp-tramp-file-p)
-                            (tramp-tramp-file-p default-directory))
-                       (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
-                      ((file-symlink-p path)
-                       (all-the-icons-octicon "file-symlink-directory" :height 1.0 :v-adjust 0.01))
-                      ((all-the-icons-dir-is-submodule path)
-                       (all-the-icons-octicon "file-submodule" :height 1.0 :v-adjust 0.01))
-                      ((file-exists-p (format "%s/.git" path))
-                       (all-the-icons-octicon "repo" :height 1.1 :v-adjust 0.01))
-                      (t (let ((matcher (all-the-icons-match-to-alist path all-the-icons-dir-icon-alist)))
-                           (apply (car matcher) (list (cadr matcher) :v-adjust 0.01))))))
-                    ((string-match "^/.*:$" path)
-                     (all-the-icons-material "settings_remote" :height 1.0 :v-adjust -0.2))
-                    ((not (string-empty-p file))
-                     (all-the-icons-icon-for-file file :v-adjust -0.05)))))
-        (if (symbolp icon)
-            (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
-          icon))))
-
-  (defun ivy-rich-function-icon (_candidate)
-    "Display function icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (all-the-icons-faicon "cube" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-purple)))
-
-  (defun ivy-rich-variable-icon (_candidate)
-    "Display variable icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (all-the-icons-faicon "tag" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-lblue)))
-
-  (defun ivy-rich-face-icon (_candidate)
-    "Display face icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (all-the-icons-material "palette" :height 1.0 :v-adjust -0.2)))
-
-  (defun ivy-rich-keybinding-icon (_candidate)
-    "Display keybindings icons in `ivy-rich'."
-    (when (display-graphic-p)
-      (all-the-icons-material "keyboard" :height 1.0 :v-adjust -0.2)))
-
-  (when (display-graphic-p)
-    (defun ivy-rich-bookmark-type-plus (candidate)
-      (let ((filename (ivy-rich-bookmark-filename candidate)))
-        (cond ((null filename)
-               (all-the-icons-material "block" :v-adjust -0.2 :face 'warning)) ; fixed #38
-              ((file-remote-p filename)
-               (all-the-icons-material "wifi_tethering" :v-adjust -0.2 :face 'mode-line-buffer-id))
-              ((not (file-exists-p filename))
-               (all-the-icons-material "block" :v-adjust -0.2 :face 'error))
-              ((file-directory-p filename)
-               (all-the-icons-octicon "file-directory" :height 0.9 :v-adjust -0.05))
-              (t (all-the-icons-icon-for-file (file-name-nondirectory filename) :height 0.9 :v-adjust -0.05)))))
-    (advice-add #'ivy-rich-bookmark-type :override #'ivy-rich-bookmark-type-plus))
-  :hook ((ivy-mode . ivy-rich-mode)
-         (ivy-rich-mode . (lambda ()
-                            (setq ivy-virtual-abbreviate
-                                  (or (and ivy-rich-mode 'abbreviate) 'name)))))
-  :config
-  (ivy-rich-mode 1)
-  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
-
-  :init
-  ;; For better performance
-  (setq ivy-rich-parse-remote-buffer nil)
-
-  ;; Setting tab size to 1, to insert tabs as delimiters
-  (add-hook 'minibuffer-setup-hook
-            (lambda ()
-              (setq tab-width 1)))
-
-  (setq ivy-rich-display-transformers-list
-        '(ivy-switch-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-            (ivy-rich-switch-buffer-project (:width 15 :face success))
-            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          ivy-switch-buffer-other-window
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-            (ivy-rich-switch-buffer-project (:width 15 :face success))
-            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-switch-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-            (ivy-rich-switch-buffer-project (:width 15 :face success))
-            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-switch-buffer-other-window
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-            (ivy-rich-switch-buffer-project (:width 15 :face success))
-            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          persp-switch-to-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-            (ivy-rich-switch-buffer-project (:width 15 :face success))
-            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-M-x
-          (:columns
-           ((ivy-rich-function-icon)
-            (counsel-M-x-transformer (:width 50))
-            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
-          counsel-describe-function
-          (:columns
-           ((ivy-rich-function-icon)
-            (counsel-describe-function-transformer (:width 50))
-            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face)))
-           :delimiter "\t")
-          counsel-describe-variable
-          (:columns
-           ((ivy-rich-variable-icon)
-            (counsel-describe-variable-transformer (:width 50))
-            (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face)))
-           :delimiter "\t")
-          counsel-describe-face
-          (:columns
-           ((ivy-rich-face-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-descbinds
-          (:columns
-           ((ivy-rich-keybinding-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-find-file
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-read-file-transformer))
-           :delimiter "\t")
-          counsel-file-jump
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-dired
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-read-file-transformer))
-           :delimiter "\t")
-          counsel-dired-jump
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-git
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-recentf
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate (:width 0.8))
-            (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))
-           :delimiter "\t")
-          counsel-bookmark
-          (:columns
-           ((ivy-rich-bookmark-type)
-            (ivy-rich-bookmark-name (:width 40))
-            (ivy-rich-bookmark-info))
-           :delimiter "\t")
-          counsel-projectile-switch-project
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-projectile-find-file
-          (:columns
-           ((ivy-rich-file-icon)
-            (counsel-projectile-find-file-transformer))
-           :delimiter "\t")
-          counsel-projectile-find-dir
-          (:columns
-           ((ivy-rich-file-icon)
-            (counsel-projectile-find-dir-transformer))
-           :delimiter "\t")
-          )))
+;;;;; helm-ag
+  ;; - silver searcher helm narrowing
+  ;; - [[https://github.com/emacsorphanage/helm-ag][helm-ag]]
+  (use-package helm-ag
+    :bind(:map sej-mode-map
+               ("s-a" . helm-projectile-ag)
+               ("H-a" . helm-ag) ))
+  )
 
 
 ;;;;; re-builder
@@ -2533,7 +2095,6 @@ buffer is not visiting a file."
 ;; - use GET or POST plus http:10.0.1.1/rest/
 ;; then use C-c to execute (check examples directory for more)
 ;; - https://github.com/pashky/restclient.el
-
 (use-package restclient)
 
 
@@ -3021,8 +2582,8 @@ buffer is not visiting a file."
               ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
   (setq dumb-jump-prefer-searcher 'ag)
-  (with-eval-after-load 'ivy
-    (setq dumb-jump-selector 'ivy))
+  ;; (with-eval-after-load 'ivy
+  ;;   (setq dumb-jump-selector 'ivy))
 
   (add-to-list 'dumb-jump-language-file-exts  '(:language "elisp" :ext ".org[ emacs-lisp ]*]" :agtype "elisp" :rgtype "elisp"))
 
@@ -3159,9 +2720,9 @@ buffer is not visiting a file."
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)
   (setq projectile-use-git-grep t)
-  (setq projectile-completion-system 'ivy)
   (setq projectile-git-submodule-command nil)
   :config
+  (setq projectile-enable-caching t)
   ;; global ignores
   (add-to-list 'projectile-globally-ignored-files ".tern-port")
   (add-to-list 'projectile-globally-ignored-files "GTAGS")
@@ -3183,6 +2744,13 @@ buffer is not visiting a file."
   )
 
 
+(use-package helm-projectile
+  :requires (helm)
+  :config
+  (setq projectile-completion-system 'helm)
+  (helm-projectile-on))
+
+
 ;;;; vcs
 ;;;;; magit
 ;; - interface to the version control system Git
@@ -3200,7 +2768,7 @@ buffer is not visiting a file."
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-                               "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
+        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 
 ;;;;; forge
@@ -4086,6 +3654,7 @@ buffer is not visiting a file."
   (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
   (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
+
 ;;;;; irony
 (use-package irony
   :straight (irony
@@ -4094,8 +3663,8 @@ buffer is not visiting a file."
              :repo "Sarcasm/irony-mode")
   :hook (((c++-mode c-mode objc-mode arduino-mode) . irony-mode)
          (irony-mode . irony-cdb-autosetup-compile-options)
-         (irony-mode . my-irony-mode-hook)
-         (irony-mode . imenu-add-menubar-index))
+         ;;         (irony-mode . imenu-add-menubar-index)
+         )
   :init
   (defcustom irony-supported-major-modes '(arduino-mode
                                            c++-mode
@@ -4109,76 +3678,7 @@ buffer is not visiting a file."
   (add-to-list 'load-path "~/.emacs.d/irony/bin/")
   :config
   (setq irony--server-executable "~/.emacs.d/irony/bin/irony-server")
-  (push 'arduino-mode irony-supported-major-modes)
-  )
-
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map
-    [remap completion-at-point] 'counsel-irony)
-  (define-key irony-mode-map
-    [remap complete-symbol] 'counsel-irony))
-
-
-;;;;; company-irony
-;; - This package is a set of configuration to let you auto-completion
-;; by using irony-mode
-;; - [[https://github.com/Sarcasm/company-irony][company-irony]]
-
-(use-package company-irony
-  :straight (company-irony
-             :type git
-             :host github
-             :repo "Sarcasm/company-irony")
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-irony))
-
-
-;;;;; company-c-headers
-;; - This package is a set of configuration to let you auto-completion
-;; by using irony-mode, company-irony and company-c-headers on arduino-mode
-;; - [[https://github.com/randomphrase/company-c-headers][company-c-headers]]
-
-(use-package company-c-headers
-  :straight (company-c-headrs
-             :type git
-             :host github
-             :repo "randomphrase/company-c-headers")
-  :after company
-  :config
-  ;; Configuration for company-c-headers.el
-  ;; The `company-arduino-append-include-dirs' function appends
-  ;; Arduino's include directories to the default directories
-  ;; if `default-directory' is inside `company-arduino-home'. Otherwise
-  ;; just returns the default directories.
-  ;; Please change the default include directories accordingly.
-  (defun my-company-c-headers-get-system-path ()
-    "Return the system include path for the current buffer."
-    (let ((default '("/usr/include/" "/usr/local/include/")))
-      (company-arduino-append-include-dirs default t)))
-  (setq company-c-headers-path-system 'my-company-c-headers-get-system-path)
-
-  (add-to-list 'company-backends 'company-c-headers))
-
-
-;;;;; company-arduino
-;; - This package is a set of configuration to let you auto-completion
-;; by using irony-mode, company-irony and company-c-headers on arduino-mode
-;; - https://github.com/yuutayamada/company-arduino
-
-(use-package company-arduino
-  :straight (company-arduino
-             :type git
-             :host github
-             :repo "yuutayamada/company-arduino")
-  :after company
-  :hook ( (arduino-mode . irony-mode)
-          (irony-mode . company-arduino-turn-on) )
-  :config
-
-  ;; If you are already using company-irony and company-c-headers, you might have same setting. That case, you can omit below setting.
-  (add-to-list 'company-backends 'company-irony)
-  (add-to-list 'company-backends 'company-c-headers))
+  (push 'arduino-mode irony-supported-major-modes)  )
 
 
 ;;;;; swift-mode
@@ -4888,6 +4388,15 @@ buffer is not visiting a file."
               ("s-\\" . osx-dictionary-search-word-at-point)
               ("C-c s i" . osx-dictionary-search-input)
               ))
+
+
+;;;;; helm-wordnet
+;; - helm interface to WordNet install
+;; - [[https://github.com/raghavgautam/helm-wordnet][helm-wordnet]]
+;; - [[https://wordnet.princeton.edu/][WordNet]]
+(use-package helm-wordnet
+  :after helm
+  :bind ("C-c s w" . helm-wordnet-suggest))
 
 
 ;;;;; view-file-mode
