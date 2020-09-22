@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/password-store-otp.el/password-store-otp.el

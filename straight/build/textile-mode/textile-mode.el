@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/textile-mode/textile-mode.el

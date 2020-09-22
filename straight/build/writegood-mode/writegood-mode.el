@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/writegood-mode/writegood-mode.el

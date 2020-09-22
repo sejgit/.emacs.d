@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/auth-password-store/auth-source-pass.el

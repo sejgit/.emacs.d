@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/counsel-osx-app/counsel-osx-app.el

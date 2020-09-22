@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/keychain-environment/keychain-environment.el

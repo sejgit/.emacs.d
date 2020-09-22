@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/helm-system-packages/helm-system-packages-guix.el

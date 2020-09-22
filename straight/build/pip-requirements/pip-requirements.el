@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/pip-requirements.el/pip-requirements.el

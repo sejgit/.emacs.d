@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/org-pretty-tags/org-pretty-tags.el

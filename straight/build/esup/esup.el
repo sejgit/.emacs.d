@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/esup/esup.el

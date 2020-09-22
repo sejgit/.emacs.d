@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/clang-format/clang-format.el

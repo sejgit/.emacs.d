@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/pdf-view-restore/pdf-view-restore.el

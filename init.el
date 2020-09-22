@@ -49,16 +49,11 @@
 ;; - <2020-02-21 Fri> package -> straight
 ;; - <2020-05-17 Sun> try outline/outshine/pretty-outlines
 ;; - <2020-07-26 Sun> clean-up init files final move from org tangled
+;; - <2020-09-21 Mon> small mods
 
 
 ;;; Code:
 (message "Emacs start")
-
-;;;;; load-file Not used anymore
-;; load-file
-;; (org-babel-load-file (concat user-emacs-directory "init-org.org"))
-;; (load-file (concat user-emacs-directory "init-new.el"))
-
 
 ;;; initialize environment
 ;;;;; system constants
@@ -633,6 +628,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/justbur/emacs-which-key
 
 (use-package which-key
+  :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
   :diminish which-key-mode
   :hook (emacs-startup . which-key-mode)
   :commands which-key-mode
@@ -648,6 +644,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/Wilfred/helpful
 
 (use-package helpful
+  :straight (helpful :type git :host github :repo "Wilfred/helpful")
   :after counsel
   :bind ( ("C-h C-d" . helpful-at-point)
           ("C-h c" . helpful-command)
@@ -664,6 +661,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/jguenther/discover-my-major
 
 (use-package discover-my-major
+  :straight (disover-my-major :type git :host github :repo "jguenther/discover-my-major")
   :bind (("C-h M-m" . discover-my-major)
          ("C-h M-M" . discover-my-mode)))
 
@@ -851,6 +849,7 @@ Return its absolute path.  Otherwise, return nil."
 (if (is-doom-theme-p sej-theme)
     (progn
       (use-package doom-themes
+        :straight (doom-themes :type git :host github :repo "hlissner/emacs-doom-themes")
         :init (sej/load-theme sej-theme)
         :config
         ;; Enable flashing mode-line on errors
@@ -860,6 +859,7 @@ Return its absolute path.  Otherwise, return nil."
 
       ;; Make certain buffers grossly incandescent
       (use-package solaire-mode
+        :straight (solaire-mode :type git :host github :repo "hlissner/emacs-solaire-mode")
         :functions persp-load-state-from-file
         :hook (((after-change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
                (minibuffer-setup . solaire-mode-in-minibuffer)
@@ -883,7 +883,6 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;; frames
 ;;;;; general frames key-bindings
-
 (define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
 (define-key sej-mode-map (kbd "s-5") 'make-frame-command)
 (define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
@@ -894,7 +893,6 @@ Return its absolute path.  Otherwise, return nil."
 
 
 ;;;;; general frame settings
-
 (setq frame-title-format '("SeJ Emacs - %b"))
 (setq icon-title-format frame-title-format)
 
@@ -1168,6 +1166,7 @@ buffer is not visiting a file."
 ;; - https://github.com/Fanael/persistent-scratch
 
 (use-package persistent-scratch
+  :straight (persistent-scratch :type git :host github :repo "Fanael/persistent-scratch")
   :preface
   (defun my-save-buffer ()
     "Save scratch and other buffer."
@@ -1239,6 +1238,7 @@ buffer is not visiting a file."
 ;; complement to windmove to swap windows
 ;; [[https://github.com/purcell/windswap][purcell/windswap]]
 (use-package windswap
+  :straight (windswap :type git :host github :repo "purcell/windswap")
   :bind ((:map sej-mode-map
                ("A-s-h" . windswap-left)
                ("A-s-l" . windswap-right)
@@ -1263,6 +1263,7 @@ buffer is not visiting a file."
 ;; - https://github.com/abo-abo/ace-window
 
 (use-package ace-window
+  :straight (ace-window :type git :host github :repo "abo-abo/ace-window")
   :bind (([remap other-window] . ace-window)
          ("M-o" . ace-window))
   :custom-face
@@ -1275,7 +1276,7 @@ buffer is not visiting a file."
 
 ;;;;; winner
 ;; - Restore old window configurations
-;; - https://github.com/abo-abo/ace-window
+;; - [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
 
 (use-package winner
   :straight (winner :type built-in)
@@ -1340,7 +1341,7 @@ buffer is not visiting a file."
           . hide-mode-line-mode)))
 
 
-;;;; all-the-icons
+;;;;; all-the-icons
 ;; - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
 ;; - https://github.com/domtronn/all-the-icons.el
 
@@ -1532,25 +1533,6 @@ buffer is not visiting a file."
 
 
 ;;;; multi-edit
-;;;;; iedit
-;; - Edit multiple regions in the same way simultaneously
-;; - https://github.com/victorhge/iedit
-
-(use-package iedit
-  :defines desktop-minor-mode-table
-  :bind ((:map sej-mode-map
-               ("A-;" . iedit-mode)
-               ("C-x r RET" . iedit-rectangle-mode))
-         (:map isearch-mode-map ("A-;" . iedit-mode-from-isearch))
-         (:map esc-map ("A-;" . iedit-execute-last-modification))
-         (:map help-map ("A-;" . iedit-mode-toggle-on-function)))
-  :config
-  ;; Avoid restoring `iedit-mode'
-  (with-eval-after-load 'desktop
-    (add-to-list 'desktop-minor-mode-table
-                 '(iedit-mode nil))))
-
-
 ;;;;; multiple cursors
 ;; - Multiple cursors
 ;; - https://github.com/magnars/multiple-cursors.el
@@ -1590,16 +1572,18 @@ buffer is not visiting a file."
 (use-package ivy
   :diminish
   :hook (emacs-startup . ivy-mode)
-  :bind ( ("s-b" . ivy-switch-buffer)
-          ("C-c C-r" . ivy-resume)
-          ("C-c v p" . ivy-push-view)
-          ("C-c v o" . ivy-pop-view)
-          ("C-c v ." . ivy-switch-view)
-          :map ivy-minibuffer-map
-          ("M-j" . ivy-yank-word))
-  :config (ivy-mode)
+  :bind (
+         ("C-x b"   . ivy-switch-buffer)
+         ("s-b"     . ivy-switch-buffer)
+         ("C-c v p" . ivy-push-view)
+         ("C-c v o" . ivy-pop-view)
+         ("C-c v ." . ivy-switch-view)
+         ("C-c C-r" . ivy-resume)
+         :map ivy-minibuffer-map
+         ("M-j" . ivy-yank-word))
+  :config (ivy-mode 1)
+  (setq ivy-use-selectable-prompt t)
   (setq enable-recursive-minibuffers t) ; Allow commands in minibuffers
-
   (setq ivy-use-selectable-prompt t)
   (setq ivy-use-virtual-buffers t)      ; Enable bookmarks and recentf
   (setq ivy-height 10)
@@ -1615,7 +1599,7 @@ buffer is not visiting a file."
 
 (use-package swiper
   :after ivy
-  :bind (("C-s" . swiper)
+  :bind (("C-s" . swiper-isearch)
          ("C-S-s" . swiper-all)
          :map swiper-map
          ("M-q" . swiper-query-replace)) )
@@ -1637,9 +1621,9 @@ buffer is not visiting a file."
          ([remap dired] . counsel-dired)
          ("C-x C-r" . counsel-recentf)
          ("C-c s j" . counsel-mark-ring)
+         ("C-x r b" . counsel-bookmark)
          ("H-SPC" . counsel-mark-ring)
          ("C-c L" . counsel-load-library)
-         ("C-c P" . counsel-package)
          ("C-c f" . counsel-find-library)
          ("C-c g" . counsel-grep)
          ("C-c h" . counsel-command-history)
@@ -2170,30 +2154,6 @@ buffer is not visiting a file."
 (use-package dtrt-indent
   :hook (emacs-startup . dtrt-indent-mode)
   :diminish)
-
-
-;;;;; aggressive-indent
-;; - Minor mode to aggressively keep your code always indented
-;; - https://github.com/Malabarba/aggressive-indent-mode
-
-(use-package aggressive-indent
-  :diminish
-  :hook (emacs-startup . global-aggressive-indent-mode)
-  :config
-  ;; Disable in some modes
-  (dolist (mode '(asm-mode web-mode html-mode css-mode go-mode))
-    (push mode aggressive-indent-excluded-modes))
-  ;; Be slightly less aggressive in C/C++/C#/Java/Go/Swift
-  (add-to-list
-   'aggressive-indent-dont-indent-if
-   '(and (or (derived-mode-p 'c-mode)
-             (derived-mode-p 'c++-mode)
-             (derived-mode-p 'csharp-mode)
-             (derived-mode-p 'java-mode)
-             (derived-mode-p 'go-mode)
-             (derived-mode-p 'swift-mode))
-         (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-                             (thing-at-point 'line))))))
 
 
 ;;;;; sej/indent-buffer
@@ -2877,7 +2837,7 @@ buffer is not visiting a file."
 
 ;;; programming
 ;;;;; eglot
-
+;; TODO research changing to lsp-server eglot
 ;; - client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
 
@@ -2888,7 +2848,6 @@ buffer is not visiting a file."
               ("C-c x" . xref-find-definitions))
   :config
   (setq help-at-pt-display-when-idle t))
-
 
 ;;;;; prog-mode
 ;; - generalized program mode
@@ -3867,7 +3826,9 @@ buffer is not visiting a file."
 
 (use-package yapfify
   :diminish yapf-mode
-  :hook (python-mode . yapf-mode))
+  ;;:hook (python-mode . yapf-mode)
+  ;; remove automatic formatting during save
+  )
 
 
 ;;;;; ein
@@ -4115,29 +4076,76 @@ buffer is not visiting a file."
 ;; - use with package company-arduino to get Arduino code completing
 ;; - https://github.com/stardiviner/arduino-mode/
 (use-package arduino-mode
+  :straight (arduino-mode
+             :type git
+             :host github
+             :repo "stardiviner/arduino-mode")
   :mode "\\.ino$"
+  :hook (arduino-mode . imenu-add-menubar-index)
   :config
   (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
   (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
 ;;;;; irony
 (use-package irony
+  :straight (irony
+             :type git
+             :host gihub
+             :repo "Sarcasm/irony-mode")
+  :hook (((c++-mode c-mode objc-mode arduino-mode) . irony-mode)
+         (irony-mode . irony-cdb-autosetup-compile-options)
+         (irony-mode . my-irony-mode-hook)
+         (irony-mode . imenu-add-menubar-index))
+  :init
+  (defcustom irony-supported-major-modes '(arduino-mode
+                                           c++-mode
+                                           c-mode
+                                           objc-mode)
+    "List of modes known to be compatible with Irony."
+    :type '(repeat symbol)
+    :group 'irony)
+  (add-to-list 'load-path "~/.emacs.d/straight/build/")
+  (add-to-list 'load-path "~/.emacs.d/straight/repos/")
+  (add-to-list 'load-path "~/.emacs.d/irony/bin/")
   :config
+  (setq irony--server-executable "~/.emacs.d/irony/bin/irony-server")
   (push 'arduino-mode irony-supported-major-modes)
   )
 
+(defun my-irony-mode-hook ()
+  (define-key irony-mode-map
+    [remap completion-at-point] 'counsel-irony)
+  (define-key irony-mode-map
+    [remap complete-symbol] 'counsel-irony))
 
-;;;;; company-arduino
+
+;;;;; company-irony
+;; - This package is a set of configuration to let you auto-completion
+;; by using irony-mode
+;; - [[https://github.com/Sarcasm/company-irony][company-irony]]
+
+(use-package company-irony
+  :straight (company-irony
+             :type git
+             :host github
+             :repo "Sarcasm/company-irony")
+  :after company
+  :config
+  (add-to-list 'company-backends 'company-irony))
+
+
+;;;;; company-c-headers
 ;; - This package is a set of configuration to let you auto-completion
 ;; by using irony-mode, company-irony and company-c-headers on arduino-mode
-;; - https://github.com/yuutayamada/company-arduino
+;; - [[https://github.com/randomphrase/company-c-headers][company-c-headers]]
 
-(use-package company-arduino
+(use-package company-c-headers
+  :straight (company-c-headrs
+             :type git
+             :host github
+             :repo "randomphrase/company-c-headers")
   :after company
-  :hook ( (arduino-mode . irony-mode)
-          (irony-mode . company-arduino-turn-on) )
   :config
-
   ;; Configuration for company-c-headers.el
   ;; The `company-arduino-append-include-dirs' function appends
   ;; Arduino's include directories to the default directories
@@ -4149,6 +4157,24 @@ buffer is not visiting a file."
     (let ((default '("/usr/include/" "/usr/local/include/")))
       (company-arduino-append-include-dirs default t)))
   (setq company-c-headers-path-system 'my-company-c-headers-get-system-path)
+
+  (add-to-list 'company-backends 'company-c-headers))
+
+
+;;;;; company-arduino
+;; - This package is a set of configuration to let you auto-completion
+;; by using irony-mode, company-irony and company-c-headers on arduino-mode
+;; - https://github.com/yuutayamada/company-arduino
+
+(use-package company-arduino
+  :straight (company-arduino
+             :type git
+             :host github
+             :repo "yuutayamada/company-arduino")
+  :after company
+  :hook ( (arduino-mode . irony-mode)
+          (irony-mode . company-arduino-turn-on) )
+  :config
 
   ;; If you are already using company-irony and company-c-headers, you might have same setting. That case, you can omit below setting.
   (add-to-list 'company-backends 'company-irony)
@@ -4175,7 +4201,7 @@ buffer is not visiting a file."
   :config (setq rust-format-on-save t))
 
 
-;;;; go lang
+;;;;; go lang
 ;; - two different ways to configure
 ;; - [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
 ;; - need to install golang and go get golang/x/tools/gopls
@@ -4986,7 +5012,6 @@ buffer is not visiting a file."
           (org-mode . writegood-mode)
           (org-mode . visual-line-mode))
   :bind (:map sej-mode-map
-              ("<f1>" . org-mode)
               ("C-c l" . org-store-link)
               ("C-c c" . org-capture)
               ("C-c a" . org-agenda)

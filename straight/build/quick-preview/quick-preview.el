@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/quick-preview/quick-preview.el

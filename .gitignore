@@ -78,3 +78,12 @@ url/
 var/
 workspace/
 .python-environments/
+.clang_complete
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+DartConfiguration.tcl
+Makefile
+cmake_install.cmake
+src/
+test/

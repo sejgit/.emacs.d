@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/osx-dictionary.el/osx-dictionary.m

@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/emacs-counsel-tramp/counsel-tramp.el

@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/emacs-google-this/google-this.el

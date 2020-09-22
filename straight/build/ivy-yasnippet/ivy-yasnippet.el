@@ -1,1 +1,0 @@
-/Users/stephenjenkins/.emacs.d/straight/repos/ivy-yasnippet/ivy-yasnippet.el
