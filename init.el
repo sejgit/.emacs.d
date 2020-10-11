@@ -125,17 +125,6 @@
   "Set network proxy."
   :type 'string)
 
-(defcustom sej-theme 'default
-  "Set color theme."
-  :type '(choice
-          (const :tag "Default theme" default)
-          (const :tag "Classic theme" classic)
-          (const :tag "Doom theme" doom)
-          (const :tag "Dark theme" dark)
-          (const :tag "Light theme" light)
-          (const :tag "Daylight theme" daylight)
-          symbol))
-
 (defcustom sej-dashboard t
   "Use dashboard at startup or not. If Non-nil, use dashboard, otherwise will restore previous session."
   :type 'boolean)
@@ -800,56 +789,47 @@ Return its absolute path.  Otherwise, return nil."
 ;;; user interface
 ;;;; themes
 ;;;;; suppress GUI features
-
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-echo-area-message t)
 
-
-;;;;; sej/load-theme
-;; - functions to set-up menu of standard themes to load
-(defvar after-load-theme-hook nil
-  "Hook run after a color theme is loaded using `load-theme'.")
-(defun run-after-load-theme-hook (&rest _)
-  "Run `after-load-theme-hook'."
-  (run-hooks 'after-load-theme-hook))
-(advice-add #'load-theme :after #'run-after-load-theme-hook)
-
-(defun standardize-theme (theme)
-  "Standardize THEME."
-  (pcase theme
-    ('default 'doom-Iosvkem)
-    ('classic 'doom-molokai)
-    ('peacock 'doom-peacock)
-    ('dark 'doom-Iosvkem)
-    ('light 'doom-one-light)
-    ('daylight 'doom-tomorrow-day)
-    ('tomorrow-day 'color-theme-sanityinc-tomorrow-day)
-    ('tomorrow-night 'color-theme-sanityinc-tomorrow-night)
-    (_ theme)))
-
-(defun sej/load-theme (theme)
-  "Set color THEME."
-  (interactive
-   (list
-    (intern (completing-read "Load theme: "
-                             '(default classic peacock dark light daylight tomorrow-day tomorrow-night)))))
-  (let ((theme (standardize-theme theme)))
-    (mapc #'disable-theme custom-enabled-themes)
-    (load-theme theme t)))
-
-
-;;;;; doom themes
-;; - https://github.com/hlissner/emacs-doom-themes
-(use-package doom-themes
-  :straight (doom-themes :type git :host github :repo "hlissner/emacs-doom-themes")
-  :init (sej/load-theme sej-theme)
-  :config
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+;;;;; modus themes
+(use-package modus-themes
+  :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
+  :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
+ :config
+(dolist (theme '("operandi" "vivendi"))
+    (contrib/format-sexp
+     (defun prot/modus-%1$s ()
+       (setq modus-%1$s-theme-bold-constructs nil
+             modus-%1$s-theme-slanted-constructs t
+             modus-%1$s-theme-faint-syntax nil
+             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
+             modus-%1$s-theme-fringes nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-faint-syntax t
+             modus-%1$s-theme-intense-hl-line nil
+             modus-%1$s-theme-intense-paren-match nil
+             modus-%1$s-theme-links 'faint-neutral-underline ; {nil,'faint,'neutral-underline,'faint-neutral-underline,'no-underline}
+             modus-%1$s-theme-no-mixed-fonts nil
+             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-completions nil ; {nil,'moderate,'opinionated}
+             modus-%1$s-theme-diffs 'fg-only ; {nil,'desaturated,'fg-only}
+             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+             modus-%1$s-theme-headings  ; Read the manual for this one
+             '((1 . t)
+               (2 . no-bold)
+               (t . rainbow-no-bold))
+             modus-%1$s-theme-variable-pitch-headings t
+             modus-%1$s-theme-scale-headings t
+             modus-%1$s-theme-scale-1 1.1
+             modus-%1$s-theme-scale-2 1.15
+             modus-%1$s-theme-scale-3 1.21
+             modus-%1$s-theme-scale-4 1.27
+             modus-%1$s-theme-scale-5 1.33)
+       (load-theme 'modus-%1$s t) )
+     theme))
+ )
 
 
 ;;;;; font
