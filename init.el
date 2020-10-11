@@ -806,13 +806,13 @@ Return its absolute path.  Otherwise, return nil."
              modus-%1$s-theme-slanted-constructs t
              modus-%1$s-theme-faint-syntax nil
              modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-             modus-%1$s-theme-fringes nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-fringes 'intense ; {nil,'subtle,'intense}
              modus-%1$s-theme-faint-syntax t
              modus-%1$s-theme-intense-hl-line nil
-             modus-%1$s-theme-intense-paren-match nil
+             modus-%1$s-theme-intense-paren-match t
              modus-%1$s-theme-links 'faint-neutral-underline ; {nil,'faint,'neutral-underline,'faint-neutral-underline,'no-underline}
              modus-%1$s-theme-no-mixed-fonts nil
-             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-prompts 'intense ; {nil,'subtle,'intense}
              modus-%1$s-theme-completions nil ; {nil,'moderate,'opinionated}
              modus-%1$s-theme-diffs 'fg-only ; {nil,'desaturated,'fg-only}
              modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
