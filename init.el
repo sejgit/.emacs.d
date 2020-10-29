@@ -262,6 +262,9 @@
         (file-truename (expand-file-name
                         invocation-name invocation-directory)))
 
+;; set startup directory
+(setq default-directory "~/")
+
 
 ;;;;; Straight package manager set-up
 
@@ -2725,7 +2728,7 @@ buffer is not visiting a file."
 
 
 (use-package helm-projectile
-  :requires (helm)
+  :after (helm)
   :config
   (setq projectile-completion-system 'helm)
   (helm-projectile-on))
@@ -3590,21 +3593,32 @@ buffer is not visiting a file."
   ;; Set the default formatting styles for various C based modes
   (setq c-default-style
         '((awk-mode . "awk")
-          (other . "java")))
-  :config
-  (use-package modern-cpp-font-lock
-    :diminish
-    :hook (c++-mode modern-c++-font-lock-mode)))
+          (other . "java"))))
 
+
+;;;;; modern-cpp-font-lock
+;; - Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
+;; - [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
+(use-package modern-cpp-font-lock
+  :straight (modern-cpp-font-lock
+             :type git
+             :host github
+             :repo "ludwigpacifici/modern-cpp-font-lock")
+  :hook (c++-mode . modern-c++-font-lock-mode))
 
 ;;;;; csharp-mode
 ;; - mode for editing C# in emacs. It’s based on cc-mode
 ;; - https://github.com/josteink/csharp-mode
-
-(use-package csharp-mode)
+(use-package csharp-mode
+  :straight (csharp-mode
+             :type git
+             :host github
+             :repo "josteink/csharp-mode"))
 
 
 ;;;;; arduino-cli-mode
+;; - minor mode for using the excellent new arduino command line interface
+;; - [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
 (use-package arduino-cli-mode
   :straight (arduino-cli-mode
              :type git
@@ -3635,7 +3649,27 @@ buffer is not visiting a file."
   (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
 
+;;;;; company-c-headers
+;; - This library enables the completion of C/C++ header file names using Company mode for Emacs
+;; - [[https://github.com/randomphrase/company-c-headers][company-c-headers]]
+(use-package company-c-headers
+  :after company
+  :straight (company-c-headers
+             :type git
+             :host github
+             :repo "randomphrase/company-c-headers")
+  :init
+  (add-to-list 'company-backends 'company-c-headers)
+  (defun my-company-c-headers-get-system-path ()
+  "Return the system include path for the current buffer."
+  (let ((default '("/usr/include/" "/usr/local/include/")))
+    (company-arduino-append-include-dirs default t)))
+(setq company-c-headers-path-system 'my-company-c-headers-get-system-path))
+
+
 ;;;;; irony
+;; - a C/C++ minor mode powered by libclang
+;; - [[https://github.com/Sarcasm/irony-mode][Irony-Mode]]
 (use-package irony
   :straight (irony
              :type git
@@ -3643,8 +3677,11 @@ buffer is not visiting a file."
              :repo "Sarcasm/irony-mode")
   :hook (((c++-mode c-mode objc-mode arduino-mode) . irony-mode)
          (irony-mode . irony-cdb-autosetup-compile-options)
-         ;;         (irony-mode . imenu-add-menubar-index)
+         (irony-mode . imenu-add-menubar-index)
          )
+  :bind (:map irony-mode-map
+              ([remap completion-at-point] . irony-completion-at-point-async)
+              ([remap complete-symbol] . irony-completion-at-point-async))
   :init
   (defcustom irony-supported-major-modes '(arduino-mode
                                            c++-mode
@@ -3657,8 +3694,74 @@ buffer is not visiting a file."
   (add-to-list 'load-path "~/.emacs.d/straight/repos/")
   (add-to-list 'load-path "~/.emacs.d/irony/bin/")
   :config
-  (setq irony--server-executable "~/.emacs.d/irony/bin/irony-server")
   (push 'arduino-mode irony-supported-major-modes)  )
+
+
+;;;;; irony-eldoc
+;; - eldoc support in irony-mode
+;; - [[https://github.com/ikirill/irony-eldoc][irony-eldoc]]
+(use-package irony-eldoc
+  :straight (irony-eldoc
+             :type git
+             :host github
+             :repo "ikirill/irony-eldoc")
+  :hook (c++-mode . irony-eldoc))
+
+
+;;;;; company-irony
+;; - provides a company-mode asynchronous completion backend for the C, C++ and Objective-C languages
+;; - [[https://github.com/Sarcasm/company-irony][company-irony]]
+(use-package company-irony
+  :after company
+  :straight (company-irony
+             :type git
+             :host github
+             :repo "Sarcasm/company-irony")
+  :config
+  (add-to-list 'company-backends 'company-irony))
+
+
+;;;;; company-arduino
+;; - set of configuration to let you auto-completion by using
+;;   irony-mode, company-irony and company-c-headers on arduino-mode
+;; - [[https://github.com/yuutayamada/company-arduino][company-arduino]]
+(use-package company-arduino
+  :straight (company-arduino
+             :type git
+             :host github
+             :repo "yuutayamada/company-arduino")
+  :hook ((irony-mode . company-arduino-turn-on)
+         (arduino-mode . irony-mode))
+  :config
+  (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
+  (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
+
+
+;;;;; flycheck-irony
+;; - flyckeck checker for the C, C++ and Objective-C languages
+;; - [[https://github.com/Sarcasm/flycheck-irony][flycheck-irony]]
+(use-package flycheck-irony
+  :straight (flycheck-irony
+             :type git
+             :host github
+             :repo "Sarcasm/flycheck-irony")
+  :hook (flycheck-mode . flycheck-irony-setup))
+
+
+;;;;; platformio-mode
+;; - minor mode which allows quick building and uploading of PlatformIO projects
+;;   with a few short key sequences.
+;; - Code completion can be provided by installing any package compatible with .clang_complete files,
+;;   such as irony-mode.
+;; - To keep the index up to date, run platformio-init-update-workspace (C-c i i)
+;;   after installing any libraries.
+;; - [[https://github.com/ZachMassia/platformio-mode][PlatformIO Mode]]
+(use-package platformio-mode
+  :straight (platformio-mode
+             :type git
+             :host github
+             :repo "ZachMassia/PlatformIO-Mode")
+  :hook (c++-mode . platformio-conditionally-enable))
 
 
 ;;;;; swift-mode
