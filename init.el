@@ -129,7 +129,7 @@
   "Use dashboard at startup or not. If Non-nil, use dashboard, otherwise will restore previous session."
   :type 'boolean)
 
-(defcustom sej-lsp 'eglot
+(defcustom sej-lsp 'lsp-mode
   "Set language server."
   :type '(choice
           (const :tag "LSP Mode" 'lsp-mode)
@@ -186,7 +186,6 @@
 
 
 ;;;;; general settings
-
 (when (not emacs/>=26p)
   (error "This requires Emacs 26 and above")
   )
@@ -267,7 +266,6 @@
 
 
 ;;;;; Straight package manager set-up
-
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -343,7 +341,6 @@
 
 ;;;;;; Windows
 ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
-
 ;; (when sys/win32p
 ;;   (setenv "PATH"
 ;;           (mapconcat
@@ -369,7 +366,6 @@
 ;; spacebar acts as super key with other key
 ;; karabiner.json backup files in dotfiles under .config directory
 ;; - https://github.com/pqrs-org/Karabiner-Elements
-
 (cond
  (sys/macp ; OSX
   (progn
@@ -406,7 +402,6 @@
 ;; Rwin is Alt (not used in current laptop)
 ;; NOTE: only negative of this set-up is RAlt as numlock -> Alt is awkward push & release
 ;; - https://www.autohotkey.com/
-
 (cond
  (sys/win32p ; Microsoft Windows
   (progn
@@ -428,7 +423,6 @@
 
 ;;;;; Linux keyboard
 ;; - nothing set at this moment
-
 (cond
  (sys/linuxp ; linux
   (progn
@@ -439,7 +433,6 @@
 
 ;;;; keybindings global
 ;;;;;  shorthand for interactive lambdas
-
 (defmacro λ (&rest body)
   "Shorthand for interactive lambdas (BODY)."
   `(lambda ()
@@ -449,7 +442,6 @@
 
 ;;;;;  transpose lines/words/sexps/params global
 ;; - Transpose stuff with M-t
-
 (global-unset-key (kbd "M-t")) ;; which used to be transpose-words
 (global-set-key (kbd "M-t l") 'transpose-lines)
 (global-set-key (kbd "M-t w") 'transpose-words)
@@ -459,7 +451,6 @@
 
 ;;;;;  special character definitions
 ;; - Neat bindings for C-x 8 ; put some Alt bindins there for fun as well
-
 (global-set-key (kbd "C-x 8 l") (λ (insert "\u03bb")))
 (global-set-key (kbd "A-L") (λ (insert "\u03bb")))
 (global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
@@ -479,7 +470,6 @@
 ;; - Below taken from stackexchange (Emacs)
 ;; Main use is to have my key bindings have the highest priority
 ;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-
 (defvar sej-mode-map (make-sparse-keymap)
   "Keymap for 'sej-mode'.")
 
@@ -525,8 +515,8 @@ USAGE: (unbind-from-modi-map \"key f\")."
                                     'face 'font-lock-function-name-face))))
 ;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
 
-;;;;; general sej-mode-map bindings
 
+;;;;; general sej-mode-map bindings
 (define-key global-map (kbd "C-c .") 'org-time-stamp)
 (define-key global-map (kbd "C-h C-h") nil)
 (define-key sej-mode-map (kbd "C-h C-h") nil)
@@ -549,10 +539,10 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
 (define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
 
+
 ;;; general functions / packages
 ;;;;; sej/save-macro
 ;; - save last macro to init file
-
 (defun sej/save-macro (name)
   "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
   (interactive "SName of the macro :")
@@ -568,7 +558,6 @@ USAGE: (unbind-from-modi-map \"key f\")."
 ;;;;; sej/exec
 ;; - executable functions from ohai and modified for my uses
 ;; - not key defined
-
 (defun sej/exec (command)
   "Run a shell COMMAND and return its output as a string, whitespace trimmed."
   (interactive)
@@ -610,16 +599,15 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; esup
 ;; - Emacs startup profiler
 ;; - https://github.com/jschaf/esup
-
 (use-package esup
   :init
   (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
+
 
 ;;;; help
 ;;;;; which-key
 ;; - minibuffer keybinding prompts
 ;; - https://github.com/justbur/emacs-which-key
-
 (use-package which-key
   :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
   :diminish which-key-mode
@@ -632,10 +620,10 @@ Return its absolute path.  Otherwise, return nil."
   :config
   (which-key-setup-minibuffer))
 
+
 ;;;;; helpful
 ;; - helpful is an improved help-fns & help-fns+
 ;; - https://github.com/Wilfred/helpful
-
 (use-package helpful
   :straight (helpful :type git :host github :repo "Wilfred/helpful")
   :bind ( ("C-h C-d" . helpful-at-point)
@@ -664,7 +652,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; sej/update-config
 ;; - helper function to pull latest config from git tracked dir
 ;; - not bound
-
 (defun sej/update-config ()
   "Update git tracked Emacs configurations to the latest version."
   (interactive)
@@ -677,10 +664,10 @@ Return its absolute path.  Otherwise, return nil."
           (message "Update finished. Restart Emacs to complete the process."))
       (message "\"%s\" doesn't exist." dir))))
 
+
 ;;;;; sej/update-dotfiles
 ;; - helper function to pull latest dotfiles config from git tracked dir
 ;; - not bound
-
 (defun sej/update-dotfiles ()
   "Update the dotfiles to the latest version."
   (interactive)
@@ -698,7 +685,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; sej/update-all
 ;; - helper function to pull latest files from git tracked dir
 ;; - not bound
-
 (defun sej/update-all()
   "Update dotfiles, org files, Emacs confgiurations and packages, ."
   (interactive)
@@ -711,7 +697,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;- what are the current proxy settings
 ;;- based on the Emacs settings variables
 ;;- not bound
-
 (defun sej/proxy-http-show ()
   "Show http/https proxy."
   (interactive)
@@ -719,11 +704,11 @@ Return its absolute path.  Otherwise, return nil."
       (message "Current HTTP proxy is \"%s\"" sej-proxy)
     (message "No proxy")))
 
+
 ;;;;; sej/proxy-http-enable
 ;; - enable proxy settings
 ;; - based on Emacs custom settings
 ;; - not bound
-
 (defun sej/proxy-http-enable ()
   "Enable http/https proxy."
   (interactive)
@@ -738,7 +723,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - disable proxy settings
 ;; - based on Emacs custom settings
 ;; - not bound
-
 (defun sej/proxy-http-disable ()
   "Disable http/https proxy."
   (interactive)
@@ -751,7 +735,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - toggle proxy settings
 ;; - based on Emacs custom settings
 ;; - not bound
-
 (defun sej/proxy-http-toggle ()
   "Toggle http/https proxy."
   (interactive)
@@ -764,7 +747,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - enable socks proxy settings
 ;; - based on Emacs custom settings
 ;; - not bound
-
 (defvar socks-noproxy)
 (defvar socks-server)
 (defun sej/proxy-socks-enable ()
@@ -780,7 +762,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - disable socks proxy settings
 ;; - based on Emacs custom settings
 ;; - not bound
-
 (defun sej/proxy-socks-disable ()
   "Disable Socks proxy."
   (interactive)
@@ -796,6 +777,7 @@ Return its absolute path.  Otherwise, return nil."
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-echo-area-message t)
+
 
 ;;;;; modus themes
 (use-package modus-themes
@@ -869,7 +851,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; mac specific frame settings
 ;; - matching dark/light modes and for hiding
 ;; - https://github.com/purcell/ns-auto-titlebar
-
 (when sys/mac-x-p
   (use-package ns-auto-titlebar
     :config
@@ -897,7 +878,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; sej/frame-resize-full
 ;; - generic way to move and resize frame to full width of screen
 ;; - set frame full height and full wide and position at screen left
-
 (define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
 (define-key sej-mode-map (kbd "H-C-j") 'sej/frame-resize-full)
 
@@ -913,7 +893,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; sej/frame-resize-l
 ;; - generic way to move and resize frame to left half of screen
 ;; - set frame full height and 1/2 wide and position at screen left
-
 (define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
 (define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
 (define-key sej-mode-map (kbd "<A-M-left>") 'sej/frame-resize-l)
@@ -932,7 +911,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - set frame full height and 1/2 wide and position at screen left
 ;; of screen in extended monitor display
 ;; - assumes monitors are same resolution
-
 (define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
 (define-key sej-mode-map (kbd "H-C-S-h") 'sej/frame-resize-l2)
 
@@ -948,11 +926,11 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; sej/frame-resize-r
 ;; - generic way to move and resize frame to right half of screen
 ;; - set frame full height and 1/2 wide and position at screen right
-
 (define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
 (define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
 (define-key sej-mode-map (kbd "<A-M-right>") 'sej/frame-resize-r)
 ;; last one is for non MACOS or just in case BTT is not installed on MACOS
+
 (defun sej/frame-resize-r ()
   "Set frame full height and 1/2 wide, position at screen right."
   (interactive)
@@ -967,7 +945,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; - set frame full height and 1/2 wide and position at screen right
 ;; of left hand screen in extended monitor display
 ;; - assumes monitors are same resolution
-
 (define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
 (define-key sej-mode-map (kbd "H-C-S-l") 'sej/frame-resize-r2)
 
@@ -982,7 +959,6 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; fullscreen
 ;; - To address blank screen issue with child-frame in fullscreen
-
 (when sys/mac-x-p
   (setq ns-use-native-fullscreen nil))
 (bind-keys ("H-C-f" . toggle-frame-fullscreen)
@@ -991,7 +967,6 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;; buffers
 ;;;;; buffer key-bindngs
-
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
 (define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs)
 
@@ -1001,43 +976,20 @@ Return its absolute path.  Otherwise, return nil."
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
 (define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
-
 ;;added tips from pragmatic emacs
 (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
 
 
 ;;;;; bs.el cycle buffer settings
-
 (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
 (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
 
 (setq-default bs-default-configuration "all-intern-last")
 
 
-;;;;; sej/sudo-edit
-;; - function to edit the curent file as root.
-;; defined as C-c C-s in sej-mode-map bindings
-
-(defun sej/sudo-edit (&optional arg)
-  "Edit currently visited file as root.
-With a prefix ARG prompt for a file to visit.
-Will also prompt for a file to visit if current
-buffer is not visiting a file."
-  (interactive "P")
-  (if (or arg (not buffer-file-name))
-      (find-file (concat "/sudo:root@localhost:"
-                         (ido-read-file-name "Find file(as root): ")))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-
-;; function to edit the curent file as root
-;; (defined in init-misc-defuns.el)
-(define-key sej-mode-map (kbd "C-c C-s") 'sej/sudo-edit)
-
-
 ;;;;; sej/dos2unix
 ;; - convert the current buffer to UNIX file format
 ;; - not bound
-
 (defun sej/dos2unix ()
   "Convert the current buffer to UNIX file format."
   (interactive)
@@ -1047,7 +999,6 @@ buffer is not visiting a file."
 ;;;;; sej/unix2dos
 ;; - convert the current buffer to DOS file format
 ;; - not bound
-
 (defun sej/unix2dos ()
   "Convert the current buffer to DOS file format."
   (interactive)
@@ -1056,7 +1007,6 @@ buffer is not visiting a file."
 
 ;;;;; sej/save-buffer-as-utf8
 ;; - revert a buffer with coding-system and save as utf-8
-
 (defun sej/save-buffer-as-utf8 (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
@@ -1068,7 +1018,6 @@ buffer is not visiting a file."
 ;;;;; sej/browse-homepage
 ;; - Browse my github homepage
 ;; - bound to C-c s h
-
 (defun sej/browse-homepage ()
   "Browse the Github page of SeJ Emacs."
   (interactive)
@@ -1078,7 +1027,6 @@ buffer is not visiting a file."
 
 
 ;;;;; sej/quit-and-kill-auxiliary-windows
-
 (defun sej/quit-and-kill-auxiliary-windows ()
   "Kill buffer and its window on quitting."
   (local-set-key (kbd "q") 'kill-buffer-and-window))
@@ -1089,7 +1037,6 @@ buffer is not visiting a file."
 ;;;;; scratch buffer set-up
 ;; - initial message
 ;; - bury don't kill scratch
-
 (setq initial-scratch-message "")
 (defadvice kill-buffer (around kill-buffer-around-advice activate)
   "Bury the *scratch* buffer, but never kill it."
@@ -1102,7 +1049,6 @@ buffer is not visiting a file."
 ;;;;; sej/create-scratch-buffer
 ;; - as name suggests
 ;; - defined as C-c b
-
 (defun sej/create-scratch-buffer nil
   "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
   (interactive)
@@ -1125,7 +1071,6 @@ buffer is not visiting a file."
 ;;;;; persistent-scratch
 ;; - keep the scratch buffer from session to session
 ;; - https://github.com/Fanael/persistent-scratch
-
 (use-package persistent-scratch
   :straight (persistent-scratch :type git :host github :repo "Fanael/persistent-scratch")
   :preface
@@ -1209,7 +1154,6 @@ buffer is not visiting a file."
 
 ;;;;; mouse & smooth scroll
 ;; - Scroll one line at a time (less "jumpy" than defaults)
-
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
 (setq mouse-wheel-progressive-speed nil)
 (setq scroll-step 1
@@ -1222,7 +1166,6 @@ buffer is not visiting a file."
 ;; - C-u prefex to move window
 ;; - C-u C-u prefex to delete window
 ;; - https://github.com/abo-abo/ace-window
-
 (use-package ace-window
   :straight (ace-window :type git :host github :repo "abo-abo/ace-window")
   :bind (([remap other-window] . ace-window)
@@ -1238,7 +1181,6 @@ buffer is not visiting a file."
 ;;;;; winner
 ;; - Restore old window configurations
 ;; - [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
-
 (use-package winner
   :straight (winner :type built-in)
   :commands (winner-undo winner-redo)
@@ -1259,7 +1201,6 @@ buffer is not visiting a file."
 ;;;;; golden-ratio
 ;; - keep windows balanced with in-focus window larger
 ;; - https://github.com/roman/golden-ratio.el
-
 (use-package golden-ratio
   :hook (emacs-startup . golden-ratio-mode)
   :diminish golden-ratio-mode
@@ -1273,7 +1214,6 @@ buffer is not visiting a file."
 ;;;;; doom-modeline
 ;; - A fancy and fast mode-line inspired by minimalism design
 ;; - https://github.com/seagle0128/doom-modeline
-
 (use-package doom-modeline
   :hook (emacs-startup . doom-modeline-mode)
   (after-save . doom-modeline-update-buffer-file-name)
@@ -1293,7 +1233,6 @@ buffer is not visiting a file."
 ;;;;; hide-mode-line
 ;; - A minor mode that hides (or masks) the mode-line in your current buffer
 ;; - https://github.com/hlissner/emacs-hide-mode-line
-
 (use-package hide-mode-line
   :hook (((completion-list-mode
            completion-in-region-mode
@@ -1305,7 +1244,6 @@ buffer is not visiting a file."
 ;;;;; all-the-icons
 ;; - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
 ;; - https://github.com/domtronn/all-the-icons.el
-
 (use-package all-the-icons
   :if (display-graphic-p)
   :custom-face
@@ -1354,7 +1292,6 @@ buffer is not visiting a file."
 ;;;;; display-line-numbers
 ;; - only in prog modes
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
-
 (use-package display-line-numbers
   :straight (display-lne-numbers :type built-in)
   :hook (prog-mode . display-line-numbers-mode))
@@ -1364,7 +1301,6 @@ buffer is not visiting a file."
 ;; - Preview line when executing goto-line command.
 ;; - M-g g
 ;; - https://github.com/jcs-elpa/goto-line-preview
-
 (use-package goto-line-preview
   :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
          (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
@@ -1373,7 +1309,6 @@ buffer is not visiting a file."
 
 ;;; text manipulation
 ;;;; text manipulation settings
-
 ;; yes and no settings
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -1497,7 +1432,6 @@ buffer is not visiting a file."
 ;;;;; multiple cursors
 ;; - Multiple cursors
 ;; - https://github.com/magnars/multiple-cursors.el
-
 (use-package multiple-cursors
   :bind (( ("C-S-c C-S-c"   . mc/edit-lines)
            ("C->"           . mc/mark-next-like-this)
@@ -1620,7 +1554,6 @@ buffer is not visiting a file."
 ;;;;; ag
 ;; - searching with the silver searcher
 ;; - https://github.com/Wilfred/ag.el
-
 (when (executable-find "ag")
   (use-package ag
     ;; :after counsel
@@ -1646,7 +1579,6 @@ buffer is not visiting a file."
 ;;;;; re-builder
 ;; - set built in regex helper to string format
 ;; - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
-
 (use-package re-builder
   :straight (re-builder :type built-in)
   :config (setq reb-re-syntax 'string))
@@ -1654,7 +1586,6 @@ buffer is not visiting a file."
 
 ;;;; indentation
 ;;;;; indentation settings
-
 (setq-default tab-width 2
               indent-tabs-mode nil
               fill-column 80)
@@ -1695,7 +1626,6 @@ buffer is not visiting a file."
 ;;;;; dtrt-indent
 ;; - automatically set the right indent for other people's files
 ;; - https://github.com/jscheid/dtrt-indent
-
 (use-package dtrt-indent
   :hook (emacs-startup . dtrt-indent-mode)
   :diminish)
@@ -1713,7 +1643,6 @@ buffer is not visiting a file."
 ;;;;; smart-tab
 ;; - indent and complete dwim when <tab> is pressed
 ;; - https://github.com/genehack/smart-tab/blob/master/smart-tab.el
-
 (use-package smart-tab
   :diminish ""
   :defines
@@ -1731,7 +1660,6 @@ buffer is not visiting a file."
 ;;;;; undo-fu
 ;; - Simple, stable linear undo with redo for Emacs.
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu
-
 (use-package undo-fu
   :diminish
   :bind ( ("C-z" . undo-fu-only-undo)
@@ -1742,7 +1670,6 @@ buffer is not visiting a file."
 ;;;;; undo-fu-session
 ;; - Save & recover undo steps between Emacs sessions.
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu-session
-
 (use-package undo-fu-session
   :after undo-fu
   :config (global-undo-fu-session-mode))
@@ -1751,7 +1678,6 @@ buffer is not visiting a file."
 ;;;;; recentf
 ;; - recent file history list settings
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
-
 (use-package recentf
   :straight (recentf :type built-in)
   :hook (emacs-startup . recentf-mode)
@@ -1774,7 +1700,6 @@ buffer is not visiting a file."
 ;;;;; savehist
 ;; - recent buffer history settings
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
-
 (use-package savehist
   :straight (savehist :type built-in)
   :hook (emacs-startup . savehist-mode)
@@ -1794,7 +1719,6 @@ buffer is not visiting a file."
 ;; - a Colection of Rediculously Useful eXtensions
 ;; - smart moving to beginning of line or to beginning of text on line
 ;; - https://github.com/bbatsov/crux
-
 (use-package crux
   :bind ( ("C-c o" . crux-open-with)
           ("C-k" . crux-smart-kill-line)
@@ -1819,7 +1743,6 @@ buffer is not visiting a file."
 ;; - better than crux for C-e mwim-end
 ;; - will cycle between end of code and end-of-code plus comments
 ;; - https://github.com/alezost/mwim.el
-
 (use-package mwim
   :bind ( ("C-a" . mwim-beginning)
           ("C-e" . mwim-end))) ; better than crux
@@ -1828,7 +1751,6 @@ buffer is not visiting a file."
 ;;;;; avy
 ;; - Jump to things in Emacs tree-style
 ;; - https://github.com/abo-abo/avy
-
 (use-package avy
   :bind ( ("C-'" . avy-goto-char)
           ("H-'" . avy-goto-char-2)
@@ -1842,7 +1764,6 @@ buffer is not visiting a file."
 ;;;;; goto-chg
 ;; - goto the last changes made in buffer
 ;; - https://github.com/emacs-evil/goto-chg
-
 (use-package goto-chg
   :bind ( ("H-." . goto-last-change)
           ("H-," . goto-last-change-reverse)) )
@@ -1851,7 +1772,6 @@ buffer is not visiting a file."
 ;;;;; beginend
 ;; - smart moves redefining M-< and M-> for some modes
 ;; - https://github.com/DamienCassou/beginend
-
 (use-package beginend               ; smart M-< & M->
   :hook (emacs-startup . beginend-global-mode))
 
@@ -1859,7 +1779,6 @@ buffer is not visiting a file."
 ;;;;; subword
 ;; - Handling capitalized subwords in a nomenclature
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
-
 (use-package subword
   :straight (subword :type built-in)
   :diminish
@@ -1874,14 +1793,12 @@ buffer is not visiting a file."
 ;;;;; string inflection
 ;; - underscore -> UPCASE -> Camelcase conversion
 ;; - https://github.com/akicho8/string-inflection
-
 (use-package string-inflection
   :bind ( ("M-u" . string-inflection-all-cycle)))
 
 
 ;;;;; sej/push-mark-no-activate
 ;; - defined in sej-mode-map as C-S-<SPC>
-
 (defun sej/push-mark-no-activate ()
   "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
   (interactive)
@@ -1898,7 +1815,6 @@ buffer is not visiting a file."
 ;; - Kill & Mark things easily
 ;; - https://github.com/leoliu/easy-kill
 ;; - https://github.com/knu/easy-kill-extras.el
-
 (setq kill-ring-max 200)
 
 ;; Save clipboard contents into kill-ring before replace them
@@ -1937,7 +1853,6 @@ buffer is not visiting a file."
 
 ;;;;; sej/copy-from-osx, sej/copy-to-osx
 ;; - https://gist.github.com/the-kenny/267162
-
 (when sys/macp
   (defun sej/copy-from-osx ()
     "For copying from osx."
@@ -1957,7 +1872,6 @@ buffer is not visiting a file."
 ;;;;; avy-zap
 ;; - Kill text between the point and the character CHAR
 ;; - https://github.com/cute-jumper/avy-zap
-
 (use-package avy-zap
   :bind ( ("M-z" . avy-zap-to-char-dwim)
           ("M-Z" . avy-zap-up-to-char-dwim)))
@@ -1966,7 +1880,6 @@ buffer is not visiting a file."
 ;;;;; delsel
 ;; - Do not delete selection if you insert
 ;; - https://github.com/typester/emacs/blob/master/lisp/delsel.el
-
 (use-package delsel
   :straight (delsel :type built-in)
   :config (setq-default delete-selection-mode nil))
@@ -1975,7 +1888,6 @@ buffer is not visiting a file."
 ;;;;; rect
 ;; - Rectangle
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el
-
 (use-package rect
   :straight (rect :type built-in))
 
@@ -1983,7 +1895,6 @@ buffer is not visiting a file."
 ;;;;; drag-stuff
 ;; - Drag stuff (lines, words, region, etc...) around
 ;; - https://github.com/rejeep/drag-stuff.el
-
 (use-package drag-stuff
   :diminish
   :bind ( ("M-<down>" . drag-stuff-down)
@@ -2000,7 +1911,6 @@ buffer is not visiting a file."
 ;; - Smartly select region, rectangle, multi cursors
 ;; - remaping set-mark-command to smart-region
 ;; - https://github.com/uk-ar/smart-region
-
 (use-package smart-region
   :bind ([remap set-mark-command] . smart-region) ; C-SPC
   :config (smart-region-on))
@@ -2009,7 +1919,6 @@ buffer is not visiting a file."
 ;;;;; expand-region
 ;; - expand selection region larger & smaller
 ;; - https://github.com/magnars/expand-region.el
-
 (use-package expand-region
   :bind ( ("s-=" . er/expand-region)
           ("s--" . er/contract-region)))
@@ -2018,7 +1927,6 @@ buffer is not visiting a file."
 ;;;;; smart-hungry-delete
 ;; - Hungry deletion
 ;; - https://github.com/hrehfeld/emacs-smart-hungry-delete
-
 (use-package smart-hungry-delete
   :diminish
   :bind (("<backspace>" . smart-hungry-delete-backward-char)
@@ -2029,7 +1937,6 @@ buffer is not visiting a file."
 ;;;;; whole-line or region
 ;; - operate on current line if region undefined
 ;; - [[https://github.com/purcell/whole-line-or-region][purcell/whole-line-or-region]]
-
 (use-package whole-line-or-region
   :hook
   (emacs-startup . whole-line-or-region-global-mode))
@@ -2039,7 +1946,6 @@ buffer is not visiting a file."
 ;;;;; sej/url-insert
 ;; - from jcs (Irreal) blog to copy url from safari and paste at point
 ;; - https://irreal.org/blog/?p=2895
-
 (when sys/macp
   (defun sej/url-insert (link)
     "Retrieve URL from current Safari page and prompt for description.
@@ -2055,7 +1961,6 @@ buffer is not visiting a file."
 ;;;;; ace-link
 ;; - Quickly follow links
 ;; - https://github.com/abo-abo/ace-link
-
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
          ("C-c s u" . ace-link-addr)
@@ -2067,7 +1972,6 @@ buffer is not visiting a file."
 ;;;;; org-link-minor-mode
 ;; enables org-mode style fontification and activation of bracket links
 ;; [[https://github.com/seanohalpin/org-link-minor-mode][org-link-minor-mode github]]
-
 (use-package org-link-minor-mode
   :straight (org-link-minor-mode :type git :host github :repo "seanohalpin/org-link-minor-mode")
   :hook prog-mode)
@@ -2085,7 +1989,6 @@ buffer is not visiting a file."
 ;;;;; hl-line
 ;; - Highlight the current line
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
-
 (use-package hl-line
   :straight (hl-line :type built-in)
   :hook (emacs-startup . global-hl-line-mode))
@@ -2094,7 +1997,6 @@ buffer is not visiting a file."
 ;;;;; symbol-overlay
 ;; - Highlight symbols and move between them
 ;; - https://github.com/wolray/symbol-overlay
-
 (use-package symbol-overlay
   :diminish
   :defines iedit-mode
@@ -2116,7 +2018,6 @@ buffer is not visiting a file."
 ;;;;; dimmer
 ;; - minor mode that indicates currently active buffer by dimming the faces in others
 ;; - https://github.com/gonewest818/dimmer.el
-
 (use-package dimmer
   :config
   (setq dimmer-fraction 0.20)
@@ -2128,7 +2029,6 @@ buffer is not visiting a file."
 ;;;;; highlight-numbers
 ;; - hightlight-numbers in a special way
 ;; - https://github.com/Fanael/highlight-numbers
-
 (use-package highlight-numbers
   :hook (prog-mode . highlight-numbers-mode))
 
@@ -2136,7 +2036,6 @@ buffer is not visiting a file."
 ;;;;; highlight-indent-guides
 ;; - Highlight indentations
 ;; - https://github.com/DarthFennec/highlight-indent-guides
-
 (when (display-graphic-p)
   (use-package highlight-indent-guides
     :diminish
@@ -2149,7 +2048,6 @@ buffer is not visiting a file."
 ;;;;; rainbow-mode
 ;; - Colorize color names in buffers
 ;; - https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
-
 (use-package rainbow-mode
   :diminish
   :hook (prog-mode . rainbow-mode))
@@ -2158,7 +2056,6 @@ buffer is not visiting a file."
 ;;;;; hl-todo
 ;; - Highlight TODO and similar keywords in comments and strings
 ;; - https://github.com/tarsius/hl-todo
-
 (use-package hl-todo
   :custom-face (hl-todo ((t (:box t :inherit))))
   :bind (:map hl-todo-mode-map
@@ -2199,7 +2096,6 @@ buffer is not visiting a file."
 ;;;;; diff-hl
 ;; - Highlight uncommitted changes
 ;; - https://github.com/dgutov/diff-hl
-
 (use-package diff-hl
   :defines (diff-hl-margin-symbols-alist desktop-minor-mode-table)
   :commands diff-hl-magit-post-refresh
@@ -2239,7 +2135,6 @@ buffer is not visiting a file."
 ;;;;; volatile-highlights
 ;; - Highlight some buffer region operations
 ;; - https://github.com/k-talo/volatile-highlights.el
-
 (use-package volatile-highlights
   :diminish
   :hook (emacs-startup . volatile-highlights-mode))
@@ -2248,7 +2143,6 @@ buffer is not visiting a file."
 ;;;;; whitespace
 ;; - Visualize TAB, (HARD) SPACE, NEWLINE
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/whitespace.el
-
 (use-package whitespace
   :straight (whitespace :type built-in)
   :diminish
@@ -2265,7 +2159,6 @@ buffer is not visiting a file."
 ;;;;; pulse
 ;; - Pulse current line
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/cedet/pulse.el
-
 (use-package pulse
   :straight (pulse :type built-in)
   :preface
@@ -2308,7 +2201,6 @@ buffer is not visiting a file."
 ;;;;; rainbow-delimiters
 ;; - rainbow-delimiters-mode - multicoloured brackets
 ;; - https://github.com/Fanael/rainbow-delimiters
-
 (use-package rainbow-delimiters
   :diminish rainbow-delimiters-mode
   :hook (prog-mode . rainbow-delimiters-mode)
@@ -2329,11 +2221,11 @@ buffer is not visiting a file."
 ;;;;; mic-paren
 ;; - show parens even off screen
 ;; - https://github.com/emacsattic/mic-paren/blob/d0410c7d805c9aaf51a1bcefaaef092bed5824c4/mic-paren.el
-
 (use-package mic-paren
   :hook (prog-mode . paren-activate)
   :config
   (setq paren-highlight-offscreen t))
+
 
 ;;;;; outline outshine pretty-outlines
 ;; - program modes outline much like org-mode
@@ -2381,11 +2273,10 @@ buffer is not visiting a file."
 
 ;;; programming
 ;;;;; eglot
-;; TODO research changing to lsp-server eglot
-;; - client for Language Server Protocol servers
+;; - simple client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
-
 (use-package eglot
+  :if (eq sej-lsp 'eglot)
   :hook ((python-mode c-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
@@ -2397,7 +2288,6 @@ buffer is not visiting a file."
 ;; - generalized program mode
 ;; - Prettify Symbols
 ;; - e.g. display “lambda” as “λ”
-
 (setq-default prettify-symbols-alist '(("lambda" . ?λ)
                                        ("->" . ?→)
                                        ("->>" . ?↠)
@@ -2429,7 +2319,6 @@ buffer is not visiting a file."
 ;; - auto-format source code in many languages using the same command for all languages
 ;; - You will need to install external programs to do the formatting
 ;; - https://github.com/lassik/emacs-format-all-the-code
-
 (use-package format-all
   :bind (:map sej-mode-map
               ("C-c s f" . format-all-buffer)
@@ -2439,7 +2328,6 @@ buffer is not visiting a file."
 ;;;;; tramp
 ;; - remote editing
 ;; - https://www.gnu.org/software/tramp/
-
 (use-package tramp
   :straight (tramp :type built-in)
   :defer 5
@@ -2471,7 +2359,6 @@ buffer is not visiting a file."
 ;;;;; pass
 ;; - major-mode to manage your password-store (pass) keychain
 ;; - https://github.com/NicolasPetton/pass
-
 (use-package pass
   :commands pass)
 
@@ -2479,7 +2366,6 @@ buffer is not visiting a file."
 ;;;;; indent-guide
 ;; - show vertical lines to guide indentation
 ;; - https://github.com/zk-phi/indent-guide
-
 (use-package indent-guide
   :hook (prog-mode . indent-guide-mode)
   :diminish indent-guide-mode)
@@ -2488,7 +2374,6 @@ buffer is not visiting a file."
 ;;;;; comment-dwim-2
 ;; - replacement for the Emacs built-in command comment-dwim
 ;; - https://github.com/remyferre/comment-dwim-2
-
 (use-package comment-dwim-2
   :bind ([remap comment-dwim] . comment-dwim-2)) ; M-;
 
@@ -2496,7 +2381,6 @@ buffer is not visiting a file."
 ;;;;; ediff
 ;; - A saner diff
 ;; - https://www.gnu.org/software/emacs/manual/html_mono/ediff.html
-
 (use-package ediff
   :straight (ediff :type built-in)
   :hook(;; show org ediffs unfolded
@@ -2513,7 +2397,6 @@ buffer is not visiting a file."
 ;;;;; elec-pair
 ;; - Automatic parenthesis pairing
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
-
 (use-package elec-pair
   :straight (elec-pair :type built-in)
   :hook (prog-mode . electric-pair-mode)
@@ -2535,7 +2418,6 @@ buffer is not visiting a file."
 ;;;;; compile
 ;; - Compilation Mode
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
-
 (use-package compile
   :straight (compile :type built-in)
   :preface
@@ -2551,7 +2433,6 @@ buffer is not visiting a file."
 ;;;;; dumb-jump
 ;; - Jump to definition via `ag'/`rg'/`grep'
 ;; - https://github.com/jacktasia/dumb-jump
-
 (use-package dumb-jump
   :after hydra
   :hook (emacs-startup . dumb-jump-mode)
@@ -2600,7 +2481,6 @@ buffer is not visiting a file."
 ;;;;; flymake
 ;; - built-in emacs syntax checker
 ;; - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
-
 (use-package flymake
   :straight (flymake :type built-in)
   :defines sej-mode-map
@@ -2619,7 +2499,6 @@ buffer is not visiting a file."
 ;;;;; flycheck
 ;; - added in emacs syntax checker
 ;; - https://www.flycheck.org/en/latest/
-
 (use-package flycheck
   ;; ;:diminish flycheck-mode
   :defines sej-mode-map
@@ -2659,7 +2538,6 @@ buffer is not visiting a file."
 ;;;;; flycheck-popup-tip
 ;; - Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
 ;; - https://github.com/flycheck/flycheck-popup-tip
-
 (use-package flycheck-popup-tip
   :hook (flycheck-mode . flycheck-popup-tip-mode)
   :config
@@ -2670,7 +2548,6 @@ buffer is not visiting a file."
 ;; - minor-mode for Flycheck which colors the mode line according to
 ;; the Flycheck state of the current buffer
 ;; - https://github.com/flycheck/flycheck-color-mode-line
-
 (use-package flycheck-color-mode-line
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
@@ -2680,7 +2557,6 @@ buffer is not visiting a file."
 ;; It includes refactoring commands for a variety of languages
 ;; Just hit M-RET to access your refactoring tools in any supported mode.
 ;; - https://github.com/emacsmirror/emr
-
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
@@ -2692,7 +2568,6 @@ buffer is not visiting a file."
 ;;;;; projectile
 ;; - Manage and navigate projects
 ;; - https://github.com/bbatsov/projectile
-
 (use-package projectile
   :diminish
   :bind ("H-f" . projectile-find-file)
@@ -2738,7 +2613,6 @@ buffer is not visiting a file."
 ;;;;; magit
 ;; - interface to the version control system Git
 ;; - https://magit.vc/
-
 (use-package magit
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
@@ -2761,7 +2635,6 @@ buffer is not visiting a file."
 ;; forge-add-repostiory, which makes it possible to add a forge repository without
 ;; pulling all topics and even without having to clone the respective Git repository.
 ;; - https://github.com/magit/forge
-
 (use-package forge
   :after magit
   :demand)
@@ -2770,7 +2643,6 @@ buffer is not visiting a file."
 ;;;;; magit-todos
 ;; - Show tasks from commit files
 ;; - https://github.com/alphapapa/magit-todos
-
 (use-package magit-todos
   :commands(magit-todos-mode)
   :config
@@ -2785,7 +2657,6 @@ buffer is not visiting a file."
 ;;;;; git-timemachine
 ;; - Walk through git revisions of a file
 ;; - https://github.com/emacsmirror/git-timemachine
-
 (use-package git-timemachine
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
@@ -2797,7 +2668,6 @@ buffer is not visiting a file."
 ;;;;; smerge-mode
 ;; - Resolve diff3 conflicts
 ;; - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
-
 (use-package smerge-mode
   :straight (smerge-mode :type built-in)
   :after hydra
@@ -2867,7 +2737,6 @@ buffer is not visiting a file."
 ;;;;; browse-at-remote
 ;; - Open github/gitlab/bitbucket page
 ;; - https://github.com/rmuslimov/browse-at-remote
-
 (use-package browse-at-remote
   :bind (:map sej-mode-map
               (("C-c s B" . browse-at-remote)
@@ -2900,7 +2769,6 @@ buffer is not visiting a file."
 ;; gist-region-or-buffer-private - Explicitly create a gist from the
 ;; region or buffer.
 ;; - https://github.com/defunkt/gist.el
-
 (use-package gist
   :defines sej-mode-map
   :bind  (:map sej-mode-map
@@ -2912,7 +2780,6 @@ buffer is not visiting a file."
 ;; - Emacs major modes for various Git configuration files.
 ;; - gitattributes-mode , gitconfig-mode , gitignore-mode
 ;; - https://github.com/magit/git-modes
-
 (use-package gitattributes-mode)
 (use-package gitconfig-mode)
 (use-package gitignore-mode)
@@ -2920,7 +2787,6 @@ buffer is not visiting a file."
 
 ;;;;; sej/git-blame-line
 ;; - Runs `git blame` on the current line and adds the commit id to the kill ring
-
 (defun sej/git-blame-line ()
   "Run `git blame` on the current line and add the commit id to the kill ring."
   (interactive)
@@ -2974,7 +2840,6 @@ buffer is not visiting a file."
 ;;;;; company
 ;; - Modular in-buffer completion framework for Emacs
 ;; - http://company-mode.github.io/
-
 (use-package company
   :diminish company-mode
   :defines
@@ -3016,7 +2881,6 @@ buffer is not visiting a file."
 ;;;;; company-box
 ;; - a company front-end with Icons
 ;; - https://github.com/sebastiencs/company-box
-
 (when emacs/>=26p
   (use-package company-box
     :after company
@@ -3103,7 +2967,6 @@ buffer is not visiting a file."
 ;;;;; company-quickhelp
 ;; - documentation popups that appear when idling on a completion candidate.
 ;; - https://github.com/company-mode/company-quickhelp
-
 (use-package company-quickhelp
   :after company
   :hook ((global-company-mode company-mode) . company-quickhelp-mode)
@@ -3115,7 +2978,6 @@ buffer is not visiting a file."
 ;;;;; company-statistics
 ;; - Set up statistics and rank company completions based on frequency
 ;; - https://github.com/company-mode/company-statistics
-
 (use-package company-statistics
   :after company
   :hook (emacs-startup . company-statistics-mode))
@@ -3126,7 +2988,6 @@ buffer is not visiting a file."
 ;; If none of the current completions look good, call the command again to try
 ;; the next backend.
 ;; - https://github.com/Wilfred/company-try-hard
-
 (use-package company-try-hard
   :commands company-try-hard
   :bind (("H-/" . company-try-hard)
@@ -3139,7 +3000,6 @@ buffer is not visiting a file."
 ;; - you also need bash-language-server installed and on your PATH
 ;; npm install -g bash-language-server
 ;; - https://github.com/Alexander-Miller/company-shell
-
 (use-package company-shell
   :after company
   :init
@@ -3153,7 +3013,6 @@ buffer is not visiting a file."
 ;;;;; company-jedi
 ;; - company-mode completion back-end for Python JEDI
 ;; - https://github.com/syohex/emacs-company-jedi
-
 (use-package company-jedi
   :after company
   :init
@@ -3165,7 +3024,6 @@ buffer is not visiting a file."
 ;;;;; yasnippet
 ;; - short-cut completions
 ;; - https://github.com/joaotavora/yasnippet
-
 (use-package yasnippet
   :diminish yas-minor-mode
   :hook ( (emacs-startup . yas-reload-all)
@@ -3185,14 +3043,12 @@ buffer is not visiting a file."
 ;;;;; hydra
 ;; - Make bindings that stick around
 ;; - https://github.com/abo-abo/hydra
-
 (use-package hydra)
 
 
 ;;;; lisp
 ;;;;; lisp settings
 ;; - some lisp stuff from Getting Started with Emacs Lisp
-
 (define-key emacs-lisp-mode-map (kbd "s-<return>") 'eval-last-sexp)
 (define-key emacs-lisp-mode-map (kbd "H-<return>") 'eval-buffer)
 (define-key emacs-lisp-mode-map (kbd "A-<return>") 'eval-region)
@@ -3244,7 +3100,6 @@ buffer is not visiting a file."
 ;; - we don't want this minor mode to be shown in the minibuffer, however
 ;; we use eldoc to show the signature of the function at point in the minibuffer
 ;; - https://www.emacswiki.org/emacs/ElDoc
-
 (use-package eldoc
   :diminish eldoc-mode
   :hook
@@ -3261,7 +3116,6 @@ buffer is not visiting a file."
 ;; - M-. works to jump to function definitions
 ;; - M-, to jump back
 ;; - https://github.com/purcell/elisp-slime-nav
-
 (use-package elisp-slime-nav
   :diminish elisp-slime-nav-mode
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
@@ -3274,7 +3128,6 @@ buffer is not visiting a file."
 ;; - eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
 ;; - https://github.com/xiongtx/eros
-
 (use-package eros
   :commands eros-mode
   :hook (emacs-lisp-mode . eros-mode))
@@ -3283,7 +3136,6 @@ buffer is not visiting a file."
 ;;;;; sej/ielm-other-window
 ;; - add a nice popup for ielm
 ;; - https://www.emacswiki.org/emacs/InferiorEmacsLispMode
-
 (defun sej/ielm-other-window ()
   "Run ielm on other window."
   (interactive)
@@ -3319,7 +3171,6 @@ buffer is not visiting a file."
 ;; [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
 ;; autopep8, YAPF
 ;; - http://wikemacs.org/wiki/Python
-
 (use-package python
   :straight (python :type built-in)
   :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
@@ -3366,7 +3217,6 @@ buffer is not visiting a file."
 ;; - You should see an extra window on the right that shows the results of
 ;; running your code.
 ;; - https://github.com/donkirkby/live-py-plugin
-
 (use-package live-py-mode)
 
 
@@ -3374,7 +3224,6 @@ buffer is not visiting a file."
 ;; - Format python buffer using YAPF
 ;; - Install: pip install yapf
 ;; - https://github.com/JorisE/yapfify
-
 (use-package yapfify
   :diminish yapf-mode
   ;;:hook (python-mode . yapf-mode)
@@ -3396,7 +3245,6 @@ buffer is not visiting a file."
 ;; - M-x ein:run launches a jupyter process from emacs
 ;; - M-x ein:login to a running jupyter server
 ;; - https://github.com/millejoh/emacs-ipython-notebook
-
 (use-package ein
   :diminish ein:notebook-mode
   :defines ein:completion-backend
@@ -3406,7 +3254,6 @@ buffer is not visiting a file."
 ;;;;; pip-requirements
 ;; - major mode for editing pip requirement files
 ;; - https://github.com/Wilfred/pip-requirements.el
-
 (use-package pip-requirements)
 
 
@@ -3414,7 +3261,6 @@ buffer is not visiting a file."
 ;; - simple global minor mode which will replicate the changes done
 ;; by virtualenv activation inside Emacs
 ;; - https://github.com/jorgenschaefer/pyvenv
-
 (use-package pyvenv
   :hook (pyvenv-post-activate . pyvenv-restart-python))
 
@@ -3424,7 +3270,6 @@ buffer is not visiting a file."
 ;; - Major mode for editing web templates
 ;; - http://web-mode.org/
 ;; - https://github.com/fxbois/web-mode
-
 (use-package web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
   :config
@@ -3436,7 +3281,6 @@ buffer is not visiting a file."
 ;;;;; css-eldoc
 ;; - eldoc-mode plugin for CSS
 ;; - https://github.com/zenozeng/css-eldoc
-
 (use-package css-eldoc
   :commands turn-on-css-eldoc
   :hook ((css-mode scss-mode less-css-mode) . turn-on-css-eldoc))
@@ -3447,14 +3291,12 @@ buffer is not visiting a file."
 ;; - Extends the builtin js-mode to add better syntax highlighting for JSON
 ;; and some nice editing keybindings.
 ;; - https://github.com/joshwnj/json-mode
-
 (use-package json-mode)
 
 
 ;;;;; js2-mode
 ;; - Improved JavaScript editing mode
 ;; - https://github.com/mooz/js2-mode
-
 (use-package js2-mode
   :defines flycheck-javascript-eslint-executable
   :mode (("\\.js\\'" . js2-mode)
@@ -3478,7 +3320,6 @@ buffer is not visiting a file."
 ;;;;; js2-refactor
 ;; - JavaScript refactoring library for Emacs
 ;; - https://github.com/magnars/js2-refactor.el
-
 (use-package js2-refactor
   :after js2-mode
   :diminish js2-refactor-mode
@@ -3489,7 +3330,6 @@ buffer is not visiting a file."
 ;;;;; mocha
 ;; - Run Mocha or Jasmine tests
 ;; - https://github.com/scottaj/mocha.el
-
 (use-package mocha
   :config (use-package mocha-snippets))
 
@@ -3504,7 +3344,6 @@ buffer is not visiting a file."
 ;; C-c C-k: Load the current buffer.
 ;; C-c C-z: Select the REPL buffer
 ;; - https://github.com/skeeto/skewer-mode
-
 (use-package skewer-mode
   :diminish skewer-mode skewer-css skewer-html
   :hook ((js2-mode . skewer-mode)
@@ -3517,7 +3356,6 @@ buffer is not visiting a file."
 ;; - Format HTML, CSS and JavaScript/JSON by js-beautify
 ;; - Insta;; npm -g install js-beautify
 ;; - https://github.com/yasuyk/web-beautify
-
 (use-package web-beautify
   :init
   (with-eval-after-load 'js-mode
@@ -3540,14 +3378,12 @@ buffer is not visiting a file."
 ;;;;; haml-mode
 ;; - major mode for the haml mark-up language
 ;; - https://github.com/nex3/haml-mode
-
 (use-package haml-mode)
 
 
 ;;;;; php-mode
 ;; - major mode for editing PHP code
 ;; - https://github.com/emacs-php/php-mode
-
 (use-package php-mode
   :mode (("\\.module$" . php-mode)
          ("\\.inc$" . php-mode)
@@ -3559,7 +3395,6 @@ buffer is not visiting a file."
 ;;;;; yaml-mode
 ;; - YAML major mode support
 ;; - https://www.emacswiki.org/emacs/YamlMode
-
 (use-package yaml-mode
   :mode
   (("\\.yml$" . yaml-mode)
@@ -3569,7 +3404,6 @@ buffer is not visiting a file."
 ;;;;; nxml-mode
 ;; - major mode for editing XML
 ;; - https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
-
 (use-package nxml-mode
   :straight (nxml-mode :type built-in)
   :mode (("\\.xaml$" . xml-mode)))
@@ -3579,7 +3413,6 @@ buffer is not visiting a file."
 ;;;;; c-mode
 ;; - C/C++ Mode
 ;; - https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
-
 (use-package cc-mode
   :straight (cc-mode :type built-in)
   :bind (:map c-mode-base-map
@@ -3605,6 +3438,7 @@ buffer is not visiting a file."
              :host github
              :repo "ludwigpacifici/modern-cpp-font-lock")
   :hook (c++-mode . modern-c++-font-lock-mode))
+
 
 ;;;;; csharp-mode
 ;; - mode for editing C# in emacs. It’s based on cc-mode
@@ -3767,7 +3601,6 @@ buffer is not visiting a file."
 ;;;;; swift-mode
 ;; - support for Apple's Swift programming language
 ;; - https://github.com/swift-emacs/swift-mode
-
 (use-package swift-mode
   :config
   (use-package flycheck-swift
@@ -3779,7 +3612,6 @@ buffer is not visiting a file."
 ;;;;; rust-mode
 ;; - rust language package
 ;; - https://github.com/rust-lang/rust-mode
-
 (use-package rust-mode
   :config (setq rust-format-on-save t))
 
@@ -3789,7 +3621,6 @@ buffer is not visiting a file."
 ;; - [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
 ;; - need to install golang and go get golang/x/tools/gopls
 ;; - [[https://sandyuraz.com/articles/go-emacs/][go-mode native completion]]
-
 (use-package go-mode
   :mode ("\\.go\\'" . go-mode)
   :init
@@ -3818,7 +3649,6 @@ buffer is not visiting a file."
 ;;;;; csv-mode
 ;; - major mode for csv
 ;; - https://www.emacswiki.org/emacs/csv-mode.el
-
 (use-package csv-mode
   :mode "\\.[Cc][Ss][Vv]\\'"
   :config
@@ -3829,7 +3659,6 @@ buffer is not visiting a file."
 ;;;;; ibuffer
 ;; - operate on buffers much in the same manner as Dired.
 ;; - https://www.emacswiki.org/emacs/IbufferMode
-
 (use-package ibuffer
   :straight (ibuffer :type built-in)
   :functions (all-the-icons-icon-for-file
@@ -3899,7 +3728,6 @@ buffer is not visiting a file."
 ;; Use C-x r j or s-r followed by the letter of the register
 ;; (i for init.el, r for this file) to jump to it.
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
-
 (define-key sej-mode-map (kbd "H-j") 'jump-to-register)
 ;; (kbd "C-x r j") is built-in global
 (set-register ?c '(file . "~/.ssh/custom-post.el"))
@@ -3911,7 +3739,6 @@ buffer is not visiting a file."
 ;;;;; dashboard
 ;; - all-in-one start-up screen with current files / projects
 ;; - https://github.com/emacs-dashboard/emacs-dashboard
-
 (when sej-dashboard
   (use-package dashboard
     :diminish (dashboard-mode page-break-lines-mode)
@@ -3959,7 +3786,6 @@ buffer is not visiting a file."
 ;;;;; page-break-lines
 ;; - display ^L page breaks as tidy horizontal lines
 ;; - https://github.com/purcell/page-break-lines
-
 (use-package page-break-lines
   :config
   (setq global-page-break-lines-mode t)
@@ -3970,7 +3796,6 @@ buffer is not visiting a file."
 ;; - mode that comes with Emacs that automagically inserts text into new buffers
 ;; based on file extension or the major mode
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
-
 (use-package autoinsert
   :hook (find-file . auto-insert)
   :defines
@@ -3989,7 +3814,6 @@ buffer is not visiting a file."
 ;; - Offer to create parent directories if they do not exist
 ;; automatically run after save
 ;; - http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
-
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."
   (let ((parent-directory (file-name-directory buffer-file-name)))
@@ -4003,7 +3827,6 @@ buffer is not visiting a file."
 ;;;;; sudo-edit
 ;; - Open files as sudo
 ;; - https://github.com/nflath/sudo-edit
-
 (unless sys/win32p
   (use-package sudo-edit))
 
@@ -4012,7 +3835,6 @@ buffer is not visiting a file."
 ;; - vlf lets you handle very large files for viewing
 ;; - VLF operations are grouped under the C-c C-v prefix by default
 ;; - https://github.com/m00natic/vlfi
-
 (use-package vlf-setup
   :straight (vlf :host github
                  :repo "m00natic/vlfi")
@@ -4023,7 +3845,6 @@ buffer is not visiting a file."
 ;;;;; dired
 ;; - Directory operations
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
-
 (use-package dired
   :straight (dired :type built-in)
   :bind (:map dired-mode-map
@@ -4050,7 +3871,6 @@ buffer is not visiting a file."
 ;;;;; all-the-icons-dired
 ;; - Shows icons in dired buffer
 ;; - https://github.com/jtbm37/all-the-icons-dired
-
 (use-package all-the-icons-dired
   :diminish
   :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
@@ -4100,7 +3920,6 @@ buffer is not visiting a file."
 ;;;;; dired-aux
 ;; - auxiliary functionality of dired
 ;; - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
-
 (use-package dired-aux
   :straight (dired-aux :type built-in))
 
@@ -4108,7 +3927,6 @@ buffer is not visiting a file."
 ;;;;; dired-x
 ;; - Extra Dired functionality
 ;; - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
-
 (use-package dired-x
   :straight (autorevert :type built-in)
   :demand
@@ -4139,7 +3957,6 @@ buffer is not visiting a file."
 ;;;;; quick-preview
 ;; - Quick-preview provides a nice preview of the thing at point for files.
 ;; - https://github.com/myuhe/quick-preview.el
-
 (use-package quick-preview
   :defines sej-mode-map
   :bind (:map sej-mode-map
@@ -4152,7 +3969,6 @@ buffer is not visiting a file."
 ;;;;; browse-at-remote
 ;; - browse file at remote source
 ;; - https://github.com/rmuslimov/browse-at-remote
-
 (use-package browse-at-remote
   :bind ("C-c s b" . browse-at-remote))
 
@@ -4160,7 +3976,6 @@ buffer is not visiting a file."
 ;;;;; diredfl
 ;; - Extra font-lock rules for a more Colourful dired
 ;; - https://github.com/purcell/diredfl
-
 (use-package diredfl
   :init (diredfl-global-mode 1))
 
@@ -4170,7 +3985,6 @@ buffer is not visiting a file."
 ;; - Deft is an Emacs mode for quickly browsing, filtering,
 ;; and editing directories of plain text notes
 ;; - https://jblevins.org/projects/deft/
-
 (use-package deft
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
@@ -4193,7 +4007,6 @@ buffer is not visiting a file."
 ;;;;; writegood-mode
 ;; - minor mode to aid in finding common writing problems
 ;; - https://github.com/bnbeckwith/writegood-mode
-
 (use-package writegood-mode
   :bind (("C-c C-g w" . writegood-mode)
          ("C-c C-g g" . writegood-grade-level)
@@ -4204,7 +4017,6 @@ buffer is not visiting a file."
 ;;;;; markdown-mode
 ;; - markdown-mode used a lot on Github
 ;; - https://jblevins.org/projects/markdown-mode/
-
 (use-package markdown-mode
   :defines flycheck-markdown-markdownlint-cli-config
   :preface
@@ -4306,14 +4118,12 @@ buffer is not visiting a file."
   ;; place yourself where you want to insert the TOC:
   ;; M-x markdown-toc-generate-toc
   ;; - https://github.com/ardumont/markdown-toc
-
   (use-package markdown-toc))
 
 
 ;;;;; textile-mode
 ;; - textile markup editing major mode
 ;; - https://github.com/juba/textile-mode
-
 (use-package textile-mode
   :mode "\\.textile\\'")
 
@@ -4323,7 +4133,6 @@ buffer is not visiting a file."
 ;; It emphasizes on the idea that the document is highlighted
 ;; so it pretty much looks like the final output.
 ;; - https://github.com/sensorflo/adoc-mode/wiki
-
 (use-package adoc-mode
   :mode "\\.txt\\'")
 
@@ -4331,7 +4140,6 @@ buffer is not visiting a file."
 ;;;;; abbrev
 ;; - for inserting abbreviations
 ;; - https://www.emacswiki.org/emacs/AbbrevMode
-
 (use-package abbrev
   :straight (abbrev :type built-in)
   :hook ((emacs-startup org-mode) . abbrev-mode)
@@ -4362,7 +4170,6 @@ buffer is not visiting a file."
 ;; 4. Fourth Item
 ;; This function allows you to hit ***C-x r N ***and specify the pattern
 ;; and starting offset to number lines in rectangular-selection mode:
-
 (defun sej/number-rectangle (start end format-string from)
   "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
   (interactive
@@ -4392,7 +4199,6 @@ buffer is not visiting a file."
 ;;;;; flyspell
 ;; - main spelling package
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
-
 (use-package flyspell
   :functions
   flyspell-correct-word
@@ -4439,7 +4245,6 @@ buffer is not visiting a file."
 ;;;;; powerthesaurus
 ;; - simple plugin to integrate Emacs with powerthesaurus.org
 ;; - https://github.com/SavchenkoValeriy/emacs-powerthesaurus
-
 (use-package powerthesaurus
   :bind (:map sej-mode-map
               ("C-c s t" . powerthesaurus-lookup-word-dwim)
@@ -4449,7 +4254,6 @@ buffer is not visiting a file."
 ;;;;; define-word
 ;; - Word Definition search for non-osx
 ;; - https://github.com/abo-abo/define-word
-
 (use-package define-word
   :unless sys/macp
   :bind (:map sej-mode-map
@@ -4462,7 +4266,6 @@ buffer is not visiting a file."
 ;; - pilot osx-dictionary only for osx
 ;; use osx dictionary when possible
 ;; - https://github.com/xuchunyang/osx-dictionary.el
-
 (use-package osx-dictionary
   :if sys/macp
   :defines sej-mode-map
@@ -4482,36 +4285,9 @@ buffer is not visiting a file."
   :bind ("C-c s w" . helm-wordnet-suggest))
 
 
-;;;;; view-file-mode
-;; - allows you to scan or read a file by sequential screen-fulls
-;; - https://www.emacswiki.org/emacs/ViewMode
-
-(use-package view
-  :defines (View-scrool-half-page-forward View-scrool-half-page-backward)
-  :bind (:map view-mode-map (("C-v" . 'View-scroll-half-page-forward)
-                             ("M-v" . 'View-scroll-half-page-backward)
-
-                             ;; less like
-                             ("N" . View-search-last-regexp-backward)
-                             ("?" . View-search-regexp-backward?)
-                             ("g" . View-goto-line)
-                             ("G" . View-goto-line-last)
-                             ;; vi/w3m like
-                             ("h" . backward-char)
-                             ("j" . next-line)
-                             ("k" . previous-line)
-                             ("l" . forward-char)))
-  :config
-  (defun View-goto-line-last (&optional line)
-    "goto last line"
-    (interactive "P")
-    (forward-line (line-number-at-pos (point-max)))))
-
-
 ;;;;; sej/pdf-print-buffer-with-faces (ps-print)
 ;; - print file in the current buffer as pdf
 ;; - https://www.emacswiki.org/emacs/PsPrint
-
 (when (executable-find "ps2pdf")
   (use-package ps-print
     :ensure nil
@@ -4539,7 +4315,6 @@ buffer is not visiting a file."
 ;;;;; pdf-tools
 ;; - PDF reader
 ;; - https://github.com/politza/pdf-tools
-
 (when (display-graphic-p)
   (use-package pdf-tools
     :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
@@ -4569,7 +4344,6 @@ buffer is not visiting a file."
 ;;;;; nov
 ;; - Epub reader
 ;; - https://github.com/wasamasa/nov.el
-
 (use-package nov
   :mode ("\\.epub\\'" . nov-mode)
   :preface
@@ -4584,7 +4358,6 @@ buffer is not visiting a file."
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
 ;; - https://orgmode.org/
-
 (use-package org
   :defines  sej-mode-map
   org-capture-bookmark
@@ -4767,14 +4540,12 @@ buffer is not visiting a file."
 ;;;;; ob-go
 ;; - org-bable functions for go evaluations
 ;; - https://github.com/pope/ob-go
-
 (use-package ob-go)
 
 
 ;;;;; ob-rust
 ;; - org-babel functions for rust evaluation
 ;; - https://github.com/zweifisch/ob-rust
-
 (use-package ob-rust)
 
 
@@ -4782,7 +4553,6 @@ buffer is not visiting a file."
 ;; - library that allows Org mode to evaluate code blocks using a Jupyter kernel
 ;; (Python by default)
 ;; - https://github.com/gregsexton/ob-ipython
-
 (use-package ob-ipython)
 
 
@@ -4790,22 +4560,9 @@ buffer is not visiting a file."
 ;; - Rich text clipboard when yanking code into org buffer
 ;; consider demand t as lazy loading may not work
 ;; - https://github.com/unhammer/org-rich-yank
-
 (use-package org-rich-yank
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
-
-
-;;;;; org-bullets (not used, see org-superstar)
-;; - Show org-mode bullets as UTF-8 characters
-;; - https://github.com/sabof/org-bullets
-
-      ;;; not currently used, switched to org-superstar
-;; (use-package org-bullets
-;;   :custom
-;;   (org-bullets-bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
-;;   (org-ellipsis "⤵")
-;;   :hook (org-mode . org-bullets-mode))
 
 
 ;;;;; org-superstar-mode
@@ -4823,11 +4580,9 @@ buffer is not visiting a file."
   )
 
 
-
 ;;;;; org-fancy-priorities
 ;; - displays org priorities as custom strings
 ;; - https://github.com/harrybournis/org-fancy-priorities
-
 (use-package org-fancy-priorities
   :diminish
   :defines org-fancy-priorities-list
@@ -4840,7 +4595,6 @@ buffer is not visiting a file."
 ;;;;; toc-org
 ;; - Table of contents updated at save to header with TOC tag
 ;; - https://github.com/snosov1/toc-org
-
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
 
@@ -4849,7 +4603,6 @@ buffer is not visiting a file."
 ;; - While editing a buffer containing a program, you may edit a comment block
 ;; or a string (often a doc-string) in Org mode
 ;; - https://github.com/pinard/poporg
-
 (use-package poporg
   :ensure t
   :bind (:map sej-mode-map
@@ -4860,7 +4613,6 @@ buffer is not visiting a file."
 ;; - outline numbering as overlays on Org mode headlines
 ;; in the org repo but not part of official orgmode
 ;; - https://github.com/bzg/org-mode/blob/master/lisp/org-num.el
-
 (use-package org-num
   :straight(org-num :local-repo "org/lisp/")
   :hook (org-mode . org-num-mode))
@@ -4869,7 +4621,6 @@ buffer is not visiting a file."
 ;;;;; org-pretty-tags
 ;; - Display text or image surrogates for Org mode tags.
 ;; - https://gitlab.com/marcowahl/org-pretty-tags
-
 (use-package org-pretty-tags
   :hook (org-mode . org-pretty-tags-global-mode)
   :config
@@ -4886,7 +4637,6 @@ buffer is not visiting a file."
 
 ;;;;; org-skeleton
 ;; - skeleton template for new org file
-
 (define-skeleton org-skeleton
   "Header info for a emacs-org file."
   "Title: "
@@ -4913,7 +4663,6 @@ buffer is not visiting a file."
 ;;;;; sej/org-wrap-source skeleton
 ;; - skeletons are a kind of yasnippet but they don't mess with keybindings
 ;; - skeleton to wrap generic babel source
-
 (define-skeleton sej/org-wrap-source
   "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
   "Language: "
@@ -4928,7 +4677,6 @@ buffer is not visiting a file."
 ;; - Emacs command shell ; much better than shell
 ;; - https://www.gnu.org/software/emacs/manual/html_mono/eshell.html
 ;; - https://www.masteringemacs.org/article/complete-guide-mastering-eshell
-
 (use-package eshell
   :ensure nil
   :defines (compilation-last-buffer
@@ -5011,12 +4759,9 @@ buffer is not visiting a file."
   (semantic-mode -1))
 
 
-
-
 ;;;;; eshell-prompt-extras
 ;; - Display extra information for prompt
 ;; - See: https://github.com/kaihaosw/eshell-prompt-extras
-
 (use-package eshell-prompt-extras
   :after esh-opt
   :defines eshell-highlight-prompt
@@ -5034,7 +4779,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/truncate-eshell-buffers
 ;; - truncates all eshell buffers after t time (5s)
-
 (defun eshell/truncate-eshell-buffers ()
   "Truncates all eshell buffers."
   (interactive)
@@ -5053,7 +4797,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/clear
 ;; - clear the eshell buffer / screen
-
 (defun eshell/clear ()
   "Clear the eshell buffer."
   (interactive)
@@ -5066,7 +4809,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/emacs
 ;; - edit a file in eshell without re-rerunning Emacs
-
 (defun eshell/emacs (&rest args)
   "Open a file (ARGS) in Emacs.  Some habits die hard."
   (if (null args)
@@ -5084,7 +4826,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/ec
 ;; - Compile a file (ARGS) in Emacs.  Use `compile' to do background make.
-
 (defun eshell/ec (&rest args)
   "Compile a file (ARGS) in Emacs.  Use `compile' to do background make."
   (if (eshell-interactive-output-p)
@@ -5102,7 +4843,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell-view-file
 ;; - A version of `view-file' which properly rets the eshell prompt.
-
 (defun eshell-view-file (file)
   "View FILE.  A version of `view-file' which properly rets the eshell prompt."
   (interactive "fView file: ")
@@ -5123,7 +4863,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/less
 ;; - Invoke `view-file' on a file.  \"less +42 foo\" will go to line 42 in the buffer
-
 (defun eshell/less (&rest args)
   "Invoke `view-file' on a file (ARGS).  \"less +42 foo\" will go to line 42 in the buffer for foo."
   (while args
@@ -5133,13 +4872,11 @@ buffer is not visiting a file."
           (eshell-view-file file)
           (forward-line line))
       (eshell-view-file (pop args)))))
-
 (defalias 'eshell/more 'eshell/less)
 
 
 ;;;;; eshell/cds
 ;; - change directory to the project's root
-
 (defun eshell/cds ()
   "Change directory to the project's root."
   (eshell/cd (locate-dominating-file default-directory ".git")))
@@ -5154,7 +4891,6 @@ buffer is not visiting a file."
 
 ;;;;; eshell/magit
 ;; - function to open magit-status for the current directory
-
 (defun eshell/magit ()
   "Function to open magit-status for the current directory."
   (interactive)
@@ -5166,7 +4902,6 @@ buffer is not visiting a file."
 ;;;;; shell
 ;; - basic emacs shell ; eshell is much better
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html
-
 (use-package shell
   :ensure nil
   :hook ((shell-mode . n-shell-mode-hook)
@@ -5220,7 +4955,6 @@ buffer is not visiting a file."
 ;;;;; shell-pop
 ;; - pop-up shell
 ;; - https://github.com/kyagi/shell-pop-el
-
 (use-package shell-pop
   :bind ("C-c s p" . shell-pop)
   :init (let ((val
@@ -5233,7 +4967,6 @@ buffer is not visiting a file."
 
 ;;;;; sej/shell-kill-buffers
 ;; - kill shell buffer upon exit
-
 (defun sej/shell-kill-buffer-sentinel (process event)
   "Function to kill shell buffer upon (PROCESS EVENT)."
   (when (memq (process-status process) '(exit signal))
@@ -5242,7 +4975,6 @@ buffer is not visiting a file."
 
 ;;;;; sej/kill-process-buffer-on-exit
 ;; - make sure processes get killed on Emacs-exit
-
 (defun sej/kill-process-buffer-on-exit ()
   "Function to kill buffer on exit."
   (set-process-sentinel (get-buffer-process (current-buffer))
@@ -5255,7 +4987,6 @@ buffer is not visiting a file."
 ;;;;; with-editor
 ;; - things that invoke $EDITOR will use the current Emacs
 ;; - https://github.com/magit/with-editor
-
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
@@ -5264,7 +4995,6 @@ buffer is not visiting a file."
 ;;;;; keychain-environment
 ;; - set up any SSH or GPG keychains that the Keychain tool has set up for us
 ;; - https://github.com/tarsius/keychain-environment
-
 (use-package keychain-environment
   :hook (emacs-startup . keychain-refresh-environment))
 
