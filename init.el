@@ -1640,22 +1640,6 @@ Return its absolute path.  Otherwise, return nil."
 (define-key sej-mode-map (kbd "C-c s <tab>") 'sej/indent-buffer)
 
 
-;;;;; smart-tab
-;; - indent and complete dwim when <tab> is pressed
-;; - https://github.com/genehack/smart-tab/blob/master/smart-tab.el
-(use-package smart-tab
-  :diminish ""
-  :defines
-  smart-tab-using-hippie-expand
-  :init
-  (setq smart-tab-using-hippie-expand t)
-  :config
-  (global-smart-tab-mode 1)
-  (add-to-list 'smart-tab-disabled-major-modes 'mu4e-compose-mode)
-  (add-to-list 'smart-tab-disabled-major-modes 'erc-mode)
-  (add-to-list 'smart-tab-disabled-major-modes 'shell-mode))
-
-
 ;;;; history packages
 ;;;;; undo-fu
 ;; - Simple, stable linear undo with redo for Emacs.
@@ -2272,6 +2256,84 @@ Return its absolute path.  Otherwise, return nil."
 
 
 ;;; programming
+;;;;; lsp
+;; - client for Language Server Protocol servers
+;; - [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
+;; bash-mode: npm i -g bash-language-server
+;; c++-mode, objc-mode, cudo-mode: ccls uses lsp-mode & see ccls below
+;; csharp-mode: supports automatic installation M-x lsp-csharp-update-server
+;; cmake: pip3 install cmake-language-server
+;; css-mode: npm install -g vscode-css-languageserver-bin
+;; go-mode: gopls
+;; html-mode: npm install -g vscode-html-languageserver-bin
+;; java-mode: self install eclipse JDT language server
+;; javascript-mode: npm i -g javascript-typescript-langserver
+;; json-mode: npm install -g vscode-html-languageserver-bin
+;; perl-mode: cpan Perl::LanguageServer
+;; python: pip install ‘python-language-server[all]’
+(use-package lsp-mode
+  :if (eq sej-lsp 'lsp-mode)
+  :hook (((
+           bash-mode
+           c++-mode
+           c-mode
+           cmake-mode
+           fortran-mode
+           go-mode
+           html-mode
+           haskell-mode
+           java-mode
+           json-mode
+           perl-mode
+           python-mode
+           ruby-mode
+           rust-mode
+           sql-mode
+           swift-mode
+           yaml-mode
+           ) . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration)
+         )
+  :commands (lsp lsp-deferred)
+  :config
+  (setq lsp-keymap-prefix "s-l"))
+
+
+;;;;; lsp-ui
+;; - contains all the higher level UI modules of lsp-mode, like flycheck support and code lenses
+;; - [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]]
+;; - M-. M-?
+(use-package lsp-ui
+  :if (eq sej-lsp 'lsp-mode)
+  :after lsp-mode
+  :bind (:map lsp-ui-mode-map
+         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+         ([remap xref-find-references] . lsp-ui-peek-find-references)) ; M-?
+  :hook (lsp-mode . lsp-ui-mode)
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-ignore-duplicate t))
+
+
+;;;;; helm-lsp
+;; - alternative of the build-in lsp-mode xref-appropos which provides as you type completion
+;; - [[https://github.com/emacs-lsp/helm-lsp][helm-lsp]]
+;; - TODO keep here or move to helm area?  add a link?
+(use-package helm-lsp
+  :if (eq sej-lsp 'lsp-mode)
+  :after lsp-mode
+  :commands helm-lsp-workspace-symbol)
+
+
+;;;;; dap-mode
+;; - (use-package dap-LANGUAGE) to load the dap adapter for your language
+;; - [[https://github.com/emacs-lsp/dap-mode][dap-mode]]
+(use-package dap-mode
+  :if (eq sej-lsp 'lsp-mode)
+  :after lsp)
+
+
 ;;;;; eglot
 ;; - simple client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
@@ -2283,6 +2345,7 @@ Return its absolute path.  Otherwise, return nil."
               ("C-c x" . xref-find-definitions))
   :config
   (setq help-at-pt-display-when-idle t))
+
 
 ;;;;; prog-mode
 ;; - generalized program mode
@@ -2881,87 +2944,59 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; company-box
 ;; - a company front-end with Icons
 ;; - https://github.com/sebastiencs/company-box
-(when emacs/>=26p
-  (use-package company-box
-    :after company
-    :diminish
-    :hook (company-mode . company-box-mode)
-    :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-    :config
-    (setq company-box-backends-colors nil)
-    (setq company-box-show-single-candidate t)
-    (setq company-box-max-candidates 50)
+(use-package company-box
+  :after company
+  :diminish
+  :hook (company-mode . company-box-mode)
+  :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+  :config
+  (setq company-box-backends-colors nil)
+  (setq company-box-show-single-candidate t)
+  (setq company-box-max-candidates 50)
 
-    ;; Support `company-common'
-    (defun my-company-box--make-line (candidate)
-      (-let* (((candidate annotation len-c len-a backend) candidate)
-              (color (company-box--get-color backend))
-              ((c-color a-color i-color s-color) (company-box--resolve-colors color))
-              (icon-string (and company-box--with-icons-p (company-box--add-icon candidate)))
-              (candidate-string (concat (propertize company-common 'face 'company-tooltip-common)
-                                        (substring (propertize candidate 'face 'company-box-candidate) (length company-common) nil)))
-              (align-string (when annotation
-                              (concat " " (and company-tooltip-align-annotations
-                                               (propertize " " 'display `(space :align-to (- right-fringe ,(or len-a 0) 1)))))))
-              (space company-box--space)
-              (icon-p company-box-enable-icon)
-              (annotation-string (and annotation (propertize annotation 'face 'company-box-annotation)))
-              (line (concat (unless (or (and (= space 2) icon-p) (= space 0))
-                              (propertize " " 'display `(space :width ,(if (or (= space 1) (not icon-p)) 1 0.75))))
-                            (company-box--apply-color icon-string i-color)
-                            (company-box--apply-color candidate-string c-color)
-                            align-string
-                            (company-box--apply-color annotation-string a-color)))
-              (len (length line)))
-        (add-text-properties 0 len (list 'company-box--len (+ len-c len-a)
-                                         'company-box--color s-color)
-                             line)
-        line))
-    (advice-add #'company-box--make-line :override #'my-company-box--make-line)
+  (defun my-company-box-icons--elisp (candidate)
+    (when (derived-mode-p 'emacs-lisp-mode)
+      (let ((sym (intern candidate)))
+        (cond ((fboundp sym) 'Function)
+              ((featurep sym) 'Module)
+              ((facep sym) 'Color)
+              ((boundp sym) 'Variable)
+              ((symbolp sym) 'Text)
+              (t . nil)))))
 
-    ;; Prettify icons
-    (defun my-company-box-icons--elisp (candidate)
-      (when (derived-mode-p 'emacs-lisp-mode)
-        (let ((sym (intern candidate)))
-          (cond ((fboundp sym) 'Function)
-                ((featurep sym) 'Module)
-                ((facep sym) 'Color)
-                ((boundp sym) 'Variable)
-                ((symbolp sym) 'Text)
-                (t . nil)))))
-    (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
-
-    (with-eval-after-load 'all-the-icons
+(with-eval-after-load 'all-the-icons
       (declare-function all-the-icons-faicon 'all-the-icons)
+      (declare-function all-the-icons-fileicon 'all-the-icons)
       (declare-function all-the-icons-material 'all-the-icons)
+      (declare-function all-the-icons-octicon 'all-the-icons)
       (setq company-box-icons-all-the-icons
-            `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.9 :v-adjust -0.2))
-              (Text . ,(all-the-icons-faicon "text-width" :height 0.85 :v-adjust -0.05))
-              (Method . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-              (Function . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-              (Constructor . ,(all-the-icons-faicon "cube" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-purple))
-              (Field . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
-              (Variable . ,(all-the-icons-faicon "tag" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue))
-              (Class . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-              (Interface . ,(all-the-icons-material "share" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-              (Module . ,(all-the-icons-material "view_module" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-              (Property . ,(all-the-icons-faicon "wrench" :height 0.85 :v-adjust -0.05))
-              (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.9 :v-adjust -0.2))
-              (Value . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-              (Enum . ,(all-the-icons-material "storage" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-              (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.9 :v-adjust -0.2))
-              (Snippet . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2))
-              (Color . ,(all-the-icons-material "palette" :height 0.9 :v-adjust -0.2))
-              (File . ,(all-the-icons-faicon "file-o" :height 0.9 :v-adjust -0.05))
-              (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.9 :v-adjust -0.2))
-              (Folder . ,(all-the-icons-faicon "folder-open" :height 0.9 :v-adjust -0.05))
-              (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-lblue))
-              (Constant . ,(all-the-icons-faicon "square-o" :height 0.9 :v-adjust -0.05))
-              (Struct . ,(all-the-icons-material "settings_input_component" :height 0.9 :v-adjust -0.2 :face 'all-the-icons-orange))
-              (Event . ,(all-the-icons-faicon "bolt" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-orange))
-              (Operator . ,(all-the-icons-material "control_point" :height 0.9 :v-adjust -0.2))
-              (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.85 :v-adjust -0.05))
-              (Template . ,(all-the-icons-material "format_align_center" :height 0.9 :v-adjust -0.2)))))))
+            `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.7 :v-adjust -0.15))
+              (Text . ,(all-the-icons-faicon "book" :height 0.68 :v-adjust -0.15))
+              (Method . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
+              (Function . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
+              (Constructor . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
+              (Field . ,(all-the-icons-faicon "tags" :height 0.65 :v-adjust -0.15 :face 'font-lock-warning-face))
+              (Variable . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face))
+              (Class . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
+              (Interface . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01))
+              (Module . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.15))
+              (Property . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face)) ;; Golang module
+              (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.7 :v-adjust -0.15))
+              (Value . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'font-lock-constant-face))
+              (Enum . ,(all-the-icons-material "storage" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-orange))
+              (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.7 :v-adjust -0.15))
+              (Snippet . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))
+              (Color . ,(all-the-icons-material "palette" :height 0.7 :v-adjust -0.15))
+              (File . ,(all-the-icons-faicon "file-o" :height 0.7 :v-adjust -0.05))
+              (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.7 :v-adjust -0.15))
+              (Folder . ,(all-the-icons-octicon "file-directory" :height 0.7 :v-adjust -0.05))
+              (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-blueb))
+              (Constant . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05))
+              (Struct . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
+              (Event . ,(all-the-icons-faicon "bolt" :height 0.7 :v-adjust -0.05 :face 'all-the-icons-orange))
+              (Operator . ,(all-the-icons-fileicon "typedoc" :height 0.65 :v-adjust 0.05))
+              (TypeParameter . ,(all-the-icons-faicon "hashtag" :height 0.65 :v-adjust 0.07 :face 'font-lock-const-face))
+              (Template . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))))))
 
 
 ;;;;; company-quickhelp
@@ -3010,15 +3045,15 @@ Return its absolute path.  Otherwise, return nil."
   :hook (emacs-startup . sej/company-shell-hook) )
 
 
-;;;;; company-jedi
-;; - company-mode completion back-end for Python JEDI
-;; - https://github.com/syohex/emacs-company-jedi
-(use-package company-jedi
-  :after company
-  :init
-  (defun sej/company-jedi-hook ()
-    (add-to-list 'company-backends 'company-jedi)  )
-  :hook (python-mode . sej/company-jedi-hook) )
+;; ;;;;; company-jedi
+;; ;; - company-mode completion back-end for Python JEDI
+;; ;; - https://github.com/syohex/emacs-company-jedi
+;; (use-package company-jedi
+;;   :after company
+;;   :init
+;;   (defun sej/company-jedi-hook ()
+;;     (add-to-list 'company-backends 'company-jedi)  )
+;;   :hook (python-mode . sej/company-jedi-hook) )
 
 
 ;;;;; yasnippet
@@ -3163,9 +3198,6 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; python
 ;;;;; python
 ;; - Install:
-;; pip install pyflakes
-;; pip install autopep8
-;; you also need python-language-server installed and on your PATH
 ;; pip3 install -U setuptools
 ;; pip3 install python-language-server[all] --isolated
 ;; [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
@@ -3173,42 +3205,26 @@ Return its absolute path.  Otherwise, return nil."
 ;; - http://wikemacs.org/wiki/Python
 (use-package python
   :straight (python :type built-in)
-  :defines gud-pdb-command-name pdb-path flycheck-disabled-checkers
-  :interpreter "python"
   :bind (:map python-mode-map
-              ("<backtab>" . python-back-indent)
-              ("<f9>" . py-insert-debug))
-  :hook ((python-mode . flycheck-mode)
-         (python-mode . (lambda ()
-                          (add-to-list 'flycheck-disabled-checkers 'python-pylint)))
-         )
-  :mode (("\\.py$" . python-mode)
-         ("\\.cpy$" . python-mode)
-         ("\\.vpy$" . python-mode))
+              ("s-\\" . python-insert-docstring) )
   :config
   (setq python-shell-interpreter "ipython"
         python-shell-interpreter-args "--simple-prompt -i")
 
+  (setq
+        lsp-pyls-plugins-jedi-completion-enabled t
+        lsp-pyls-plugins-pylint-enabled t
+        lsp-pyls-plugins-pydocstyle-enabled t
+        lsp-pyls-plugins-rope-completion-enabled t
+        lsp-pyls-plugins-flake8-enabled t
+        lsp-pyls-plugins-mypy-enabled t
+        lsp-pyls-plugins-black-enabled t
+        )
+
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
     "This string is ignored!"
-    "\"\"\"" - "\n\n    \"\"\"")
-
-  (define-key python-mode-map (kbd "s-\\") 'python-insert-docstring)
-
-  (setq fill-column 79)
-  (setq-default flycheck-flake8rc "~/.config/flake8rc")
-  (setq python-check-command "flake8")
-  (setq tab-width 2)
-
-  ;; Disable readline based native completion
-  (setq python-shell-completion-native-enable nil)
-
-  (add-hook 'inferior-python-mode-hook
-            (lambda ()
-              ;; (bind-key "C-c C-z" #'kill-buffer-and-window inferior-python-mode-map)
-              (process-query-on-exit-flag (get-process "Python"))))
-  )
+    "\"\"\"" - "\n\n    \"\"\"")  )
 
 
 ;;;;; live-py-mode
@@ -3218,17 +3234,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; running your code.
 ;; - https://github.com/donkirkby/live-py-plugin
 (use-package live-py-mode)
-
-
-;;;;; yapfify
-;; - Format python buffer using YAPF
-;; - Install: pip install yapf
-;; - https://github.com/JorisE/yapfify
-(use-package yapfify
-  :diminish yapf-mode
-  ;;:hook (python-mode . yapf-mode)
-  ;; remove automatic formatting during save
-  )
 
 
 ;;;;; ein
@@ -3429,6 +3434,15 @@ Return its absolute path.  Otherwise, return nil."
           (other . "java"))))
 
 
+;;;;; ccls
+;; - c++-mode, objc-mode, cuda-mode: lsp server
+;; - used for both lsp & eglot so no :if statement
+;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
+
+
 ;;;;; modern-cpp-font-lock
 ;; - Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
 ;; - [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
@@ -3499,87 +3513,6 @@ Return its absolute path.  Otherwise, return nil."
   (let ((default '("/usr/include/" "/usr/local/include/")))
     (company-arduino-append-include-dirs default t)))
 (setq company-c-headers-path-system 'my-company-c-headers-get-system-path))
-
-
-;;;;; irony
-;; - a C/C++ minor mode powered by libclang
-;; - [[https://github.com/Sarcasm/irony-mode][Irony-Mode]]
-(use-package irony
-  :straight (irony
-             :type git
-             :host gihub
-             :repo "Sarcasm/irony-mode")
-  :hook (((c++-mode c-mode objc-mode arduino-mode) . irony-mode)
-         (irony-mode . irony-cdb-autosetup-compile-options)
-         (irony-mode . imenu-add-menubar-index)
-         )
-  :bind (:map irony-mode-map
-              ([remap completion-at-point] . irony-completion-at-point-async)
-              ([remap complete-symbol] . irony-completion-at-point-async))
-  :init
-  (defcustom irony-supported-major-modes '(arduino-mode
-                                           c++-mode
-                                           c-mode
-                                           objc-mode)
-    "List of modes known to be compatible with Irony."
-    :type '(repeat symbol)
-    :group 'irony)
-  (add-to-list 'load-path "~/.emacs.d/straight/build/")
-  (add-to-list 'load-path "~/.emacs.d/straight/repos/")
-  (add-to-list 'load-path "~/.emacs.d/irony/bin/")
-  :config
-  (push 'arduino-mode irony-supported-major-modes)  )
-
-
-;;;;; irony-eldoc
-;; - eldoc support in irony-mode
-;; - [[https://github.com/ikirill/irony-eldoc][irony-eldoc]]
-(use-package irony-eldoc
-  :straight (irony-eldoc
-             :type git
-             :host github
-             :repo "ikirill/irony-eldoc")
-  :hook (c++-mode . irony-eldoc))
-
-
-;;;;; company-irony
-;; - provides a company-mode asynchronous completion backend for the C, C++ and Objective-C languages
-;; - [[https://github.com/Sarcasm/company-irony][company-irony]]
-(use-package company-irony
-  :after company
-  :straight (company-irony
-             :type git
-             :host github
-             :repo "Sarcasm/company-irony")
-  :config
-  (add-to-list 'company-backends 'company-irony))
-
-
-;;;;; company-arduino
-;; - set of configuration to let you auto-completion by using
-;;   irony-mode, company-irony and company-c-headers on arduino-mode
-;; - [[https://github.com/yuutayamada/company-arduino][company-arduino]]
-(use-package company-arduino
-  :straight (company-arduino
-             :type git
-             :host github
-             :repo "yuutayamada/company-arduino")
-  :hook ((irony-mode . company-arduino-turn-on)
-         (arduino-mode . irony-mode))
-  :config
-  (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
-  (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
-
-
-;;;;; flycheck-irony
-;; - flyckeck checker for the C, C++ and Objective-C languages
-;; - [[https://github.com/Sarcasm/flycheck-irony][flycheck-irony]]
-(use-package flycheck-irony
-  :straight (flycheck-irony
-             :type git
-             :host github
-             :repo "Sarcasm/flycheck-irony")
-  :hook (flycheck-mode . flycheck-irony-setup))
 
 
 ;;;;; platformio-mode
