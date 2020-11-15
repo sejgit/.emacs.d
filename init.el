@@ -190,15 +190,6 @@
   (error "This requires Emacs 26 and above")
   )
 
-;; Use a hook so the message doesn't get clobbered by other messages.
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done)))
-
 ;; Turn off mouse interface early in startup to avoid momentary display
 (menu-bar-mode t)
 (tool-bar-mode -1)
@@ -315,7 +306,6 @@
 ;;;;;; OSX & Linux
 ;; - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
 ;; - set-up exec-path and hook for server-start
-
 (when (or sys/macp sys/linuxp)
   (setq exec-path (append exec-path '("/usr/local/bin")))
   (use-package exec-path-from-shell
@@ -783,8 +773,8 @@ Return its absolute path.  Otherwise, return nil."
 (use-package modus-themes
   :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
   :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
- :config
-(dolist (theme '("operandi" "vivendi"))
+  :config
+  (dolist (theme '("operandi" "vivendi"))
     (contrib/format-sexp
      (defun prot/modus-%1$s ()
        (setq modus-%1$s-theme-bold-constructs nil
@@ -854,7 +844,6 @@ Return its absolute path.  Otherwise, return nil."
 (when sys/mac-x-p
   (use-package ns-auto-titlebar
     :config
-
     (add-to-list 'default-frame-alist '(ns-appearance . dark))
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-hook 'after-load-theme-hook
@@ -1556,15 +1545,11 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/Wilfred/ag.el
 (when (executable-find "ag")
   (use-package ag
-    ;; :after counsel
     :commands ag
-    ;; :bind (:map sej-mode-map
-    ;;             ("s-a" . counsel-projectile-ag)
-    ;;             ("H-a" . counsel-ag)
-    ;; )
     :config
     (setq ag-executable (executable-find "ag")))
   (setq-default ag-highlight-search t)
+
 
 ;;;;; helm-ag
   ;; - silver searcher helm narrowing
@@ -1572,8 +1557,7 @@ Return its absolute path.  Otherwise, return nil."
   (use-package helm-ag
     :bind(:map sej-mode-map
                ("s-a" . helm-projectile-ag)
-               ("H-a" . helm-ag) ))
-  )
+               ("H-a" . helm-ag) ))  )
 
 
 ;;;;; re-builder
@@ -2020,13 +2004,13 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; highlight-indent-guides
 ;; - Highlight indentations
 ;; - https://github.com/DarthFennec/highlight-indent-guides
-(when (display-graphic-p)
-  (use-package highlight-indent-guides
-    :diminish
-    :hook (prog-mode . highlight-indent-guides-mode)
-    :config
-    (setq highlight-indent-guides-method 'character)
-    (setq highlight-indent-guides-responsive 'stack)))
+(use-package highlight-indent-guides
+  :if window-system
+  :diminish
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character)
+  (setq highlight-indent-guides-responsive 'stack))
 
 
 ;;;;; rainbow-mode
@@ -2277,6 +2261,8 @@ Return its absolute path.  Otherwise, return nil."
            bash-mode
            c++-mode
            c-mode
+           objc-mode
+           cuda-mode
            cmake-mode
            fortran-mode
            go-mode
@@ -2289,7 +2275,6 @@ Return its absolute path.  Otherwise, return nil."
            ruby-mode
            rust-mode
            sql-mode
-           swift-mode
            yaml-mode
            ) . lsp)
          ;; if you want which-key integration
@@ -2498,9 +2483,9 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/jacktasia/dumb-jump
 (use-package dumb-jump
   :after hydra
-  :hook (emacs-startup . dumb-jump-mode)
+  :hook ((emacs-startup . dumb-jump-mode)
+         (xref-backend-functions . dumb-jump-xref-activate))
   :defines sej-mode-map
-  :functions dumb-jump-hydra/body
   :bind (:map sej-mode-map
               ("M-g o" . dumb-jump-go-other-window)
               ("M-g j" . dumb-jump-go)
@@ -2508,38 +2493,7 @@ Return its absolute path.  Otherwise, return nil."
               ("M-g x" . dumb-jump-go-prefer-external)
               ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
-  (setq dumb-jump-prefer-searcher 'ag)
-  ;; (with-eval-after-load 'ivy
-  ;;   (setq dumb-jump-selector 'ivy))
-
-  (add-to-list 'dumb-jump-language-file-exts  '(:language "elisp" :ext ".org[ emacs-lisp ]*]" :agtype "elisp" :rgtype "elisp"))
-
-  (defun dumb-jump-get-language-from-mode ()
-    "Extract the language from the 'major-mode' name.  Currently just everything before '-mode'."
-    (let* ((lookup '(sh "shell" cperl "perl" matlab "matlab" emacs-lisp "elisp"))
-           (m (dumb-jump-get-mode-base-name))
-           (result (plist-get lookup (intern m))))
-      result))
-
-  (defhydra hydra-dumb-jump (:color blue :hint none)
-    "
-      ^Jump^                            ^Other^
-      ^^────────────────────────────────^^───────────────
-      _j_: Go                           _i_: Prompt
-      _o_: Go other window              _l_: Quick look
-      _e_: Go external                  _b_: Back
-      _x_: Go external other window
-      "
-    ("j" dumb-jump-go "Go")
-    ("o" dumb-jump-go-other-window "Go other window")
-    ("e" dumb-jump-go-prefer-external "Go external")
-    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-    ("i" dumb-jump-go-prompt "Prompt")
-    ("l" dumb-jump-quick-look "Quick look")
-    ("b" dumb-jump-back "Back")
-    ("q" nil "quit"))
-  (bind-key "M-g h" #'hydra-dumb-jump/body dumb-jump-mode-map))
-
+  (setq dumb-jump-prefer-searcher 'ag))
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
@@ -2636,7 +2590,7 @@ Return its absolute path.  Otherwise, return nil."
   :bind ("H-f" . projectile-find-file)
   :bind-keymap (  ("s-P" . projectile-command-map)
                   ("C-c p" . projectile-command-map))
-  :hook (sej/after-iinit . projectile-mode)
+  :hook (emacs-startup . projectile-global-mode)
   :init
   (setq projectile-mode-line-prefix "")
   (setq projectile-sort-order 'recentf)
@@ -3045,17 +2999,6 @@ Return its absolute path.  Otherwise, return nil."
   :hook (emacs-startup . sej/company-shell-hook) )
 
 
-;; ;;;;; company-jedi
-;; ;; - company-mode completion back-end for Python JEDI
-;; ;; - https://github.com/syohex/emacs-company-jedi
-;; (use-package company-jedi
-;;   :after company
-;;   :init
-;;   (defun sej/company-jedi-hook ()
-;;     (add-to-list 'company-backends 'company-jedi)  )
-;;   :hook (python-mode . sej/company-jedi-hook) )
-
-
 ;;;;; yasnippet
 ;; - short-cut completions
 ;; - https://github.com/joaotavora/yasnippet
@@ -3266,8 +3209,13 @@ Return its absolute path.  Otherwise, return nil."
 ;; - simple global minor mode which will replicate the changes done
 ;; by virtualenv activation inside Emacs
 ;; - https://github.com/jorgenschaefer/pyvenv
+;; You can use (add-dir-local-variable) to set pyvenv-workon for a particular project.
 (use-package pyvenv
-  :hook (pyvenv-post-activate . pyvenv-restart-python))
+  :hook (pyvenv-post-activate . pyvenv-restart-python)
+  :config
+  (setq pyvenv-workon ".python-environments/default") ; default venv
+  (pyvenv-tracking-mode 1) ; automatically use pyvenv-workon via dir-locals
+  )
 
 
 ;;;; web modes
@@ -3439,8 +3387,9 @@ Return its absolute path.  Otherwise, return nil."
 ;; - used for both lsp & eglot so no :if statement
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
-  :hook ((c-mode c++-mode objc-mode cuda-mode) .
-         (lambda () (require 'ccls) (lsp))))
+  :init (add-to-list 'auto-mode-alist '("\\.ino\\'" . c++-mode))
+  :config
+  '(ccls-initialization-options (quote (compilationDatabaseDirectory :build))))
 
 
 ;;;;; modern-cpp-font-lock
@@ -3472,29 +3421,13 @@ Return its absolute path.  Otherwise, return nil."
              :type git
              :host github
              :repo "motform/arduino-cli-mode")
-  :hook (arduino-mode . arduino-cli-mode)
+  :hook (c++-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
   :config
   (setq arduino-cli-warnings 'all
         arduino-cli-verify t
         arduino-cli-default-fqbn "esp8266:esp8266:d1"
         arduino-cli-default-port "/dev/cu.wchusbserial1430"))
-
-
-;;;;; arduino-mode
-;; - Upload [C-c C-c]  Build [C-c C-v]
-;; - use with package company-arduino to get Arduino code completing
-;; - https://github.com/stardiviner/arduino-mode/
-(use-package arduino-mode
-  :straight (arduino-mode
-             :type git
-             :host github
-             :repo "stardiviner/arduino-mode")
-  :mode "\\.ino$"
-  :hook (arduino-mode . imenu-add-menubar-index)
-  :config
-  (setq arduino-mode-home "/Users/stephenjenkins/Projects/sej/Arduino")
-  (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
 
 
 ;;;;; company-c-headers
@@ -3510,8 +3443,7 @@ Return its absolute path.  Otherwise, return nil."
   (add-to-list 'company-backends 'company-c-headers)
   (defun my-company-c-headers-get-system-path ()
   "Return the system include path for the current buffer."
-  (let ((default '("/usr/include/" "/usr/local/include/")))
-    (company-arduino-append-include-dirs default t)))
+  (let ((default '("/usr/include/" "/usr/local/include/")))))
 (setq company-c-headers-path-system 'my-company-c-headers-get-system-path))
 
 
@@ -3528,18 +3460,31 @@ Return its absolute path.  Otherwise, return nil."
              :type git
              :host github
              :repo "ZachMassia/PlatformIO-Mode")
-  :hook (c++-mode . platformio-conditionally-enable))
+  :hook ((c++-mode c-mode objc-mode cuda-mode) . platformio-conditionally-enable))
 
 
 ;;;;; swift-mode
 ;; - support for Apple's Swift programming language
 ;; - https://github.com/swift-emacs/swift-mode
 (use-package swift-mode
+  :hook (swift-mode . (lambda() (lsp)))
   :config
+  (require 'lsp-sourcekit)
   (use-package flycheck-swift
     :after flycheck
     :commands flycheck-swift-setup
     :init (flycheck-swift-setup)))
+
+
+;;;;; lsp-sourcekit for swift-mode
+;; - a client for sourcekit-lsp a swift/c/c++/objective-c language server created by apple
+;; - support for Apple's Swift programming language
+;; - [[https://github.com/emacs-lsp/lsp-sourcekit][lsp-sourcekit]]
+(use-package lsp-sourcekit
+  :after lsp-mode
+  :commands swift-mode
+  :config
+  (setq lsp-sourcekit-executable "/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
 
 
 ;;;;; rust-mode
@@ -3672,48 +3617,35 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; dashboard
 ;; - all-in-one start-up screen with current files / projects
 ;; - https://github.com/emacs-dashboard/emacs-dashboard
-(when sej-dashboard
   (use-package dashboard
+    :if (eq sej-dashboard t)
+    :straight (emacs-dashboard
+               :type git
+               :host github
+               :repo "emacs-dashboard/emacs-dashboard")
     :diminish (dashboard-mode page-break-lines-mode)
-    :bind (("<f6>" . open-dashboard)
+    :commands sej/open-dashboard
+    :hook (emacs-startup . sej/open-dashboard)
+    :bind (("<f6>" . sej/open-dashboard)
            (:map sej-mode-map
                  ("C-c s d" . sej/open-dashboard)))
-    :hook ( (emacs-startup . dashboard-setup-startup-hook)
-            (emacs-startup . sej/open-dashboard) )
     :config
     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-    (setq dashboard-startup-banner 'logo)
+    (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
     (setq dashboard-set-init-info t)
     (setq dashboard-items '((recents  . 15)
                             (bookmarks . 15)
                             (projects . 10)
                             (registers . 10)))
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (dashboard-setup-startup-hook)
+    (dashboard-insert-startupify-lists)
 
     (defun sej/open-dashboard ()
-      "Open the *dashboard* buffer and jump to the first widget."
+      "Move to the dashboard package buffer."
       (interactive)
-      ;; Check if need to recover layout
-      (if (> (length (window-list-1)))
-          (setq dashboard-recover-layout-p t))
-      (delete-other-windows)
-
-      ;; Refresh dashboard buffer
-      (if (get-buffer dashboard-buffer-name)
-          (kill-buffer dashboard-buffer-name))
-      (dashboard-insert-startupify-lists)
-      (switch-to-buffer dashboard-buffer-name)
-
-      ;; Jump to the first section
-      (goto-char (point-min))
-      (dashboard-goto-recent-files) )
-
-    (defun dashboard-goto-recent-files ()
-      "Go to recent files."
-      (interactive)
-      (funcall (local-key-binding "r")))
-
-    ))
-
+      (switch-to-buffer "*dashboard*") ) )
 
 
 ;;;;; page-break-lines
@@ -4460,7 +4392,6 @@ Return its absolute path.  Otherwise, return nil."
                                (sass . t)
                                (C . t)
                                (java . t)
-                               (arduino . t)
                                (shell . t)
                                ))
 
