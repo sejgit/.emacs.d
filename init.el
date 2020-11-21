@@ -51,6 +51,7 @@
 ;; - <2020-07-26 Sun> clean-up init files final move from org tangled
 ;; - <2020-09-21 Mon> small mods
 ;; - <2020-09-22 Tue> move to helm
+;; - <2020-11-21 Sat> move custom.el fonts to init.el
 
 ;;; Code:
 (message "Emacs start")
@@ -172,7 +173,6 @@
 ;; Load `custom-post.el'
 ;; Put personal configurations to override defaults here.
 ;; place to hold specific & secret stuff ~/.ssh is best
-(add-hook 'after-init-hook
           (progn
             (let ((file
                    (expand-file-name "custom-post.el" user-emacs-directory)))
@@ -182,7 +182,7 @@
                    (expand-file-name "custom-post.el" "~/.ssh/")))
               (if (file-exists-p file)
                   (load file)))
-            ))
+            )
 
 
 ;;;;; general settings
@@ -195,18 +195,16 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-;; No splash screen
-(setq inhibit-startup-message t)
+;; turn on syntax highlightng for all buffers
+(global-font-lock-mode t)
+
+(size-indication-mode 1)
+(blink-cursor-mode -1)
 
 ;; Set garbage collection threshold
 ;; From https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
 (setq gc-cons-threshold-original gc-cons-threshold)
 (setq gc-cons-threshold (* 1024 1024 1024 100))
-
-;; Set file-name-handler-alist
-;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
-(setq file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
 
 ;; Set deferred timer to reset them
 (run-with-idle-timer 5 nil
@@ -214,46 +212,14 @@
                        (setq gc-cons-threshold gc-cons-threshold-original)
                        (setq file-name-handler-alist file-name-handler-alist-original)))
 
-;; turn on syntax highlightng for all buffers
-(global-font-lock-mode t)
-
-;; raise the maximum number of logs in the *Messages* buffer
-(setq message-log-max 16384)
-
-;; wait a bit longer than the default 0.5s before assuming Emacs is idle
-(setq idle-update-delay 2)
-
-;; make gnutls a bit safer
-(setq gnutls-min-prime-bits 4096)
-
-;; remove irritating 'got redefined' messages
-(setq ad-redefinition-action 'accept)
-
-;; figure out current hostname
-(setq hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
-
-;; allow exit without asking to kill processes
-(setq confirm-kill-processes nil)
-
-(size-indication-mode 1)
-(blink-cursor-mode -1)
-(setq track-eol t) ; Keep cursor at end of lines. Require line-move-visual is nil.
-(setq line-move-visual nil)
-(setq inhibit-compacting-font-caches t) ; Don’t compact font caches during GC.
-
 ;; Don't use GTK+ tooltip
 (when (boundp 'x-gtk-use-system-tooltips)
   (setq x-gtk-use-system-tooltips nil))
-
-(setq-default locate-command "which")
 
 ;; The EMACS environment variable set to the binary path of emacs.
 (setenv "EMACS"
         (file-truename (expand-file-name
                         invocation-name invocation-directory)))
-
-;; set startup directory
-(setq default-directory "~/")
 
 
 ;;;;; Straight package manager set-up
@@ -299,6 +265,66 @@
 ;; ensure-system-package keyword to ensure system binaries exist alongside your package
 (use-package use-package-ensure-system-package)
 (use-package helm-system-packages)
+
+
+;;;;; cus-edit+
+;; - Enhancements to `cus-edit.el'
+;; - [[https://github.com/emacsmirror/cus-edit-plus/blob/master/cus-edit%2B.el][cus-edit+]]
+(use-package cus-edit+
+  :defer t
+  :custom
+  (custom-file null-device "Don't store customizations")
+  )
+
+
+;;;;; emacs settings
+;; - a use-package friendly place to put settings
+;;   no real extra value to putting as setq
+(use-package emacs
+      :straight (:type built-in)
+      :custom
+      ; don't litter my fs tree
+      (backup-directory-alist '(("." . ".saves")))
+
+      ;; No splash screen
+      (inhibit-startup-message t)
+
+      ;; raise the maximum number of logs in the *Messages* buffer
+      (message-log-max 16384)
+
+      ;; wait a bit longer than the default 0.5s before assuming Emacs is idle
+      (idle-update-delay 2)
+
+      ;; make gnutls a bit safer
+      (gnutls-min-prime-bits 4096)
+
+      ;; remove irritating 'got redefined' messages
+      (ad-redefinition-action 'accept)
+
+      ;; figure out current hostname
+      (hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
+
+      ;; allow exit without asking to kill processes
+      (confirm-kill-processes nil)
+
+      ; Keep cursor at end of lines. Require line-move-visual is nil.
+      (track-eol t)
+
+      (line-move-visual nil)
+
+      ; Don’t compact font caches during GC.
+      (inhibit-compacting-font-caches t)
+
+      ;; set startup directory
+      (default-directory "~/")
+
+      ;; Set file-name-handler-alist
+      ;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+      (file-name-handler-alist-original file-name-handler-alist)
+      (file-name-handler-alist nil)
+
+      (locate-command "which")
+)
 
 
 ;;;;; system settings
@@ -525,9 +551,6 @@ USAGE: (unbind-from-modi-map \"key f\")."
 
 ;; Align your code in a pretty way.
 (define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
-
-(define-key sej-mode-map (kbd "H-m") 'menu-bar-mode)
-(define-key sej-mode-map (kbd "H-i") 'emacs-init-time)
 
 
 ;;; general functions / packages
@@ -773,6 +796,9 @@ Return its absolute path.  Otherwise, return nil."
 (use-package modus-themes
   :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
   :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
+  :custom
+  (custom-safe-themes
+   '("32ecae1d95b8d684d99618ebc512e8e856dfaa1521a1124b3d97f004e6025c66" default))
   :config
   (dolist (theme '("operandi" "vivendi"))
     (contrib/format-sexp
@@ -808,10 +834,35 @@ Return its absolute path.  Otherwise, return nil."
 
 
 ;;;;; font
-(when sys/macp
-  (set-face-attribute 'default nil :font "SF Mono-13")
-  (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend)
-  )
+(when (display-graphic-p)
+  ;; Set default fonts
+  (cond
+   ((member "Source Code Pro" (font-family-list))
+    (set-face-attribute 'default nil :font "Source Code Pro"))
+   ((member "Menlo" (font-family-list))
+    (set-face-attribute 'default nil :font "Menlo"))
+   ((member "Monaco" (font-family-list))
+    (set-face-attribute 'default nil :font "Monaco"))
+   ((member "DejaVu Sans Mono" (font-family-list))
+    (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
+   ((member "Consolas" (font-family-list))
+    (set-face-attribute 'default nil :font "Consolas")))
+
+  (cond
+   (sys/mac-x-p
+    (set-face-attribute 'default nil :height 130)
+    (set-face-attribute 'default nil :font "SF Mono-13")
+    (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend))
+   (sys/win32p
+    (set-face-attribute 'default nil :height 110)))
+
+  ;; Specify fonts for all unicode characters
+  (cond
+   ((member "Apple Color Emoji" (font-family-list))
+    (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
+   ((member "Symbola" (font-family-list))
+    (set-fontset-font t 'unicode "Symbola" nil 'prepend))))
+
 
 
 ;;;; frames
@@ -1236,13 +1287,9 @@ Return its absolute path.  Otherwise, return nil."
 (use-package all-the-icons
   :if (display-graphic-p)
   :custom-face
-  ;; Reset colors since they are too dark in `doom-themes'
-  (all-the-icons-silver ((((background dark)) :foreground "#716E68")
-                         (((background light)) :foreground "#716E68")))
-  (all-the-icons-lsilver ((((background dark)) :foreground "#B9B6AA")
-                          (((background light)) :foreground "#7F7869")))
-  (all-the-icons-dsilver ((((background dark)) :foreground "#838484")
-                          (((background light)) :foreground "#838484")))
+ (all-the-icons-dsilver ((((background dark)) :foreground "#838484") (((background light)) :foreground "#838484")))
+ (all-the-icons-lsilver ((((background dark)) :foreground "#B9B6AA") (((background light)) :foreground "#7F7869")))
+ (all-the-icons-silver ((((background dark)) :foreground "#716E68") (((background light)) :foreground "#716E68")))
   :init
   (unless (or sys/win32p (member "all-the-icons" (font-family-list)))
     (all-the-icons-install-fonts t))
@@ -1345,9 +1392,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; automatically save place in files so return to same place in next session
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
 (save-place-mode 1)
-
-(setq-default backup-directory-alist
-              '(("." . ".saves")))    ; don't litter my fs tree
 
 (setq vc-make-backup-files t
       backup-by-copying t      ; don't clobber symlinks
@@ -1972,7 +2016,7 @@ Return its absolute path.  Otherwise, return nil."
              symbol-overlay-assoc
              symbol-overlay-get-list
              symbol-overlay-jump-call)
-  :bind (("M-i" . symbol-overlay-put)
+  :bind (("H-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
          ("M-N" . symbol-overlay-switch-forward)
@@ -2025,7 +2069,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; - Highlight TODO and similar keywords in comments and strings
 ;; - https://github.com/tarsius/hl-todo
 (use-package hl-todo
-  :custom-face (hl-todo ((t (:box t :inherit))))
+  :custom-face
+  (hl-todo ((t (:box t :inherit))))
   :bind (:map hl-todo-mode-map
               ([C-f3] . hl-todo-occur)
               ("C-c t o" . hl-todo-occur)
@@ -2528,6 +2573,9 @@ Return its absolute path.  Otherwise, return nil."
         ("s-f" . flycheck-list-errors)        )
   :init
   (global-flycheck-mode 1)
+  :custom-face
+   (flycheck-error ((((class color)) (:underline "Red"))))
+   (flycheck-warning ((((class color)) (:underline "Orange"))))
   :config
   (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
     (push-mark))
@@ -2536,10 +2584,6 @@ Return its absolute path.  Otherwise, return nil."
                                               mode-enabled
                                               idle-change
                                               idle-buffer-switch))
-  (custom-set-faces
-   '(flycheck-error ((((class color)) (:underline "Red"))))
-   '(flycheck-warning ((((class color)) (:underline "Orange")))))
-
   (setq flycheck-emacs-lisp-load-path 'inherit)
   (setq flycheck-python-flake8-executable "flake8")
   (setq flycheck-flake8-maximum-line-length 79)
