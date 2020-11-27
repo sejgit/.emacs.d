@@ -12,6 +12,7 @@
 .dap-*
 .persistent-scratch
 .python-environments/
+.savehist
 .saves/
 .vscode/
 /.agignore
@@ -48,10 +49,12 @@
 /scratch
 /smex-items
 /tramp
+annotations
 CMakeCache.txt
 CMakeFiles/
 CTestTestfile.cmake
 DartConfiguration.tcl
+desktop
 Makefile
 Projects
 README.html

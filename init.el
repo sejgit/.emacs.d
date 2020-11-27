@@ -57,19 +57,61 @@
 (message "Emacs start")
 
 ;;; initialize environment
-;;;;; system constants
-;; - section for global constants
-
+;;;;; debug
 ;; only turned on when needed
 ;;(setq debug-on-error t)
 ;;(setq debug-on-event t)
 ;;(setq debug-on-message "Problems while trying to load feature ‘org-man’")
 
 
-(defconst sej-homepage
-  "https://github.com/sejgit/.emacs.d"
-  "The Github page of SeJ Emacs.")
+;;;;; Straight package manager set-up
+(setq straight-use-package-by-default t)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
+
+;;;;; Use-Package set-up
+;; - https://github.com/jwiegley/use-package
+;; - https://github.com/emacsmirror/diminish
+;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
+
+(straight-use-package 'use-package)
+
+;; Should set before loading `use-package'
+(eval-and-compile
+  (setq use-package-always-ensure t)
+  (setq use-package-always-defer t)
+  (setq use-package-expand-minimally t)
+  (setq use-package-enable-imenu-support t))
+
+(eval-when-compile
+  (require 'use-package))
+
+;; Required by `use-package'
+(use-package diminish)
+(use-package bind-key
+  :bind ("H-d" . describe-personal-keybindings))
+
+;; Auto installing OS system packages
+;; ensure-system-package keyword to ensure system binaries exist alongside your package
+(use-package use-package-ensure-system-package
+  :ensure t)
+(use-package helm-system-packages)
+
+
+;;;;; system custom constants
+;; - section for global constants
 (defconst sys/win32p
   (eq system-type 'windows-nt)
   "Are we running on a WinTel system?")
@@ -107,12 +149,41 @@
   "Emacs is 27 or above.")
 
 
+;;;;; should i even be here
+(when (not emacs/>=26p)
+  (error "This requires Emacs 26 and above")
+  )
+
+
+;;;;; Server set-up
+;; set-up server & suppress warnings
+;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
+(use-package emacs
+  :when (or sys/macp sys/linuxp)
+  :straight (:type built-in)
+  :hook (emacs-startup . sej/server-mode)
+  :custom
+  ;; remove warnings for cl depreciated and server already running
+  (warning-suppress-types (quote ((cl server)))) ;TODO add iedit
+  :config
+  (require 'warnings)
+  (defun sej/server-mode ()
+    "Start server-mode without errors"
+    (interactive)
+    (with-demoted-errors
+        (message "Server exists -- not starting new one.")
+      (server-mode)      )    )  )
+
+
 ;;;;; customization variables set
 ;; - set-up Emacs customizations choices which are then modified by custom.el
-
 (defgroup sej nil
   "SeJ Emacs customizations."
   :group 'convenience)
+
+(defcustom sej-homepage "https://github.com/sejgit/.emacs.d"
+  "The Github page of Emacs Owner."
+  :type 'string  )
 
 (defcustom sej-full-name "Stephen Jenkins"
   "Set user full name."
@@ -157,7 +228,16 @@
   "Directory for Latex."
   :type 'string)
 
-;; Load `custom-file'
+(defcustom sej-irc-nick "nick"
+  "Nickname for ERC/IRC."
+  :type 'string)
+
+(defcustom sej-irc-pass "pass"
+  "Password for ERC/IRC."
+  :type 'string)
+
+
+;;;;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
@@ -170,7 +250,8 @@
 (if (file-exists-p custom-file)
     (load custom-file))
 
-;; Load `custom-post.el'
+
+;;;;; Load `custom-post.el'
 ;; Put personal configurations to override defaults here.
 ;; place to hold specific & secret stuff ~/.ssh is best
           (progn
@@ -181,90 +262,7 @@
             (let ((file
                    (expand-file-name "custom-post.el" "~/.ssh/")))
               (if (file-exists-p file)
-                  (load file)))
-            )
-
-
-;;;;; general settings
-(when (not emacs/>=26p)
-  (error "This requires Emacs 26 and above")
-  )
-
-;; Turn off mouse interface early in startup to avoid momentary display
-(menu-bar-mode t)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-
-;; turn on syntax highlightng for all buffers
-(global-font-lock-mode t)
-
-(size-indication-mode 1)
-(blink-cursor-mode -1)
-
-;; Set garbage collection threshold
-;; From https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
-(setq gc-cons-threshold-original gc-cons-threshold)
-(setq gc-cons-threshold (* 1024 1024 1024 100))
-
-;; Set deferred timer to reset them
-(run-with-idle-timer 5 nil
-                     (lambda ()
-                       (setq gc-cons-threshold gc-cons-threshold-original)
-                       (setq file-name-handler-alist file-name-handler-alist-original)))
-
-;; Don't use GTK+ tooltip
-(when (boundp 'x-gtk-use-system-tooltips)
-  (setq x-gtk-use-system-tooltips nil))
-
-;; The EMACS environment variable set to the binary path of emacs.
-(setenv "EMACS"
-        (file-truename (expand-file-name
-                        invocation-name invocation-directory)))
-
-
-;;;;; Straight package manager set-up
-(setq straight-use-package-by-default t)
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-
-;;;;; Use-Package set-up
-;; - https://github.com/jwiegley/use-package
-;; - https://github.com/emacsmirror/diminish
-;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
-
-(straight-use-package 'use-package)
-
-;; Should set before loading `use-package'
-(eval-and-compile
-  (setq use-package-always-ensure t)
-  (setq use-package-always-defer t)
-  (setq use-package-expand-minimally t)
-  (setq use-package-enable-imenu-support t))
-
-(eval-when-compile
-  (require 'use-package))
-
-;; Required by `use-package'
-(use-package diminish)
-(use-package bind-key
-  :bind ("H-d" . describe-personal-keybindings))
-
-;; Auto installing OS system packages
-;; ensure-system-package keyword to ensure system binaries exist alongside your package
-(use-package use-package-ensure-system-package)
-(use-package helm-system-packages)
+                  (load file))) )
 
 
 ;;;;; cus-edit+
@@ -273,101 +271,194 @@
 (use-package cus-edit+
   :defer t
   :custom
-  (custom-file null-device "Don't store customizations")
-  )
+  (custom-file null-device "Don't store customizations")  )
 
 
-;;;;; emacs settings
+;;;;; exec-path-from-shell
+  ;; - set-up exec-path and hook for server-start
+  ;; - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
+  (use-package exec-path-from-shell
+    :when (or sys/macp sys/linuxp)
+    :init
+    (setq exec-path-from-shell nil)
+    (setq exec-path-from-shell-check-startup-files nil)
+    (exec-path-from-shell-initialize))
+
+
+;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
 ;;   no real extra value to putting as setq
 (use-package emacs
-      :straight (:type built-in)
-      :custom
-      ; don't litter my fs tree
-      (backup-directory-alist '(("." . ".saves")))
-
-      ;; No splash screen
-      (inhibit-startup-message t)
-
-      ;; raise the maximum number of logs in the *Messages* buffer
-      (message-log-max 16384)
-
-      ;; wait a bit longer than the default 0.5s before assuming Emacs is idle
-      (idle-update-delay 2)
-
-      ;; make gnutls a bit safer
-      (gnutls-min-prime-bits 4096)
-
-      ;; remove irritating 'got redefined' messages
-      (ad-redefinition-action 'accept)
-
-      ;; figure out current hostname
-      (hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" (with-output-to-string (call-process "hostname" nil standard-output))))
-
-      ;; allow exit without asking to kill processes
-      (confirm-kill-processes nil)
-
-      ; Keep cursor at end of lines. Require line-move-visual is nil.
-      (track-eol t)
-
-      (line-move-visual nil)
-
-      ; Don’t compact font caches during GC.
-      (inhibit-compacting-font-caches t)
-
-      ;; set startup directory
-      (default-directory "~/")
-
-      ;; Set file-name-handler-alist
-      ;; Also from https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
-      (file-name-handler-alist-original file-name-handler-alist)
-      (file-name-handler-alist nil)
-
+  :straight (:type built-in)
+  :custom
+;;;;;; general
+      (inhibit-startup-message t "No splash screen.")
+      (inhibit-startup-screen t)
+      (inhibit-startup-echo-area-message t)
+      (use-file-dialog nil)
+      (default-directory 'HOME "Set startup directory.")
       (locate-command "which")
-)
+      (message-log-max 16384 "Raise the maximum number of logs in the *Messages* buffer.")
+      (gnutls-min-prime-bits 4096 "Make gnutls a bit safer.")
+      (ad-redefinition-action 'accept "Remove irritating 'got redefined' messages.")
+      (hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" ""
+                                          (with-output-to-string (call-process "hostname"
+                                                                               nil
+                                                                               standard-output)))
+                "Figure out current hostname.")
+      (confirm-kill-processes nil "Allow exit without asking to kill processes.")
+      (visible-bell t "Flash for bell.")
+      (inhibit-compacting-font-caches t "Don’t compact font caches during GC.")
+      (use-dialog-box nil "Use echo areas for yes-no as well as file.")
+      (case-fold-search 1 "Ignore case when searching.")
+      (track-eol t "Keep cursor at end of lines. Require line-move-visual is nil.")
+      (line-move-visual nil "Move by logical not visual lines.")
+      (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
+      (next-line-add-newlines t "Add a new line when going to the next line.")
+      (auto-window-vscroll nil "Speed up next-line significantly; does not trigger line-move-partial.")
 
+;;;;;; whitespace and end-of-buffer settings
+      (indicate-empty-lines t)
+      (indicate-buffer-boundaries t)
+      (show-trailing-whitespace nil)
+      (mode-require-final-newline nil)
+      (require-final-newline nil)
 
-;;;;; system settings
-;; - Set environment variables based on current system
-;;;;;; OSX & Linux
-;; - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
-;; - set-up exec-path and hook for server-start
-(when (or sys/macp sys/linuxp)
-  (setq exec-path (append exec-path '("/usr/local/bin")))
-  (use-package exec-path-from-shell
-    :init
-    (setq exec-path-from-shell t)
-    (setq exec-path-from-shell-check-startup-files nil)
-    (exec-path-from-shell-initialize))
-  (add-hook 'emacs-startup-hook 'sej/server-mode)
+;;;;;; keep cursor at same position when scrolling
+      (scroll-preserve-screen-position 1)
+      (scroll-margin 3)
 
-  (require 'warnings)
-  (customize-save-variable 'warning-suppress-types (quote ((server))))
+;;;;;; long line settings
+      (truncate-lines 1)
+      (font-lock-maximum-decoration t)
+      (truncate-partial-width-windows 1)
 
-  (defun sej/server-mode ()
-    "Start server-mode without errors"
-    (interactive)
-    (with-demoted-errors
-        (message "Server exists -- not starting new one.")
-      (server-mode)
+;;;;;; compile settings
+      (compilation-scroll-output 'first-error "Compilation buffers follow the output stop at first error.")
+
+;;;;;; backups
+      (backup-directory-alist '(("." . ".saves")) "Don't litter my fs tree.")
+      (vc-make-backup-files t)
+      (backup-by-copying t)
+      (delete-old-versions t)
+      (kept-new-versions 6)
+      (kept-old-versions 2)
+      (version-control t)
+
+;;;;;; mouse
+      (make-pointer-invisible t "Hide mouse while typing.")
+
+;;;;;; kill & clipboard settings
+      ;; Save whatever’s in the current (system) clipboard before
+      ;; replacing it with the Emacs’ text.
+      ;; https://github.com/dakrone/eos/blob/master/eos.org
+      (save-interprogram-paste-before-kill t)
+      (kill-read-only-ok t "Ok to kill read-only buffers.")
+      (kill-buffer-query-functions
+            (remq 'process-kill-buffer-query-function
+                  kill-buffer-query-functions)
+            "Remove kill buffer with live process prompt.")
+      (select-enable-clipboard t)
+
+;;;;;; uniquify settings
+      (uniquify-buffer-name-style 'post-forward-angle-brackets "Show path if names are same.")
+      (uniquify-separator " • ")
+      (uniquify-after-kill-buffer-p t)
+      (uniquify-ignore-buffers-re "^\\*")
+
+;;;;;; adaptive fill settings
+      (adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
+      (adaptive-fill-first-line-regexp "^* *$")
+
+      :config
+      ;; color codes
+      (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
+
+      ;; UTF-8 please
+      (setq locale-coding-system 'utf-8) ; pretty
+      (set-terminal-coding-system 'utf-8) ; pretty
+      (set-keyboard-coding-system 'utf-8) ; pretty
+      (set-selection-coding-system 'utf-8) ; please
+      (prefer-coding-system 'utf-8) ; with sugar on top
+
+      (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
+      (if sys/macp (setq trash-directory "~/.Trash"))
+
+      (add-hook 'before-save-hook 'time-stamp)   ; update time-stamps in files
+
+      ;; yes and no settings
+      (defalias 'yes-or-no-p 'y-or-n-p)
+
+      ;; Automatically update unmodified buffers whose files have changed.
+      (global-auto-revert-mode 1)
+
+      (show-paren-mode t)
+
+      ;; Add proper word wrapping
+      (global-visual-line-mode t)
+
+      ;; clean up interface early in startup to avoid momentary display
+      (menu-bar-mode t)
+      (tool-bar-mode -1)
+      (scroll-bar-mode -1)
+
+      ;; turn on syntax highlightng for all buffers
+      (global-font-lock-mode t)
+
+      (blink-cursor-mode -1)
+
+      ;; Set garbage collection threshold
+      (defun sej-minibuffer-setup-hook ()
+        (setq gc-cons-threshold most-positive-fixnum))
+
+      (defun sej-minibuffer-exit-hook ()
+        (setq gc-cons-threshold 800000))
+
+      (add-hook 'minibuffer-setup-hook #'sej-minibuffer-setup-hook)
+      (add-hook 'minibuffer-exit-hook #'sej-minibuffer-exit-hook)
+
+      ;; Don't use GTK+ tooltip
+      (when (boundp 'x-gtk-use-system-tooltips)
+        (setq x-gtk-use-system-tooltips nil))
+
+      ;; windows
+      (window-divider-mode)
       )
-    )
+
+
+;;;;; OSX System specific environment setting
+(when sys/macp
+  (setq exec-path (append exec-path '("/usr/local/bin")))
   )
 
 
-;;;;;; Windows
-;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
-;; (when sys/win32p
-;;   (setenv "PATH"
-;;           (mapconcat
-;;            #'identity exec-path path-separator))
-;;   ;; set exec-path for latex installation
-;;   (setq exec-path (append (list sej-latex-directory
-;;                                 "c:/msys64/mingw64/bin"
-;;                                 "/mingw64/bin/") exec-path))
-;;   ;; load AutoHotkey mode
-;;   (use-package xahk-mode
-;;     :straight (xahk-mode.el :type git :host github :repo "xahlee/xahk-mode.el") ))
+;;;;; Linux System specific environment setting
+(when sys/linuxp
+  (setq exec-path (append exec-path '("/usr/local/bin")))
+  )
+
+
+;;;;; Microsoft Windows specific environment settings
+;; set execution paths
+(when sys/win32p
+  (setenv "PATH"
+          (mapconcat
+           #'identity exec-path path-separator))
+
+  ;; set exec-path for latex installation
+  (setq exec-path (append (list sej-latex-directory
+                                "c:/msys64/mingw64/bin"
+                                "/mingw64/bin/") exec-path))
+  )
+
+;;;;; AutoHotkey Mode xahk-mode
+  ;; - load AutoHotkey mode only used for Microsoft Windows
+  ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
+  (use-package xahk-mode
+    :when sys/win32p
+    :straight (xahk-mode.el :type git
+                            :host github
+                            :repo "xahlee/xahk-mode.el") )
 
 
 ;;; general keybindings
@@ -509,7 +600,7 @@
 
 ;; Turn off the minor mode in the minibuffer
 (defun turn-off-sej-mode ()
-  "Turn off sej-mode."
+  "Turn off 'sej-mode'."
   (sej-mode -1))
 (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
 
@@ -785,13 +876,6 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;; user interface
 ;;;; themes
-;;;;; suppress GUI features
-(setq use-file-dialog nil)
-(setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-echo-area-message t)
-
-
 ;;;;; modus themes
 (use-package modus-themes
   :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
@@ -1074,6 +1158,7 @@ Return its absolute path.  Otherwise, return nil."
 (add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
 
 
+;;;; scratch buffer
 ;;;;; scratch buffer set-up
 ;; - initial message
 ;; - bury don't kill scratch
@@ -1132,52 +1217,56 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; windows
 ;;;;; window key-bindings
 ;; super versions of C-x window bindings
-(define-key sej-mode-map (kbd "s-0") 'delete-window)
-(define-key sej-mode-map (kbd "s-1") 'delete-other-windows)
-(define-key sej-mode-map (kbd "s-2") 'split-window-vertically)
-(define-key sej-mode-map (kbd "s-3") 'split-window-right)
+(use-package emacs
+  :bind (:map sej-mode-map
+         ("s-0" . delete-window)
+         ("s-1" . delete-other-windows)
+         ("s-2" . split-window-vertically)
+         ("s-3" . split-window-right)
+         ("s-7" .  (lambda () (interactive)
+                     (save-excursion
+                       (other-window 1)
+                       (quit-window))))
 
-(define-key sej-mode-map (kbd "s-7") (lambda () (interactive)
-                                       (save-excursion
-                                         (other-window 1)
-                                         (quit-window))))
+         ;; wind move to multifram window
+         ("M-'" . next-multiframe-window)
 
-;; wind move to multifram window
-(define-key sej-mode-map (kbd "M-'") 'next-multiframe-window)
+         ;; movement complementary to windmove / windswap
+         ("H-h" . left-char)
+         ("H-j" . up-char)
+         ("H-k" . down-char)
+         ("H-l" . right-char)
 
-;; movement complementary to windmove / windswap
-(define-key sej-mode-map (kbd "H-h") 'left-char)
-(define-key sej-mode-map (kbd "H-j") 'up-char)
-(define-key sej-mode-map (kbd "H-k") 'down-char)
-(define-key sej-mode-map (kbd "H-l") 'right-char)
-
-;;scroll window up/down by one line
-(define-key sej-mode-map (kbd "A-n") (lambda () (interactive) (scroll-up 1)))
-(define-key sej-mode-map (kbd "A-p") (lambda () (interactive) (scroll-down 1)))
+         ;;scroll window up/down by one line
+         ("A-n" . (lambda () (interactive) (scroll-up 1)))
+         ("A-p" . (lambda () (interactive) (scroll-down 1))) ) )
 
 
 ;;;;; windmove
 ;; built-in window movement
-;; down
-(define-key sej-mode-map (kbd "A-<down>") 'windmove-down)
-(define-key sej-mode-map (kbd "A-k") 'windmove-down)
-(define-key sej-mode-map (kbd "S-A-<down>") 'windmove-delete-down)
-(define-key sej-mode-map (kbd "A-K") 'windmove-delete-down)
-;; up
-(define-key sej-mode-map (kbd "A-<up>") 'windmove-up)
-(define-key sej-mode-map (kbd "A-j") 'windmove-up)
-(define-key sej-mode-map (kbd "S-A-<up>") 'windmove-delete-up)
-(define-key sej-mode-map (kbd "A-J") 'windmove-delete-up)
-;; left
-(define-key sej-mode-map (kbd "A-<left>") 'windmove-left)
-(define-key sej-mode-map (kbd "A-h") 'windmove-left)
-(define-key sej-mode-map (kbd "S-A-<left>") 'windmove-delete-left)
-(define-key sej-mode-map (kbd "A-H") 'windmove-delete-left)
-;; right
-(define-key sej-mode-map (kbd "A-<right>") 'windmove-right)
-(define-key sej-mode-map (kbd "A-l") 'windmove-right)
-(define-key sej-mode-map (kbd "S-A-<right>") 'windmove-delete-right)
-(define-key sej-mode-map (kbd "A-L") 'windmove-delete-right)
+(use-package emacs
+  :bind (:map sej-mode-map
+              ;; down
+              ("A-<down>" . windmove-down)
+              ("A-k" . windmove-down)
+              ("S-A-<down>" . windmove-delete-down)
+              ("A-K" . windmove-delete-down)
+              ;; up
+              ("A-<up>" . windmove-up)
+              ("A-j" . windmove-up)
+              ("S-A-<up>" . windmove-delete-up)
+              ("A-J" . windmove-delete-up)
+              ;; left
+              ("A-<left>" . windmove-left)
+              ("A-h" . windmove-left)
+              ("S-A-<left>" . windmove-delete-left)
+              ("A-H" . windmove-delete-left)
+              ;; right
+              ("A-<right>" . windmove-right)
+              ("A-l" . windmove-right)
+              ("S-A-<right>" . windmove-delete-right)
+              ("A-L" . windmove-delete-right)
+              ))
 
 
 ;;;;; windswap
@@ -1190,15 +1279,6 @@ Return its absolute path.  Otherwise, return nil."
                ("A-s-l" . windswap-right)
                ("A-s-j" . windswap-up)
                ("A-s-k" . windswap-down)))  )
-
-
-;;;;; mouse & smooth scroll
-;; - Scroll one line at a time (less "jumpy" than defaults)
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil)
-(setq scroll-step 1
-      scroll-margin 0
-      scroll-conservatively 100000)
 
 
 ;;;;; ace-window
@@ -1261,7 +1341,6 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-github t)
-  (setq doom-modeline-indent-info t)
   (setq doom-modeline-persp-name nil))
 
 (defun mode-line-height ()
@@ -1345,101 +1424,15 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;; text manipulation
 ;;;; text manipulation settings
-;; yes and no settings
-(defalias 'yes-or-no-p 'y-or-n-p)
-
-;; do/don't indicate empty or end of a buffer
-(setq-default indicate-empty-lines t)
-(setq-default indicate-buffer-boundaries t)
-(setq-default show-trailing-whitespace nil)
-(setq-default mode-require-final-newline nil)
-(setq-default require-final-newline nil)
-
-;;keep cursor at same position when scrolling
-(setq scroll-preserve-screen-position 1)
-(setq scroll-margin 3)
-
-;; each line of text gets one line on the screen
-(setq-default truncate-lines 1)
-(setq font-lock-maximum-decoration t
-      truncate-partial-width-windows 1)
-
-;; ignore case when searching
-(setq-default case-fold-search 1)
-
-;; add a new line when going to the next line
-(setq next-line-add-newlines t)
-
-;;(transient-mark-mode t)
-(setq select-enable-clipboard t)
-
-;; Automatically update unmodified buffers whose files have changed.
-(global-auto-revert-mode 1)
-
-;; Make compilation buffers scroll to follow the output, but stop scrolling
-;; at the first error.
-(setq compilation-scroll-output 'first-error)
-
-;; echo keystrokes ; no dialog boxes ; visable bell ; highlight parens
-(setq echo-keystrokes 0.1)
-(setq use-dialog-box nil
-      visible-bell t)
-(show-paren-mode t)
-
-;; Add proper word wrapping
-(global-visual-line-mode t)
-
+;;;;; saveplace
 ;; automatically save place in files so return to same place in next session
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
-(save-place-mode 1)
+(use-package saveplace
+  :straight (:type built-in)
+  :hook (emacs-startup . save-place-mode)
+  :custom
+  (save-place-forget-unreadable-files t))
 
-(setq vc-make-backup-files t
-      backup-by-copying t      ; don't clobber symlinks
-      backup-directory-alist
-      '(("." . ".saves"))    ; don't litter my fs tree
-      delete-old-versions t
-      kept-new-versions 6
-      kept-old-versions 2
-      version-control t)       ; use versioned backups
-
-;; remove kill buffer with live process prompt
-(setq kill-buffer-query-functions
-      (remq 'process-kill-buffer-query-function
-            kill-buffer-query-functions))
-
-(setq-default kill-read-only-ok t)
-
-;; hide mouse while typing
-(setq make-pointer-invisible t)
-
-;; color codes
-(add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
-
-;; Save whatever’s in the current (system) clipboard before
-;; replacing it with the Emacs’ text.
-;; https://github.com/dakrone/eos/blob/master/eos.org
-(setq save-interprogram-paste-before-kill t)
-
-;; UTF-8 please
-(setq locale-coding-system 'utf-8) ; pretty
-(set-terminal-coding-system 'utf-8) ; pretty
-(set-keyboard-coding-system 'utf-8) ; pretty
-(set-selection-coding-system 'utf-8) ; please
-(prefer-coding-system 'utf-8) ; with sugar on top
-
-;; uniquify settings
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets) ; Show path if names are same
-(setq uniquify-separator " • ")
-(setq uniquify-after-kill-buffer-p t)
-(setq uniquify-ignore-buffers-re "^\\*")
-
-(setq adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
-(setq adaptive-fill-first-line-regexp "^* *$")
-(setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
-(if sys/macp (setq trash-directory "~/.Trash"))
-(setq make-backup-files nil)               ; Forbide to make backup files
-(setq auto-save-default nil)               ; Disable auto save
-(add-hook 'before-save-hook 'time-stamp)   ; update time-stamps in files
 
 ;; When popping the mark, continue popping until the cursor actually moves
 ;; Also, if the last command was a copy - skip past all the expand-region cruft.
@@ -1584,6 +1577,12 @@ Return its absolute path.  Otherwise, return nil."
 )
 
 
+;;;;; bookmark+
+;; - enhancements to the built-in bookmark package
+;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
+(use-package bookmark+)
+
+
 ;;;;; ag
 ;; - searching with the silver searcher
 ;; - https://github.com/Wilfred/ag.el
@@ -1614,41 +1613,12 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;; indentation
 ;;;;; indentation settings
-(setq-default tab-width 2
-              indent-tabs-mode nil
+(setq-default indent-tabs-mode nil
               fill-column 80)
+
 ;; Line and Column
 (setq column-number-mode t)
 (setq line-number-mode t)
-
-;; Javascript
-(setq-default js2-basic-offset 2)
-
-;; JSON
-(setq-default js-indent-level 2)
-
-;; Coffeescript
-(setq coffee-tab-width 2)
-
-;; Typescript
-(setq typescript-indent-level 2
-      typescript-expr-indent-offset 2)
-
-;; Python
-(setq-default py-indent-offset 2)
-
-;; XML
-(setq-default nxml-child-indent 2)
-
-;; C
-(setq-default c-basic-offset 2)
-
-;; HTML etc with web-mode
-(setq-default web-mode-markup-indent-offset 2
-              web-mode-css-indent-offset 2
-              web-mode-code-indent-offset 2
-              web-mode-style-padding 2
-              web-mode-script-padding 2)
 
 
 ;;;;; dtrt-indent
@@ -1693,6 +1663,7 @@ Return its absolute path.  Otherwise, return nil."
 (use-package recentf
   :straight (recentf :type built-in)
   :hook (emacs-startup . recentf-mode)
+  ;; NOTE C-c C-f bound to helm-recentf
   :config
   (setq recentf-max-saved-items 200)
   (setq recentf-exclude '((expand-file-name package-user-dir)
@@ -1706,7 +1677,7 @@ Return its absolute path.  Otherwise, return nil."
                           "recentf"
                           "undo-tree-hist"
                           "url"
-                          "COMMIT_EDITMSG\\'")))
+                          "COMMIT_EDITMSG\\'"))  )
 
 
 ;;;;; savehist
@@ -1715,15 +1686,17 @@ Return its absolute path.  Otherwise, return nil."
 (use-package savehist
   :straight (savehist :type built-in)
   :hook (emacs-startup . savehist-mode)
-  :config
-  (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
-        history-length 1000
-        savehist-additional-variables '(mark-ring
-                                        global-mark-ring
-                                        search-ring
-                                        regexp-search-ring
-                                        extended-command-history)
-        savehist-autosave-interval 300))
+  :custom
+  (savehist-file (expand-file-name "history" user-emacs-directory))
+  (enable-recursive-minibuffers t "Allow commands in minibuffers.")
+  (history-length 1000)
+  (savehist-additional-variables '(mark-ring
+                                   global-mark-ring
+                                   search-ring
+                                   regexp-search-ring
+                                   extended-command-history)
+                                 "each varible is perssted accross Emacs sessions.")
+   (savehist-autosave-interval 300))
 
 
 ;;;; movement
@@ -1836,25 +1809,17 @@ Return its absolute path.  Otherwise, return nil."
   :bind (([remap kill-ring-save] . easy-kill) ; M-w
          ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
          ([remap mark-word] . easy-mark-word) ; M-@
-         ([remap zap-to-char] . easy-mark-to-char)
-
-         ;; Integrate `expand-region'
-         :map easy-kill-base-map
-         ("o" . easy-kill-er-expand)
-         ("i" . easy-kill-er-unexpand))
-  :config
+         ([remap zap-to-char] . easy-mark-to-char) ; M-z
+  :init
   (setq easy-kill-alist '((?w word           " ")
                           (?s sexp           "\n")
                           (?l list           "\n")
-                          (?f filename       "\n")
                           (?d defun          "\n\n")
                           (?D defun-name     " ")
                           (?e line           "\n")
-                          (?b buffer-file-name)
-
+                          (?b buffer "")
                           (?^ backward-line-edge "")
                           (?$ forward-line-edge "")
-                          (?h buffer "")
                           (?< buffer-before-point "")
                           (?> buffer-after-point "")
                           (?f string-to-char-forward "")
@@ -1863,37 +1828,11 @@ Return its absolute path.  Otherwise, return nil."
                           (?T string-up-to-char-backward "")))    )
 
 
-;;;;; sej/copy-from-osx, sej/copy-to-osx
-;; - https://gist.github.com/the-kenny/267162
-(when sys/macp
-  (defun sej/copy-from-osx ()
-    "For copying from osx."
-    (shell-command-to-string "pbpaste"))
-
-  (defun sej/paste-to-osx (text &optional push)
-    "For copying to osx TEXT with optional PUSH."
-    (let ((process-connection-type nil))
-      (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
-        (process-send-string proc text)
-        (process-send-eof proc))))
-
-  (setq interprogram-cut-function 'sej/paste-to-osx)
-  (setq interprogram-paste-function 'sej/copy-from-osx))
-
-
-;;;;; avy-zap
-;; - Kill text between the point and the character CHAR
-;; - https://github.com/cute-jumper/avy-zap
-(use-package avy-zap
-  :bind ( ("M-z" . avy-zap-to-char-dwim)
-          ("M-Z" . avy-zap-up-to-char-dwim)))
-
-
 ;;;;; delsel
 ;; - Do not delete selection if you insert
 ;; - https://github.com/typester/emacs/blob/master/lisp/delsel.el
 (use-package delsel
-  :straight (delsel :type built-in)
+  :straight (:type built-in)
   :config (setq-default delete-selection-mode nil))
 
 
@@ -1901,7 +1840,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - Rectangle
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el
 (use-package rect
-  :straight (rect :type built-in))
+  :straight (:type built-in))
 
 
 ;;;;; drag-stuff
@@ -1928,14 +1867,6 @@ Return its absolute path.  Otherwise, return nil."
   :config (smart-region-on))
 
 
-;;;;; expand-region
-;; - expand selection region larger & smaller
-;; - https://github.com/magnars/expand-region.el
-(use-package expand-region
-  :bind ( ("s-=" . er/expand-region)
-          ("s--" . er/contract-region)))
-
-
 ;;;;; smart-hungry-delete
 ;; - Hungry deletion
 ;; - https://github.com/hrehfeld/emacs-smart-hungry-delete
@@ -1944,14 +1875,6 @@ Return its absolute path.  Otherwise, return nil."
   :bind (("<backspace>" . smart-hungry-delete-backward-char)
          ("C-d" . smart-hungry-delete-forward-char))
   :config (smart-hungry-delete-add-default-hooks))
-
-
-;;;;; whole-line or region
-;; - operate on current line if region undefined
-;; - [[https://github.com/purcell/whole-line-or-region][purcell/whole-line-or-region]]
-(use-package whole-line-or-region
-  :hook
-  (emacs-startup . whole-line-or-region-global-mode))
 
 
 ;;;; url actions
@@ -2003,7 +1926,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
 (use-package hl-line
   :straight (hl-line :type built-in)
-  :hook (emacs-startup . global-hl-line-mode))
+  :hook ((prog-mode . hl-line-mode)
+         (text-mode . hl-line-mode)))
 
 
 ;;;;; symbol-overlay
@@ -2016,7 +1940,8 @@ Return its absolute path.  Otherwise, return nil."
              symbol-overlay-assoc
              symbol-overlay-get-list
              symbol-overlay-jump-call)
-  :bind (("H-i" . symbol-overlay-put)
+  :bind (("C-M-;" . iedit-mode) ;; define Iedit mode so as to remove default message
+         ("H-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
          ("M-N" . symbol-overlay-switch-forward)
@@ -2217,18 +2142,7 @@ Return its absolute path.  Otherwise, return nil."
 (use-package rainbow-delimiters
   :diminish rainbow-delimiters-mode
   :hook (prog-mode . rainbow-delimiters-mode)
-  :config
-  (require 'cl-lib)
-  (require 'color)
-  (cl-loop
-   for index from 1 to rainbow-delimiters-max-face-count
-   do
-   (let ((face (intern (format "rainbow-delimiters-depth-%d-face" index))))
-     (cl-callf color-saturate-name (face-foreground face) 30)))
-  (set-face-attribute 'rainbow-delimiters-unmatched-face nil
-                      :foreground 'unspecified
-                      :inherit 'error
-                      :strike-through t))
+  )
 
 
 ;;;;; mic-paren
@@ -2241,14 +2155,14 @@ Return its absolute path.  Otherwise, return nil."
 
 
 ;;;;; outline outshine pretty-outlines
-;; - program modes outline much like org-mode
+;; - program modes outline much like org-mode "C-c @"" prefix
 ;; - [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
 ;; - [[https://github.com/alphapapa/outshine][outshine]]
 ;; - [[https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-outlines/pretty-outlines.el][pretty-outlines]]
 (use-package outshine
-  :bind ("M-S-<return>" . outshine-insert-heading)
   :hook ((prog-mode          . outline-minor-mode)
          (outline-minor-mode . outshine-mode))
+  :bind ("M-S-<return>" . outshine-insert-heading)
   :config
   (setq my-black "#1b1b1e")
 
@@ -2468,7 +2382,14 @@ Return its absolute path.  Otherwise, return nil."
 ;; - replacement for the Emacs built-in command comment-dwim
 ;; - https://github.com/remyferre/comment-dwim-2
 (use-package comment-dwim-2
-  :bind ([remap comment-dwim] . comment-dwim-2)) ; M-;
+  :bind (([remap comment-dwim] . comment-dwim-2) ; M-;
+        ("C-;" . comment-indent) ; C-; trailing comment
+         ("C-:" . comment-kill) ; kill trailing comment
+         ("C-x C-;" . comment-box) ; box comment
+         )
+  :config
+  (setq comment-fill-column 0) ;set so comments trail immediate
+  )
 
 
 ;;;;; ediff
@@ -2545,12 +2466,24 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
 (use-package flymake
   :straight (flymake :type built-in)
-  :defines sej-mode-map
   :hook (post-command . flymake-error-at-point)
-  :bind (:map sej-mode-map
+  :bind (:map flymake-mode-map
+              ("C-c ! s" . flymake-start)
               ("H-[" . flymake-goto-prev-error)
-              ("H-]" . flymake-goto-next-error))
+              ("C-c ! p" . flymake-goto-prev-error)
+              ("H-]" . flymake-goto-next-error)
+              ("C-c ! n" . flymake-goto-next-error)
+              ("H-\\" . flymake-show-diagnostics-buffer)
+              ("C-c ! l" . flymake-show-diagnostics-buffer))
   :init
+  (setq flymake-fringe-indicator-position 'right-fringe)
+  (setq flymake-suppress-zero-counters t)
+  (setq flymake-start-on-flymake-mode t)
+  (setq flymake-no-changes-timeout nil)
+  (setq flymake-start-on-save-buffer t)
+  (setq flymake-proc-compilation-prevents-syntax-check t)
+  (setq flymake-wrap-around nil)
+
   (defun flymake-error-at-point ()
     "Show the flymake error in the minibuffer when point is on an invalid line."
     (when (get-char-property (point) 'flymake-overlay)
@@ -2558,21 +2491,50 @@ Return its absolute path.  Otherwise, return nil."
         (if help (message "%s" help))))))
 
 
+;;;;; flymake-diagnostic-at-point
+;; - Minor mode for showing flymake diagnostics at point.
+;; - [[https://github.com/meqif/flymake-diagnostic-at-point][flyake-diagnostic-at-point]]
+(use-package flymake-diagnostic-at-point
+  :after flymake
+  :hook (flymake-mode . flymake-diagnostic-at-point-mode)
+  :config
+  (setq flymake-diagnostic-at-point-display-diagnostic-function
+        'flymake-diagnostic-at-point-display-minibuffer))
+
+
+;;;;; flymake-aspell
+;; - flymake movement using flyspell checker
+;; - [[https://github.com/leotaku/flycheck-aspell/blob/master/flymake-aspell.el][flymake-aspell.el]]
+(use-package flymake-aspell
+  :after (flyspell flymake)
+  :hook (
+         ((markdown-mode org-mode text-mode adoc-mode) . flymake-aspell-setup)
+         ((markdown-mode org-mode text-mode adoc-mode) . flymake-mode)))
+
+;;;;; flymake-proselint
+;; - flymake prose lint checker
+;; - [[https://github.com/manuel-uberti/flymake-proselint][flymake-proselint]]
+;; - need to install 'brew install proselint' or equivalent
+(use-package flymake-proselint
+  :after flymake
+  :straight (flymake-proselint :host github :repo "manuel-uberti/flymake-proselint")
+  :ensure flymake-quickdef
+  :hook (((markdown-mode org-mode text-mode adoc-mode) . flymake-proselint-setup)
+         ((markdown-mode org-mode text-mode adoc-mode) . flymake-mode)))
+
+
 ;;;;; flycheck
 ;; - added in emacs syntax checker
 ;; - https://www.flycheck.org/en/latest/
 (use-package flycheck
-  ;; ;:diminish flycheck-mode
-  :defines sej-mode-map
-  :hook (prog-mode . global-flycheck-mode)
   :bind
-  (:map sej-mode-map
-        ("s-[" . flycheck-previous-error)
-        ("s-]" . flycheck-next-error)
-        ("C-c f" . flycheck-list-errors)
-        ("s-f" . flycheck-list-errors)        )
-  :init
-  (global-flycheck-mode 1)
+  (:map flycheck-mode-map
+        ("H-[" . flycheck-previous-error)
+        ("C-c ! p" . flycheck-previous-error)
+        ("H-]" . flycheck-next-error)
+        ("C-c ! n" . flycheck-next-error)
+        ("C-c ! l" . flycheck-list-errors)
+        ("H-\\" . flycheck-list-errors)        )
   :custom-face
    (flycheck-error ((((class color)) (:underline "Red"))))
    (flycheck-warning ((((class color)) (:underline "Orange"))))
@@ -3059,7 +3021,8 @@ Return its absolute path.  Otherwise, return nil."
               ("TAB" . nil)
               ("M-n" . yas-next-field-or-maybe-expand)
               ("M-p" . yas-prev-field))
-  :config (use-package yasnippet-snippets))
+  :config
+  (use-package yasnippet-snippets))
 
 
 ;;;;; hydra
@@ -3070,30 +3033,29 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;; lisp
 ;;;;; lisp settings
-;; - some lisp stuff from Getting Started with Emacs Lisp
-(define-key emacs-lisp-mode-map (kbd "s-<return>") 'eval-last-sexp)
+;; - eval do what I mean
+;; - taken from here [[http://blog.shanderlam.com/][eval-dwim]]
+(defun sej/eval-dwim (arg)
+  "Call eval command you want (Do What I Mean).
+If the region is active and option `transient-mark-mode' is on, call
+`eval-region'. Else, call `eval-last-sexp' using (ARG)."
+  (interactive "P")
+  (if (and transient-mark-mode mark-active)
+	  (eval-region (region-beginning) (region-end))
+	(eval-last-sexp arg)))
+
+(define-key emacs-lisp-mode-map (kbd "C-<return>") 'sej/eval-dwim)
+(define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-dwim)
 (define-key emacs-lisp-mode-map (kbd "H-<return>") 'eval-buffer)
-(define-key emacs-lisp-mode-map (kbd "A-<return>") 'eval-region)
 
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 (global-set-key (kbd "C-c s E") 'toggle-debug-on-error)
 
-;; use flycheck in elisp
+;; use flycheck
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
 ;; enable dash for Emacs lisp highlighting
 (eval-after-load "dash" '(dash-enable-font-lock))
-
-(defun sej/eval-last-sexp-or-region (prefix)
-  "Eval region from BEG to END if active, otherwise if PREFIX the last sexp."
-  (interactive "P")
-  (if (and (mark) (use-region-p))
-      (eval-region (min (point) (mark)) (max (point) (mark)))
-    (pp-eval-last-sexp prefix)))
-
-(global-set-key [remap eval-expression] 'pp-eval-expression)
-
-(define-key emacs-lisp-mode-map (kbd "C-x C-e") 'sej/eval-last-sexp-or-region)
 
 
 ;;;;; lispy /* NOT USED */
@@ -4122,7 +4084,8 @@ Return its absolute path.  Otherwise, return nil."
         ("M-<f8>" . flyspell-check-next-highlighted-word)
         ("S-<f8>" . ispell-region)
         ("s-." . ispell-region)
-        )
+        :map flyspell-mode-map
+        ("C-;" . nil)        )
   :hook (((text-mode outline-mode org-mode) . flyspell-mode)
          (prog-mode . flyspell-prog-mode))
   :config
@@ -4261,6 +4224,67 @@ Return its absolute path.  Otherwise, return nil."
     (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
     (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
   :hook (nov-mode . my-nov-setup))
+
+
+;;;;; annotate
+;; - add annotations to arbitrary files without changing the files themselves.
+;; - [[https://github.com/bastibe/annotate.el][annotate]]
+(use-package annotate
+  :straight (annotate :type git
+                      :host github
+                      :repo "bastibe/annotate.el")
+  :commands (annotate-annotate
+             sej/annotate-annotate
+             annotate-goto-next-annotation
+             annotate-goto-previous-annotation
+             annotate-export-annotations
+             annotate-integrate-annotations
+             annotate-show-annotation-summary)
+  :bind (
+         ("C-c C-a" . sej/annotate-annotate-dwim)
+         ("C-c C-s" . annotate-show-annotation-summary)
+         :map annotate-mode-map
+         ("C-c C-a" . sej/annotate-annotate-dwim)
+         ("C-c C-s" . annotate-show-annotation-summary)
+         ("C-c ]" . annotate-goto-next-annotation)
+         ("C-c [" . annotate-goto-previous-annotation)
+         )
+  :config
+  (setq annotate-file (expand-file-name "annotations" user-emacs-directory))
+  (setq annotate-annotation-column 73)
+  (setq annotate-diff-export-context 5)
+  (setq annotate-use-messages nil)
+  (setq annotate-integrate-marker "")
+  (setq annotate-integrate-higlight ?^)
+  (setq annotate-fallback-comment "#")
+  (setq annotate-blacklist-major-mode '())
+  (setq annotate-annotation-max-size-not-place-new-line 50)
+  (setq annotate-search-region-lines-delta 4)
+  (setq annotate-annotation-position-policy :by-length)
+  (setq annotate-summary-ask-query nil)
+
+
+  (defun sej/annotate-mode ()
+    "Toggles `annotate-mode' for the current buffer."
+    (interactive)
+    (if (bound-and-true-p annotate-mode)
+        (annotate-mode -1)
+      (annotate-mode 1)))
+
+  (defun sej/annotate-annotate ()
+    "Ensure `annotate-mode' is enabled for `annotate-annotate'."
+    (unless (bound-and-true-p annotate-mode)
+      (annotate-mode 1))
+    (annotate-annotate))
+
+  (defun sej/annotate-annotate-dwim (&optional arg)
+    "Common points of entry for annotations.
+Write an annotation or toggle `annotate-mode' by prefixing this
+function with the \\[universal-argument]."
+    (interactive "P")
+    (if arg
+        (sej/annotate-mode)
+      (sej/annotate-annotate))))
 
 
 ;;;; org
@@ -4800,7 +4824,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; eshell/magit
 ;; - function to open magit-status for the current directory
 (defun eshell/magit ()
-  "Function to open magit-status for the current directory."
+  "Function to open 'magit-status' for the current directory."
   (interactive)
   (magit-status default-directory)
   nil)
@@ -4905,6 +4929,172 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/tarsius/keychain-environment
 (use-package keychain-environment
   :hook (emacs-startup . keychain-refresh-environment))
+
+
+;;;; Other Services
+;; a place to put set-ups for Emacs outside services
+;;;;; term ansi-term serial-term
+;; - built-in basic terminal
+;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Terminal-emulator.html#Terminal-emulator][Emacs manual]]
+(use-package term
+  :straight (:type built-in)
+  :commands (term ansi-term serial-term)
+  :config
+  (setq term-buffer-maximum-size 9999)
+  (setq term-completion-autolist t)
+  (setq term-completion-recexact t)
+  (setq term-scroll-to-bottom-on-output nil))
+
+
+;;;;; vterm
+;; - fully-fledged terminal emulator inside GNU Emacs
+;; - [[https://github.com/akermu/emacs-libvterm][vterm github]]
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-disable-bold-font nil)
+  (setq vterm-disable-inverse-video nil)
+  (setq vterm-disable-underline nil)
+  (setq vterm-kill-buffer-on-exit nil)
+  (setq vterm-max-scrollback 9999)
+  (setq vterm-shell "/bin/zsh")
+  (setq vterm-term-environment-variable "xterm-256color"))
+
+
+;;;;; ERC IRC client
+;; - set-up of built-in irc client
+;; - [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top][ERC]]
+(use-package erc
+  :straight (:type built-in)
+  :bind ("C-c s C-e" . sej/erc-dwim)
+  :config
+  (setq erc-prompt-for-password nil)
+
+  (defun sej/erc-dwim ()
+    "Switch to latest `erc' buffer or log in."
+    (interactive)
+    (let* ((irc "irc.freenode.net")
+           (nick sej-irc-nick)
+           (pass sej-irc-pass)
+           (bufs (erc-buffer-list)))
+      (if bufs
+          (erc-track-switch-buffer 1)
+        (erc :server irc
+             :nick nick
+             :password pass
+             :full-name nick))))
+
+  ;; Options
+
+  ;; Join the #emacs and #erc channels whenever connecting to Freenode.
+  (setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc" "#emacs-beginners")))
+
+  ;; If non, nil, this is a list of IRC message types to hide, e.g.:
+  (setq erc-hide-list '("JOIN" "PART" "QUIT"))
+
+  ;; If non, nil, this is a list of IRC networks and message types to hide, e.g.:
+  (setq erc-network-hide-list (("freenode" "JOIN" "PART" "QUIT")
+                               ("OFTC" "JOIN" "PART")))
+
+  ;; If non, nil, this is a list of IRC channels and message types to hide, e.g.:
+  (setq erc-channel-hide-list (("#erc" "JOIN" "PART" "QUIT")
+                               ("#emacs" "NICK")))
+
+
+  ;; Rename server buffers to reflect the current network name instead
+  ;; of SERVER:PORT (e.g., "freenode" instead of "irc.freenode.net:6667").
+  ;; This is useful when using a bouncer like ZNC where you have multiple
+  ;; connections to the same server.
+  (setq erc-rename-buffers t)
+
+  ;; Interpret mIRC-style color commands in IRC chats
+  (setq erc-interpret-mirc-color t)
+
+  ;; The following are commented out by default, but users of other
+  ;; non-Emacs IRC clients might find them useful.
+  ;; Kill buffers for channels after /part
+  ;; (setq erc-kill-buffer-on-part t)
+  ;; Kill buffers for private queries after quitting the server
+  ;; (setq erc-kill-queries-on-quit t)
+  ;; Kill buffers for server messages after quitting the server
+  ;; (setq erc-kill-server-buffer-on-quit t)
+)
+
+
+;;;;; shr
+;; Emacs simple html renderer used by a few tools
+;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/net/shr.el][shr]]
+(use-package shr
+  :straight (:type built-in)
+  :config
+  (setq shr-use-fonts nil)
+  (setq shr-use-colors nil)
+  (setq shr-max-image-proportion 0.7)
+  (setq shr-image-animate nil)
+  (setq shr-width (current-fill-column)))
+
+;; Support the HTML pre tag with proper syntax highlighting.
+(use-package shr-tag-pre-highlight
+  :straight (:type built-in)
+  :ensure
+  :after shr
+  :config
+  (add-to-list 'shr-external-rendering-functions
+               '(pre . shr-tag-pre-highlight)))
+
+;;;;; eww Emacs-web-wowser
+;; - Emacs internal web browser
+;; - [[https://www.gnu.org/software/emacs/manual/html_mono/eww.html][EWW]]
+(use-package eww
+  :straight (:type built-in)
+  :config
+  (setq eww-restore-desktop nil)
+  (setq eww-desktop-remove-duplicates t)
+  (setq eww-header-line-format "%u")
+  (setq eww-search-prefix "https://duckduckgo.com/html/?q=")
+  (setq eww-download-directory "~/Downloads/")
+  (setq eww-suggest-uris
+        '(eww-links-at-point
+          thing-at-point-url-at-point))
+  (setq eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
+  (setq eww-history-limit 150)
+  (setq eww-use-external-browser-for-content-type
+        "\\`\\(video/\\|audio/\\|application/pdf\\)")
+  (setq eww-browse-url-new-window-is-tab nil)
+  (setq eww-form-checkbox-selected-symbol "[X]")
+  (setq eww-form-checkbox-symbol "[ ]")
+
+  (defun sej/eww-visit-history (&optional arg)
+    "Revisit a URL from `eww-prompt-history' using completion.
+With \\[universal-argument] produce a new buffer."
+    (interactive "P")
+    (let ((history eww-prompt-history)  ; eww-bookmarks
+          (new (if arg t nil)))
+      (eww
+       (completing-read "Visit website from history: " history nil t)
+       new)))
+
+  ;; eww-view-source
+  (defvar prot/eww-mode-global-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map "s" 'eww-search-words)
+      (define-key map "o" 'eww-open-in-new-buffer)
+      (define-key map "f" 'eww-open-file)
+      (define-key map "w" 'sej/eww-visit-history)
+      map)
+    "Key map to scope `eww' bindings for global usage.
+The idea is to bind this to a prefix sequence, so that its
+defined keys follow the pattern of <PREFIX> <KEY>.")
+  :bind-keymap ("C-c w" . prot/eww-mode-global-map)
+  :bind (:map eww-mode-map
+              ("n" . next-line)
+              ("p" . previous-line)
+              ("f" . forward-char)
+              ("b" . backward-char)
+              ("B" . eww-back-url)
+              ("N" . eww-next-url)
+              ("P" . eww-previous-url)))
+
 
 ;;; init.el --- end
 (message "init.el ends here")
