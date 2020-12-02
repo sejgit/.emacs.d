@@ -30,7 +30,7 @@
 ;;
 ;; SeJ Emacs configurations.
 ;;
-;; My attempt at an ORG tangled init file.
+;; My initial attempt at an ORG tangled init file.
 ;; then back again to an outline / outshine / pretty-outlines file.
 
 
@@ -151,28 +151,31 @@
 
 ;;;;; should i even be here
 (when (not emacs/>=26p)
-  (error "This requires Emacs 26 and above")
-  )
+  (error "This requires Emacs 26 and above")  )
+
+
+;;;;;  Warnings
+;; set-up server & suppress warnings
+;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
+  (require 'warnings)
+  ;; remove warnings for cl depreciated and server already running
+  (setq warning-suppress-types (quote ((cl server iedit))))
 
 
 ;;;;; Server set-up
-;; set-up server & suppress warnings
-;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
+;; set-up server
 (use-package emacs
   :when (or sys/macp sys/linuxp)
   :straight (:type built-in)
   :hook (emacs-startup . sej/server-mode)
-  :custom
-  ;; remove warnings for cl depreciated and server already running
-  (warning-suppress-types (quote ((cl server)))) ;TODO add iedit
   :config
-  (require 'warnings)
   (defun sej/server-mode ()
     "Start server-mode without errors"
     (interactive)
     (with-demoted-errors
-        (message "Server exists -- not starting new one.")
-      (server-mode)      )    )  )
+        "%S -- Server exists -- not starting new one."
+      (load "server")
+      (unless (server-running-p) (server-start)) ) ) )
 
 
 ;;;;; customization variables set
@@ -296,7 +299,7 @@
       (inhibit-startup-screen t)
       (inhibit-startup-echo-area-message t)
       (use-file-dialog nil)
-      (default-directory 'HOME "Set startup directory.")
+      (default-directory (getenv "HOME") "Set startup directory.")
       (locate-command "which")
       (message-log-max 16384 "Raise the maximum number of logs in the *Messages* buffer.")
       (gnutls-min-prime-bits 4096 "Make gnutls a bit safer.")
@@ -449,16 +452,17 @@
   (setq exec-path (append (list sej-latex-directory
                                 "c:/msys64/mingw64/bin"
                                 "/mingw64/bin/") exec-path))
-  )
+
 
 ;;;;; AutoHotkey Mode xahk-mode
   ;; - load AutoHotkey mode only used for Microsoft Windows
   ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
   (use-package xahk-mode
-    :when sys/win32p
+    :if sys/win32p
     :straight (xahk-mode.el :type git
                             :host github
                             :repo "xahlee/xahk-mode.el") )
+  )
 
 
 ;;; general keybindings
@@ -735,6 +739,13 @@ Return its absolute path.  Otherwise, return nil."
           ("C-h C" . helpful-command)
           ("C-h k" . helpful-key)
           ("C-h M" . helpful-macro))  )
+
+
+;;;;; discover
+;; - discover more of emacs using context menus
+;; - [[https://github.com/mickeynp/discover.el][discover github]]
+(use-package discover
+  :hook (emacs-startup . global-discover-mode))
 
 
 ;;;;; helm-descbinds
@@ -1218,6 +1229,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; window key-bindings
 ;; super versions of C-x window bindings
 (use-package emacs
+  :straight (:type built-in)
   :bind (:map sej-mode-map
          ("s-0" . delete-window)
          ("s-1" . delete-other-windows)
@@ -1238,8 +1250,10 @@ Return its absolute path.  Otherwise, return nil."
          ("H-l" . right-char)
 
          ;;scroll window up/down by one line
-         ("A-n" . (lambda () (interactive) (scroll-up 1)))
-         ("A-p" . (lambda () (interactive) (scroll-down 1))) ) )
+         ;; ("A-n" . (lambda () (interactive) (scroll-up 1)))
+         ;; ("A-p" . (lambda () (interactive) (scroll-down 1)))
+         )
+  )
 
 
 ;;;;; windmove
@@ -1304,8 +1318,8 @@ Return its absolute path.  Otherwise, return nil."
 (use-package winner
   :straight (winner :type built-in)
   :commands (winner-undo winner-redo)
-  :bind ( ("C-c w <left>" . winner-undo)
-          ("C-c w <right>" . winner-redo))
+  ;; :bind ( ("C-c w <left>" . winner-undo)
+  ;;         ("C-c w <right>" . winner-redo))
   :init (setq winner-boring-buffers '("*Completions*"
                                       "*Compile-Log*"
                                       "*inferior-lisp*"
@@ -1504,8 +1518,6 @@ Return its absolute path.  Otherwise, return nil."
          ([remap jump-to-register] . helm-register)
          ([remap list-buffers]     . helm-buffers-list)
          ([remap dabbrev-expand]   . helm-dabbrev)
-         ([remap find-tag]         . helm-etags-select)
-         ([remap xref-find-definitions] . helm-etags-select)
          (:map helm-map
                ("<tab" . helm-execute-persistent-action) ; rebind tab to run persistent action
                ("C-i" . helm-execute-persistent-action) ; make TAB work in terminal
@@ -1618,7 +1630,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;; Line and Column
 (setq column-number-mode t)
-(setq line-number-mode t)
+(setq line-number-mode nil)
 
 
 ;;;;; dtrt-indent
@@ -1809,7 +1821,7 @@ Return its absolute path.  Otherwise, return nil."
   :bind (([remap kill-ring-save] . easy-kill) ; M-w
          ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
          ([remap mark-word] . easy-mark-word) ; M-@
-         ([remap zap-to-char] . easy-mark-to-char) ; M-z
+         ([remap zap-to-char] . easy-mark-to-char)) ; M-z
   :init
   (setq easy-kill-alist '((?w word           " ")
                           (?s sexp           "\n")
@@ -2024,11 +2036,7 @@ Return its absolute path.  Otherwise, return nil."
   ;;     ("TEMP"   . "#d0bf8f")
   ;;     ("FIXME"  . "#cc9393")
   ;;     ("XXX+"   . "#cc9393"))
-  (push 'org-mode hl-todo-include-modes)
-  (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
-    (cl-pushnew `(,keyword . ,(face-foreground 'error)) hl-todo-keyword-faces))
-  (dolist (keyword '("WORKAROUND" "HACK" "TRICK"))
-    (cl-pushnew `(,keyword . ,(face-foreground 'warning)) hl-todo-keyword-faces)))
+  (push 'org-mode hl-todo-include-modes))
 
 
 ;;;;; diff-hl
@@ -2366,6 +2374,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; pass
 ;; - major-mode to manage your password-store (pass) keychain
 ;; - https://github.com/NicolasPetton/pass
+;; - TODO put osx-keychain in for osx, but the package needs some updating
 (use-package pass
   :commands pass)
 
@@ -2448,18 +2457,11 @@ Return its absolute path.  Otherwise, return nil."
 ;; - Jump to definition via `ag'/`rg'/`grep'
 ;; - https://github.com/jacktasia/dumb-jump
 (use-package dumb-jump
-  :after hydra
   :hook ((emacs-startup . dumb-jump-mode)
          (xref-backend-functions . dumb-jump-xref-activate))
   :defines sej-mode-map
-  :bind (:map sej-mode-map
-              ("M-g o" . dumb-jump-go-other-window)
-              ("M-g j" . dumb-jump-go)
-              ("M-g i" . dumb-jump-go-prompt)
-              ("M-g x" . dumb-jump-go-prefer-external)
-              ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
-  (setq dumb-jump-prefer-searcher 'ag))
+  (setq dumb-jump-prefer-searcher 'rg))
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
@@ -2644,6 +2646,9 @@ Return its absolute path.  Otherwise, return nil."
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
+
+  (setq magit-repository-directories
+        '(("~/Projects" . 1)))
 
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
@@ -4610,7 +4615,7 @@ function with the \\[universal-argument]."
 ;; - https://www.gnu.org/software/emacs/manual/html_mono/eshell.html
 ;; - https://www.masteringemacs.org/article/complete-guide-mastering-eshell
 (use-package eshell
-  :ensure nil
+  :straight (:type built-in)
   :defines (compilation-last-buffer
             eshell-prompt-function)
   :commands (eshell/alias
@@ -4651,11 +4656,11 @@ function with the \\[universal-argument]."
          ("C-c s e" . eshell) )
 
   :config
-  (require 'esh-opt)
-  (require 'em-cmpl)
-  (require 'em-smart)
-  (require 'em-term)
-  (require 'em-prompt)
+  ;; (require 'esh-opt)
+  ;; (require 'em-cmpl)
+  ;; (require 'em-smart)
+  ;; (require 'em-term)
+  ;; (require 'em-prompt)
 
 
   (setenv "PAGER" "cat")
@@ -4688,7 +4693,105 @@ function with the \\[universal-argument]."
         eshell-destroy-buffer-when-process-dies t)
 
   ;; turn off semantic-mode in eshell buffers
-  (semantic-mode -1))
+  (semantic-mode -1)
+
+  ;; NOTE by Prot 2020-06-16: the following two advice-add snippets
+  ;; will need to be reviewed to make sure they do not produce
+  ;; undesirable side effects.
+
+  ;; syntax highlighting implementation modified from
+  ;; https://emacs.stackexchange.com/questions/50385/use-emacs-syntax-coloring-when-not-in-emacs
+  ;;
+  ;; This command also makes it possible to, e.g., cat an encrypted and/or
+  ;; compressed file.
+  (defun contrib/eshell-cat-with-syntax-highlight (&rest args)
+    "Like `eshell/cat' but with syntax highlighting.
+To be used as `:override' advice to `eshell/cat'."
+    (setq args (eshell-stringify-list (flatten-tree args)))
+    (dolist (filename args)
+      (let ((existing-buffer (get-file-buffer filename))
+            (buffer (find-file-noselect filename)))
+        (eshell-print
+         (with-current-buffer buffer
+           (if (fboundp 'font-lock-ensure)
+               (font-lock-ensure)
+             (with-no-warnings
+               (font-lock-fontify-buffer)))
+           (let ((contents (buffer-string)))
+             (remove-text-properties 0 (length contents) '(read-only nil) contents)
+             contents)))
+        (unless existing-buffer
+          (kill-buffer buffer)))))
+
+  (advice-add 'eshell/cat :override #'contrib/eshell-cat-with-syntax-highlight)
+
+  ;; Turn ls results into clickable links.  Especially useful when
+  ;; combined with link-hint.  Modified from
+  ;; https://www.emacswiki.org/emacs/EshellEnhancedLS
+  (define-button-type 'eshell-ls
+    'supertype 'button
+    'help-echo "RET, mouse-2: visit this file"
+    'follow-link t)
+
+  (defun contrib/electrify-ls (name)
+    "Buttonise `eshell' ls file names.
+Visit them with RET or mouse click.  This function is meant to be
+used as `:filter-return' advice to `eshell-ls-decorated-name'."
+    (add-text-properties 0 (length name)
+                         (list 'button t
+                               'keymap button-map
+                               'mouse-face 'highlight
+                               'evaporate t
+                               'action #'find-file
+                               'button-data (expand-file-name name)
+                               'category 'eshell-ls)
+                         name)
+    name)
+
+  (advice-add 'eshell-ls-decorated-name :filter-return #'contrib/electrify-ls)
+)
+
+
+(use-package esh-module
+  :straight (:type built-in)
+  :config
+  (setq eshell-modules-list             ; Needs review
+        '(eshell-alias
+          eshell-basic
+          eshell-cmpl
+          eshell-dirs
+          eshell-glob
+          eshell-hist
+          eshell-ls
+          eshell-pred
+          eshell-prompt
+          eshell-script
+          eshell-term
+          eshell-tramp
+          eshell-unix)))
+
+
+(use-package em-dirs
+  :straight (:type built-in)
+  :after esh-mode
+  :config
+  (setq eshell-cd-on-directory t))
+
+
+(use-package em-tramp
+  :straight (:type built-in)
+  :after esh-mode
+  :config
+  (setq password-cache t)
+  (setq password-cache-expiry 600))
+
+
+(use-package em-hist
+  :straight (:type built-in)
+  :after esh-mode
+  :config
+  (setq eshell-hist-ignoredups t)
+  (setq eshell-save-history-on-exit t))
 
 
 ;;;;; eshell-prompt-extras
