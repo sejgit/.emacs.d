@@ -366,6 +366,7 @@
 ;;;;;; uniquify settings
       (uniquify-buffer-name-style 'post-forward-angle-brackets "Show path if names are same.")
       (uniquify-separator " • ")
+      (uniquify-strip-common-suffix t "Remove part of file system path they have in common.")
       (uniquify-after-kill-buffer-p t)
       (uniquify-ignore-buffers-re "^\\*")
 
@@ -1103,13 +1104,11 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; buffers
 ;;;;; buffer key-bindngs
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
-(define-key sej-mode-map (kbd "s-q") 'save-buffers-kill-emacs)
 
 (define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
 
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
-(define-key sej-mode-map (kbd "s-r") 'revert-buffer)
 
 ;;added tips from pragmatic emacs
 (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
@@ -1228,7 +1227,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; windows
 ;;;;; window key-bindings
 ;; super versions of C-x window bindings
-(use-package emacs
+(use-package window
   :straight (:type built-in)
   :bind (:map sej-mode-map
          ("s-0" . delete-window)
@@ -1245,13 +1244,13 @@ Return its absolute path.  Otherwise, return nil."
 
          ;; movement complementary to windmove / windswap
          ("H-h" . left-char)
-         ("H-j" . up-char)
-         ("H-k" . down-char)
+         ("H-j" . previous-line)
+         ("H-k" . next-line)
          ("H-l" . right-char)
 
          ;;scroll window up/down by one line
-         ;; ("A-n" . (lambda () (interactive) (scroll-up 1)))
-         ;; ("A-p" . (lambda () (interactive) (scroll-down 1)))
+         ("A-n" . (lambda () (interactive) (scroll-up 1)))
+         ("A-p" . (lambda () (interactive) (scroll-down 1)))
          )
   )
 
@@ -1342,6 +1341,40 @@ Return its absolute path.  Otherwise, return nil."
   (add-to-list 'golden-ratio-extra-commands 'ace-window)
   (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
   (setq golden-ratio-auto-scale t))
+
+
+;;;; tabs
+;;;;; tab-bar
+;; - built-in tabs for virtual desktops
+;; - C-x t prefix
+;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][tab bars Emacs manual]]
+(use-package tab-bar
+  :straight (:type built-in)
+  :config
+  (setq tab-bar-close-button-show nil)
+  (setq tab-bar-close-last-tab-choice 'tab-bar-mode-disable)
+  (setq tab-bar-close-tab-select 'recent)
+  (setq tab-bar-new-tab-choice t)
+  (setq tab-bar-new-tab-to 'right)
+  (setq tab-bar-position nil)
+  (setq tab-bar-show nil)
+  (setq tab-bar-tab-hints nil)
+  (setq tab-bar-tab-name-function 'tab-bar-tab-name-all)
+
+  (tab-bar-mode -1)
+  (tab-bar-history-mode -1))
+
+
+;;;;; tab-line
+;; - built-in traditional tab module
+;; - not used: This is only included as a reference.
+;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Line.html#Tab-Line][tab line emacs manual]]
+(use-package tab-line
+  :disabled
+  :straight (:type built-in)
+  :commands (tab-line-mode global-tab-line-mode)
+  :config
+  (global-tab-line-mode -1))
 
 
 ;;;; mode-line
@@ -1522,6 +1555,8 @@ Return its absolute path.  Otherwise, return nil."
                ("<tab" . helm-execute-persistent-action) ; rebind tab to run persistent action
                ("C-i" . helm-execute-persistent-action) ; make TAB work in terminal
                ("C-z" . helm-select-action) ; list actions using C-z
+	       ("H-k" . nil)
+	       ("H-j" . nil)
                )
          (:map sej-mode-map
                ("C-." . helm-semantic-or-imenu) ))
@@ -2127,8 +2162,7 @@ Return its absolute path.  Otherwise, return nil."
     "Recenter and pulse the current line."
     (recenter)
     (my-pulse-momentary-line))
-  :hook (((dumb-jump-after-jump
-           imenu-after-jump) . my-recenter-and-pulse)
+  :hook ((imenu-after-jump . my-recenter-and-pulse)
          ((bookmark-after-jump
            magit-diff-visit-file
            next-error) . my-recenter-and-pulse-line))
@@ -2453,15 +2487,15 @@ Return its absolute path.  Otherwise, return nil."
   :hook (compilation-filter . my-colorize-compilation-buffer))
 
 
-;;;;; dumb-jump
-;; - Jump to definition via `ag'/`rg'/`grep'
-;; - https://github.com/jacktasia/dumb-jump
-(use-package dumb-jump
-  :hook ((emacs-startup . dumb-jump-mode)
-         (xref-backend-functions . dumb-jump-xref-activate))
-  :defines sej-mode-map
-  :config
-  (setq dumb-jump-prefer-searcher 'rg))
+;; ;;;;; dumb-jump
+;; ;; - Jump to definition via `ag'/`rg'/`grep'
+;; ;; - https://github.com/jacktasia/dumb-jump
+;; (use-package dumb-jump
+;;   :hook ((emacs-startup . dumb-jump-mode)
+;;          (xref-backend-functions . dumb-jump-xref-activate))
+;;   :defines sej-mode-map
+;;   :config
+;;   (setq dumb-jump-prefer-searcher 'rg))
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
@@ -3593,7 +3627,7 @@ If the region is active and option `transient-mark-mode' is on, call
         (counsel-find-file default-directory)))
     (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
 
-  ;; Group ibuffer's list by project root
+  ;; Group ibuffer's list by project root (there is a ibuffer-vc version)
   (use-package ibuffer-projectile
     :functions all-the-icons-octicon ibuffer-do-sort-by-alphabetic
     :hook ((ibuffer . (lambda ()
@@ -3617,7 +3651,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; Use C-x r j or s-r followed by the letter of the register
 ;; (i for init.el, r for this file) to jump to it.
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
-(define-key sej-mode-map (kbd "H-j") 'jump-to-register)
+(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
 ;; (kbd "C-x r j") is built-in global
 (set-register ?c '(file . "~/.ssh/custom-post.el"))
 (set-register ?d '(file . "~/.dotfiles/"))
@@ -3723,12 +3757,18 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
 (use-package dired
   :straight (dired :type built-in)
+  :hook (dired-mode . hl-line-mode)
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode))
   :config
   ;; Always delete and copy recursively
   (setq dired-recursive-deletes 'always)
   (setq dired-recursive-copies 'always)
+
+  ;; Show directory first
+  (setq dired-listing-switches "-aFGhlv --group-directories-first")
+
+  (setq dired-dwim-target t)
 
   (when sys/macp
     ;; Suppress the warning: `ls does not support --dired'.
@@ -3739,9 +3779,48 @@ If the region is active and option `transient-mark-mode' is on, call
     (when (executable-find "gls")
       (setq insert-directory-program (executable-find "gls")
             dired-use-ls-dired t) ))
+  )
 
-  ;; Show directory first
-  (setq dired-listing-switches "-alh --group-directories-first"))
+
+;;;;; dired-aux
+;; - auxiliary functionality of dired
+;; - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
+(use-package dired-aux
+  :straight (dired-aux :type built-in)
+  :config
+  (setq dired-isearch-filenames 'dwim)
+  (setq dired-create-destination-dirs 'ask)
+  (setq dired-vc-rename-file t)  )
+
+
+;;;;; dired-x
+;; - Extra Dired functionality
+;; - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
+(use-package dired-x
+  :straight (autorevert :type built-in)
+  :demand
+  :config
+  (let ((cmd (cond
+              (sys/mac-x-p "open")
+              (sys/linux-x-p "xdg-open")
+              (sys/win32p "start")
+              (t ""))))
+    (setq dired-guess-shell-alist-user
+          `(("\\.pdf\\'" ,cmd)
+            ("\\.docx\\'" ,cmd)
+            ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
+            ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
+            ("\\.\\(?:xcf\\)\\'" ,cmd)
+            ("\\.csv\\'" ,cmd)
+            ("\\.tex\\'" ,cmd)
+            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
+            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
+            ("\\.html?\\'" ,cmd)
+            ("\\.md\\'" ,cmd))))
+
+  (setq dired-omit-files
+        (concat dired-omit-files
+                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
 
 
 ;;;;; all-the-icons-dired
@@ -3791,43 +3870,6 @@ If the region is active and option `transient-mark-mode' is on, call
                   (insert "\t"))))
             (forward-line 1))))))
   (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
-
-
-;;;;; dired-aux
-;; - auxiliary functionality of dired
-;; - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
-(use-package dired-aux
-  :straight (dired-aux :type built-in))
-
-
-;;;;; dired-x
-;; - Extra Dired functionality
-;; - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
-(use-package dired-x
-  :straight (autorevert :type built-in)
-  :demand
-  :config
-  (let ((cmd (cond
-              (sys/mac-x-p "open")
-              (sys/linux-x-p "xdg-open")
-              (sys/win32p "start")
-              (t ""))))
-    (setq dired-guess-shell-alist-user
-          `(("\\.pdf\\'" ,cmd)
-            ("\\.docx\\'" ,cmd)
-            ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
-            ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
-            ("\\.\\(?:xcf\\)\\'" ,cmd)
-            ("\\.csv\\'" ,cmd)
-            ("\\.tex\\'" ,cmd)
-            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
-            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
-            ("\\.html?\\'" ,cmd)
-            ("\\.md\\'" ,cmd))))
-
-  (setq dired-omit-files
-        (concat dired-omit-files
-                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
 
 
 ;;;;; quick-preview
@@ -5197,6 +5239,75 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
               ("B" . eww-back-url)
               ("N" . eww-next-url)
               ("P" . eww-previous-url)))
+
+
+;;; calendar, diary
+;;;;; calendar
+;; - the built-in calendar
+;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html][calendar]]
+(use-package calendar
+  :straight (:type built-in)
+  :config
+  (setq calendar-mark-diary-entries-flag t)
+  (setq calendar-time-display-form
+        '(24-hours ":" minutes
+                   (when time-zone
+                     (concat " (" time-zone ")"))))
+  (setq calendar-week-start-day 1)      ; Monday
+  (setq calendar-date-style 'iso)
+  (setq calendar-christian-all-holidays-flag t)
+  (setq calendar-holidays
+        (append holiday-local-holidays  ; TODO set local holidays
+                holiday-solar-holidays))
+  :hook (calendar-today-visible-hook . calendar-mark-today))
+
+
+;;;;; solar
+;; - S in Calendar , Display M-x sunrise-sunset or sunrise-sunset
+;; - [[https://github.com/jwiegley/emacs-release/blob/master/lisp/calendar/solar.el][solar.el]]
+(use-package solar
+  :straight (:type built-in)
+  :config
+  (setq calendar-latitude 42.838213
+        calendar-longitude -83.728748))
+
+
+;;;;; lunar
+;; - M in calendar or M-x phases-of-moon
+;; - [[https://ftp.gnu.org/old-gnu/Manuals/emacs-21.2/html_node/emacs_423.html][phases of the moon]]
+(use-package lunar
+  :straight (:type built-in)
+  :config
+  (setq lunar-phase-names
+        '("New Moon"
+          "First Quarter Moon"
+          "Full Moon"
+          "Last Quarter Moon")))
+
+
+;;;;; diary
+;; - simple diary interface
+;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Diary.html][the diary]]
+(use-package diary-lib
+  :straight (:type built-in)
+  :config
+  (setq diary-file "~/.diary")
+  (setq diary-entry-marker "diary")
+  (setq diary-show-holidays-flag t)
+  (setq diary-header-line-flag nil)
+  (setq diary-mail-addr "public@protesilaos.com")
+  (setq diary-mail-days 3)
+  (setq diary-number-of-entries 3)
+  (setq diary-comment-start ";")
+  (setq diary-comment-end "")
+  (setq diary-date-forms
+        '((day "/" month "[^/0-9]")
+          (day "/" month "/" year "[^0-9]")
+          (day " *" monthname " *" year "[^0-9]")
+          (monthname " *" day "[^,0-9]")
+          (monthname " *" day ", *" year "[^0-9]")
+          (year "[-/]" month "[-/]" day "[^0-9]")
+          (dayname "\\W"))))
 
 
 ;;; init.el --- end
