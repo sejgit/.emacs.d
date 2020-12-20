@@ -3432,7 +3432,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - used for both lsp & eglot so no :if statement
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
-  :init (add-to-list 'auto-mode-alist '("\\.ino\\'" . c++-mode))
+  ;; :init (add-to-list 'auto-mode-alist '("\\.ino\\'" . c++-mode))
   :config
   '(ccls-initialization-options (quote (compilationDatabaseDirectory :build))))
 
@@ -3457,6 +3457,17 @@ If the region is active and option `transient-mark-mode' is on, call
              :host github
              :repo "josteink/csharp-mode"))
 
+
+;;;;; arduino-mode
+;; - mode for .ino files only
+;; - [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
+(use-package arduino-mode
+  :straight (arduino-mode
+             :type git
+             :host github
+             :repo "stardiviner/arduino-mode")
+  :hook (arduino-mode . arduino-cli-mode)
+  :ensure-system-package arduino-cli)
 
 ;;;;; arduino-cli-mode
 ;; - minor mode for using the excellent new arduino command line interface
@@ -5138,11 +5149,11 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (setq erc-hide-list '("JOIN" "PART" "QUIT"))
 
   ;; If non, nil, this is a list of IRC networks and message types to hide, e.g.:
-  (setq erc-network-hide-list (("freenode" "JOIN" "PART" "QUIT")
+  (setq erc-network-hide-list '(("freenode" "JOIN" "PART" "QUIT")
                                ("OFTC" "JOIN" "PART")))
 
   ;; If non, nil, this is a list of IRC channels and message types to hide, e.g.:
-  (setq erc-channel-hide-list (("#erc" "JOIN" "PART" "QUIT")
+  (setq erc-channel-hide-list '(("#erc" "JOIN" "PART" "QUIT")
                                ("#emacs" "NICK")))
 
 
