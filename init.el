@@ -272,9 +272,9 @@
 ;; - Enhancements to `cus-edit.el'
 ;; - [[https://github.com/emacsmirror/cus-edit-plus/blob/master/cus-edit%2B.el][cus-edit+]]
 (use-package cus-edit+
-  :defer t
-  :custom
-  (custom-file null-device "Don't store customizations")  )
+  ;:custom
+  ;(custom-file null-device "Don't store customizations")
+  )
 
 
 ;;;;; exec-path-from-shell
@@ -894,7 +894,7 @@ Return its absolute path.  Otherwise, return nil."
   :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
   :custom
   (custom-safe-themes
-   '("32ecae1d95b8d684d99618ebc512e8e856dfaa1521a1124b3d97f004e6025c66" default))
+   '("7e22a8dcf2adcd8b330eab2ed6023fa20ba3b17704d4b186fa9c53f1fab3d4d2" "32ecae1d95b8d684d99618ebc512e8e856dfaa1521a1124b3d97f004e6025c66" default))
   :config
   (dolist (theme '("operandi" "vivendi"))
     (contrib/format-sexp
@@ -2649,7 +2649,7 @@ Return its absolute path.  Otherwise, return nil."
   (add-to-list 'projectile-globally-ignored-files ".DS_Store")
   ;; always ignore .class files
   (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
-  (setq projectile-project-search-path '("~/Projects/" "~/" "~/Documents/" "~/gdrive/"))
+  (setq projectile-project-search-path '("~/Projects/"))
 
   ;; Use the faster searcher to handle project files: ripgrep `rg'.
   (when (executable-find "rg")
