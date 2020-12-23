@@ -1155,7 +1155,7 @@ Return its absolute path.  Otherwise, return nil."
 (defun sej/browse-homepage ()
   "Browse the Github page of SeJ Emacs."
   (interactive)
-  (browse-url sejgit-homepage))
+  (browse-url sej-homepage))
 
 (define-key sej-mode-map (kbd "C-c s h") 'sej/browse-homepage)
 
