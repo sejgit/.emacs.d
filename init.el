@@ -52,6 +52,8 @@
 ;; - <2020-09-21 Mon> small mods
 ;; - <2020-09-22 Tue> move to helm
 ;; - <2020-11-21 Sat> move custom.el fonts to init.el
+;; - <2021-01-04 Mon> gccemacs changes & simplifications
+
 
 ;;; Code:
 (message "Emacs start")
@@ -281,9 +283,9 @@
   ;; - set-up exec-path and hook for server-start
   ;; - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
   (use-package exec-path-from-shell
-    :when (or sys/macp sys/linuxp)
+    :when (or sys/macp sys/linuxp daemonp)
     :init
-    (setq exec-path-from-shell nil)
+    (setq exec-path-from-shell-arguments nil)
     (setq exec-path-from-shell-check-startup-files nil)
     (exec-path-from-shell-initialize))
 
@@ -759,128 +761,6 @@ Return its absolute path.  Otherwise, return nil."
   :bind (([remap describe-mode] . helm-describe-modes)))
 
 
-;;;; update
-;;;;; sej/update-config
-;; - helper function to pull latest config from git tracked dir
-;; - not bound
-(defun sej/update-config ()
-  "Update git tracked Emacs configurations to the latest version."
-  (interactive)
-  (let ((dir (expand-file-name user-emacs-directory)))
-    (if (file-exists-p dir)
-        (progn
-          (message "Updating Emacs configurations...")
-          (cd dir)
-          (shell-command "git pull")
-          (message "Update finished. Restart Emacs to complete the process."))
-      (message "\"%s\" doesn't exist." dir))))
-
-
-;;;;; sej/update-dotfiles
-;; - helper function to pull latest dotfiles config from git tracked dir
-;; - not bound
-(defun sej/update-dotfiles ()
-  "Update the dotfiles to the latest version."
-  (interactive)
-  (let ((dir (or (getenv "DOTFILES")
-                 (expand-file-name "~/dotfiles/"))))
-    (if (file-exists-p dir)
-        (progn
-          (message "Updating dotfiles...")
-          (cd dir)
-          (shell-command "git pull")
-          (message "Update finished."))
-      (message "\"%s\" doesn't exist." dir))))
-
-
-;;;;; sej/update-all
-;; - helper function to pull latest files from git tracked dir
-;; - not bound
-(defun sej/update-all()
-  "Update dotfiles, org files, Emacs confgiurations and packages, ."
-  (interactive)
-  (sej/update-config)
-  (sej/update-dotfiles))
-
-
-;;;; network proxy
-;;;;; sej/proxy-http-show
-;;- what are the current proxy settings
-;;- based on the Emacs settings variables
-;;- not bound
-(defun sej/proxy-http-show ()
-  "Show http/https proxy."
-  (interactive)
-  (if url-proxy-services
-      (message "Current HTTP proxy is \"%s\"" sej-proxy)
-    (message "No proxy")))
-
-
-;;;;; sej/proxy-http-enable
-;; - enable proxy settings
-;; - based on Emacs custom settings
-;; - not bound
-(defun sej/proxy-http-enable ()
-  "Enable http/https proxy."
-  (interactive)
-  (setq url-proxy-services `(("http" . ,sej-proxy)
-                             ("https" . ,sej-proxy)
-                             ("no_proxy" . "^\\(localhost\\|192.168.*\\|10.*\\)")))
-  (setq url-http-proxy-basic-auth-storage sej-url-http-proxy-basic-auth-storage)
-  (sej/proxy-http-show))
-
-
-;;;;; sej/proxy-http-disable
-;; - disable proxy settings
-;; - based on Emacs custom settings
-;; - not bound
-(defun sej/proxy-http-disable ()
-  "Disable http/https proxy."
-  (interactive)
-  (setq url-proxy-services nil)
-  (setq url-http-proxy-basic-auth-storage nil)
-  (sej/proxy-http-show))
-
-
-;;;;; sej/proxy-http-toggle
-;; - toggle proxy settings
-;; - based on Emacs custom settings
-;; - not bound
-(defun sej/proxy-http-toggle ()
-  "Toggle http/https proxy."
-  (interactive)
-  (if url-proxy-services
-      (sej/proxy-http-disable)
-    (sej/proxy-http-enable)))
-
-
-;;;;; sej/proxy-socks-enable
-;; - enable socks proxy settings
-;; - based on Emacs custom settings
-;; - not bound
-(defvar socks-noproxy)
-(defvar socks-server)
-(defun sej/proxy-socks-enable ()
-  "Enable Socks proxy."
-  (interactive)
-  (setq url-gateway-method 'socks)
-  (setq socks-noproxy '("localhost"))
-  (setq socks-server '("Default server" "127.0.0.1" 1086 5))
-  (message "Enable socks proxy."))
-
-
-;;;;; sej/proxy-socks-disable
-;; - disable socks proxy settings
-;; - based on Emacs custom settings
-;; - not bound
-(defun sej/proxy-socks-disable ()
-  "Disable Socks proxy."
-  (interactive)
-  (setq url-gateway-method 'native)
-  (setq socks-noproxy nil)
-  (message "Disable socks proxy."))
-
-
 ;;; user interface
 ;;;; themes
 ;;;;; modus themes
@@ -889,8 +769,11 @@ Return its absolute path.  Otherwise, return nil."
   :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
   :custom
   (custom-safe-themes
-   '("7e22a8dcf2adcd8b330eab2ed6023fa20ba3b17704d4b186fa9c53f1fab3d4d2" "32ecae1d95b8d684d99618ebc512e8e856dfaa1521a1124b3d97f004e6025c66" default))
+   '("dbf58130f89f49aca831812c8df2452d7126388f6cc34a42666c691f88a8be3e" default))
   :config
+  (defmacro contrib/format-sexp (sexp &rest objects)
+      `(eval (read (format ,(format "%S" sexp) ,@objects))))
+
   (dolist (theme '("operandi" "vivendi"))
     (contrib/format-sexp
      (defun prot/modus-%1$s ()
@@ -1360,46 +1243,12 @@ Return its absolute path.  Otherwise, return nil."
   (tab-bar-history-mode -1))
 
 
-;;;;; tab-line
-;; - built-in traditional tab module
-;; - not used: This is only included as a reference.
-;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Line.html#Tab-Line][tab line emacs manual]]
-(use-package tab-line
-  :disabled
-  :straight (:type built-in)
-  :commands (tab-line-mode global-tab-line-mode)
-  :config
-  (global-tab-line-mode -1))
-
-
 ;;;; mode-line
 ;;;;; doom-modeline
 ;; - A fancy and fast mode-line inspired by minimalism design
 ;; - https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
-  :hook (emacs-startup . doom-modeline-mode)
-  (after-save . doom-modeline-update-buffer-file-name)
-  (after-save . doom-modeline-update-buffer-file-state-icon)
-  :init
-  (setq doom-modeline-major-mode-color-icon t)
-  (setq doom-modeline-github t)
-  (setq doom-modeline-persp-name nil))
-
-(defun mode-line-height ()
-  "Get current height of mode-line."
-  (- (elt (window-pixel-edges) 3)
-     (elt (window-inside-pixel-edges) 3)))
-
-
-;;;;; hide-mode-line
-;; - A minor mode that hides (or masks) the mode-line in your current buffer
-;; - https://github.com/hlissner/emacs-hide-mode-line
-(use-package hide-mode-line
-  :hook (((completion-list-mode
-           completion-in-region-mode
-           neotree-mode
-           treemacs-mode)
-          . hide-mode-line-mode)))
+  :hook (after-init . doom-modeline-mode))
 
 
 ;;;;; all-the-icons
@@ -2401,14 +2250,6 @@ Return its absolute path.  Otherwise, return nil."
     (add-to-list 'tramp-remote-path "~/bin")))
 
 
-;;;;; pass
-;; - major-mode to manage your password-store (pass) keychain
-;; - https://github.com/NicolasPetton/pass
-;; - TODO put osx-keychain in for osx, but the package needs some updating
-(use-package pass
-  :commands pass)
-
-
 ;;;;; indent-guide
 ;; - show vertical lines to guide indentation
 ;; - https://github.com/zk-phi/indent-guide
@@ -2483,15 +2324,15 @@ Return its absolute path.  Otherwise, return nil."
   :hook (compilation-filter . my-colorize-compilation-buffer))
 
 
-;; ;;;;; dumb-jump
-;; ;; - Jump to definition via `ag'/`rg'/`grep'
-;; ;; - https://github.com/jacktasia/dumb-jump
-;; (use-package dumb-jump
-;;   :hook ((emacs-startup . dumb-jump-mode)
-;;          (xref-backend-functions . dumb-jump-xref-activate))
-;;   :defines sej-mode-map
-;;   :config
-;;   (setq dumb-jump-prefer-searcher 'rg))
+;;;;; dumb-jump
+;; - Jump to definition via `ag'/`rg'/`grep'
+;; - https://github.com/jacktasia/dumb-jump
+ (use-package dumb-jump
+  :hook ((emacs-startup . dumb-jump-mode)
+         (xref-backend-functions . dumb-jump-xref-activate))
+  :defines sej-mode-map
+  :config
+  (setq dumb-jump-prefer-searcher 'rg))
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
@@ -2616,8 +2457,7 @@ Return its absolute path.  Otherwise, return nil."
   ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
               ("C-c s r" . emr-show-refactor-menu)
-              ("H-r" . emr-show-refactor-menu) )
-  :hook (prog-mode . emr-initialize))
+              ("H-r" . emr-show-refactor-menu) ))
 
 
 ;;;;; projectile
@@ -3040,26 +2880,6 @@ Return its absolute path.  Otherwise, return nil."
   :hook (emacs-startup . sej/company-shell-hook) )
 
 
-;;;;; yasnippet
-;; - short-cut completions
-;; - https://github.com/joaotavora/yasnippet
-(use-package yasnippet
-  :diminish yas-minor-mode
-  :hook ( (emacs-startup . yas-reload-all)
-          ((prog-mode org-mode go-mode) . yas-minor-mode))
-  :bind (:map yas-minor-mode-map
-              ("<tab>" . nil)
-              ("TAB" . nil)
-              ("<A-tab>" . yas-expand)
-              :map yas-keymap
-              ("<tab>" . nil)
-              ("TAB" . nil)
-              ("M-n" . yas-next-field-or-maybe-expand)
-              ("M-p" . yas-prev-field))
-  :config
-  (use-package yasnippet-snippets))
-
-
 ;;;;; hydra
 ;; - Make bindings that stick around
 ;; - https://github.com/abo-abo/hydra
@@ -3091,28 +2911,6 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;; enable dash for Emacs lisp highlighting
 (eval-after-load "dash" '(dash-enable-font-lock))
-
-
-;;;;; lispy /* NOT USED */
-;; - This package reimagines Paredit
-;; - https://github.com/abo-abo/lispy
-;; - a popular method to navigate and edit LISP code in Emacs.
-;; - The killer-feature are the short bindings:
-
-;; command                    binding  binding  command
-;; paredit-forward             C-M-f      j     lispy-down
-;; paredit-backward            C-M-b      k     lispy-up
-;; paredit-backward-up         C-M-u      h     lispy-left
-;; paredit-forward-up          C-M-n      l     lispy-right
-;; paredit-raise-sexp          M-r        r     lispy-raise
-;; paredit-convolute-sexp      M-?        C     lispy-convolute
-;; paredit-forward-slurp-sexp  C-)        >     lispy-slurp
-;; paredit-forward-barf-sexp   C-}        <     lispy-barf
-;; paredit-backward-slurp-sexp C-(        >     lispy-slurp
-;; paredit-backward-barf-sexp  C-{        <     lispy-barf
-
-;; (use-package lispy
-;;   :hook (emacs-lisp-mode . lispy-mode))
 
 
 ;;;;; eldoc
@@ -3244,19 +3042,6 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - major mode for editing pip requirement files
 ;; - https://github.com/Wilfred/pip-requirements.el
 (use-package pip-requirements)
-
-
-;;;;; pyvenv
-;; - simple global minor mode which will replicate the changes done
-;; by virtualenv activation inside Emacs
-;; - https://github.com/jorgenschaefer/pyvenv
-;; You can use (add-dir-local-variable) to set pyvenv-workon for a particular project.
-(use-package pyvenv
-  :hook (pyvenv-post-activate . pyvenv-restart-python)
-  :config
-  (setq pyvenv-workon ".python-environments/default") ; default venv
-  (pyvenv-tracking-mode 1) ; automatically use pyvenv-workon via dir-locals
-  )
 
 
 ;;;; web modes
@@ -4174,7 +3959,7 @@ If the region is active and option `transient-mark-mode' is on, call
     (setq end (point-marker))
     (delete-rectangle start end)
     (goto-char start)
-    (loop with column = (current-column)
+    (cl-loop with column = (current-column)
           while (and (<= (point) end) (not (eobp)))
           for i from from   do
           (move-to-column column t)
