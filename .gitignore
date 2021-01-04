@@ -5,6 +5,7 @@
 *.sqlite
 *bak/
 *~
+eln-cache/
 .DS_Store
 .cache/
 .cask/

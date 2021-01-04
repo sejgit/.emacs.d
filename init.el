@@ -401,11 +401,6 @@
       ;; Add proper word wrapping
       (global-visual-line-mode t)
 
-      ;; clean up interface early in startup to avoid momentary display
-      (menu-bar-mode t)
-      (tool-bar-mode -1)
-      (scroll-bar-mode -1)
-
       ;; turn on syntax highlightng for all buffers
       (global-font-lock-mode t)
 
