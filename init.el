@@ -1606,7 +1606,8 @@ Return its absolute path.  Otherwise, return nil."
           ("C-c C-k" . crux-duplicate-current-line-or-region)
           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
           ([remap kill-whole-line] . crux-kill-whole-line)
-          ("C-<backspace>" . crux-kill-line-backwards))
+          ("C-<backspace>" . crux-kill-line-backwards)
+          ("C-c s I" . crux-find-shell-init-file))
   :config
   (crux-with-region-or-buffer indent-region)
   (crux-with-region-or-buffer untabify)
@@ -1784,11 +1785,11 @@ Return its absolute path.  Otherwise, return nil."
   (define-key sej-mode-map (kbd "C-H-u") 'sej/url-insert))
 
 
-;;;;; sej/url-git-clone-from-clipboard-url
+;;;;; sej/url-git-clone-from-clipboard
 ;; - from Alvaro Ramirez function to git clone from url in clipboard mods by me
 ;; - [[http://xenodium.com/emacs-clone-git-repo-from-clipboard/][git-clone-from-clipboard-url]]
 (when sys/macp
-(defun sej/url-git-clone-from-clipboard-url ()
+(defun sej/url-git-clone-from-clipboard ()
   "Clone git URL in clipboard asynchronously and open in dired when finished."
   (interactive)
   (cl-assert (string-match-p "^\\(http\\|https\\|ssh\\)://" (current-kill 0)) nil "No URL in clipboard")
@@ -1823,7 +1824,7 @@ Return its absolute path.  Otherwise, return nil."
                                      (user-error (format "%s\n%s" command output))))))
     (set-process-filter proc #'comint-output-filter)))
 
-(define-key sej-mode-map (kbd "C-H-c") 'sej/url-git-clone-from-clipboard-url))
+(define-key sej-mode-map (kbd "C-H-c") 'sej/url-git-clone-from-clipboard))
 
 
 ;;;;; ace-link
