@@ -766,45 +766,40 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; modus themes
 (use-package modus-themes
   :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
-  :hook (after-init . (lambda() (load-theme 'modus-vivendi)))
+  :hook (after-init . (lambda() (load-theme 'modus-vivendi t)))
+  :bind ("<f5>" . modus-themes-toggle)
   :custom
   (custom-safe-themes
    '("dbf58130f89f49aca831812c8df2452d7126388f6cc34a42666c691f88a8be3e" default))
-  :config
-  (defmacro contrib/format-sexp (sexp &rest objects)
-      `(eval (read (format ,(format "%S" sexp) ,@objects))))
-
-  (dolist (theme '("operandi" "vivendi"))
-    (contrib/format-sexp
-     (defun prot/modus-%1$s ()
-       (setq modus-%1$s-theme-bold-constructs nil
-             modus-%1$s-theme-slanted-constructs t
-             modus-%1$s-theme-faint-syntax nil
-             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-             modus-%1$s-theme-fringes 'intense ; {nil,'subtle,'intense}
-             modus-%1$s-theme-faint-syntax t
-             modus-%1$s-theme-intense-hl-line nil
-             modus-%1$s-theme-intense-paren-match t
-             modus-%1$s-theme-links 'faint-neutral-underline ; {nil,'faint,'neutral-underline,'faint-neutral-underline,'no-underline}
-             modus-%1$s-theme-no-mixed-fonts nil
-             modus-%1$s-theme-prompts 'intense ; {nil,'subtle,'intense}
-             modus-%1$s-theme-completions nil ; {nil,'moderate,'opinionated}
-             modus-%1$s-theme-diffs 'fg-only ; {nil,'desaturated,'fg-only}
-             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-             modus-%1$s-theme-headings  ; Read the manual for this one
-             '((1 . t)
-               (2 . no-bold)
-               (t . rainbow-no-bold))
-             modus-%1$s-theme-variable-pitch-headings t
-             modus-%1$s-theme-scale-headings t
-             modus-%1$s-theme-scale-1 1.1
-             modus-%1$s-theme-scale-2 1.15
-             modus-%1$s-theme-scale-3 1.21
-             modus-%1$s-theme-scale-4 1.27
-             modus-%1$s-theme-scale-5 1.33)
-       (load-theme 'modus-%1$s t) )
-     theme))
- )
+  :init
+  (setq modus-themes-bold-constructs t
+        modus-themes-slanted-constructs t
+        modus-themes-syntax 'alt-syntax ; {nil,'faint,'yellow-comments,'green-strings,'yellow-comments-green-strings,'alt-syntax,'alt-syntax-yellow-comments}
+        modus-themes-no-mixed-fonts nil
+        modus-themes-links 'faint-neutral-underline ; {nil,'faint,'neutral-underline,'faint-neutral-underline,'no-underline}
+        modus-themes-prompts nil ;{nil,'subtle,'intense}
+        modus-themes-mode-line '3d ;{nil,'3d,'moody}
+        modus-themes-completions nil ;{nil,'moderate,'opinionated}
+        modus-themes-fringes 'intense ;{nil,'subtle,'intense}
+        modus-theses-lang-checkers nil ;{nil,...}
+        modus-themes-intense-hl-line nil
+        modus-themes-intense-paren-match 'intense-bold ;{nil,'subtle-bold,'intense,'intense-bold}
+        modus-themes-region 'bg-only-no-extend ;{nil,'no-extend,'bg-only,'bg-only-no-extend}
+        modus-themes-diffs 'fg-only ;{nil,'desaturated,'fg-only}
+        modus-themes-org-blocks 'greyscale ;{nil,'greyscale,'rainbow}
+        modus-themes-org-habit nil ;{nil,'simplified,'traffic-light}
+        modus-themes-headings  ; Read the manual for this one
+        '((1 . t)
+          (2 . no-bold)
+          (t . rainbow-no-bold))
+        modus-themes-variable-pitch-headings t
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.05
+        modus-themes-scale-2 1.1
+        modus-themes-scale-3 1.15
+        modus-themes-scale-4 1.2
+        modus-themes-scale-5 1.3
+        modus-themes-variable-pitch-headings nil))
 
 
 ;;;;; font
@@ -1254,44 +1249,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; all-the-icons
 ;; - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
 ;; - https://github.com/domtronn/all-the-icons.el
-(use-package all-the-icons
-  :if (display-graphic-p)
-  :custom-face
- (all-the-icons-dsilver ((((background dark)) :foreground "#838484") (((background light)) :foreground "#838484")))
- (all-the-icons-lsilver ((((background dark)) :foreground "#B9B6AA") (((background light)) :foreground "#7F7869")))
- (all-the-icons-silver ((((background dark)) :foreground "#716E68") (((background light)) :foreground "#716E68")))
-  :init
-  (unless (or sys/win32p (member "all-the-icons" (font-family-list)))
-    (all-the-icons-install-fonts t))
-  :config
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.go$" all-the-icons-fileicon "go" :face all-the-icons-blue))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(go-mode all-the-icons-fileicon "go" :face all-the-icons-blue))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(help-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1 :face all-the-icons-purple))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(Info-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1))
-  (add-to-list 'all-the-icons-icon-alist
-               '("NEWS$" all-the-icons-faicon "newspaper-o" :height 0.9 :v-adjust -0.2))
-  (add-to-list 'all-the-icons-icon-alist
-               '("Cask\\'" all-the-icons-fileicon "elisp" :height 1.0 :face all-the-icons-blue))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(cask-mode all-the-icons-fileicon "elisp" :height 1.0 :face all-the-icons-blue))
-  (add-to-list 'all-the-icons-icon-alist
-               '(".*\\.ipynb\\'" all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebooklist-mode all-the-icons-faicon "book" :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebook-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebook-multilang-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.epub\\'" all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(nov-mode all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(gfm-mode  all-the-icons-octicon "markdown" :face all-the-icons-blue)))
+(use-package all-the-icons)
 
 
 ;;;; line numbers
@@ -1802,7 +1760,7 @@ Return its absolute path.  Otherwise, return nil."
          (buffer (generate-new-buffer (format "*%s*" command)))
          (proc))
     (when (file-exists-p project-dir)
-      (if (y-or-n-p (format "%s exists. delete?" (file-name-base url)))
+      (if (y-or-n-p (format "%s exists, delete?" (file-name-base url)))
           (delete-directory project-dir t)
         (user-error "Bailed")))
     (switch-to-buffer buffer)
