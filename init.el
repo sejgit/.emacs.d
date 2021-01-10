@@ -2999,6 +2999,17 @@ If the region is active and option `transient-mark-mode' is on, call
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
 
+;;;;; geiser ( guile ) ( closure )
+;; - Emacs for guile
+;; - [[https://www.nongnu.org/geiser/geiser_2.html#Installation][geiser]]
+;; - [[https://jeko.frama.io/en/emacs.html][guile hacking manual]]
+(use-package geiser
+  :straight (geiser
+             :type git
+             :host gitlab
+             :repo "jaor/geiser"))
+
+
 ;;;; python
 ;;;;; python
 ;; - Install:
