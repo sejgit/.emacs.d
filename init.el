@@ -53,6 +53,7 @@
 ;; - <2020-09-22 Tue> move to helm
 ;; - <2020-11-21 Sat> move custom.el fonts to init.el
 ;; - <2021-01-04 Mon> gccemacs changes & simplifications
+;; - <2021-01-08 Fri> some clean-up
 
 
 ;;; Code:
@@ -720,11 +721,10 @@ Return its absolute path.  Otherwise, return nil."
   :hook (emacs-startup . which-key-mode)
   :commands which-key-mode
   :defines sej-mode-map
-  :bind (:map sej-mode-map
-              ("C-h RET" . which-key-show-major-mode)
-              ("C-h C-k" . which-key-show-top-level))
   :config
-  (which-key-setup-minibuffer))
+  (setq which-key-use-C-h-commands t)
+  ;; (which-key-setup-minibuffer)
+  (which-key-setup-side-window-bottom))
 
 
 ;;;;; helpful
@@ -1208,12 +1208,14 @@ Return its absolute path.  Otherwise, return nil."
 ;; - keep windows balanced with in-focus window larger
 ;; - https://github.com/roman/golden-ratio.el
 (use-package golden-ratio
+  :after which-key
   :hook (emacs-startup . golden-ratio-mode)
   :diminish golden-ratio-mode
   :config
   (add-to-list 'golden-ratio-extra-commands 'ace-window)
   (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
-  (setq golden-ratio-auto-scale t))
+  (setq golden-ratio-auto-scale t)
+  (add-to-list 'golden-ratio-exclude-buffer-names which-key-buffer-name)  )
 
 
 ;;;; tabs
@@ -1332,27 +1334,26 @@ Return its absolute path.  Otherwise, return nil."
   :init (setq org-imenu-depth 6)
   :bind (("M-y" . helm-show-kill-ring)
          ("M-i" . helm-swoop)
+         ("C-h s" . helm-swoop)
          ("M-x" . helm-M-x)
          ("C-x b" . helm-mini)
          ("C-h g" . helm-google-suggest)
          ("C-c ," . helm-calcul-expression)
-         ("C-c g" . helm-gid)
          ("C-c i" . helm-imenu)
          ("C-c I" . helm-imenu-in-all-buffers)
          ("C-h C-s" . helm-occur)
          ("C-h f" . helm-find)
+         ("C-x C-f" . helm-find-files)
          ("C-h i" . helm-info-at-point)
          ("C-h r" . helm-info-emacs)
-         ("C-h s" . helm-swoop)
          ("C-x C-d" .   helm-browse-project)
 	 ("M-g a" .     helm-do-grep-ag)
          ("C-x r b" . helm-filtered-bookmarks)
-         ("C-x C-f" . helm-find-files)
          ("C-c C-f" . helm-recentf)
+         ("C-x r r" . helm-recentf)
          ("C-c SPC" . helm-all-mark-rings)
-         ([remap jump-to-register] . helm-register)
-         ([remap list-buffers]     . helm-buffers-list)
-         ([remap dabbrev-expand]   . helm-dabbrev)
+         ("C-x r j" . helm-register)
+         ("C-/" . helm-dabbrev)
          (:map helm-map
                ("<tab" . helm-execute-persistent-action) ; rebind tab to run persistent action
                ("C-i" . helm-execute-persistent-action) ; make TAB work in terminal
@@ -2774,7 +2775,17 @@ Return its absolute path.  Otherwise, return nil."
         company-minimum-prefix-length 2
         company-require-match nil
         company-dabbrev-ignore-case nil
-        company-dabbrev-downcase nil))
+        company-dabbrev-downcase nil)
+  (setq company-backends '(company-capf
+                          company-keywords
+                          company-semantic
+                          company-files
+                          company-etags
+                          company-elisp
+                          company-clang
+                          company-c-headers
+                          company-ispell
+                          company-yasnippet)))
 
 
 ;;;;; company-box
@@ -2843,7 +2854,7 @@ Return its absolute path.  Otherwise, return nil."
   :hook ((global-company-mode company-mode) . company-quickhelp-mode)
   :bind (:map company-active-map
               ("H-h" . company-quickhelp-manual-begin))
-  :config (setq company-quickhelp-delay 1))
+  :config (setq company-quickhelp-delay 0.1))
 
 
 ;;;;; company-statistics
@@ -2876,8 +2887,7 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (defun sej/company-shell-hook ()
     (add-to-list 'company-backends '(company-shell
-                                     company-shell-env
-                                     company-fish-shell)) )
+                                     company-shell-env)) )
   :hook (emacs-startup . sej/company-shell-hook) )
 
 
@@ -3517,11 +3527,9 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; registers
 ;; - Registers allow you to jump to a file or other location quickly.
-;; Use C-x r j or s-r followed by the letter of the register
+;; Use C-x r j for helm-register
 ;; (i for init.el, r for this file) to jump to it.
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
-(define-key sej-mode-map (kbd "s-r") 'jump-to-register)
-;; (kbd "C-x r j") is built-in global
 (set-register ?c '(file . "~/.ssh/custom-post.el"))
 (set-register ?d '(file . "~/.dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
@@ -3573,7 +3581,7 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; autoinsert
 ;; - mode that comes with Emacs that automagically inserts text into new buffers
-;; based on file extension or the major mode
+;;   based on file extension or the major mode
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
 (use-package autoinsert
   :hook (find-file . auto-insert)
@@ -3647,8 +3655,7 @@ If the region is active and option `transient-mark-mode' is on, call
     ;; Prefer g-prefixed coreutils version of standard utilities when available
     (when (executable-find "gls")
       (setq insert-directory-program (executable-find "gls")
-            dired-use-ls-dired t) ))
-  )
+            dired-use-ls-dired t) ))  )
 
 
 ;;;;; dired-aux
@@ -4060,8 +4067,7 @@ If the region is active and option `transient-mark-mode' is on, call
   :bind (:map sej-mode-map
               ("C-c s s" . osx-dictionary-search-word-at-point)
               ("s-\\" . osx-dictionary-search-word-at-point)
-              ("C-c s i" . osx-dictionary-search-input)
-              ))
+              ("C-c s i" . osx-dictionary-search-input)              ))
 
 
 ;;;;; helm-wordnet
@@ -4096,8 +4102,7 @@ If the region is active and option `transient-mark-mode' is on, call
       (shell-command (concat "ps2pdf " filename))
       (delete-file filename)
       (message "Deleted %s" filename)
-      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))
-    ))
+      (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))    ))
 
 
 ;;;;; pdf-tools
@@ -4163,8 +4168,7 @@ If the region is active and option `transient-mark-mode' is on, call
          ("C-c C-a" . sej/annotate-annotate-dwim)
          ("C-c C-s" . annotate-show-annotation-summary)
          ("C-c ]" . annotate-goto-next-annotation)
-         ("C-c [" . annotate-goto-previous-annotation)
-         )
+         ("C-c [" . annotate-goto-previous-annotation)         )
   :config
   (setq annotate-file (expand-file-name "annotations" user-emacs-directory))
   (setq annotate-annotation-column 73)
@@ -4270,8 +4274,7 @@ function with the \\[universal-argument]."
         org-src-tab-acts-natively t
         org-src-window-setup 'current-window
         org-startup-folded nil
-        org-highlight-latex-and-related '(latex)
-        )
+        org-highlight-latex-and-related '(latex)        )
 
   (let* ((variable-tuple
           (if (display-graphic-p)
@@ -4280,12 +4283,9 @@ function with the \\[universal-argument]."
                     ((x-list-fonts "Verdana")         '(:font "Verdana"))
                     ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
                     (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro.")))
-            nil
-            )
-          )
+            nil            )          )
          (base-font-color     (face-foreground 'default nil 'default))
          (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
-
 
     (custom-theme-set-faces
      'user
@@ -4376,8 +4376,7 @@ function with the \\[universal-argument]."
                                (sass . t)
                                (C . t)
                                (java . t)
-                               (shell . t)
-                               ))
+                               (shell . t)                               ))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list))
@@ -4538,8 +4537,7 @@ function with the \\[universal-argument]."
              eshell)
   :defines (sej-mode-map
             eshell-mode-map)
-  :hook  (
-          (eshell-mode . (lambda ()
+  :hook  ( (eshell-mode . (lambda ()
                            (eshell/alias "f" "find-file $1")
                            (eshell/alias "ff" "find-file $1")
                            (eshell/alias "e" "find-file $1")
@@ -4556,12 +4554,9 @@ function with the \\[universal-argument]."
                                       ("M-P" . eshell-previous-prompt)
                                       ("M-N" . eshell-next-prompt)
                                       ("M-R" . eshell-previous-matching-input)
-                                      ("C-l" . eshell/clear)
-                                      )
-                           )))
+                                      ("C-l" . eshell/clear) ) )))
 
-  :bind (
-         :map sej-mode-map
+  :bind ( :map sej-mode-map
          ("H-e" . eshell)
          ("C-c e" . eshell)
          ("C-c s e" . eshell) )
@@ -4573,13 +4568,11 @@ function with the \\[universal-argument]."
   ;; (require 'em-term)
   ;; (require 'em-prompt)
 
-
   (setenv "PAGER" "cat")
 
   ;; Visual commands
   (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
   (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
-
 
   (setq eshell-glob-case-insensitive nil
         eshell-error-if-no-glob nil
@@ -4659,8 +4652,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
                          name)
     name)
 
-  (advice-add 'eshell-ls-decorated-name :filter-return #'contrib/electrify-ls)
-)
+  (advice-add 'eshell-ls-decorated-name :filter-return #'contrib/electrify-ls))
 
 
 (use-package esh-module
@@ -5055,6 +5047,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :config
   (add-to-list 'shr-external-rendering-functions
                '(pre . shr-tag-pre-highlight)))
+
 
 ;;;;; eww Emacs-web-wowser
 ;; - Emacs internal web browser
