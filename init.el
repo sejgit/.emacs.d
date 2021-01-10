@@ -4207,6 +4207,27 @@ function with the \\[universal-argument]."
       (sej/annotate-annotate))))
 
 
+;;;;; yequake
+;; - configurable drop-down Emacs frames.
+;; - run a shortcut with:  emacsclient -n -e '(yequake-toggle "org-capture")'
+;; - [[https://github.com/alphapapa/yequake][alphapapa/yequake]]
+(use-package yequake
+  :straight (yequake
+            :type git
+            :host github
+            :repo "alphapapa/yequake")
+  :custom
+  (yequake-frames
+   '(("org-capture"
+      (buffer-fns . (yequake-org-capture))
+      (width . 0.75)
+      (height . 0.5)
+      (alpha . 0.95)
+      (frame-parameters . ((undecorated . t)
+                           (skip-taskbar . t)
+                           (sticky . t)))))))
+
+
 ;;;; org
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
