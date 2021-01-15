@@ -2123,13 +2123,14 @@ Return its absolute path.  Otherwise, return nil."
            rust-mode
            sql-mode
            yaml-mode
-           ) . lsp)
+           ) . lsp-deferred)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration)
          )
   :commands (lsp lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
   :config
-  (setq lsp-keymap-prefix "s-l")
   (setq lsp-prefer-flymake t)  )
 
 
@@ -2141,12 +2142,15 @@ Return its absolute path.  Otherwise, return nil."
   :if (eq sej-lsp 'lsp-mode)
   :after lsp-mode
   :bind (:map lsp-ui-mode-map
-         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-         ([remap xref-find-references] . lsp-ui-peek-find-references)) ; M-?
+              ("C-c i" . lsp-ui-imenu)
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+              ([remap xref-find-references] . lsp-ui-peek-find-references)) ; M-?
   :hook (lsp-mode . lsp-ui-mode)
   :commands lsp-ui-mode
   :config
-  (setq lsp-ui-sideline-ignore-duplicate t))
+  (setq lsp-ui-sideline-ignore-duplicate t
+        lsp-ui-sideline-enable nil
+        lsp-ui-doc-delay 2))
 
 
 ;;;;; helm-lsp
@@ -2164,7 +2168,9 @@ Return its absolute path.  Otherwise, return nil."
 ;; - [[https://github.com/emacs-lsp/dap-mode][dap-mode]]
 (use-package dap-mode
   :if (eq sej-lsp 'lsp-mode)
-  :after lsp)
+  :after lsp-mode
+  :config
+  (dap-auto-configure-mode))
 
 
 ;;;;; eglot
@@ -2775,7 +2781,9 @@ Return its absolute path.  Otherwise, return nil."
         company-minimum-prefix-length 2
         company-require-match nil
         company-dabbrev-ignore-case nil
-        company-dabbrev-downcase nil)
+        company-dabbrev-downcase nil
+        company-dabbrev-other-buffers t
+        company-dabbrev-code-other-buffers t)
   (setq company-backends '(company-capf
                           company-keywords
                           company-semantic
@@ -3023,8 +3031,19 @@ If the region is active and option `transient-mark-mode' is on, call
   :bind (:map python-mode-map
               ("s-\\" . python-insert-docstring) )
   :config
-  (setq python-shell-interpreter "ipython"
-        python-shell-interpreter-args "--simple-prompt -i")
+  (setq python-ident-guess-ident-offset-verbose nil)
+
+  (cond
+   ((executable-find "ipython")
+    (setq python-shell-buffer-name "IPython"
+          python-shell-interpreter "ipython"
+          python-shell-interpreter-args "--simple-prompt -i") )
+   ((executable-find "python3")
+    (setq python-shell-interpreter "python3"))
+   ((executable-find "python2")
+    (setq python-shell-interpreter "python2"))
+   (t
+    (setq python-shell-interpreter "python")))
 
   (setq
         lsp-pyls-plugins-jedi-completion-enabled t
@@ -3033,13 +3052,44 @@ If the region is active and option `transient-mark-mode' is on, call
         lsp-pyls-plugins-rope-completion-enabled t
         lsp-pyls-plugins-flake8-enabled t
         lsp-pyls-plugins-mypy-enabled t
-        lsp-pyls-plugins-black-enabled t
-        )
+        lsp-pyls-plugins-black-enabled t )
 
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
     "This string is ignored!"
     "\"\"\"" - "\n\n    \"\"\"")  )
+
+
+;;;;; inferior-python-mode
+;; runs a python interpreter as a subprocess of Emacs
+;; - [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
+(use-package inferior-pyton-mode
+  :straight (:type built-in))
+
+
+;;;;; hide-mode-line
+;; required to hide the modeline
+;; - [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]]
+(use-package hide-mode-line)
+
+
+;;;;; pyenv-mode
+;; integration with the pyenv tool
+;; - [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
+(use-package pyenv-mode
+  :hook (python-mode . pyenv-mode))
+
+
+;;;;; blacken & yapfify
+;; Format the python buffer following YAPF rules
+;; There's also blacken if you like it better.
+(cond
+((executable-find "black")
+(use-package blacken
+  :hook (python-mode . blacken-mode)))
+((executable-find "yapf")
+(use-package yapfify
+  :hook (python-mode . yapf-mode))))
 
 
 ;;;;; live-py-mode
