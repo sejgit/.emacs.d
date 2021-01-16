@@ -2505,11 +2505,26 @@ Return its absolute path.  Otherwise, return nil."
   )
 
 
+;;;;; helm-projectile
+;; - integration of helm and projectile
+;; - [[https://github.com/bbatsov/helm-projectile][helm-projectile]]
 (use-package helm-projectile
   :after (helm)
   :config
   (setq projectile-completion-system 'helm)
   (helm-projectile-on))
+
+
+;;;;; treemacs
+;; - a tree layout file explorer for Emacs
+;; - [[https://github.com/Alexander-Miller/treemacs][treemacs]]
+(use-package treemacs
+  :ensure t
+  :defer t
+  :config
+  (setq treemacs-no-png-images t
+	  treemacs-width 24)
+  :bind ("C-c t" . treemacs))
 
 
 ;;;; vcs
