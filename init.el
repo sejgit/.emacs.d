@@ -68,7 +68,10 @@
 
 
 ;;;;; Straight package manager set-up
+(setq straight-check-for-modifications '(check-on-save find-when-checking))
 (setq straight-use-package-by-default t)
+(setq straight-vc-git-default-clone-depth 1)
+(setq vc-follow-symlinks t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -1761,7 +1764,7 @@ Return its absolute path.  Otherwise, return nil."
          (buffer (generate-new-buffer (format "*%s*" command)))
          (proc))
     (when (file-exists-p project-dir)
-      (if (y-or-n-p (format "%s exists, delete?" (file-name-base url)))
+      (if (y-or-n-p (format "%s exists, delete? " (file-name-base url)))
           (delete-directory project-dir t)
         (user-error "Bailed")))
     (switch-to-buffer buffer)
@@ -2131,7 +2134,7 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq lsp-keymap-prefix "C-c l")
   :config
-  (setq lsp-prefer-flymake t)  )
+  (setq lsp-prefer-flymake nil)  )
 
 
 ;;;;; lsp-ui
@@ -2153,14 +2156,14 @@ Return its absolute path.  Otherwise, return nil."
         lsp-ui-doc-delay 2))
 
 
-;;;;; helm-lsp
+;;;;; company-lsp
 ;; - alternative of the build-in lsp-mode xref-appropos which provides as you type completion
-;; - [[https://github.com/emacs-lsp/helm-lsp][helm-lsp]]
-;; - TODO keep here or move to helm area?  add a link?
-(use-package helm-lsp
+;; - [[https://github.com/emacs-lsp/helm-lsp][company-lsp]]
+(use-package company-lsp
   :if (eq sej-lsp 'lsp-mode)
   :after lsp-mode
-  :commands helm-lsp-workspace-symbol)
+  :commands helm-lsp-workspace-symbol
+  :config (push 'company-lsp company-backends))
 
 
 ;;;;; dap-mode
@@ -3316,7 +3319,7 @@ If the region is active and option `transient-mark-mode' is on, call
   :hook ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls) (lsp)))
   :config
  (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
- (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)
+ (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates )
  (setq ccls-sem-highlight-method 'font-lock)
  ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
 
@@ -3336,7 +3339,7 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;; Alternatively, use lsp-ui-peek interface
 ;; (lsp-ui-peek-find-custom "$ccls/call")
-;; (lsp-ui-peek-find-custom "$ccls/call" '(:callee t))
+(lsp-ui-peek-find-custom "$ccls/call" '(:callee t))
 
 (defun ccls/callee () (interactive) (lsp-ui-peek-find-custom "$ccls/call" '(:callee t)))
 (defun ccls/caller () (interactive) (lsp-ui-peek-find-custom "$ccls/call"))
@@ -4088,6 +4091,15 @@ If the region is active and option `transient-mark-mode' is on, call
   :hook (((text-mode outline-mode org-mode) . flyspell-mode)
          (prog-mode . flyspell-prog-mode))
   :config
+  (cond
+   ((executable-find "aspell")
+    (setq-default ispell-program-name "aspell"))
+   ((executable-find "enchant-2")
+    (setq-default ispell-program-name "enchant-2"))
+   ((executable-find "hunspell")
+    (progn (setq-default ispell-program-name "hunspell")
+           (setq ispell-really-hunspell t)))   )
+
   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
   (define-key flyspell-mouse-map [mouse-3] #'undefined)
 
@@ -4308,7 +4320,8 @@ function with the \\[universal-argument]."
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
 ;; - https://orgmode.org/
-(use-package org
+(use-package org-plus-contrib
+  :straight (org-plus-contrib :includes org))
   :defines  sej-mode-map
   org-capture-bookmark
   org-capture-templates
@@ -4336,8 +4349,9 @@ function with the \\[universal-argument]."
               ("S-<right>" . org-shiftright)
               )
   :config
+  (require 'org)
+  (require 'org-capture)
   (setq org-ellipsis "⤵")
-  (use-package org-plus-contrib)
   (require 'org-protocol)
   (require 'ol-man)
   (setq org-directory sej-org-directory)
@@ -4558,7 +4572,7 @@ function with the \\[universal-argument]."
 ;; in the org repo but not part of official orgmode
 ;; - https://github.com/bzg/org-mode/blob/master/lisp/org-num.el
 (use-package org-num
-  :straight(org-num :local-repo "org/lisp/")
+  :straight(org-num)
   :hook (org-mode . org-num-mode))
 
 
