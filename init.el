@@ -725,7 +725,6 @@ Return its absolute path.  Otherwise, return nil."
   :defines sej-mode-map
   :config
   (setq which-key-use-C-h-commands t)
-  ;; (which-key-setup-minibuffer)
   (which-key-setup-side-window-bottom))
 
 
@@ -1198,6 +1197,8 @@ Return its absolute path.  Otherwise, return nil."
   :after which-key
   :hook (emacs-startup . golden-ratio-mode)
   :diminish golden-ratio-mode
+  :init
+  (golden-ratio-mode 1)
   :config
   (add-to-list 'golden-ratio-extra-commands 'ace-window)
   (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
@@ -1332,7 +1333,8 @@ Return its absolute path.  Otherwise, return nil."
 (use-package ctrlf
   :bind
   (("C-s" . ctrlf-forward-fuzzy)
-   ("C-r" . ctrlf-backward-fuzzy))
+   ("C-r" . ctrlf-backward-fuzzy)
+   ("M-s" . ctrlf-forward-symbol-at-point))
   :init
   (ctrlf-mode +1))
 
