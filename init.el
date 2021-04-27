@@ -1248,7 +1248,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
 (use-package display-line-numbers
   :straight (display-lne-numbers :type built-in)
-  :hook (prog-mode . display-line-numbers-mode))
+  :hook (prog-mode . display-line-numbers-mode)
+  :init (setq display-line-numbers 'visual))
 
 
 ;;;;; goto-line-preview
@@ -4215,307 +4216,299 @@ function with the \\[universal-argument]."
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
 ;; - https://orgmode.org/
-;; (use-package org-plus-contrib
-;;   :defines  sej-mode-map
-;;   org-agenda-span
-;;   org-agenda-skip-scheduled-if-deadline-is-shown
-;;   org-agenda-todo-ignore-deadlines
-;;   org-agenda-todo-ignore-scheduled
-;;   org-agenda-sorting-strategy
-;;   org-agenda-skip-deadline-prewarning-if-scheduled
-;;   :mode ("\\.org$" . org-mode)
-;;   :hook ( (org-mode . flyspell-mode)
-;;           (org-mode . writegood-mode)
-;;           (org-mode . visual-line-mode))
-;;   :bind (:map sej-mode-map
-;;               ("C-c l" . org-store-link)
-;;               ("C-c c" . org-capture)
-;;               ("C-c a" . org-agenda)
-;;               :map org-mode-map
-;;               ("C-M-\\" . org-indent-region)
-;;               ("S-<left>" . org-shiftleft)
-;;               ("S-<right>" . org-shiftright)
-;;               )
-;;   :config
-;;   (require 'org)
-;;   (require 'org-capture)
-;;   (setq org-ellipsis "⤵")
-;;   (require 'org-protocol)
-;;   (require 'ol-man)
-;;   (setq org-directory sej-org-directory)
-;;   (defconst org-file-inbox (concat org-directory "/inbox.org"))
-;;   (defconst org-file-someday (concat org-directory "/someday.org"))
-;;   (defconst org-file-gtd (concat org-directory "/gtd.org"))
-;;   (defconst org-file-journal (concat org-directory "/journal.org"))
-;;   (defconst org-file-notes (concat org-directory "/notes.org"))
-;;   (defconst org-file-code (concat org-directory "/snippets.org"))
-;;   (setq org-replace-disputed-keys t
-;;         org-hide-emphasis-markers t
-;;         org-fontify-done-headline t
-;;         org-hide-leading-stars t
-;;         org-pretty-entities t
-;;         org-default-notes-file org-file-notes
-;;         org-capture-bookmark t
-;;         org-refile-use-outline-path 'file
-;;         org-log-done 'note
-;;         org-log-done t
-;;         org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
-;;                             (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
-;;                             (sequence "|" "CANCELED(x)"))
-;;         org-todo-keyword-faces '(("TODO" . org-warning)
-;;                                  ("WAITING" . (:foreground "blue" :weight bold))
-;;                                  ("DONE" . (:foreground "green" :weight bold))
-;;                                  ("DELIGATE" . (:foreground "blue" :weight bold))
-;;                                  ("VERIFIED" . (:foreground "green" :weight bold))
-;;                                  ("CANCELED" . (:foreground "grey" :weight bold)))
-;;         org-confirm-babel-evaluate nil
-;;         org-src-fontify-natively t
-;;         org-src-tab-acts-natively t
-;;         org-src-window-setup 'current-window
-;;         org-startup-folded nil
-;;         org-highlight-latex-and-related '(latex)        )
+(use-package org-plus-contrib
+  :defines  sej-mode-map
+  org-agenda-span
+  org-agenda-skip-scheduled-if-deadline-is-shown
+  org-agenda-todo-ignore-deadlines
+  org-agenda-todo-ignore-scheduled
+  org-agenda-sorting-strategy
+  org-agenda-skip-deadline-prewarning-if-scheduled
+  :mode ("\\.org$" . org-mode)
+  :hook ( (org-mode . flyspell-mode)
+          (org-mode . writegood-mode)
+          (org-mode . visual-line-mode)
+          (org-mode . org-num-mode))
+  :bind ((:map sej-mode-map
+              ("C-c l" . org-store-link)
+              ("C-c c" . org-capture)
+              ("C-c a" . org-agenda))
+              (:map org-mode-map
+              ("C-M-\\" . org-indent-region)
+              ("S-<left>" . org-shiftleft)
+              ("S-<right>" . org-shiftright)
+              ))
+  :config
+  (require 'org)
+  (require 'org-capture)
+  (setq org-ellipsis "⤵")
+  (require 'org-protocol)
+  (require 'ol-man)
+  (setq org-directory sej-org-directory)
+  (defconst org-file-inbox (concat org-directory "/inbox.org"))
+  (defconst org-file-someday (concat org-directory "/someday.org"))
+  (defconst org-file-gtd (concat org-directory "/gtd.org"))
+  (defconst org-file-journal (concat org-directory "/journal.org"))
+  (defconst org-file-notes (concat org-directory "/notes.org"))
+  (defconst org-file-code (concat org-directory "/snippets.org"))
+  (setq org-replace-disputed-keys t
+        org-hide-emphasis-markers t
+        org-fontify-done-headline t
+        org-hide-leading-stars t
+        org-pretty-entities t
+        org-default-notes-file org-file-notes
+        org-capture-bookmark t
+        org-refile-use-outline-path 'file
+        org-log-done 'note
+        org-log-done t
+        org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
+                            (sequence "|" "CANCELED(x)"))
+        org-todo-keyword-faces '(("TODO" . org-warning)
+                                 ("WAITING" . (:foreground "blue" :weight bold))
+                                 ("DONE" . (:foreground "green" :weight bold))
+                                 ("DELIGATE" . (:foreground "blue" :weight bold))
+                                 ("VERIFIED" . (:foreground "green" :weight bold))
+                                 ("CANCELED" . (:foreground "grey" :weight bold)))
+        org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-src-window-setup 'current-window
+        org-startup-folded nil
+        org-highlight-latex-and-related '(latex)        )
 
-;;   (let* ((variable-tuple
-;;           (if (display-graphic-p)
-;;               (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-;;                     ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-;;                     ((x-list-fonts "Verdana")         '(:font "Verdana"))
-;;                     ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-;;                     (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro.")))
-;;             nil            )          )
-;;          (base-font-color     (face-foreground 'default nil 'default))
-;;          (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+  (let* ((variable-tuple
+          (if (display-graphic-p)
+              (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                    ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                    ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                    ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                    (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro.")))
+            nil            )          )
+         (base-font-color     (face-foreground 'default nil 'default))
+         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
 
-;;     (custom-theme-set-faces
-;;      'user
-;;      `(org-level-8 ((t (,@headline ,@variable-tuple))))
-;;      `(org-level-7 ((t (,@headline ,@variable-tuple))))
-;;      `(org-level-6 ((t (,@headline ,@variable-tuple))))
-;;      `(org-level-5 ((t (,@headline ,@variable-tuple))))
-;;      `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-;;      `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-;;      `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-;;      `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-;;      `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+    (custom-theme-set-faces
+     'user
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
 
-;;   (custom-theme-set-faces
-;;    'user
-;;    '(org-block ((t (:inherit fixed-pitch))))
-;;    '(org-code ((t (:inherit (shadow fixed-pitch)))))
-;;    '(org-document-info ((t (:foreground "dark orange"))))
-;;    '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-;;    '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-;;    '(org-link ((t (:foreground "royal blue" :underline t))))
-;;    '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-;;    '(org-property-value ((t (:inherit fixed-pitch))) t)
-;;    '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-;;    '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-;;    '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-;;    '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+  (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
-;;   (setq sej-project-org-capture-list (list
-;;                                       "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
-;;                                       "* %U\n %l\n %i%?\n"))
-;;   ;; Bookmarks in Safari
-;;   ;;
-;;   ;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
-;;   ;;                               +'&url='+encodeURIComponent(window.location.href)
-;;   ;;                               +'&title='+encodeURIComponent(document.title)
-;;   ;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
-;;   ;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
-;;   ;;                               +'url='+encodeURIComponent(location.href)
-;;   ;;                               +'&title='+encodeURIComponent(document.title) ;
+  (setq sej-project-org-capture-list (list
+                                      "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
+                                      "* %U\n %l\n %i%?\n"))
+  ;; Bookmarks in Safari
+  ;;
+  ;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
+  ;;                               +'&url='+encodeURIComponent(window.location.href)
+  ;;                               +'&title='+encodeURIComponent(document.title)
+  ;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
+  ;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
+  ;;                               +'url='+encodeURIComponent(location.href)
+  ;;                               +'&title='+encodeURIComponent(document.title) ;
 
-;;   (setq org-capture-templates (append
-;;                                '(
-;;                                  ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
-;;                                   "* %U\n %l\n %i%?\n")
-;;                                  ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
-;;                                   "* %U\n %:annotation\n i=%i%?\n")
-;;                                  ("n" "Notes" entry (file+headline org-file-notes  "Notes")
-;;                                   "* %U\n %i%?\n")
-;;                                  ("s" "Someday" entry (file+headline org-file-someday  "Someday")
-;;                                   "* %?\n %i\n %a")
-;;                                  ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
-;;                                   "* TODO %?\n %i\n %a")
-;;                                  ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-;;                                   "* %?\n%(my/org-capture-code-snippet \"%F\")")
-;;                                  )
-;;                                (list sej-project-org-capture-list)))
-
-
-;;   ;; org-mode agenda options
-;;   (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
-;;         org-refile-targets '((org-file-gtd :maxlevel . 3)
-;;                              (org-file-someday :maxlevel . 1))
-;;         org-agenda-window-setup (quote current-window) ;open agenda in current window
-;;         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-;;         org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
-;;         org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
-;;         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-;;         org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
-;;         (quote
-;;          ((agenda deadline-up priority-down)
-;;           (todo priority-down category-keep)
-;;           (tags priority-down category-keep)
-;;           (search category-keep))))
-
-;;   (setq org-confirm-babel-evaluate nil
-;;         org-src-fontify-natively t
-;;         org-src-tab-acts-natively t)
-
-;;   (defvar load-language-list '((emacs-lisp . t)
-;;                                (ein . t)
-;;                                (perl . t)
-;;                                (python . t)
-;;                                (ein . t)
-;;                                (ruby . t)
-;;                                (js . t)
-;;                                (css . t)
-;;                                (sass . t)
-;;                                (C . t)
-;;                                (java . t)
-;;                                (shell . t)                               ))
-
-;;   (org-babel-do-load-languages 'org-babel-load-languages
-;;                                load-language-list))
+  (setq org-capture-templates (append
+                               '(
+                                 ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
+                                  "* %U\n %l\n %i%?\n")
+                                 ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
+                                  "* %U\n %:annotation\n i=%i%?\n")
+                                 ("n" "Notes" entry (file+headline org-file-notes  "Notes")
+                                  "* %U\n %i%?\n")
+                                 ("s" "Someday" entry (file+headline org-file-someday  "Someday")
+                                  "* %?\n %i\n %a")
+                                 ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
+                                  "* TODO %?\n %i\n %a")
+                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                 )
+                               (list sej-project-org-capture-list)))
 
 
+  ;; org-mode agenda options
+  (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
+        org-refile-targets '((org-file-gtd :maxlevel . 3)
+                             (org-file-someday :maxlevel . 1))
+        org-agenda-window-setup (quote current-window) ;open agenda in current window
+        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
+        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
+        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+        (quote
+         ((agenda deadline-up priority-down)
+          (todo priority-down category-keep)
+          (tags priority-down category-keep)
+          (search category-keep))))
+
+  (setq org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
+
+  (defvar load-language-list '((emacs-lisp . t)
+                               (ein . t)
+                               (perl . t)
+                               (python . t)
+                               (ein . t)
+                               (ruby . t)
+                               (js . t)
+                               (css . t)
+                               (sass . t)
+                               (C . t)
+                               (java . t)
+                               (shell . t)                               ))
+
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               load-language-list))
 
 
-;; ;;;;; ob-go
-;; ;; - org-bable functions for go evaluations
-;; ;; - https://github.com/pope/ob-go
-;; (use-package ob-go)
 
 
-;; ;;;;; ob-rust
-;; ;; - org-babel functions for rust evaluation
-;; ;; - https://github.com/zweifisch/ob-rust
-;; (use-package ob-rust)
+;;;;; ob-go
+;; - org-bable functions for go evaluations
+;; - https://github.com/pope/ob-go
+(use-package ob-go)
 
 
-;; ;;;;; ob-ipython
-;; ;; - library that allows Org mode to evaluate code blocks using a Jupyter kernel
-;; ;; (Python by default)
-;; ;; - https://github.com/gregsexton/ob-ipython
-;; (use-package ob-ipython)
+;;;;; ob-rust
+;; - org-babel functions for rust evaluation
+;; - https://github.com/zweifisch/ob-rust
+(use-package ob-rust)
 
 
-;; ;;;;; org-rich-yank
-;; ;; - Rich text clipboard when yanking code into org buffer
-;; ;; consider demand t as lazy loading may not work
-;; ;; - https://github.com/unhammer/org-rich-yank
-;; (use-package org-rich-yank
-;;   :bind (:map org-mode-map
-;;               ("C-M-y" . org-rich-yank)))
+;;;;; ob-ipython
+;; - library that allows Org mode to evaluate code blocks using a Jupyter kernel
+;; (Python by default)
+;; - https://github.com/gregsexton/ob-ipython
+(use-package ob-ipython)
 
 
-;; ;;;;; org-superstar-mode
-;; ;; - Show org-mode bullets as UTF-8 characters ( rewritten org-bullets )
-;; ;; - [[https://github.com/integral-dw/org-superstar-mode][github org-superstar-mode]]
-;; ;; - https://github.com/sabof/org-bullets
-;; (use-package org-superstar
-;;   :hook (org-mode . org-superstar-mode)
-;;   :config
-;;   (setq org-superstar-special-todo-items t)
-;;   (setq org-superstar-prettify-item-bullets t)
-;;   ;; :custom
-;;   ;; (org-superstar-headline--bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
-;;   )
+;;;;; org-rich-yank
+;; - Rich text clipboard when yanking code into org buffer
+;; consider demand t as lazy loading may not work
+;; - https://github.com/unhammer/org-rich-yank
+(use-package org-rich-yank
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
 
 
-;; ;;;;; org-fancy-priorities
-;; ;; - displays org priorities as custom strings
-;; ;; - https://github.com/harrybournis/org-fancy-priorities
-;; (use-package org-fancy-priorities
-;;   :diminish
-;;   :defines org-fancy-priorities-list
-;;   :hook (org-mode . org-fancy-priorities-mode)
-;;   :config
-;;   (unless (char-displayable-p ?❗)
-;;     (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+;;;;; org-superstar-mode
+;; - Show org-mode bullets as UTF-8 characters ( rewritten org-bullets )
+;; - [[https://github.com/integral-dw/org-superstar-mode][github org-superstar-mode]]
+;; - https://github.com/sabof/org-bullets
+(use-package org-superstar
+  :hook (org-mode . org-superstar-mode)
+  :config
+  (setq org-superstar-special-todo-items t)
+  (setq org-superstar-prettify-item-bullets t)
+  ;; :custom
+  ;; (org-superstar-headline--bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
+  )
 
 
-;; ;;;;; toc-org
-;; ;; - Table of contents updated at save to header with TOC tag
-;; ;; - https://github.com/snosov1/toc-org
-;; (use-package toc-org
-;;   :hook (org-mode . toc-org-mode))
+;;;;; org-fancy-priorities
+;; - displays org priorities as custom strings
+;; - https://github.com/harrybournis/org-fancy-priorities
+(use-package org-fancy-priorities
+  :diminish
+  :defines org-fancy-priorities-list
+  :hook (org-mode . org-fancy-priorities-mode)
+  :config
+  (unless (char-displayable-p ?❗)
+    (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
 
 
-;; ;;;;; poporg
-;; ;; - While editing a buffer containing a program, you may edit a comment block
-;; ;; or a string (often a doc-string) in Org mode
-;; ;; - https://github.com/pinard/poporg
-;; (use-package poporg
-;;   :bind (:map sej-mode-map
-;;               ("C-c s o" . poporg-dwim)))
+;;;;; toc-org
+;; - Table of contents updated at save to header with TOC tag
+;; - https://github.com/snosov1/toc-org
+(use-package toc-org
+  :hook (org-mode . toc-org-mode))
 
 
-;; ;;;;; org-num
-;; ;; -outline numbering as overlays on Org mode headlines
-;; ;; in the org repo but not part of official orgmode
-;; ;; - https://github.com/bzg/org-mode/blob/master/lisp/org-num.el
-;; (use-package org-num
-;;   :straight(org-num)
-;;   :hook (org-mode . org-num-mode))
+;;;;; poporg
+;; - While editing a buffer containing a program, you may edit a comment block
+;; or a string (often a doc-string) in Org mode
+;; - https://github.com/pinard/poporg
+(use-package poporg
+  :bind (:map sej-mode-map
+              ("C-c s o" . poporg-dwim)))
 
 
-;; ;;;;; org-pretty-tags
-;; ;; - Display text or image surrogates for Org mode tags.
-;; ;; - https://gitlab.com/marcowahl/org-pretty-tags
-;; (use-package org-pretty-tags
-;;   :hook (org-mode . org-pretty-tags-global-mode)
-;;   :config
-;;   (setq org-pretty-tags-surrogate-strings
-;;         (quote
-;;          (("TOPIC" . "☆")
-;;           ("PROJECT" . "💡")
-;;           ("SERVICE" . "✍")
-;;           ("Blog" . "✍")
-;;           ("music" . "♬")
-;;           ("security" . "🔥"))))
-;;   (org-pretty-tags-global-mode))
+;;;;; org-pretty-tags
+;; - Display text or image surrogates for Org mode tags.
+;; - https://gitlab.com/marcowahl/org-pretty-tags
+(use-package org-pretty-tags
+  :hook (org-mode . org-pretty-tags-global-mode)
+  :config
+  (setq org-pretty-tags-surrogate-strings
+        (quote
+         (("TOPIC" . "☆")
+          ("PROJECT" . "💡")
+          ("SERVICE" . "✍")
+          ("Blog" . "✍")
+          ("music" . "♬")
+          ("security" . "🔥"))))
+  (org-pretty-tags-global-mode))
 
 
-;; ;;;;; org-skeleton
-;; ;; - skeleton template for new org file
-;; (define-skeleton org-skeleton
-;;   "Header info for a emacs-org file."
-;;   "Title: "
-;;   "#+TITLE:" str " \n"
-;;   "#+DATE:" '(org-date-from-calendar) " \n"
-;;   "#+AUTHOR: " '(sej-full-name) "\n"
-;;   "#+email: " '(sej-mail-address) "\n"
-;;   "#+INFOJS_OPT: \n"
-;;   "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
-;;   "-----\n\n")
-;; (global-set-key [C-S-f4] 'org-skeleton)
+;;;;; org-skeleton
+;; - skeleton template for new org file
+(define-skeleton org-skeleton
+  "Header info for a emacs-org file."
+  "Title: "
+  "#+TITLE:" str " \n"
+  "#+DATE:" '(org-date-from-calendar) " \n"
+  "#+AUTHOR: " '(sej-full-name) "\n"
+  "#+email: " '(sej-mail-address) "\n"
+  "#+INFOJS_OPT: \n"
+  "#+BABEL: :session *C* :cache yes :results output graphics :exports both :tangle yes \n"
+  "-----\n\n")
+(global-set-key [C-S-f4] 'org-skeleton)
 
 
-;; ;;;;; sej/org-wrap-elisp skeleton
-;; ;; - skeletons are a kind of yasnippet but they don't mess with keybindings
-;; ;; - skeleton to wrap elisp babel source
+;;;;; sej/org-wrap-elisp skeleton
+;; - skeletons are a kind of yasnippet but they don't mess with keybindings
+;; - skeleton to wrap elisp babel source
 
-;; (define-skeleton sej/org-wrap-elisp
-;;   "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
-;;   nil
-;;   > "#+BEGIN_SRC emacs-lisp" \n
-;;   > _ \n
-;;   > "#+END_SRC" \n)
+(define-skeleton sej/org-wrap-elisp
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+  nil
+  > "#+BEGIN_SRC emacs-lisp" \n
+  > _ \n
+  > "#+END_SRC" \n)
 
 
-;; ;;;;; sej/org-wrap-source skeleton
-;; ;; - skeletons are a kind of yasnippet but they don't mess with keybindings
-;; ;; - skeleton to wrap generic babel source
-;; (define-skeleton sej/org-wrap-source
-;;   "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
-;;   "Language: "
-;;   > "#+BEGIN_SRC " str \n
-;;   > _ \n
-;;   > "#+END_SRC" \n)
-;; )
+;;;;; sej/org-wrap-source skeleton
+;; - skeletons are a kind of yasnippet but they don't mess with keybindings
+;; - skeleton to wrap generic babel source
+(define-skeleton sej/org-wrap-source
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+  "Language: "
+  > "#+BEGIN_SRC " str \n
+  > _ \n
+  > "#+END_SRC" \n)
+
 
 
 ;;; eshell & shell
