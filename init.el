@@ -4216,8 +4216,14 @@ function with the \\[universal-argument]."
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
 ;; - https://orgmode.org/
+(straight-use-package
+ '(org-plus-contrib
+   :repo "https://code.orgmode.org/bzg/org-mode.git"
+   :local-repo "org"
+   :files (:defaults "contrib/lisp/*.el")
+   :includes (org)))
+
 (use-package org
-  :straight org
   :defines  sej-mode-map
   org-agenda-span
   org-agenda-skip-scheduled-if-deadline-is-shown
