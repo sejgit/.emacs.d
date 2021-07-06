@@ -3441,6 +3441,11 @@ If the region is active and option `transient-mark-mode' is on, call
   :config
   (setq csv-separators '("," ";" "|" " ")))
 
+;;;;; ESS (Emacs Speaks Statistics)
+;; - ESS configurationEmacs Speaks Statistics
+;; - Used for R, S-Plus, SAS, Stata and OpenBUGS/JAGS.
+;; - [[https://ess.r-project.org/][ESS R-project]]
+(use-package ess)
 
 ;;; files
 ;;;;; ibuffer
@@ -4499,7 +4504,7 @@ function with the \\[universal-argument]."
 ;; - skeleton to wrap elisp babel source
 
 (define-skeleton sej/org-wrap-elisp
-  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code"
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code."
   nil
   > "#+BEGIN_SRC emacs-lisp" \n
   > _ \n
@@ -4510,7 +4515,7 @@ function with the \\[universal-argument]."
 ;; - skeletons are a kind of yasnippet but they don't mess with keybindings
 ;; - skeleton to wrap generic babel source
 (define-skeleton sej/org-wrap-source
-  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type"
+  "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type."
   "Language: "
   > "#+BEGIN_SRC " str \n
   > _ \n
