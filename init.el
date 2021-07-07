@@ -1495,6 +1495,11 @@ Return its absolute path.  Otherwise, return nil."
 )
 
 
+;;;;; consult-flycheck
+;; provides consult-flycheck
+(use-package consult-flycheck)
+
+
 ;;;;; bookmark+
 ;; - enhancements to the built-in bookmark package
 ;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
