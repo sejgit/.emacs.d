@@ -2524,43 +2524,6 @@ Return its absolute path.  Otherwise, return nil."
               ("H-r" . emr-show-refactor-menu) ))
 
 
-;; ;;;;; projectile
-;; ;; - Manage and navigate projects
-;; ;; - https://github.com/bbatsov/projectile
-;; (use-package projectile
-;;   :diminish
-;;   :bind ("H-f" . projectile-find-file)
-;;   :bind-keymap (  ("s-P" . projectile-command-map)
-;;                   ("C-c p" . projectile-command-map))
-;;   :hook (emacs-startup . projectile-global-mode)
-;;   :init
-;;   (setq projectile-mode-line-prefix "")
-;;   (setq projectile-sort-order 'recentf)
-;;   (setq projectile-use-git-grep t)
-;;   (setq projectile-git-submodule-command nil)
-;;   :config
-;;   (setq projectile-enable-caching t)
-;;   ;; global ignores
-;;   (add-to-list 'projectile-globally-ignored-files ".tern-port")
-;;   (add-to-list 'projectile-globally-ignored-files "GTAGS")
-;;   (add-to-list 'projectile-globally-ignored-files "GPATH")
-;;   (add-to-list 'projectile-globally-ignored-files "GRTAGS")
-;;   (add-to-list 'projectile-globally-ignored-files "GSYMS")
-;;   (add-to-list 'projectile-globally-ignored-files ".DS_Store")
-;;   ;; always ignore .class files
-;;   (add-to-list 'projectile-globally-ignored-file-suffixes ".class")
-;;   (setq projectile-project-search-path '("~/Projects/"))
-
-;;   ;; Use the faster searcher to handle project files: ripgrep `rg'.
-;;   (when (executable-find "rg")
-;;     (setq projectile-generic-command
-;;           (let ((rg-cmd ""))
-;;             (dolist (dir projectile-globally-ignored-directories)
-;;               (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
-;;             (concat "rg -0 --files --color=never --hidden" rg-cmd))))
-;;   )
-
-
 ;;;;; treemacs
 ;; - a tree layout file explorer for Emacs
 ;; - [[https://github.com/Alexander-Miller/treemacs][treemacs]]
@@ -3298,9 +3261,6 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; (ccls/vars 2) => local variable
 ;; (ccls/vars 3) => field or local variable. 3 = 1 | 2
 ;; (ccls/vars 4) => parameter
-
-;; References whose filenames are under this project
-;; (lsp-ui-peek-find-references nil (list :folders (vector (projectile-project-root))))
 )
 
 ;;;;; modern-cpp-font-lock
@@ -3508,24 +3468,6 @@ If the region is active and option `transient-mark-mode' is on, call
                                    default-directory))))
         (counsel-find-file default-directory)))
     (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
-
-  ;; ;; Group ibuffer's list by project root (there is a ibuffer-vc version)
-  ;; (use-package ibuffer-projectile
-  ;;   :functions all-the-icons-octicon ibuffer-do-sort-by-alphabetic
-  ;;   :hook ((ibuffer . (lambda ()
-  ;;                       (ibuffer-projectile-set-filter-groups)
-  ;;                       (unless (eq ibuffer-sorting-mode 'alphabetic)
-  ;;                         (ibuffer-do-sort-by-alphabetic)))))
-  ;;   :config
-  ;;   (setq ibuffer-projectile-prefix
-  ;;         (if (display-graphic-p)
-  ;;             (concat
-  ;;              (all-the-icons-octicon "file-directory"
-  ;;                                     :face ibuffer-filter-group-name-face
-  ;;                                     :v-adjust -0.05
-  ;;                                     :height 1.25)
-  ;;              " ")
-  ;;           "Project: ")))
   )
 
 
