@@ -165,6 +165,7 @@
   (require 'warnings)
   ;; remove warnings for cl depreciated and server already running
   (setq warning-suppress-types (quote ((cl server iedit))))
+  (setq warning-suppress-log-types (quote ((cl) )))
 
 
 ;;;;; Server set-up
@@ -2849,7 +2850,6 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;; enable dash for Emacs lisp highlighting
 (eval-after-load "dash" '(dash-enable-font-lock))
-(use-package dash-functional)
 
 ;;;;; eldoc
 ;; - we don't want this minor mode to be shown in the minibuffer, however
@@ -5233,7 +5233,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
           (monthname " *" day "[^,0-9]")
           (monthname " *" day ", *" year "[^0-9]")
           (year "[-/]" month "[-/]" day "[^0-9]")
-          (dayname "\\W"))))l
+          (dayname "\\W"))))
 
 
 ;;; init.el --- end
