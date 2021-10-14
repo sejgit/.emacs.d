@@ -2802,159 +2802,9 @@ Return its absolute path.  Otherwise, return nil."
 
 
 ;;;;; company
-;; - Modular in-buffer completion framework for Emacs
-;; - http://company-mode.github.io/
-;; (use-package company
-;;   :diminish company-mode
-;;   :defines
-;;   company-dabbrev-ignore-case
-;;   company-dabbrev-downcase
-;;   company-dabbrev-code-modes
-;;   company-dabbrev-code-ignore-case
-;;   :commands company-abort
-;;   :bind (
-;;          (("C-<tab>" . company-complete)
-;;           ("<backtab>" . company-yasnippet)
-;;           ("M-<tab>" . company-complete))
-;;          :map company-active-map
-;;          (("C-n" . company-select-next)
-;;           ("C-p" . company-select-previous)
-;;           ("C-d" . company-show-doc-buffer)
-;;           ("C-l" . company-show-location)
-;;           ("<tab>" . company-complete))
-;;          :map company-search-map
-;;          (("C-p" . company-select-previous)
-;;           ("C-n" . company-select-next)))
-;;   :hook (emacs-startup . global-company-mode)
-;;   :init
-;;   (defun my-company-yasnippet ()
-;;     (interactive)
-;;     (company-abort)
-;;     (call-interactively 'company-yasnippet))
-;;   :config
-;;   (setq company-tooltip-align-annotations t ; aligns annotation to the right
-;;         company-tooltip-limit 12            ; bigger popup window
-;;         company-idle-delay .2               ; decrease delay before autocompletion popup shows
-;;         company-echo-delay 0                ; remove annoying blinking
-;;         company-minimum-prefix-length 2
-;;         company-require-match nil
-;;         company-dabbrev-ignore-case nil
-;;         company-dabbrev-downcase nil
-;;         company-dabbrev-other-buffers t
-;;         company-dabbrev-code-other-buffers t)
-;;   (setq company-backends '(company-capf
-;;                           company-keywords
-;;                           company-semantic
-;;                           company-files
-;;                           company-etags
-;;                           company-elisp
-;;                           company-clang
-;;                           company-c-headers
-;;                           company-ispell
-;;                           company-yasnippet)))
-
-
-;; ;;;;; company-box
-;; ;; - a company front-end with Icons
-;; ;; - https://github.com/sebastiencs/company-box
-;; (use-package company-box
-;;   :after company
-;;   :diminish
-;;   :hook (company-mode . company-box-mode)
-;;   :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-;;   :config
-;;   (setq company-box-backends-colors nil)
-;;   (setq company-box-show-single-candidate t)
-;;   (setq company-box-max-candidates 50)
-
-;;   (defun my-company-box-icons--elisp (candidate)
-;;     (when (derived-mode-p 'emacs-lisp-mode)
-;;       (let ((sym (intern candidate)))
-;;         (cond ((fboundp sym) 'Function)
-;;               ((featurep sym) 'Module)
-;;               ((facep sym) 'Color)
-;;               ((boundp sym) 'Variable)
-;;               ((symbolp sym) 'Text)
-;;               (t . nil)))))
-
-;; (with-eval-after-load 'all-the-icons
-;;       (declare-function all-the-icons-faicon 'all-the-icons)
-;;       (declare-function all-the-icons-fileicon 'all-the-icons)
-;;       (declare-function all-the-icons-material 'all-the-icons)
-;;       (declare-function all-the-icons-octicon 'all-the-icons)
-;;       (setq company-box-icons-all-the-icons
-;;             `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.7 :v-adjust -0.15))
-;;               (Text . ,(all-the-icons-faicon "book" :height 0.68 :v-adjust -0.15))
-;;               (Method . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-;;               (Function . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-;;               (Constructor . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-;;               (Field . ,(all-the-icons-faicon "tags" :height 0.65 :v-adjust -0.15 :face 'font-lock-warning-face))
-;;               (Variable . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face))
-;;               (Class . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
-;;               (Interface . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01))
-;;               (Module . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.15))
-;;               (Property . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face)) ;; Golang module
-;;               (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.7 :v-adjust -0.15))
-;;               (Value . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'font-lock-constant-face))
-;;               (Enum . ,(all-the-icons-material "storage" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-orange))
-;;               (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.7 :v-adjust -0.15))
-;;               (Snippet . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))
-;;               (Color . ,(all-the-icons-material "palette" :height 0.7 :v-adjust -0.15))
-;;               (File . ,(all-the-icons-faicon "file-o" :height 0.7 :v-adjust -0.05))
-;;               (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.7 :v-adjust -0.15))
-;;               (Folder . ,(all-the-icons-octicon "file-directory" :height 0.7 :v-adjust -0.05))
-;;               (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-blueb))
-;;               (Constant . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05))
-;;               (Struct . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
-;;               (Event . ,(all-the-icons-faicon "bolt" :height 0.7 :v-adjust -0.05 :face 'all-the-icons-orange))
-;;               (Operator . ,(all-the-icons-fileicon "typedoc" :height 0.65 :v-adjust 0.05))
-;;               (TypeParameter . ,(all-the-icons-faicon "hashtag" :height 0.65 :v-adjust 0.07 :face 'font-lock-const-face))
-;;               (Template . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))))))
-
-
-;; ;;;;; company-quickhelp
-;; ;; - documentation popups that appear when idling on a completion candidate.
-;; ;; - https://github.com/company-mode/company-quickhelp
-;; (use-package company-quickhelp
-;;   :after company
-;;   :hook ((global-company-mode company-mode) . company-quickhelp-mode)
-;;   :bind (:map company-active-map
-;;               ("H-h" . company-quickhelp-manual-begin))
-;;   :config (setq company-quickhelp-delay 0.1))
-
-
-;; ;;;;; company-statistics
-;; ;; - Set up statistics and rank company completions based on frequency
-;; ;; - https://github.com/company-mode/company-statistics
-;; (use-package company-statistics
-;;   :after company
-;;   :hook (emacs-startup . company-statistics-mode))
-
-
-;; ;;;;; company-try-hard
-;; ;; - A company-complete alternative that tries much harder to find completions.
-;; ;; If none of the current completions look good, call the command again to try
-;; ;; the next backend.
-;; ;; - https://github.com/Wilfred/company-try-hard
-;; (use-package company-try-hard
-;;   :commands company-try-hard
-;;   :bind (("H-/" . company-try-hard)
-;;          :map company-active-map
-;;          ("H-/" . company-try-hard)))
-
-
-;; ;;;;; company-shell
-;; ;; - Company mode completion backends for your shell scripting.
-;; ;; - you also need bash-language-server installed and on your PATH
-;; ;; npm install -g bash-language-server
-;; ;; - https://github.com/Alexander-Miller/company-shell
-;; (use-package company-shell
-;;   :after company
-;;   :init
-;;   (defun sej/company-shell-hook ()
-;;     (add-to-list 'company-backends '(company-shell
-;;                                      company-shell-env)) )
-;;   :hook (emacs-startup . sej/company-shell-hook) )
+;; - Company is a text completion framework for Emacs
+;; - [[http://company-mode.github.io/][company-mode homepage]]
+(use-package company)
 
 
 ;;;;; hydra
@@ -3705,6 +3555,7 @@ If the region is active and option `transient-mark-mode' is on, call
     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
     (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
     (setq dashboard-set-init-info t)
+    (setq dashboard-projects-backend 'projectile) ; use project-el if using project.el
     (setq dashboard-items '((recents  . 15)
                             (bookmarks . 15)
                             (projects . 10)
@@ -5365,11 +5216,12 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package diary-lib
   :straight (:type built-in)
   :config
+  (require 'org-agenda)
   (setq diary-file "~/.diary")
   (setq diary-entry-marker "diary")
   (setq diary-show-holidays-flag t)
   (setq diary-header-line-flag nil)
-  (setq diary-mail-addr "public@protesilaos.com")
+  (setq diary-mail-addr sej-mail-address)
   (setq diary-mail-days 3)
   (setq diary-number-of-entries 3)
   (setq diary-comment-start ";")
@@ -5381,7 +5233,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
           (monthname " *" day "[^,0-9]")
           (monthname " *" day ", *" year "[^0-9]")
           (year "[-/]" month "[-/]" day "[^0-9]")
-          (dayname "\\W"))))
+          (dayname "\\W"))))l
 
 
 ;;; init.el --- end
