@@ -1110,45 +1110,6 @@ Return its absolute path.  Otherwise, return nil."
   )
 
 
-;;;;; windmove
-;; built-in window movement
-(use-package emacs
-  :bind (:map sej-mode-map
-              ;; down
-              ("A-<down>" . windmove-down)
-              ("A-k" . windmove-down)
-              ("S-A-<down>" . windmove-delete-down)
-              ("A-K" . windmove-delete-down)
-              ;; up
-              ("A-<up>" . windmove-up)
-              ("A-j" . windmove-up)
-              ("S-A-<up>" . windmove-delete-up)
-              ("A-J" . windmove-delete-up)
-              ;; left
-              ("A-<left>" . windmove-left)
-              ("A-h" . windmove-left)
-              ("S-A-<left>" . windmove-delete-left)
-              ("A-H" . windmove-delete-left)
-              ;; right
-              ("A-<right>" . windmove-right)
-              ("A-l" . windmove-right)
-              ("S-A-<right>" . windmove-delete-right)
-              ("A-L" . windmove-delete-right)
-              ))
-
-
-;;;;; windswap
-;; complement to windmove to swap windows
-;; [[https://github.com/purcell/windswap][purcell/windswap]]
-(use-package windswap
-  :straight (windswap :type git :host github :repo "purcell/windswap")
-  :bind ((:map sej-mode-map
-               ("A-s-h" . windswap-left)
-               ("A-s-l" . windswap-right)
-               ("A-s-j" . windswap-up)
-               ("A-s-k" . windswap-down)))  )
-
-
 ;;;;; ace-window
 ;; - quickly selecting a window to switch to
 ;; - C-u prefex to move window
@@ -1172,9 +1133,11 @@ Return its absolute path.  Otherwise, return nil."
 (use-package winner
   :straight (winner :type built-in)
   :commands (winner-undo winner-redo)
-  ;; :bind ( ("C-c w <left>" . winner-undo)
-  ;;         ("C-c w <right>" . winner-redo))
-  :init (setq winner-boring-buffers '("*Completions*"
+  :bind ( ("C-c <left>" . winner-undo)
+          ("C-c <right>" . winner-redo))
+  :init
+  (winner-mode)
+  (setq winner-boring-buffers '("*Completions*"
                                       "*Compile-Log*"
                                       "*inferior-lisp*"
                                       "*Fuzzy Completions*"
@@ -2522,18 +2485,6 @@ Return its absolute path.  Otherwise, return nil."
   :bind (:map sej-mode-map
               ("C-c s r" . emr-show-refactor-menu)
               ("H-r" . emr-show-refactor-menu) ))
-
-
-;;;;; treemacs
-;; - a tree layout file explorer for Emacs
-;; - [[https://github.com/Alexander-Miller/treemacs][treemacs]]
-(use-package treemacs
-  :ensure t
-  :defer t
-  :config
-  (setq treemacs-no-png-images t
-	  treemacs-width 24)
-  :bind ("C-c t" . treemacs))
 
 
 ;;;; vcs
