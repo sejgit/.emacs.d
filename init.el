@@ -1287,6 +1287,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - [[https://github.com/raxod502/prescient.el][selectrum-precient]]
 (use-package selectrum-prescient
   :init
+  (setq selectrum-prescient-enable-filtering nil)
   (selectrum-prescient-mode +1)
   (prescient-persist-mode +1))
 
@@ -1313,7 +1314,7 @@ Return its absolute path.  Otherwise, return nil."
 (use-package embark
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("M-." . embark-dwim)        ;; good alternative: M-.
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
   :init
   ;; Optionally replace the key help with a completing-read interface
