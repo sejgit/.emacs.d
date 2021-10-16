@@ -1664,18 +1664,6 @@ Return its absolute path.  Otherwise, return nil."
   :bind ( ("M-u" . string-inflection-all-cycle)))
 
 
-;;;;; sej/push-mark-no-activate
-;; - defined in sej-mode-map as C-S-<SPC>
-(defun sej/push-mark-no-activate ()
-  "Pushes `point' to `mark-ring' and does not activate the region.  Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled."
-  (interactive)
-  (push-mark (point) t nil)
-  (message "Pushed mark to ring"))
-
-;; push and jump to mark functions
-(define-key sej-mode-map (kbd "C-S-<SPC>") 'sej/push-mark-no-activate)
-
-
 ;;;; regions
 ;;;;; easy-kill-extras
 ;; - This package contains extra functions for easy-kill/easy-mark.
@@ -1745,7 +1733,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - remaping set-mark-command to smart-region
 ;; - https://github.com/uk-ar/smart-region
 (use-package smart-region
-  :bind ([remap set-mark-command] . smart-region) ; C-SPC
+  :bind ("C-S-<SPC>" . smart-region) ; C-S-SPC
   :config (smart-region-on))
 
 
