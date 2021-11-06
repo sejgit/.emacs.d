@@ -216,7 +216,7 @@
   "Set language server."
   :type '(choice
           (const :tag "LSP Mode" 'lsp-mode)
-          (const :tag "eglot" 'eglot)
+          (const :tag "eglot" 'eglot-mode)
           nil))
 
 (defcustom sej-benchmark nil
@@ -1462,11 +1462,6 @@ Return its absolute path.  Otherwise, return nil."
 )
 
 
-;;;;; consult-flycheck
-;; provides consult-flycheck
-(use-package consult-flycheck)
-
-
 ;;;;; bookmark+
 ;; - enhancements to the built-in bookmark package
 ;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
@@ -1768,7 +1763,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - [[http://xenodium.com/emacs-clone-git-repo-from-clipboard/][git-clone-from-clipboard-url]]
 (when sys/macp
 (defun sej/url-git-clone-from-clipboard ()
-  "Clone git URL in clipboard asynchronously and open in dired when finished."
+  "Clone git URL in clipboard asynchronously and open in Dired when finished."
   (interactive)
   (cl-assert (string-match-p "^\\(http\\|https\\|ssh\\)://" (current-kill 0)) nil "No URL in clipboard")
   (let* ((url (current-kill 0))
@@ -2149,7 +2144,7 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq lsp-keymap-prefix "C-c l")
   :config
-  (setq lsp-prefer-flymake nil)  )
+  (setq lsp-prefer-flymake t)  )
 
 
 ;;;;; lsp-ui
@@ -2185,12 +2180,13 @@ Return its absolute path.  Otherwise, return nil."
 ;; - simple client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
 (use-package eglot
-  :if (eq sej-lsp 'eglot)
-  :hook ((python-mode c-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
+  :if (eq sej-lsp 'eglot-mode)
+  :hook ((python-mode c-mode c++-mode objc-mode cuda-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
   :config
+  (add-to-list 'eglot-server-programs '((c-mode c++-mode objc-mode cuda-mode) "ccls"))
   (setq help-at-pt-display-when-idle t))
 
 
@@ -2710,7 +2706,8 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; company
 ;; - Company is a text completion framework for Emacs
 ;; - [[http://company-mode.github.io/][company-mode homepage]]
-(use-package company)
+(use-package company
+  :hook (after-init . global-company-mode))
 
 
 ;;;;; hydra
@@ -3111,85 +3108,114 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - used for both lsp & eglot so no :if statement
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
-  :hook ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls) (lsp)))
+  :hook ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls)))
   :config
- (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
- (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates )
- (setq ccls-sem-highlight-method 'font-lock)
- ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
+  (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
+  ;; (setq company-transformers nil company-lsp-async t)
+  (setq ccls-sem-highlight-method 'font-lock)
+  ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
 
- ;; For rainbow semantic highlighting
- (ccls-use-default-rainbow-sem-highlight)
+  ;; For rainbow semantic highlighting
+  (ccls-use-default-rainbow-sem-highlight)
 
-;; direct callers
-;; (lsp-find-custom "$ccls/call")
-;; callers up to 2 levels
-;; (lsp-find-custom "$ccls/call" '(:levels 2))
-;; direct callees
-;; (lsp-find-custom "$ccls/call" '(:callee t))
 
-;; (lsp-find-custom "$ccls/vars")
-; Use lsp-goto-implementation or lsp-ui-peek-find-implementation (textDocument/implementation) for derived types/functions
-; $ccls/inheritance is more general
+  (defun eglot-ccls-inheritance-hierarchy (&optional derived)
+  "Show inheritance hierarchy for the thing at point.
+If DERIVED is non-nil (interactively, with prefix argument), show
+the children of class at point."
+  (interactive "P")
+  (if-let* ((res (jsonrpc-request
+                  (eglot--current-server-or-lose)
+                  :$ccls/inheritance
+                  (append (eglot--TextDocumentPositionParams)
+                          `(:derived ,(if derived t :json-false))
+                          '(:levels 100) '(:hierarchy t))))
+            (tree (list (cons 0 res))))
+      (with-help-window "*ccls inheritance*"
+        (with-current-buffer standard-output
+          (while tree
+            (pcase-let ((`(,depth . ,node) (pop tree)))
+              (cl-destructuring-bind (&key uri range) (plist-get node :location)
+                (insert (make-string depth ?\ ) (plist-get node :name) "\n")
+                (make-text-button (+ (point-at-bol 0) depth) (point-at-eol 0)
+                                  'action (lambda (_arg)
+                                            (interactive)
+                                            (find-file (eglot--uri-to-path uri))
+                                            (goto-char (car (eglot--range-region range)))))
+                (cl-loop for child across (plist-get node :children)
+                         do (push (cons (1+ depth) child) tree)))))))
+    (eglot--error "Hierarchy unavailable")))
 
-;; Alternatively, use lsp-ui-peek interface
-;; (lsp-ui-peek-find-custom "$ccls/call")
-(lsp-ui-peek-find-custom "$ccls/call" '(:callee t))
 
-(defun ccls/callee ()
-  "Peek find callee."
-  (interactive)
-  (lsp-ui-peek-find-custom "$ccls/call" '(:callee t)))
+  ;; direct callers
+  ;; (lsp-find-custom "$ccls/call")
+  ;; callers up to 2 levels
+  ;; (lsp-find-custom "$ccls/call" '(:levels 2))
+  ;; direct callees
+  ;; (lsp-find-custom "$ccls/call" '(:callee t))
 
-(defun ccls/caller ()
-  "Peek find caller."
-  (interactive)
-  (lsp-ui-peek-find-custom "$ccls/call"))
+  ;; (lsp-find-custom "$ccls/vars")
+  ;; Use lsp-goto-implementation or lsp-ui-peek-find-implementation (textDocument/implementation) for derived types/functions
+  ;; $ccls/inheritance is more general
 
-(defun ccls/vars (kind)
-  "Peek find custom KIND."
-  (lsp-ui-peek-find-custom "$ccls/vars" `(:kind ,kind)))
+  ;; Alternatively, use lsp-ui-peek interface
+  ;; (lsp-ui-peek-find-custom "$ccls/call")
+;;   (lsp-ui-peek-find-custom "$ccls/call" '(:callee t))
 
-(defun ccls/base (levels)
-  "Peek find custom LEVELS."
-  (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels)))
+;; (defun ccls/callee ()
+;;   "Peek find callee."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "$ccls/call" '(:callee t)))
 
-(defun ccls/derived (levels)
-  "Peek find custom LEVELS derived."
-  (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels :derived t)))
+;; (defun ccls/caller ()
+;;   "Peek find caller."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "$ccls/call"))
 
-(defun ccls/member (kind)
-  "Peek find custome KIND."
-  (interactive)
-  (lsp-ui-peek-find-custom "$ccls/member" `(:kind ,kind)))
+;; (defun ccls/vars (kind)
+;;   "Peek find custom KIND."
+;;   (lsp-ui-peek-find-custom "$ccls/vars" `(:kind ,kind)))
 
-;; ;; References w/ Role::Role
-(defun ccls/references-read ()
-  "Text documents references read."
-  (interactive)
-  (lsp-ui-peek-find-custom "textDocument/references"
-    (plist-put (lsp--text-document-position-params) :role 8)))
+;; (defun ccls/base (levels)
+;;   "Peek find custom LEVELS."
+;;   (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels)))
 
-;; References w/ Role::Write
-(defun ccls/references-write ()
-  "Text documents references write."
-  (interactive)
-  (lsp-ui-peek-find-custom "textDocument/references"
-   (plist-put (lsp--text-document-position-params) :role 16)))
+;; (defun ccls/derived (levels)
+;;   "Peek find custom LEVELS derived."
+;;   (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels :derived t)))
 
-;; References w/ Role::Dynamic bit (macro expansions)
-(defun ccls/references-macro ()
-  "Text documents references macro."
-  (interactive)
-  (lsp-ui-peek-find-custom "textDocument/references"
-   (plist-put (lsp--text-document-position-params) :role 64)))
+;; (defun ccls/member (kind)
+;;   "Peek find custome KIND."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "$ccls/member" `(:kind ,kind)))
 
-;; References w/o Role::Call bit (e.g. where functions are taken addresses)
-(defun ccls/references-not-call ()
-  "Text documents references not call."
-  (interactive)
-  (lsp-ui-peek-find-custom "textDocument/references"
-   (plist-put (lsp--text-document-position-params) :excludeRole 32)))
+;; ;; ;; References w/ Role::Role
+;; (defun ccls/references-read ()
+;;   "Text documents references read."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "textDocument/references"
+;;     (plist-put (lsp--text-document-position-params) :role 8)))
+
+;; ;; References w/ Role::Write
+;; (defun ccls/references-write ()
+;;   "Text documents references write."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "textDocument/references"
+;;    (plist-put (lsp--text-document-position-params) :role 16)))
+
+;; ;; References w/ Role::Dynamic bit (macro expansions)
+;; (defun ccls/references-macro ()
+;;   "Text documents references macro."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "textDocument/references"
+;;    (plist-put (lsp--text-document-position-params) :role 64)))
+
+;; ;; References w/o Role::Call bit (e.g. where functions are taken addresses)
+;; (defun ccls/references-not-call ()
+;;   "Text documents references not call."
+;;   (interactive)
+;;   (lsp-ui-peek-find-custom "textDocument/references"
+;;    (plist-put (lsp--text-document-position-params) :excludeRole 32)))
 
 ;; ccls/vars ccls/base ccls/derived ccls/members have a parameter while others are interactive.
 ;; (ccls/base 1) direct bases
@@ -4723,9 +4749,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
 
 ;;;;; eshell/d
-;; - shortcut for dired in eshell
+;; - shortcut for Dired in eshell
 (defun eshell/d (&rest args)
-  "Shortcut of d for dired in eshell with ARGS."
+  "Shortcut of d for Dired in eshell with ARGS."
   (dired (pop args) "."))
 
 
