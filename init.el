@@ -56,6 +56,7 @@
 ;; - <2021-01-08 Fri> some clean-up
 ;; - <2021-04-26 Mon> move from Helm to Selectrum
 ;; - <2021-10-14 Thu> move from projectile to built-in project.el
+;; - <2021-11-11 Thu> add frame centre function & fix no littering
 
 
 ;;; Code:
@@ -430,7 +431,12 @@
 
       ;; windows
       (window-divider-mode)
-      )
+
+      ;; load the no-littering feature
+      (use-package no-littering
+        :ensure t
+        :config
+        (setq auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))      )
 
 
 ;;;;; OSX System specific environment setting
@@ -952,8 +958,33 @@ Return its absolute path.  Otherwise, return nil."
 ;; - To address blank screen issue with child-frame in fullscreen
 (when sys/mac-x-p
   (setq ns-use-native-fullscreen nil))
-(bind-keys ("H-C-f" . toggle-frame-fullscreen)
-           ("C-c s F" . toggle-frame-fullscreen))
+(define-key sej-mode-map (kbd "H-C-f") 'toggle-frame-fullscreen)
+(define-key sej-mode-map (kbd "C-c s F") 'toggle-frame-fullscreen)
+
+
+;;;;; sej/frame-recentre
+;; - centre frame function
+;; - credit [[https://christiantietze.de/posts/2021/06/emacs-center-window-single-function/][Christian Tietze Blog]]
+(defun sej/frame-recentre (&optional frame)
+  "Center FRAME on the screen.
+FRAME can be a frame name, a terminal name, or a frame.
+If FRAME is omitted or nil, use currently selected frame."
+  (interactive)
+  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
+    (let* ((frame (or (and (boundp 'frame)
+                            frame)
+                      (selected-frame)))
+           (frame-w (frame-pixel-width frame))
+           (frame-h (frame-pixel-height frame))
+           ;; frame-monitor-workarea returns (x y width height) for the monitor
+           (monitor-w (nth 2 (frame-monitor-workarea frame)))
+           (monitor-h (nth 3 (frame-monitor-workarea frame)))
+           (center (list (/ (- monitor-w frame-w) 2)
+                         (/ (- monitor-h frame-h) 2))))
+      (apply 'set-frame-position (flatten-list (list frame center))))))
+
+(define-key sej-mode-map (kbd "A-M-m") 'sej/frame-recentre)
+(define-key sej-mode-map (kbd "C-c s m") 'sej/frame-recentre)
 
 
 ;;;; buffers
