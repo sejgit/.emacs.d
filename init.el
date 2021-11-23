@@ -70,9 +70,11 @@
 
 
 ;;;;; Straight package manager set-up
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
-(setq straight-use-package-by-default t)
-(setq straight-vc-git-default-clone-depth 1)
+(setq-default straight-repository-branch "develop"
+              straight-fix-org t
+              straight-fix-flycheck t
+              straight-use-package-by-default t
+              straight-check-for-modifications '(check-on-save find-when-checking))
 (setq vc-follow-symlinks t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -94,17 +96,13 @@
 ;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
 ;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
 
-(straight-use-package 'use-package)
-
 ;; Should set before loading `use-package'
-(eval-and-compile
-  (setq use-package-always-ensure t)
-  (setq use-package-always-defer t)
-  (setq use-package-expand-minimally t)
-  (setq use-package-enable-imenu-support t))
+(setq-default use-package-always-defer t
+              use-package-compute-statistics t
+              use-package-expand-minimally t
+              use-package-enable-imenu-support t)
 
-(eval-when-compile
-  (require 'use-package))
+(straight-use-package 'use-package)
 
 ;; Required by `use-package'
 (use-package diminish)

@@ -32,10 +32,47 @@
 ;;; Code:
 
 ;; Defer garbage collection further back in the startup process
-(setq gc-cons-threshold 80000000)
+(defvar default-file-name-handler-alist file-name-handler-alist)
+(defvar extended-gc-cons-threshold most-positive-fixnum)
+(defvar default-gc-cons-threshold (* 100 1024 1024))
+
 
 ;; for gccemacs
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/10:/usr/local/opt/gcc/lib/gcc/10/gcc/x86_64-apple-darwin20/10.2.0")
+;; Native Compilation Vars
+(setq-default native-comp-speed 2
+              native-comp-deferred-compilation t)
+
+;; Prevents libgccjit error
+;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin21/11")
+
+(setq-default auto-window-vscroll nil
+              bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right
+              frame-inhibit-implied-resize t
+              inhibit-default-init t
+              site-run-file nil
+              load-prefer-newer t
+              read-process-output-max (* 1024 1024 3))
+
+(setq file-name-handler-alist nil
+      gc-cons-threshold extended-gc-cons-threshold)
+
+(defun sej/return-gc-to-default ()
+  "Take garbage collection back to default."
+  (setq-default gc-cons-threshold default-gc-cons-threshold
+                load-prefer-newer nil))
+
+(defun sej/reset-file-handler-alist-h ()
+  "Take file name handler back to default."
+  (dolist (handler file-name-handler-alist)
+    (add-to-list 'default-file-name-handler-alist handler))
+  (setq file-name-handler-alist default-file-name-handler-alist))
+
+(add-hook 'after-init-hook #'sej/reset-file-handler-alist-h)
+(add-hook 'after-init-hook #'sej/return-gc-to-default)
+(advice-add #'package--ensure-init-file :override #'ignore)
+
 
 ;; Package initialize occurs automatically, before `user-init-file' is
 ;; loaded, but after `early-init-file'. We handle package
@@ -45,9 +82,16 @@
 ;; Faster to disable these here (before they've been initialized)
 (unless (and (display-graphic-p) (eq system-type 'darwin))
   (setq menu-bar-mode nil))
-(setq tool-bar-mode nil)
-(setq scroll-bar-mode nil)
-(modify-all-frames-parameters '((vertical-scroll-bars)))
+(modify-all-frames-parameters '((width . 80)
+                                (height . 50)
+                                (left . 0)
+                                (right . 0)
+                                (internal-border-width . 1)
+                                (vertical-scroll-bars . nil)
+                                (tool-bar-lines . 0)
+                                (ns-appearance . dark)
+                                ;; (font . "Iosevka-14")
+                                ))
 
 
 ;;; early-init.el ends here
