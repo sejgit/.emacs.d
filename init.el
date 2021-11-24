@@ -105,7 +105,6 @@
 (straight-use-package 'use-package)
 
 ;; Required by `use-package'
-(use-package diminish)
 (use-package bind-key
   :bind ("H-d" . describe-personal-keybindings))
 
@@ -149,14 +148,14 @@
   ( >= emacs-major-version 26 )
   "Emacs is 26 or above.")
 
-(defconst emacs/>=27p
-  (>= emacs-major-version 27)
-  "Emacs is 27 or above.")
+(defconst emacs/>27p
+  (> emacs-major-version 27)
+  "Emacs is 28 or above.")
 
 
 ;;;;; should i even be here
-(when (not emacs/>=26p)
-  (error "This requires Emacs 26 and above")  )
+(when (not emacs/>27p)
+  (error "This requires Emacs 28 and above")  )
 
 
 ;;;;;  Warnings
@@ -170,7 +169,7 @@
 
 
 ;;;;; Server set-up
-;; set-up server
+;; set-up Emacs server
 (use-package emacs
   :when (or sys/macp sys/linuxp)
   :straight (:type built-in)
@@ -186,7 +185,7 @@
 
 
 ;;;;; customization variables set
-;; - set-up Emacs customizations choices which are then modified by custom.el
+;; set-up Emacs customizations choices which are then modified by custom.el
 (defgroup sej nil
   "SeJ Emacs customizations."
   :group 'convenience)
@@ -275,30 +274,99 @@
                   (load file))) )
 
 
-;;;;; cus-edit+
-;; - Enhancements to `cus-edit.el'
-;; - [[https://github.com/emacsmirror/cus-edit-plus/blob/master/cus-edit%2B.el][cus-edit+]]
-(use-package cus-edit+
-  ;:custom
-  ;(custom-file null-device "Don't store customizations")
-  )
-
-
 ;;;;; exec-path-from-shell
-  ;; - set-up exec-path and hook for server-start
-  ;; - [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
-  (use-package exec-path-from-shell
-    :when (or sys/macp sys/linuxp daemonp)
-    :init
-    (setq exec-path-from-shell-arguments nil)
-    (setq exec-path-from-shell-check-startup-files nil)
-    (exec-path-from-shell-initialize))
+;; set-up exec-path and hook for server-start
+;; [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
+(use-package exec-path-from-shell
+  :demand t
+  :straight t
+  :when (or sys/macp sys/linuxp daemonp)
+  :init
+  (setq exec-path-from-shell-variables '("DOTFILES"
+                                         "EDITOR"
+                                         "EMACS"
+                                         "PYENV_ROOT"
+                                         "IPYTHONDIR"
+                                         "PYTHONSTARTUP"
+                                         "PYLINTHOME"
+                                         "FZF_DEFAULT_COMMAND"
+                                         "HIST_IGNORE"
+                                         "HISTSIZE"
+                                         "SAVEHIST"
+                                         "SSH_AUTH_SOCK"
+                                         "TREE_SITTER_DIR"
+                                         "JAVA_HOME"
+                                         "ZSH"
+                                         "PATH"
+                                         "MANPATH"
+                                         "FPATH"
+                                         )
+        exec-path-from-shell-arguments '("-l"))
+  :config
+  (exec-path-from-shell-initialize))
+
+
+;;;;; Compdef
+;; in buffer completion to set local completion backends
+;; [[https://gitlab.com/jjzmajic/compdef][Compdef]]
+(use-package compdef
+  :demand t
+  :straight (:host gitlab :repo "jjzmajic/compdef"))
+
+
+;;;;; Blackout
+;; Similar to packages like minions, diminish, or delight.
+;; You can alter how your minor and major modes show up in the mode-line.
+;; [[https://github.com/raxod502/blackout][Blackout]]
+(use-package blackout
+  :demand t
+  :straight (:host github :repo "raxod502/blackout"))
+
+
+;;;;; dash
+;; A modern list API for Emacs. No 'cl required.
+;; [[https://github.com/magnars/dash.el][dash.el]]
+(use-package dash
+  :demand t
+  :straight t)
+
+
+;;;;; f
+;; modern API for working with files and directories in Emacs.
+;; [[https://github.com/rejeep/f.el][f.el]]
+(use-package f
+  :demand t
+  :straight t)
+
+
+;;;;; s
+;; The long lost Emacs string manipulation library.
+;; [[https://github.com/magnars/s.el][s.el]]
+(use-package s
+  :demand t
+  :straight t)
+
+
+;;;;; cl-lib
+;; These are extensions to Emacs Lisp that provide a degree of
+;; Common Lisp compatibility, beyond what is already built-in
+;; in Emacs Lisp.
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/cl-lib.el][cl-lib.el]]
+(use-package cl-lib
+  :demand t
+  :straight (:type built-in))
+
+
+;;;;; Org-Plus-Contrib
+;; We need to intercept the built-in org-version that ships with Emacs we have to do this early.
+(straight-use-package '(org :host github :repo "emacs-straight/org-mode" :local-repo "org"))
 
 
 ;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
-;;   no real extra value to putting as setq
+;;   no real extra value to putting as setq but feels clean
 (use-package emacs
+  :demand t
   :straight (:type built-in)
   :custom
 ;;;;;; general
@@ -408,17 +476,17 @@
       ;; Add proper word wrapping
       (global-visual-line-mode t)
 
-      ;; turn on syntax highlightng for all buffers
+      ;; turn on syntax highlighting for all buffers
       (global-font-lock-mode t)
 
       (blink-cursor-mode -1)
 
       ;; Set garbage collection threshold
       (defun sej-minibuffer-setup-hook ()
-        (setq gc-cons-threshold most-positive-fixnum))
+        (setq gc-cons-threshold extended-gc-cons-threshold))
 
       (defun sej-minibuffer-exit-hook ()
-        (setq gc-cons-threshold 800000))
+        (setq gc-cons-threshold default-gc-cons-threshold))
 
       (add-hook 'minibuffer-setup-hook #'sej-minibuffer-setup-hook)
       (add-hook 'minibuffer-exit-hook #'sej-minibuffer-exit-hook)
@@ -428,13 +496,23 @@
         (setq x-gtk-use-system-tooltips nil))
 
       ;; windows
-      (window-divider-mode)
+      (window-divider-mode)      )
 
-      ;; load the no-littering feature
-      (use-package no-littering
-        :ensure t
-        :config
-        (setq auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))      )
+
+;;;;; no-littering feature
+;; set the default paths for configuration files & persistent data
+;; [[https://github.com/emacscollective/no-littering][no-littering]]
+(use-package no-littering
+  :demand t
+  :straight t
+  :init
+  (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
+        no-littering-var-directory (expand-file-name "~/.cache/emacs/"))
+  (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
+  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name)
+
+  (setq auto-save-file-name-transforms `((".*"
+                                          ,(no-littering-expand-var-file-name "auto-save/") t))))
 
 
 ;;;;; OSX System specific environment setting
@@ -467,6 +545,7 @@
   ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
   (use-package xahk-mode
     :if sys/win32p
+    :demand t
     :straight (xahk-mode.el :type git
                             :host github
                             :repo "xahlee/xahk-mode.el") )
@@ -726,7 +805,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/justbur/emacs-which-key
 (use-package which-key
   :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
-  :diminish which-key-mode
+  :blackout
   :hook (emacs-startup . which-key-mode)
   :commands which-key-mode
   :defines sej-mode-map
@@ -1184,7 +1263,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package golden-ratio
   :after which-key
   :hook (emacs-startup . golden-ratio-mode)
-  :diminish golden-ratio-mode
+  :blackout
   :init
   (golden-ratio-mode 1)
   :config
@@ -1531,7 +1610,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/jscheid/dtrt-indent
 (use-package dtrt-indent
   :hook (emacs-startup . dtrt-indent-mode)
-  :diminish)
+  :blackout)
 
 
 ;;;;; sej/indent-buffer
@@ -1548,7 +1627,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Simple, stable linear undo with redo for Emacs.
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu
 (use-package undo-fu
-  :diminish
+  :blackout
   :bind ( ("C-z" . undo-fu-only-undo)
           ("C-S-z" . undo-fu-only-redo))
   :config (setq undo-fu-allow-undo-in-region t))
@@ -1672,7 +1751,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
 (use-package subword
   :straight (subword :type built-in)
-  :diminish
+  :blackout
   :hook ((prog-mode . subword-mode)
          (minibuffer-setup . subword-mode))
   :config
@@ -1741,11 +1820,12 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Drag stuff (lines, words, region, etc...) around
 ;; - https://github.com/rejeep/drag-stuff.el
 (use-package drag-stuff
-  :diminish
+  :blackout
   :bind ( ("M-<down>" . drag-stuff-down)
           ("H-n" . drag-stuff-down)
           ("M-<up>" . drag-stuff-up)
-          ("H-p" . drag-stuff-up))
+          ("H-p" . drag-stuff-up)
+          ("H-S-p" . drag-stuff-up))
   :config
   (drag-stuff-global-mode)
   (drag-stuff-define-keys)
@@ -1765,7 +1845,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Hungry deletion
 ;; - https://github.com/hrehfeld/emacs-smart-hungry-delete
 (use-package smart-hungry-delete
-  :diminish
+  :blackout
   :bind (("<backspace>" . smart-hungry-delete-backward-char)
          ("C-d" . smart-hungry-delete-forward-char))
   :config (smart-hungry-delete-add-default-hooks))
@@ -1870,7 +1950,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Highlight symbols and move between them
 ;; - https://github.com/wolray/symbol-overlay
 (use-package symbol-overlay
-  :diminish
+  :blackout
   :defines iedit-mode
   :commands (symbol-overlay-get-symbol
              symbol-overlay-assoc
@@ -1910,7 +1990,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/DarthFennec/highlight-indent-guides
 (use-package highlight-indent-guides
   :if window-system
-  :diminish
+  :blackout
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character)
@@ -1921,7 +2001,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Colorize color names in buffers
 ;; - https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
 (use-package rainbow-mode
-  :diminish
+  :blackout
   :hook (prog-mode . rainbow-mode))
 
 
@@ -2005,7 +2085,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Highlight some buffer region operations
 ;; - https://github.com/k-talo/volatile-highlights.el
 (use-package volatile-highlights
-  :diminish
+  :blackout
   :hook (emacs-startup . volatile-highlights-mode))
 
 
@@ -2014,7 +2094,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/whitespace.el
 (use-package whitespace
   :straight (whitespace :type built-in)
-  :diminish
+  :blackout
   :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
   :config
   ;; automatically clean up bad whitespace
@@ -2070,7 +2150,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - rainbow-delimiters-mode - multicoloured brackets
 ;; - https://github.com/Fanael/rainbow-delimiters
 (use-package rainbow-delimiters
-  :diminish rainbow-delimiters-mode
+  :blackout
   :hook (prog-mode . rainbow-delimiters-mode)
   )
 
@@ -2296,7 +2376,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/zk-phi/indent-guide
 (use-package indent-guide
   :hook (prog-mode . indent-guide-mode)
-  :diminish indent-guide-mode)
+  :blackout)
 
 
 ;;;;; comment-dwim-2
@@ -2566,7 +2646,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package smerge-mode
   :straight (smerge-mode :type built-in)
   :after hydra
-  :diminish
+  :blackout
   :commands (smerge-mode
              smerge-auto-leave
              smerge-next
@@ -2787,7 +2867,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; we use eldoc to show the signature of the function at point in the minibuffer
 ;; - https://www.emacswiki.org/emacs/ElDoc
 (use-package eldoc
-  :diminish eldoc-mode
+  :blackout
   :hook
   ((emacs-lisp-mode . eldoc-mode)
    (ielm-mode . eldoc-mode)
@@ -2803,7 +2883,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - M-, to jump back
 ;; - https://github.com/purcell/elisp-slime-nav
 (use-package elisp-slime-nav
-  :diminish elisp-slime-nav-mode
+  :blackout
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
   :config
   (global-unset-key (kbd "C-c C-d d"))
@@ -2955,7 +3035,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - M-x ein:login to a running jupyter server
 ;; - https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
-  :diminish ein:notebook-mode
+  :blackout
   :defines ein:completion-backend
   :init (setq ein:completion-backend 'ein:use-company-backend))
 
@@ -3023,7 +3103,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - https://github.com/magnars/js2-refactor.el
 (use-package js2-refactor
   :after js2-mode
-  :diminish js2-refactor-mode
+  :blackout
   :hook (js2-mode . js2-refactor-mode)
   :config (js2r-add-keybindings-with-prefix "C-c C-m"))
 
@@ -3046,7 +3126,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; C-c C-z: Select the REPL buffer
 ;; - https://github.com/skeeto/skewer-mode
 (use-package skewer-mode
-  :diminish skewer-mode skewer-css skewer-html
+  :blackout
   :hook ((js2-mode . skewer-mode)
          (css-mode . skewer-css-mode)
          (web-mode . skewer-html-mode)
@@ -3485,7 +3565,7 @@ the children of class at point."
                :type git
                :host github
                :repo "emacs-dashboard/emacs-dashboard")
-    :diminish (dashboard-mode page-break-lines-mode)
+    :blackout (dashboard-mode page-break-lines-mode)
     :commands sej/open-dashboard
     :hook (emacs-startup . sej/open-dashboard)
     :bind (("<f6>" . sej/open-dashboard)
@@ -3644,7 +3724,7 @@ the children of class at point."
 ;; - Shows icons in dired buffer
 ;; - https://github.com/jtbm37/all-the-icons-dired
 (use-package all-the-icons-dired
-  :diminish
+  :blackout
   :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
   :hook (dired-mode . all-the-icons-dired-mode)
   :config
@@ -3878,7 +3958,7 @@ the children of class at point."
 (use-package abbrev
   :straight (abbrev :type built-in)
   :hook ((emacs-startup org-mode) . abbrev-mode)
-  :diminish abbrev-mode
+  :blackout
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
         "~/.emacs.d/abbrev_defs")    ;; definitions from...
@@ -4051,7 +4131,7 @@ the children of class at point."
 ;; - https://github.com/politza/pdf-tools
 (when (display-graphic-p)
   (use-package pdf-tools
-    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
     :defines pdf-annot-activate-created-annotations
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
@@ -4173,12 +4253,12 @@ function with the \\[universal-argument]."
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
 ;; - https://orgmode.org/
-(straight-use-package
- '(org-plus-contrib
-   :repo "https://code.orgmode.org/bzg/org-mode.git"
-   :local-repo "org"
-   :files (:defaults "contrib/lisp/*.el")
-   :includes (org)))
+;; (straight-use-package
+;;  '(org-plus-contrib
+;;    :repo "https://code.orgmode.org/bzg/org-mode.git"
+;;    :local-repo "org"
+;;    :files (:defaults "contrib/lisp/*.el")
+;;    :includes (org)))
 
 (use-package org
   :defines  sej-mode-map
@@ -4395,7 +4475,7 @@ function with the \\[universal-argument]."
 ;; - displays org priorities as custom strings
 ;; - https://github.com/harrybournis/org-fancy-priorities
 (use-package org-fancy-priorities
-  :diminish
+  :blackout
   :defines org-fancy-priorities-list
   :hook (org-mode . org-fancy-priorities-mode)
   :config

@@ -44,9 +44,9 @@
 
 ;; Prevents libgccjit error
 ;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin21/11")
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc@11/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc@11/lib/gcc/11/gcc/x86_64-apple-darwin21/11.2.0")
 
-(setq-default auto-window-vscroll nil
+(setq auto-window-vscroll nil
               bidi-display-reordering 'left-to-right
               bidi-paragraph-direction 'left-to-right
               frame-inhibit-implied-resize t
