@@ -3961,10 +3961,8 @@ the children of class at point."
   :blackout
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
-        "~/.emacs.d/abbrev_defs")    ;; definitions from...
-  (define-abbrev-table
-    'global-abbrev-table
-    '(("ssej" "stephenearljenkins" nil 0 )))
+        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+
   (define-abbrev-table
     'org-mode-abbrev-table
     '(("orgh" "" sej/org-header 0)
