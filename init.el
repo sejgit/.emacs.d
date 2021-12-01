@@ -57,6 +57,7 @@
 ;; - <2021-04-26 Mon> move from Helm to Selectrum
 ;; - <2021-10-14 Thu> move from projectile to built-in project.el
 ;; - <2021-11-11 Thu> add frame centre function & fix no littering
+;; - <2021-11-30 Tue> clean-up installed packages set-up
 
 
 ;;; Code:
@@ -362,6 +363,57 @@
 (straight-use-package '(org :host github :repo "emacs-straight/org-mode" :local-repo "org"))
 
 
+;;;; keybindings sej-mode-map
+;;;;; sej-mode-map set-up
+;; - Below taken from stackexchange (Emacs)
+;; Main use is to have my key bindings have the highest priority
+;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+(defvar sej-mode-map (make-sparse-keymap)
+  "Keymap for 'sej-mode'.")
+
+        ;;;###autoload
+(define-minor-mode sej-mode
+  "A minor mode so that my key settings override annoying major modes."
+  ;; If init-value is not set to t, this mode does not get enabled in
+  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+  ;; More info: http://emacs.stackexchange.com/q/16693/115
+  :init-value t
+  :lighter " sej"
+  :keymap sej-mode-map)
+
+        ;;;###autoload
+(define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
+
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; The keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
+
+;; Turn off the minor mode in the minibuffer
+(defun turn-off-sej-mode ()
+  "Turn off 'sej-mode'."
+  (sej-mode -1))
+(add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
+
+(defmacro bind-to-sej-map (key fn)
+  "Bind to KEY (as FN) a function to the `sej-mode-map'.
+USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
+  `(define-key sej-mode-map (kbd ,key) ,fn))
+
+;; http://emacs.stackexchange.com/a/12906/115
+(defun unbind-from-sej-map (key)
+  "Unbind from KEY the function from the 'sej-mode-map'.
+USAGE: (unbind-from-modi-map \"key f\")."
+  (interactive "kUnset key from sej-mode-map: ")
+  (define-key sej-mode-map (kbd (key-description key)) nil)
+  (message "%s" (format "Unbound %s key from the %s."
+                        (propertize (key-description key)
+                                    'face 'font-lock-function-name-face)
+                        (propertize "sej-mode-map"
+                                    'face 'font-lock-function-name-face))))
+;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
+
+
 ;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
 ;;   no real extra value to putting as setq but feels clean
@@ -374,10 +426,9 @@
       (inhibit-startup-screen t)
       (inhibit-startup-echo-area-message t)
       (use-file-dialog nil)
-      (default-directory (getenv "HOME") "Set startup directory.")
+      (default-directory (f-expand "$HOME") "Set startup directory.")
       (locate-command "which")
       (message-log-max 16384 "Raise the maximum number of logs in the *Messages* buffer.")
-      (gnutls-min-prime-bits 4096 "Make gnutls a bit safer.")
       (ad-redefinition-action 'accept "Remove irritating 'got redefined' messages.")
       (hostname (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" ""
                                           (with-output-to-string (call-process "hostname"
@@ -389,11 +440,8 @@
       (inhibit-compacting-font-caches t "Don’t compact font caches during GC.")
       (use-dialog-box nil "Use echo areas for yes-no as well as file.")
       (case-fold-search 1 "Ignore case when searching.")
-      (track-eol t "Keep cursor at end of lines. Require line-move-visual is nil.")
-      (line-move-visual nil "Move by logical not visual lines.")
       (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
       (next-line-add-newlines t "Add a new line when going to the next line.")
-      (auto-window-vscroll nil "Speed up next-line significantly; does not trigger line-move-partial.")
 
 ;;;;;; whitespace and end-of-buffer settings
       (indicate-empty-lines t)
@@ -402,17 +450,10 @@
       (mode-require-final-newline nil)
       (require-final-newline nil)
 
-;;;;;; keep cursor at same position when scrolling
-      (scroll-preserve-screen-position 1)
-      (scroll-margin 3)
-
 ;;;;;; long line settings
       (truncate-lines 1)
       (font-lock-maximum-decoration t)
       (truncate-partial-width-windows 1)
-
-;;;;;; compile settings
-      (compilation-scroll-output 'first-error "Compilation buffers follow the output stop at first error.")
 
 ;;;;;; backups
       (backup-directory-alist '(("." . ".saves")) "Don't litter my fs tree.")
@@ -427,38 +468,36 @@
       (make-pointer-invisible t "Hide mouse while typing.")
 
 ;;;;;; kill & clipboard settings
-      ;; Save whatever’s in the current (system) clipboard before
-      ;; replacing it with the Emacs’ text.
-      ;; https://github.com/dakrone/eos/blob/master/eos.org
-      (save-interprogram-paste-before-kill t)
-      (kill-read-only-ok t "Ok to kill read-only buffers.")
       (kill-buffer-query-functions
             (remq 'process-kill-buffer-query-function
                   kill-buffer-query-functions)
             "Remove kill buffer with live process prompt.")
       (select-enable-clipboard t)
-
-;;;;;; uniquify settings
-      (uniquify-buffer-name-style 'post-forward-angle-brackets "Show path if names are same.")
-      (uniquify-separator " • ")
-      (uniquify-strip-common-suffix t "Remove part of file system path they have in common.")
-      (uniquify-after-kill-buffer-p t)
-      (uniquify-ignore-buffers-re "^\\*")
+      (x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;;;;;; adaptive fill settings
       (adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
       (adaptive-fill-first-line-regexp "^* *$")
 
-      :config
-      ;; color codes
-      (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
-
-      ;; UTF-8 please
-      (setq locale-coding-system 'utf-8) ; pretty
+;;;;;; UTF-8 please
+      (locale-coding-system 'utf-8) ; pretty
       (set-terminal-coding-system 'utf-8) ; pretty
       (set-keyboard-coding-system 'utf-8) ; pretty
       (set-selection-coding-system 'utf-8) ; please
       (prefer-coding-system 'utf-8) ; with sugar on top
+
+      :init
+;;;;;; Add proper word wrapping
+      (global-visual-line-mode t)
+
+;;;;;; Sentences do not need double spaces to end. Period.
+      (setq sentence-end-double-space nil)
+
+;;;;;; turn on syntax highlighting for all buffers
+      (global-font-lock-mode t)
+
+;;;;;; color codes
+      (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
 
       (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
       (if sys/macp (setq trash-directory "~/.Trash"))
@@ -468,35 +507,117 @@
       ;; yes and no settings
       (defalias 'yes-or-no-p 'y-or-n-p)
 
-      ;; Automatically update unmodified buffers whose files have changed.
-      (global-auto-revert-mode 1)
-
-      (show-paren-mode t)
-
-      ;; Add proper word wrapping
-      (global-visual-line-mode t)
-
-      ;; turn on syntax highlighting for all buffers
-      (global-font-lock-mode t)
-
-      (blink-cursor-mode -1)
-
-      ;; Set garbage collection threshold
-      (defun sej-minibuffer-setup-hook ()
-        (setq gc-cons-threshold extended-gc-cons-threshold))
-
-      (defun sej-minibuffer-exit-hook ()
-        (setq gc-cons-threshold default-gc-cons-threshold))
-
-      (add-hook 'minibuffer-setup-hook #'sej-minibuffer-setup-hook)
-      (add-hook 'minibuffer-exit-hook #'sej-minibuffer-exit-hook)
-
       ;; Don't use GTK+ tooltip
       (when (boundp 'x-gtk-use-system-tooltips)
         (setq x-gtk-use-system-tooltips nil))
 
       ;; windows
       (window-divider-mode)      )
+
+
+;;;;; Simple
+;; built-in simple settings
+;;
+(use-package simple
+  :blackout ((visual-line-mode . "")
+             (auto-fill-mode . ""))
+  :straight (:type built-in)
+  :bind (:map sej-mode-map
+              ("s-." . pop-to-mark-command))
+  :init
+  (setq blink-matching-paren 'jump-offscreen
+        column-number-mode t
+        delete-trailing-lines t
+        eval-expression-print-length nil
+        eval-expression-print-level nil
+        idle-update-delay 1
+        kill-do-not-save-duplicates t
+        kill-ring-max 300
+        track-eol t
+        line-move-visual nil
+        line-number-mode t
+        mode-line-percent-position nil
+        save-interprogram-paste-before-kill t
+        kill-read-only-ok t
+        shift-select-mode nil
+        show-trailing-whitespace nil
+        set-mark-command-repeat-pop t)
+
+  ;; When popping the mark, continue popping until the cursor actually moves
+  ;; Also, if the last command was a copy - skip past all the expand-region cruft.
+  (defadvice pop-to-mark-command (around ensure-new-position activate)
+    "When popping the mark, continue popping until we move the cursor."
+    (let ((p (point)))
+      (when (eq last-command 'save-region-or-current-line)
+        ad-do-it
+        ad-do-it
+        ad-do-it)
+      (dotimes (i 10)
+        (when (= p (point)) ad-do-it)))))
+
+
+;;;;; minibuffer
+;; minibuffer settings
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el][minibuffer.el]]
+(use-package minibuffer
+  :no-require t
+  :straight (:type built-in)
+  :preface
+  ;; Set garbage collection threshold
+  (defun sej/minibuffer-setup-hook ()
+    (setq gc-cons-threshold extended-gc-cons-threshold))
+
+  (defun sej/minibuffer-exit-hook ()
+    (setq gc-cons-threshold default-gc-cons-threshold))
+
+  (defun sej/always-exit-minibuffer-first ()
+    (if-let ((minibuffer (active-minibuffer-window)))
+        (with-current-buffer (window-buffer minibuffer)
+          (minibuffer-keyboard-quit))
+      (funcall keyboard-quit)))
+
+  :init
+  (add-hook 'minibuffer-setup-hook #'sej/minibuffer-setup-hook)
+  (add-hook 'minibuffer-exit-hook #'sej/minibuffer-exit-hook)
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+  (advice-add #'sej/always-exit-minibuffer-first :around 'keyboard-quit)
+
+  :config
+  (setq completion-cycle-threshold 3
+        completion-flex-nospace nil
+        completion-pcm-complete-word-inserts-delimiters t
+        completion-pcm-word-delimiters "-_./:| "
+        completion-styles '(partial-completion substring initials flex)
+        completion-category-overrides '((file (styles initials basic))
+                                        (buffer (styles initials basic))
+                                        (info-menu (styles basic)))
+        completions-format 'vertical
+        read-answer-short t
+        read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t
+        resize-mini-windows t))
+
+
+;;;;; uniquify
+;; built-in package to make buffer names unique but identifiable
+(use-package uniquify
+  :straight (:type built-in)
+  :init
+  (setq  uniquify-ignore-buffers-re "^\\*"
+         uniquify-buffer-name-style 'post-forward-angle-brackets
+         uniquify-strip-common-suffix t
+         uniquify-after-kill-buffer-p t
+         uniquify-separator "/"))
+
+
+;;;;; Mwheel
+;; mouse wheel settings
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/mwheel.el][Mwheel.el]]
+(use-package mwheel
+  :straight (:type built-in)
+  :init
+  (setq mouse-wheel-scroll-amount '(1 ((shift) .5) ((control)))
+                mouse-wheel-progressive-speed nil))
 
 
 ;;;;; no-littering feature
@@ -548,8 +669,7 @@
     :demand t
     :straight (xahk-mode.el :type git
                             :host github
-                            :repo "xahlee/xahk-mode.el") )
-  )
+                            :repo "xahlee/xahk-mode.el") )  )
 
 
 ;;; general keybindings
@@ -571,13 +691,13 @@
     (if (boundp 'mac-carbon-version-string) ;; using mac-port?
         ( progn
           ;; for emacs-mac-port
-          (setq mac-right-command-modifier 'none)
-          (setq mac-right-option-modifier 'none)
-          (setq mac-function-modifier 'hyper)
-          (setq mac-control-modifier 'control)
-          (setq mac-right-control-modifier 'super)
-          (setq mac-option-modifier 'alt)
-          (setq mac-command-modifier 'meta))
+          (setq mac-right-command-modifier 'none) ;right command is left alone to mac
+          (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
+          (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
+          (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
+          (setq mac-right-control-modifier 'super) ; actually left control
+          (setq mac-option-modifier 'alt) ; left option is A-alt key
+          (setq mac-command-modifier 'meta)) ;right command is meta
       ( progn
         ;; for regular Emacs port
         (setq ns-right-command-modifier 'none)
@@ -663,65 +783,14 @@
 (global-set-key (kbd "A-V") (λ (insert "✓")))
 
 
-;;;; keybindings sej-mode-map
-;;;;; sej-mode-map set-up
-;; - Below taken from stackexchange (Emacs)
-;; Main use is to have my key bindings have the highest priority
-;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-(defvar sej-mode-map (make-sparse-keymap)
-  "Keymap for 'sej-mode'.")
-
-        ;;;###autoload
-(define-minor-mode sej-mode
-  "A minor mode so that my key settings override annoying major modes."
-  ;; If init-value is not set to t, this mode does not get enabled in
-  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-  ;; More info: http://emacs.stackexchange.com/q/16693/115
-  :init-value t
-  :lighter " sej"
-  :keymap sej-mode-map)
-
-        ;;;###autoload
-(define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
-
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; The keymaps in `emulation-mode-map-alists' take precedence over
-;; `minor-mode-map-alist'
-(add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
-
-;; Turn off the minor mode in the minibuffer
-(defun turn-off-sej-mode ()
-  "Turn off 'sej-mode'."
-  (sej-mode -1))
-(add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
-
-(defmacro bind-to-sej-map (key fn)
-  "Bind to KEY (as FN) a function to the `sej-mode-map'.
-USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
-  `(define-key sej-mode-map (kbd ,key) ,fn))
-
-;; http://emacs.stackexchange.com/a/12906/115
-(defun unbind-from-sej-map (key)
-  "Unbind from KEY the function from the 'sej-mode-map'.
-USAGE: (unbind-from-modi-map \"key f\")."
-  (interactive "kUnset key from sej-mode-map: ")
-  (define-key sej-mode-map (kbd (key-description key)) nil)
-  (message "%s" (format "Unbound %s key from the %s."
-                        (propertize (key-description key)
-                                    'face 'font-lock-function-name-face)
-                        (propertize "sej-mode-map"
-                                    'face 'font-lock-function-name-face))))
-;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
-
-
 ;;;;; general sej-mode-map bindings
 (define-key global-map (kbd "C-c .") 'org-time-stamp)
 (define-key global-map (kbd "C-h C-h") nil)
 (define-key sej-mode-map (kbd "C-h C-h") nil)
 
-(define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
+;;(define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
 (define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
-(global-set-key (kbd "RET") 'newline-and-indent)
+;;(global-set-key (kbd "RET") 'newline-and-indent)
 
 ;; unset C- and M- digit keys
 (dotimes (n 10)
@@ -799,7 +868,118 @@ Return its absolute path.  Otherwise, return nil."
   (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
 
 
+;;;;; Advice
+;; accept versus warn from the Advice system.
+;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][Advising Emacs Lisp Functions]]
+(use-package advice
+  :straight (:type built-in)
+  :init
+  (setq-default ad-redefinition-action 'accept))
+
+
+;;;;; calc
+;; built-in calculator
+;; [[https://www.gnu.org/software/emacs/manual/html_mono/calc.html][GNU Emacs Calculator]]
+(use-package calc
+  :straight (:type built-in)
+  :commands (quick-calc calc)
+  :config
+  (setq math-additional-units
+        '((GiB "1024 * MiB" "Giga Byte")
+          (MiB "1024 * KiB" "Mega Byte")
+          (KiB "1024 * B" "Kilo Byte")
+          (B nil "Byte")
+          (Gib "1024 * Mib" "Giga Bit")
+          (Mib "1024 * Kib" "Mega Bit")
+          (Kib "1024 * b" "Kilo Bit")
+          (b "B / 8" "Bit"))))
+
+
+;;;;; checkdoc
+;; built-in checker of buffer for style issues
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/checkdoc.el][checkdoc.el]]
+(use-package checkdoc
+  :straight (:type built-in)
+  :config
+  (put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp))
+
+
+;;;;; face-remap
+;; changes in the appearance of a face.
+;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html][face remapping]]
+(use-package face-remap
+  :blackout (buffer-face-mode . "")
+  :straight (:type built-in))
+
+
+;;;; Security
+;;;;; Auth-Source
+;; built-in authentication source
+;; [[https://www.gnu.org/software/emacs/manual/html_mono/auth.html][auth-source docs]]
+(use-package auth-source
+  :straight (:type built-in)
+  :config (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
+                               ,(f-expand "~/.ssh/.authinfo")
+                               :macos-keychain-generic
+                               :macos-keychain-internet)
+                auth-source-do-cache t))
+
+;;;;; epa
+;; EasyPG assistant Emacs native support for GnuPG implementation of the OpenPGP standard
+;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
+(use-package epa
+  :straight (:type built-in)
+  :config
+  (setq epa-replace-original-text 'ask))
+
+
+;;;;; epq
+;; EasyPG Emacs native support for GnuPG implementation of the OpenPGP standard
+;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
+(use-package epg
+  :straight (:type built-in)
+  :config
+  (setq epg-pinentry-mode 'loopback))
+
+
+;;;;; Gnutls
+;; GnuTLS is a library that establishes encrypted SSL or TLS connections.
+;; [[https://www.gnu.org/software/emacs/manual/html_mono/emacs-gnutls.html][Emacs GnuTLS]]
+(use-package gnutls
+  :straight (:type built-in)
+  :config
+  (setq gnutls-verify-error t
+        gnutls-min-prime-bits 2048
+        tls-checktrust gnutls-verify-error))
+
+
+;;;;; keychain-environment
+;; - set up any SSH or GPG keychains that the Keychain tool has set up for us
+;; - https://github.com/tarsius/keychain-environment
+(use-package keychain-environment
+  :hook (emacs-startup . keychain-refresh-environment))
+
+
+;;;;; Emacs-lock
+;; built-in package to lock buffer from kill and/or Emacs from exiting
+;; [[https://www.emacswiki.org/emacs/ProtectingBuffers][Emacs-Lock Wiki]]
+(use-package emacs-lock
+  :blackout ""
+  :straight (:type built-in))
+
+
 ;;;; help
+;;;;; help
+;; help mode settings
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/help-mode.el][help-mode.el]]
+(use-package help
+  :straight (:type built-in)
+  :init
+  (add-hook 'help-mode-hook #'visual-line-mode)
+  (setq help-window-select 'always)
+  (advice-add 'help-window-display-message :override #'ignore))
+
+
 ;;;;; which-key
 ;; - minibuffer keybinding prompts
 ;; - https://github.com/justbur/emacs-which-key
@@ -898,170 +1078,143 @@ Return its absolute path.  Otherwise, return nil."
     (set-fontset-font t 'unicode "Symbola" nil 'prepend))))
 
 
-
 ;;;; frames
-;;;;; general frames key-bindings
-(define-key sej-mode-map (kbd "s-4") 'dired-other-frame)
-(define-key sej-mode-map (kbd "s-5") 'make-frame-command)
-(define-key sej-mode-map (kbd "s-6") 'delete-other-frames)
-
-;;added tips from pragmatic emacs
-(define-key sej-mode-map (kbd "s-w") 'delete-frame)
-(define-key sej-mode-map (kbd "C-x w") 'delete-frame)
-
-
-;;;;; general frame settings
-(setq frame-title-format '("SeJ Emacs - %b"))
-(setq icon-title-format frame-title-format)
-
-;; Don't open a file in a new frame
-(when (boundp 'ns-pop-up-frames)
-  (setq ns-pop-up-frames nil))
-
-;; Resize frame to left half after startup
-(if (display-graphic-p)
-    (add-hook 'emacs-startup-hook 'sej/frame-resize-l) )
-
-
-;;;;; mac specific frame settings
-;; - matching dark/light modes and for hiding
-;; - https://github.com/purcell/ns-auto-titlebar
-(when sys/mac-x-p
-  (use-package ns-auto-titlebar
-    :config
-    (add-to-list 'default-frame-alist '(ns-appearance . dark))
-    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (let ((bg (frame-parameter nil 'background-mode)))
-                  (set-frame-parameter nil 'ns-appearance bg)
-                  (setcdr (assq 'ns-appearance default-frame-alist) bg))))
-    (ns-auto-titlebar-mode))
-
-  (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
-      (progn
-        (define-key sej-mode-map (kbd "s-h") (lambda () (interactive) (mac-send-action 'hide)))
+;;;;; frame
+;; built-in frame package
+(use-package frame
+  :straight (:type built-in)
+  :bind (:map sej-mode-map
+              ("s-4" . dired-other-frame)
+              ("s-5" . make-frame-command)
+              ("s-6" . delete-other-frames)
+              ("s-w" . delete-frame)
+              ("C-x w" . delete-frame)
+              ("C-c s <up>" . sej/frame-resize-full)
+              ("H-C-j" . sej/frame-resize-full)
+              ("C-c s <left>" . sej/frame-resize-l)
+              ("H-C-h" . sej/frame-resize-l)
+              ("<A-M-left>" . sej/frame-resize-l)
+              ("C-c s <S-left>" . sej/frame-resize-l2)
+              ("H-C-S-h" . sej/frame-resize-l2)
+              ("C-c s <right>" . sej/frame-resize-r)
+              ("H-C-l" . sej/frame-resize-r)
+              ("<A-M-right>" . sej/frame-resize-r)
+              ("C-c s <S-right>" . sej/frame-resize-r2)
+              ("H-C-S-l" . sej/frame-resize-r2)
+              ("H-C-f" . toggle-frame-fullscreen)
+              ("C-c s F" . toggle-frame-fullscreen)
+              ("A-M-m" . sej/frame-recentre)
+              ("C-c s m" . sej/frame-recentre))
+  :init
+  (setq window-divider-default-places t
+        window-divider-default-bottom-width 1
+        window-divider-default-right-width 1
+        frame-title-format '("Emacs - %b")
+        icon-title-format frame-title-format
+        frame-resize-pixelwise t
         )
-    (progn
-      (define-key sej-mode-map (kbd "s-h") 'ns-do-hide-emacs)
+
+  (blink-cursor-mode -1)
+  (unless (display-graphic-p)
+    (menu-bar-mode -1))
+
+  ;; Don't open a file in a new frame
+  (when (boundp 'ns-pop-up-frames)
+    (setq ns-pop-up-frames nil))
+
+  ;; Resize frame to left half after startup
+  (if (display-graphic-p)
+      (add-hook 'emacs-startup-hook 'sej/frame-resize-l) )
+
+;;;;;; mac specific frame settings
+  ;; - matching dark/light modes and for hiding
+  ;; - https://github.com/purcell/ns-auto-titlebar
+  (when sys/mac-x-p
+    (use-package ns-auto-titlebar
+      :config
+      (add-to-list 'default-frame-alist '(ns-appearance . dark))
+      (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+      (add-hook 'after-load-theme-hook
+                (lambda ()
+                  (let ((bg (frame-parameter nil 'background-mode)))
+                    (set-frame-parameter nil 'ns-appearance bg)
+                    (setcdr (assq 'ns-appearance default-frame-alist) bg))))
+      (ns-auto-titlebar-mode))
+
+    (if (boundp 'mac-carbon-version-string) ; mac-ports or ns emacs?
+        (progn
+          (define-key sej-mode-map (kbd "s-h") (lambda () (interactive) (mac-send-action 'hide)))
+          )
+      (progn
+        (define-key sej-mode-map (kbd "s-h") 'ns-do-hide-emacs)
+        )
       )
     )
-  )
 
+  (defun sej/frame-resize-full ()
+    "Set frame full height and 1/2 wide, position at screen left."
+    (interactive)
+    (set-frame-position (selected-frame) 0 0)
+    (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1))
 
-;;;;; sej/frame-resize-full
-;; - generic way to move and resize frame to full width of screen
-;; - set frame full height and full wide and position at screen left
-(define-key sej-mode-map (kbd "C-c s <up>") 'sej/frame-resize-full)
-(define-key sej-mode-map (kbd "H-C-j") 'sej/frame-resize-full)
+  (defun sej/frame-resize-l ()
+    "Set frame full height and 1/2 wide, position at screen left."
+    (interactive)
+    (set-frame-position (selected-frame) 0 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1))
 
-(defun sej/frame-resize-full ()
-  "Set frame full height and 1/2 wide, position at screen left."
-  (interactive)
-  (set-frame-position (selected-frame) 0 0)
-  (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
-                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
-  )
+  (defun sej/frame-resize-l2 ()
+    "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
+    (interactive)
+    (set-frame-position (selected-frame) 0 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
 
+  (defun sej/frame-resize-r ()
+    "Set frame full height and 1/2 wide, position at screen right."
+    (interactive)
+    (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
 
-;;;;; sej/frame-resize-l
-;; - generic way to move and resize frame to left half of screen
-;; - set frame full height and 1/2 wide and position at screen left
-(define-key sej-mode-map (kbd "C-c s <left>") 'sej/frame-resize-l)
-(define-key sej-mode-map (kbd "H-C-h") 'sej/frame-resize-l)
-(define-key sej-mode-map (kbd "<A-M-left>") 'sej/frame-resize-l)
+  (defun sej/frame-resize-r2 ()
+    "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
+    (interactive)
+    (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
 
-(defun sej/frame-resize-l ()
-  "Set frame full height and 1/2 wide, position at screen left."
-  (interactive)
-  (set-frame-position (selected-frame) 0 0)
-  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
-  )
+  (when sys/mac-x-p
+    (setq ns-use-native-fullscreen nil))
 
-
-;;;;; sej/frame-resize-l2
-;; - generic way to move and resize frame to left half of screen in extended monitor
-;; - set frame full height and 1/2 wide and position at screen left
-;; of screen in extended monitor display
-;; - assumes monitors are same resolution
-(define-key sej-mode-map (kbd "C-c s <S-left>") 'sej/frame-resize-l2)
-(define-key sej-mode-map (kbd "H-C-S-h") 'sej/frame-resize-l2)
-
-(defun sej/frame-resize-l2 ()
-  "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
-  (interactive)
-  (set-frame-position (selected-frame) 0 0)
-  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
-  )
-
-
-;;;;; sej/frame-resize-r
-;; - generic way to move and resize frame to right half of screen
-;; - set frame full height and 1/2 wide and position at screen right
-(define-key sej-mode-map (kbd "C-c s <right>") 'sej/frame-resize-r)
-(define-key sej-mode-map (kbd "H-C-l") 'sej/frame-resize-r)
-(define-key sej-mode-map (kbd "<A-M-right>") 'sej/frame-resize-r)
-;; last one is for non MACOS or just in case BTT is not installed on MACOS
-
-(defun sej/frame-resize-r ()
-  "Set frame full height and 1/2 wide, position at screen right."
-  (interactive)
-  (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
-  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
-  )
-
-
-;;;;; sej/frame-resize-r2
-;; - generic way to move and resize frame to right half of screen in extended monitor
-;; - set frame full height and 1/2 wide and position at screen right
-;; of left hand screen in extended monitor display
-;; - assumes monitors are same resolution
-(define-key sej-mode-map (kbd "C-c s <S-right>") 'sej/frame-resize-r2)
-(define-key sej-mode-map (kbd "H-C-S-l") 'sej/frame-resize-r2)
-
-(defun sej/frame-resize-r2 ()
-  "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
-  (interactive)
-  (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
-  (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                  (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)
-  )
-
-
-;;;;; fullscreen
-;; - To address blank screen issue with child-frame in fullscreen
-(when sys/mac-x-p
-  (setq ns-use-native-fullscreen nil))
-(define-key sej-mode-map (kbd "H-C-f") 'toggle-frame-fullscreen)
-(define-key sej-mode-map (kbd "C-c s F") 'toggle-frame-fullscreen)
-
-
-;;;;; sej/frame-recentre
-;; - centre frame function
-;; - credit [[https://christiantietze.de/posts/2021/06/emacs-center-window-single-function/][Christian Tietze Blog]]
-(defun sej/frame-recentre (&optional frame)
-  "Center FRAME on the screen.
+  (defun sej/frame-recentre (&optional frame)
+    "Center FRAME on the screen.
 FRAME can be a frame name, a terminal name, or a frame.
 If FRAME is omitted or nil, use currently selected frame."
-  (interactive)
-  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
-    (let* ((frame (or (and (boundp 'frame)
-                            frame)
-                      (selected-frame)))
-           (frame-w (frame-pixel-width frame))
-           (frame-h (frame-pixel-height frame))
-           ;; frame-monitor-workarea returns (x y width height) for the monitor
-           (monitor-w (nth 2 (frame-monitor-workarea frame)))
-           (monitor-h (nth 3 (frame-monitor-workarea frame)))
-           (center (list (/ (- monitor-w frame-w) 2)
-                         (/ (- monitor-h frame-h) 2))))
-      (apply 'set-frame-position (flatten-list (list frame center))))))
+    (interactive)
+    (unless (eq 'maximised (frame-parameter nil 'fullscreen))
+      (let* ((frame (or (and (boundp 'frame)
+                             frame)
+                        (selected-frame)))
+             (frame-w (frame-pixel-width frame))
+             (frame-h (frame-pixel-height frame))
+             ;; frame-monitor-workarea returns (x y width height) for the monitor
+             (monitor-w (nth 2 (frame-monitor-workarea frame)))
+             (monitor-h (nth 3 (frame-monitor-workarea frame)))
+             (center (list (/ (- monitor-w frame-w) 2)
+                           (/ (- monitor-h frame-h) 2))))
+        (apply 'set-frame-position (flatten-list (list frame center)))))))
 
-(define-key sej-mode-map (kbd "A-M-m") 'sej/frame-recentre)
-(define-key sej-mode-map (kbd "C-c s m") 'sej/frame-recentre)
+
+;;;;; fringe
+;; fringe-mode
+;; [[https://www.emacswiki.org/emacs/TheFringe][The Fringe wiki]]
+(use-package fringe
+  :straight (:type built-in)
+  :init
+  (set-fringe-mode 5))
 
 
 ;;;; buffers
@@ -1215,7 +1368,63 @@ If FRAME is omitted or nil, use currently selected frame."
          ("A-n" . (lambda () (interactive) (scroll-up 1)))
          ("A-p" . (lambda () (interactive) (scroll-down 1)))
          )
-  )
+  :init
+  (setq display-buffer-alist
+        '(;; top side window
+          ("\\*\\(Flycheck\\|Package-Lint\\).*"
+           (display-buffer-in-side-window)
+           (window-height . 0.16)
+           (side . bottom)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t))))
+          ("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|Messages\\)\\*"
+           (display-buffer-in-side-window)
+           (window-height . 0.16)
+           (side . bottom)
+           (slot . 1)
+           (window-parameters . ((no-other-window . t))))
+          ;; bottom side window
+          (".*\\*Completions.*"
+           (display-buffer-in-side-window)
+           (window-height . 0.16)
+           (side . bottom)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t))))
+          ("\\*e?shell.*"
+           (display-buffer-in-side-window)
+           (window-height . 0.16)
+           (side . bottom)
+           (slot . 1))
+          ;; left side window
+          ("\\*helpful.*"
+           (display-buffer-in-side-window)
+           (window-width . 0.30)       ; See the :hook
+           (side . right)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t))))
+          ("\\*Help.*"
+           (display-buffer-in-side-window)
+           (window-width . 0.30)       ; See the :hook
+           (side . right)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t))))
+          ;; right side window
+          ("\\*Faces\\*"
+           (display-buffer-in-side-window)
+           (window-width . 0.25)
+           (side . right)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t)
+                                 (mode-line-format . (" "
+                                                      mode-line-buffer-identification)))))
+          ("\\*Custom.*"
+           (display-buffer-in-side-window)
+           (window-width . 0.25)
+           (side . right)
+           (slot . 1))))
+  (setq window-combination-resize t
+        even-window-sizes 'height-only
+        window-sides-vertical nil))
 
 
 ;;;;; ace-window
@@ -1239,22 +1448,22 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Restore old window configurations
 ;; - [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
 (use-package winner
-  :straight (winner :type built-in)
+  :straight (:type built-in)
+  :hook (emacs-startup . winner-mode)
   :commands (winner-undo winner-redo)
   :bind ( ("C-c <left>" . winner-undo)
           ("C-c <right>" . winner-redo))
-  :init
-  (winner-mode)
+  :config
   (setq winner-boring-buffers '("*Completions*"
-                                      "*Compile-Log*"
-                                      "*inferior-lisp*"
-                                      "*Fuzzy Completions*"
-                                      "*Apropos*"
-                                      "*Help*"
-                                      "*cvs*"
-                                      "*Buffer List*"
-                                      "*Ibuffer*"
-                                      "*esh command on file*")))
+                                "*Compile-Log*"
+                                "*inferior-lisp*"
+                                "*Fuzzy Completions*"
+                                "*Apropos*"
+                                "*Help*"
+                                "*cvs*"
+                                "*Buffer List*"
+                                "*Ibuffer*"
+                                "*esh command on file*")))
 
 
 ;;;;; golden-ratio
@@ -1310,13 +1519,13 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;; line numbers
-;;;;; display-line-numbers
-;; - only in prog modes
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
-(use-package display-line-numbers
-  :straight (display-lne-numbers :type built-in)
-  :hook (prog-mode . display-line-numbers-mode)
-  :init (setq display-line-numbers 'visual))
+;; ;;;;; display-line-numbers
+;; ;; - only in prog modes
+;; ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/display-line-numbers.el
+;; (use-package display-line-numbers
+;;   :straight (display-lne-numbers :type built-in)
+;;   :hook (prog-mode . display-line-numbers-mode)
+;;   :init (setq display-line-numbers 'visual))
 
 
 ;;;;; goto-line-preview
@@ -1341,26 +1550,6 @@ If FRAME is omitted or nil, use currently selected frame."
   (save-place-forget-unreadable-files t))
 
 
-;; When popping the mark, continue popping until the cursor actually moves
-;; Also, if the last command was a copy - skip past all the expand-region cruft.
-(defadvice pop-to-mark-command (around ensure-new-position activate)
-  "When popping the mark, continue popping until we move the cursor."
-  (let ((p (point)))
-    (when (eq last-command 'save-region-or-current-line)
-      ad-do-it
-      ad-do-it
-      ad-do-it)
-    (dotimes (i 10)
-      (when (= p (point)) ad-do-it))))
-
-(setq set-mark-command-repeat-pop t)
-
-(setq-default major-mode 'text-mode)
-
-;; Sentences do not need double spaces to end. Period.
-(setq sentence-end-double-space nil)
-
-
 ;;;; multi-edit
 ;;;;; multiple cursors
 ;; - Multiple cursors
@@ -1378,6 +1567,25 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;; search
+;;;;; isearch
+;; built-in search function
+(use-package isearch
+  :straight (:type built-in)
+  :init
+  (setq lazy-highlight-initial-delay 0
+        search-highlight t
+        search-whitespace-regexp ".*?"
+        isearch-lax-whitespace t
+        isearch-regexp-lax-whitespace nil
+        isearch-lazy-highlight t
+        isearch-lazy-count t
+        lazy-count-prefix-format "(%s/%s) "
+        lazy-count-suffix-format nil
+        isearch-yank-on-move 'shift
+        isearch-allow-scroll 'unlimited))
+
+
+
 ;;;;; selectrum
 ;; - alternative to ivy, ido, helm
 ;; - [[https://github.com/raxod502/selectrum#what-is-it][selectrum]]
@@ -1497,8 +1705,6 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s e" . consult-isearch)
          ("C-s" . consult-isearch)
          :map isearch-mode-map
-         ("M-e" . consult-isearch)                 ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch)               ;; orig. isearch-edit-string
          ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
 
   ;; Enable automatic preview at point in the *Completions* buffer.
@@ -1573,7 +1779,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; bookmark+
 ;; - enhancements to the built-in bookmark package
 ;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
-(use-package bookmark+)
+(use-package bookmark+
+  :straight
+  :config (setq bookmark-save-flag +1))
 
 
 ;;;;; ag
@@ -1599,10 +1807,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; indentation settings
 (setq-default indent-tabs-mode nil
               fill-column 80)
-
-;; Line and Column
-(setq column-number-mode t)
-(setq line-number-mode nil)
 
 
 ;;;;; dtrt-indent
@@ -1647,9 +1851,12 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package recentf
   :straight (recentf :type built-in)
   :hook (emacs-startup . recentf-mode)
+  :bind ("C-x C-r" . crux-recentf-find-file)
   :config
-  (setq recentf-max-saved-items 200)
-  (setq recentf-exclude '((expand-file-name package-user-dir)
+  (setq recentf-max-saved-items 2000
+        recentf-max-menu-items 100
+        recentf-auto-cleanup 'never
+        recentf-exclude '((expand-file-name package-user-dir)
                           ".cache"
                           ".cask"
                           ".elfeed"
@@ -1670,16 +1877,17 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight (savehist :type built-in)
   :hook (emacs-startup . savehist-mode)
   :custom
-  (savehist-file (expand-file-name "history" user-emacs-directory))
+  (history-delete-duplicates t)
   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
-  (history-length 1000)
+  (history-length 3000)
   (savehist-additional-variables '(mark-ring
                                    global-mark-ring
                                    search-ring
                                    regexp-search-ring
                                    extended-command-history)
                                  "each varible is perssted accross Emacs sessions.")
-   (savehist-autosave-interval 300))
+  (savehist-autosave-interval 300)
+  (savehist-save-minibuffer-history t))
 
 
 ;;;; movement
@@ -1751,9 +1959,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
 (use-package subword
   :straight (subword :type built-in)
-  :blackout
-  :hook ((prog-mode . subword-mode)
-         (minibuffer-setup . subword-mode))
+  :blackout t
+  :hook (emacs-startup . subword-mode)
   :config
   ;; this makes forward-word & backward-word understand snake & camel case
   (setq c-subword-mode t)
@@ -1773,11 +1980,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Kill & Mark things easily
 ;; - https://github.com/leoliu/easy-kill
 ;; - https://github.com/knu/easy-kill-extras.el
-(setq kill-ring-max 200)
-
-;; Save clipboard contents into kill-ring before replace them
-(setq save-interprogram-paste-before-kill t)
-
 (use-package easy-kill-extras
   :bind (([remap kill-ring-save] . easy-kill) ; M-w
          ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
@@ -1806,7 +2008,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/typester/emacs/blob/master/lisp/delsel.el
 (use-package delsel
   :straight (:type built-in)
-  :config (setq-default delete-selection-mode nil))
+  :hook (emacs-startup . delete-selection-mode))
 
 
 ;;;;; rect
@@ -2149,10 +2351,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; rainbow-delimiters
 ;; - rainbow-delimiters-mode - multicoloured brackets
 ;; - https://github.com/Fanael/rainbow-delimiters
-(use-package rainbow-delimiters
-  :blackout
-  :hook (prog-mode . rainbow-delimiters-mode)
-  )
+(use-package paren
+  :straight (:type built-in)
+  :hook (prog-mode . show-paren-mode)
+  :config
+  (setq show-paren-delay 0
+        show-paren-style 'mixed ; parenthesis, expression, mixed
+        show-paren-when-point-in-periphery t
+        show-paren-when-point-inside-paren t))
 
 
 ;;;;; mic-paren
@@ -2160,8 +2366,26 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/emacsattic/mic-paren/blob/d0410c7d805c9aaf51a1bcefaaef092bed5824c4/mic-paren.el
 (use-package mic-paren
   :hook (prog-mode . paren-activate)
-  :config
+  :init
   (setq paren-highlight-offscreen t))
+
+
+;;;;; rainbow-delimiters
+;; - rainbow-delimiters-mode - multicoloured brackets
+;; - https://github.com/Fanael/rainbow-delimiters
+(use-package rainbow-delimiters
+  :blackout
+  :hook (prog-mode . rainbow-delimiters-mode)
+  )
+
+
+;;;;; hideshow
+;; built-in mode to hideshow blocks
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Hideshow.html][hideshow minor mode]]
+(use-package hideshow
+  :blackout (hs-minor-mode . "")
+  :straight (:type built-in)
+  :hook (prog-mode . hs-minor-mode))
 
 
 ;;;;; outline outshine pretty-outlines
@@ -2170,6 +2394,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://github.com/alphapapa/outshine][outshine]]
 ;; - [[https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-outlines/pretty-outlines.el][pretty-outlines]]
 (use-package outshine
+  :straight t
   :hook ((prog-mode          . outline-minor-mode)
          (outline-minor-mode . outshine-mode))
   :bind ("M-S-<return>" . outshine-insert-heading)
@@ -2212,7 +2437,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; lsp
 ;; - client for Language Server Protocol servers
 ;; - [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
-;; bash-mode: npm i -g bash-language-server
 ;; c++-mode, objc-mode, cudo-mode: ccls uses lsp-mode & see ccls below
 ;; csharp-mode: supports automatic installation M-x lsp-csharp-update-server
 ;; cmake: pip3 install cmake-language-server
@@ -2227,7 +2451,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package lsp-mode
   :if (eq sej-lsp 'lsp-mode)
   :hook (((
-           bash-mode
            c++-mode
            c-mode
            objc-mode
@@ -2290,7 +2513,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/joaotavora/eglot
 (use-package eglot
   :if (eq sej-lsp 'eglot-mode)
-  :hook ((python-mode c-mode c++-mode objc-mode cuda-mode go-mode bash-mode sh-mode javascript-mode java-mode)  . eglot-ensure)
+  :hook ((python-mode c-mode c++-mode objc-mode cuda-mode go-mode javascript-mode java-mode)  . eglot-ensure)
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
@@ -2303,31 +2526,40 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - generalized program mode
 ;; - Prettify Symbols
 ;; - e.g. display “lambda” as “λ”
-(setq-default prettify-symbols-alist '(("lambda" . ?λ)
-                                       ("->" . ?→)
-                                       ("->>" . ?↠)
-                                       ("=>" . ?⇒)
-                                       ("map" . ?↦)
-                                       ("/=" . ?≠)
-                                       ("!=" . ?≠)
-                                       ("==" . ?≡)
-                                       ("<=" . ?≤)
-                                       (">=" . ?≥)
-                                       ("=<<" . (?= (Br . Bl) ?≪))
-                                       (">>=" . (?≫ (Br . Bl) ?=))
-                                       ("<=<" . ?↢)
-                                       (">=>" . ?↣)
-                                       ("&&" . ?∧)
-                                       ("||" . ?∨)
-                                       ("not" . ?¬)
-                                       ("=>" . ?⇨)
-                                       ("#+BEGIN_SRC" . ?†)
-                                       ("#+END_SRC" . ?†)
-                                       ("#+begin_src" . ?†)
-                                       ("#+end_src" . ?†)
-                                       ))
-(setq prettify-symbols-unprettify-at-point 'right-edge)
-(global-prettify-symbols-mode)
+(use-package prog-mode
+  :no-require t
+  :straight (:type built-in)
+  :init
+  (setq-default prettify-symbols-alist '(("lambda" . ?λ)
+                                         ("->" . ?→)
+                                         ("->>" . ?↠)
+                                         ("=>" . ?⇒)
+                                         ("map" . ?↦)
+                                         ("/=" . ?≠)
+                                         ("!=" . ?≠)
+                                         ("==" . ?≡)
+                                         ("<=" . ?≤)
+                                         (">=" . ?≥)
+                                         ("=<<" . (?= (Br . Bl) ?≪))
+                                         (">>=" . (?≫ (Br . Bl) ?=))
+                                         ("<=<" . ?↢)
+                                         (">=>" . ?↣)
+                                         ("&&" . ?∧)
+                                         ("||" . ?∨)
+                                         ("not" . ?¬)
+                                         ("=>" . ?⇨)
+                                         ("#+BEGIN_SRC" . ?†)
+                                         ("#+END_SRC" . ?†)
+                                         ("#+begin_src" . ?†)
+                                         ("#+end_src" . ?†)
+                                         ))
+  (setq prettify-symbols-unprettify-at-point 'right-edge
+        global-prettify-symbols-mode t
+        lisp-prettify-symbols-alist prettify-symbols-alist)
+  (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+  (add-hook 'prog-mode-hook #'show-paren-mode)
+  (add-hook 'prog-mode-hook #'prettify-symbols-mode)
+  (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
 
 
 ;;;;; format-all
@@ -2340,18 +2572,76 @@ If FRAME is omitted or nil, use currently selected frame."
               ("A-f" . format-all-buffer)))
 
 
+;;;;; sh-script
+;; shell script mode built-in
+;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
+(use-package sh-script
+  :straight (:type built-in)
+  :preface
+  (defun sej/sh-prettify-mode-line ()
+    (setq mode-line-process nil)
+    (when (eq major-mode 'sh-mode)
+      (setq mode-name (capitalize (symbol-name sh-shell)))))
+
+  (defun sh-script-extra-font-lock-is-in-double-quoted-string ()
+    "Non-nil if point in inside a double-quoted string."
+    (let ((state (syntax-ppss)))
+      (eq (nth 3 state) ?\")))
+
+  (defun sh-script-extra-font-lock-match-var-in-double-quoted-string (limit)
+    "Search for variables in double-quoted strings."
+    (let (res)
+      (while
+          (and (setq res
+                     (re-search-forward
+                      "\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)"
+                      limit t))
+               (not (sh-script-extra-font-lock-is-in-double-quoted-string))))
+      res))
+
+  (defvar sh-script-extra-font-lock-keywords
+    '((sh-script-extra-font-lock-match-var-in-double-quoted-string
+       (2 font-lock-variable-name-face prepend))))
+
+  (defun sh-script-extra-font-lock-activate ()
+    (interactive)
+    (font-lock-add-keywords nil sh-script-extra-font-lock-keywords)
+    (if (fboundp 'font-lock-flush)
+        (font-lock-flush)
+      (when font-lock-mode
+        (with-no-warnings
+          (font-lock-fontify-buffer)))))
+  :init
+  (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
+  (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
+  :config
+  (setq-default sh-basic-offset 2)
+  (compdef
+   :modes '(sh-mode shell-script-mode)
+   :capf #'sh-completion-at-point-function
+   :company '(company-capf
+              company-shell
+              company-shell-env
+              company-files
+              company-dabbrev-code)))
+
+
 ;;;;; tramp
 ;; - remote editing
 ;; - https://www.gnu.org/software/tramp/
 (use-package tramp
   :straight (tramp :type built-in)
-  :defer 5
-  :config
-  (with-eval-after-load 'tramp-cache
-    (setq tramp-persistency-file-name "~/.emacs.d/tramp"))
-  (setq tramp-default-method "ssh"
-        tramp-default-user-alist '(("\\`su\\(do\\)?\\'" nil "root"))
-        tramp-adb-program "adb"
+  :init
+  (setq tramp-default-method "scp"
+        tramp-terminal-type "tramp"
+        tramp-verbose 3
+        tramp-completion-reread-directory-timeout nil
+        tramp-histfile-override "/tmp/tramp_history"
+        remote-file-name-inhibit-cache nil
+        tramp-chunksize 500
+        vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+                                     vc-ignore-dir-regexp
+                                     tramp-file-name-regexp)
         ;; use the settings in ~/.ssh/config instead of Tramp's
         tramp-use-ssh-controlmaster-options nil
         ;; don't generate backups for remote files opened as root (security hazzard)
@@ -2361,14 +2651,17 @@ If FRAME is omitted or nil, use currently selected frame."
                (not (let ((method (file-remote-p name 'method)))
                       (when (stringp method)
                         (member method '("su" "sudo"))))))))
+  :config
+        (add-to-list 'tramp-default-user-alist '(("\\`su\\(do\\)?\\'" nil "root"))))
 
-  (use-package tramp-sh
-    :straight (tramp-sh :type built-in)
-    :config
-    (add-to-list 'tramp-remote-path "/usr/local/sbin")
-    (add-to-list 'tramp-remote-path "/opt/java/current/bin")
-    (add-to-list 'tramp-remote-path "/opt/gradle/current/bin")
-    (add-to-list 'tramp-remote-path "~/bin")))
+
+(use-package tramp-sh
+  :straight (tramp-sh :type built-in)
+  :config
+  (add-to-list 'tramp-remote-path "/usr/local/sbin")
+  (add-to-list 'tramp-remote-path "/opt/java/current/bin")
+  (add-to-list 'tramp-remote-path "/opt/gradle/current/bin")
+  (add-to-list 'tramp-remote-path "~/bin"))
 
 
 ;;;;; indent-guide
@@ -2379,6 +2672,19 @@ If FRAME is omitted or nil, use currently selected frame."
   :blackout)
 
 
+;;;;; New-Comment
+;; built-in library contains functions and variables for commenting and
+;; uncommenting source code.
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Comment-Commands.html][comment commands]]
+(use-package newcomment
+  :straight (:type built-in)
+  :init
+  (setq comment-empty-lines t
+        comment-fill-column 0
+        comment-multi-line t
+        comment-style 'multi-line))
+
+
 ;;;;; comment-dwim-2
 ;; - replacement for the Emacs built-in command comment-dwim
 ;; - https://github.com/remyferre/comment-dwim-2
@@ -2387,10 +2693,7 @@ If FRAME is omitted or nil, use currently selected frame."
         ("C-;" . comment-indent) ; C-; trailing comment
          ("C-:" . comment-kill) ; kill trailing comment
          ("C-x C-;" . comment-box) ; box comment
-         )
-  :config
-  (setq comment-fill-column 0) ;set so comments trail immediate
-  )
+         ))
 
 
 ;;;;; ediff
@@ -2405,8 +2708,27 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
   (setq ediff-diff-options "-w")
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-vertically)
+  (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-shell (getenv "$SHELL")))
+
+
+;;;;; electric
+;; electric indentmode
+(use-package electric
+  :straight (:type built-in)
+  :hook ('prog-mode . electric-indent-mode)
+  :init
+  (setq-default electric-indent-chars '(?\n ?\^?))
+  (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit
+        electirc-pair-preserve-balance t
+        electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187))
+        electric-pair-skip-self 'electric-pair-default-skip-self
+        electric-pair-skip-whitespace nil
+        electric-pair-skip-whitespace-chars '(9 10 32)
+        electric-quote-context-sensitive t
+        electric-quote-paragraph t
+        electric-quote-string nil
+        electric-quote-replace-double t))
 
 
 ;;;;; elec-pair
@@ -2415,19 +2737,9 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package elec-pair
   :straight (elec-pair :type built-in)
   :hook (prog-mode . electric-pair-mode)
-  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
   (electric-layout-mode t)
-  (electric-indent-mode t)
-  ;; Ignore electric indentation for python and yaml
-  (defun electric-indent-ignore-mode (char)
-    "Ignore electric indentation for 'python-mode'.  CHAR is input character."
-    (if (or (equal major-mode 'python-mode)
-            (equal major-mode 'yaml-mode))
-        'no-indent
-      nil))
-  ;; (add-hook 'electric-indent-functions 'electric-indent-ignore-mode)
-  )
+  (electric-indent-mode t))
 
 
 ;;;;; compile
@@ -2442,7 +2754,25 @@ If FRAME is omitted or nil, use currently selected frame."
     "ANSI coloring in compilation buffers."
     (when (eq major-mode 'compilation-mode)
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  :hook (compilation-filter . my-colorize-compilation-buffer))
+  :hook (compilation-filter . my-colorize-compilation-buffer)
+  :init
+  (setq compilation-message-face 'compilation-base-face
+        compilation-always-kill t
+        compilation-ask-about-save nil
+        compilation-scroll-output 'first-error))
+
+
+;;;;; make-mode
+;; Major mode for editing standard Makefiles
+;; [[http://doc.endlessparentheses.com/Fun/makefile-mode.html][makefile docs]]
+(use-package make-mode
+  :blackout ((makefile-automake-mode . "Makefile")
+             (makefile-gmake-mode . "Makefile")
+             (makefile-makepp-mode . "Makefile")
+             (makefile-bsdmake-mode . "Makefile")
+             (makefile-imake-mode . "Makefile"))
+  :straight (:type built-in)
+  :config (setq-local indent-tabs-mode t))
 
 
 ;;;;; dumb-jump
@@ -2460,7 +2790,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
 (use-package flymake
   :straight (flymake :type built-in)
-  :hook (post-command . flymake-error-at-point)
+  :hook ((post-command . flymake-error-at-point)
+         (emacs-startup . flymake-mode))
   :bind (:map flymake-mode-map
               ("C-c ! s" . flymake-start)
               ("H-[" . flymake-goto-prev-error)
@@ -2482,7 +2813,9 @@ If FRAME is omitted or nil, use currently selected frame."
     "Show the flymake error in the minibuffer when point is on an invalid line."
     (when (get-char-property (point) 'flymake-overlay)
       (let ((help (get-char-property (point) 'help-echo)))
-        (if help (message "%s" help))))))
+        (if help (message "%s" help)))))
+  :config
+  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)   )
 
 
 ;;;;; flymake-diagnostic-at-point
@@ -2582,6 +2915,13 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;; vcs
+;;;;; Project
+;; built-in project management
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html][Working with projects]]
+(use-package project
+  :straight (:type built-in))
+
+
 ;;;;; magit
 ;; - interface to the version control system Git
 ;; - https://magit.vc/
@@ -2644,7 +2984,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Resolve diff3 conflicts
 ;; - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
 (use-package smerge-mode
-  :straight (smerge-mode :type built-in)
+  :straight (:type built-in)
   :after hydra
   :blackout
   :commands (smerge-mode
@@ -2788,6 +3128,43 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;; completion
+;;;;; abbrev
+;; - for inserting abbreviations
+;; - https://www.emacswiki.org/emacs/AbbrevMode
+(use-package abbrev
+  :straight (abbrev :type built-in)
+  :hook ((emacs-startup org-mode) . abbrev-mode)
+  :blackout
+  :config
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+
+  (define-abbrev-table
+    'org-mode-abbrev-table
+    '(("orgh" "" sej/org-header 0)
+      ("orgl" "" sej/org-wrap-elisp 0)
+      ("orgs" "" sej/org-wrap-source 0))))
+
+
+;;;;; dabbrev
+;; built-in package to let you write just a few characters of words you've written
+;; earlier to be able to expand them.
+(use-package dabbrev
+  :straight (:type built-in)
+  :commands (dabbrev-expand
+             dabbrev-completion)
+  :init
+  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
+        dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
+        dabbrev-backward-only nil
+        dabbrev-case-distinction nil
+        dabbrev-case-fold-search t
+        dabbrev-case-replace nil
+        dabbrev-check-other-buffers t
+        dabbrev-eliminate-newlines nil
+        dabbrev-upcase-means-case-search t))
+
+
 ;;;;; hippie-expand
 ;; - built-in package to expand at point in various ways
 ;; - https://www.emacswiki.org/emacs/HippieExpand
@@ -2799,17 +3176,38 @@ If FRAME is omitted or nil, use currently selected frame."
   :init
   (setq hippie-expand-try-functions-list
         '(try-complete-file-name-partially
+          try-expand-dabbrev-visable
           try-expand-dabbrev
           try-expand-dabbrev-all-buffers
           try-expand-dabbrev-from-kill
+          try-expand-list-all-buffers
+          try-expand-list
+          try-expand-line-all-buffers
+          try-expand-line
           try-complete-file-name-partially
           try-complete-file-name
           try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line
-          try-expand-line-all-buffers
           try-complete-lisp-symbol-partially
           try-compelete-lisp-symbol)))
+
+
+;;;;; iComplete
+;; built-in minibuffer completion helper
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Icomplete.html][Fast minibuffer selection]]
+(use-package icomplete
+  :straight (:type built-in)
+  :hook (emacs-startup . icomplete-mode)
+  :config
+  (setq icomplete-delay-completions-threshold 0
+        icomplete-max-chars 0
+        icomplete-compute-delay 0
+        icomplete-show-matches-on-no-input t
+        icomplete-hide-common-prefix nil
+        icomplete-prospects-height 1
+        icomplete-separator " · "
+        icomplete-with-completion-tables t
+        icomplete-in-buffer t)
+  (fido-mode -1))
 
 
 ;;;;; company
@@ -2822,7 +3220,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; hydra
 ;; - Make bindings that stick around
 ;; - https://github.com/abo-abo/hydra
-(use-package hydra)
+(use-package hydra
+  :straight t)
 
 
 ;;;;; yasnippet
@@ -2856,8 +3255,8 @@ If the region is active and option `transient-mark-mode' is on, call
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
 (global-set-key (kbd "C-c s E") 'toggle-debug-on-error)
 
-;; use flycheck
-(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+;; use flymake
+(add-hook 'emacs-lisp-mode-hook 'flymake-mode)
 
 ;; enable dash for Emacs lisp highlighting
 (eval-after-load "dash" '(dash-enable-font-lock))
@@ -2868,13 +3267,12 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - https://www.emacswiki.org/emacs/ElDoc
 (use-package eldoc
   :blackout
+  :straight (:type built-in)
   :hook
-  ((emacs-lisp-mode . eldoc-mode)
-   (ielm-mode . eldoc-mode)
-   (lisp-interaction-mode . eldoc-mode)
-   (eval-expression-minibuffer-setup . eldoc-mode))
-  :config
-  (setq eldoc-idle-delay 0.1) )
+  ((prog-mode . turn-on-eldoc-mode))
+  :init
+  (setq eldoc-idle-delay 0.2
+        eldoc-echo-area-use-multiline-p 3) )
 
 
 ;;;;; elisp-slime-nav
@@ -2899,17 +3297,22 @@ If the region is active and option `transient-mark-mode' is on, call
   :hook (emacs-lisp-mode . eros-mode))
 
 
-;;;;; sej/ielm-other-window
+;;;;; ielm
 ;; - add a nice popup for ielm
 ;; - https://www.emacswiki.org/emacs/InferiorEmacsLispMode
-(defun sej/ielm-other-window ()
-  "Run ielm on other window."
-  (interactive)
-  (switch-to-buffer-other-window
-   (get-buffer-create "*ielm*"))
-  (call-interactively 'ielm))
+(use-package ielm
+  :straight (:type built-in)
+  :bind (:map sej-mode-map
+              ("s-i" . sej/ielm-other-window))
+  :config
+  (add-hook 'inferior-emacs-lisp-mode-hook #'hs-minor-mode)
 
-(define-key sej-mode-map (kbd "s-i") 'sej/ielm-other-window)
+  (defun sej/ielm-other-window ()
+    "Run ielm on other window."
+    (interactive)
+    (switch-to-buffer-other-window
+     (get-buffer-create "*ielm*"))
+    (call-interactively 'ielm)))
 
 
 ;;;;; sej/remove-elc-on-save
@@ -3199,7 +3602,6 @@ If the region is active and option `transient-mark-mode' is on, call
   :bind (:map c-mode-base-map
               ("C-c c" . compile))
   :hook (
-         ;;(c-mode-common . flycheck-mode)
          (c-mode-common . (lambda ()
                             (c-set-style "bsd")
                             (setq tab-width 4)
@@ -3605,17 +4007,32 @@ the children of class at point."
 ;;   based on file extension or the major mode
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
 (use-package autoinsert
-  :hook (find-file . auto-insert)
-  :defines
-  auto-insert-query
-  auto-insert-directory
+  :straight (:type built-in)
+  :commands (auto-insert)
+  :hook (emacs-startup . auto-insert-mode)
+  :preface
+  (defun sej/autoinsert-yas-expand()
+    "Replace text in yasnippet template."
+    (yas/expand-snippet (buffer-string) (point-min) (point-max)))
   :init
   (setq auto-insert-directory "~/.emacs.d/templates/")
-  (setq auto-insert-query nil)
-  (auto-insert-mode 1)
   :config
-  (define-auto-insert ".*\\.py[3]?$" "template.py")
-  (define-auto-insert ".*\\.el" "template.el") )
+  (setq auto-insert 'other
+        auto-insert-directory (nl-etc-expand "autoinsert/")))
+
+
+;;;;; autorevert
+;; watch for changes in files on disk
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Revert.html][autorevert man]]
+(use-package autorevert
+  :straight (:type built-in)
+  :hook (emacs-startup . global-auto-revert-mode)
+  :init
+  (setq auto-revert-use-notify t
+        auto-revert-avoid-polling t
+        auto-revert-verbose nil
+        global-auto-revert-non-file-buffers t
+        revert-without-query '(".*")))
 
 
 ;;;;; sej/create-non-existent-directory
@@ -3694,8 +4111,8 @@ the children of class at point."
 ;; - Extra Dired functionality
 ;; - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
 (use-package dired-x
-  :straight (autorevert :type built-in)
-  :demand
+  :straight (:type built-in)
+  :demand t
   :config
   (let ((cmd (cond
               (sys/mac-x-p "open")
@@ -3952,24 +4369,6 @@ the children of class at point."
   :mode "\\.txt\\'")
 
 
-;;;;; abbrev
-;; - for inserting abbreviations
-;; - https://www.emacswiki.org/emacs/AbbrevMode
-(use-package abbrev
-  :straight (abbrev :type built-in)
-  :hook ((emacs-startup org-mode) . abbrev-mode)
-  :blackout
-  :config
-  (setq abbrev-file-name             ;; tell emacs where to read abbrev
-        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
-
-  (define-abbrev-table
-    'org-mode-abbrev-table
-    '(("orgh" "" sej/org-header 0)
-      ("orgl" "" sej/org-wrap-elisp 0)
-      ("orgs" "" sej/org-wrap-source 0))))
-
-
 ;;;;; sej/number-rectangle
 ;; - Let's say you have a list like:
 ;; First Item
@@ -4013,6 +4412,7 @@ the children of class at point."
 ;; - main spelling package
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 (use-package flyspell
+  :straight (:type built-in)
   :functions
   flyspell-correct-word
   flyspell-goto-next-error
@@ -4021,19 +4421,22 @@ the children of class at point."
   :bind
   (:map sej-mode-map
         ("<f8>" . ispell-word)
-        ("s-," . ispell-word)
         ("C-<f8>" . flyspell-mode)
         ("M-<f8>" . flyspell-check-next-highlighted-word)
         ("S-<f8>" . ispell-region)
-        ("s-." . ispell-region)
         :map flyspell-mode-map
         ("C-;" . nil)        )
   :hook (((text-mode outline-mode org-mode) . flyspell-mode)
          (prog-mode . flyspell-prog-mode))
   :config
+  (setq flyspell-abbrev-p t
+                flyspell-use-global-abbrev-table-p t
+                flyspell-issue-welcome-flag nil
+                flyspell-issue-message-flag nil)
   (cond
    ((executable-find "aspell")
-    (setq-default ispell-program-name "aspell"))
+    (setq-default ispell-program-name "aspell")
+    (push "--sug-mode=ultra" ispell-extra-args))
    ((executable-find "enchant-2")
     (setq-default ispell-program-name "enchant-2"))
    ((executable-find "hunspell")
@@ -4133,8 +4536,6 @@ the children of class at point."
     :defines pdf-annot-activate-created-annotations
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
-    :bind (:map pdf-view-mode-map
-                ("C-s" . isearch-forward))
     :config
     (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
     (setq pdf-annot-activate-created-annotations t)
@@ -4876,10 +5277,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - basic emacs shell ; eshell is much better
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html
 (use-package shell
-  :ensure nil
+  :commands shell-command
   :hook ((shell-mode . n-shell-mode-hook)
          (shell-mode . ansi-color-for-comint-mode-on)
-
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-mode-map
@@ -4910,7 +5310,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
     (setq comint-input-sender 'n-shell-simple-send))
 
-  (setq system-uses-terminfo nil)       ; don't use system term info
+  (setq system-uses-terminfo t
+        ansi-color-for-comint-mode t
+        comint-use-prompt-regexp t
+        shell-command-prompt-show-cwd nil)
 
   (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
         ;; always add output at the bottom
@@ -4963,13 +5366,6 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
-
-
-;;;;; keychain-environment
-;; - set up any SSH or GPG keychains that the Keychain tool has set up for us
-;; - https://github.com/tarsius/keychain-environment
-(use-package keychain-environment
-  :hook (emacs-startup . keychain-refresh-environment))
 
 
 ;;;; Other Services
@@ -5113,17 +5509,18 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/net/shr.el][shr]]
 (use-package shr
   :straight (:type built-in)
+  :commands (eww eww-browse-url)
   :config
-  (setq shr-use-fonts nil)
-  (setq shr-use-colors nil)
-  (setq shr-max-image-proportion 0.7)
-  (setq shr-image-animate nil)
+  (setq shr-use-fonts t)
+  (setq shr-use-colors t)
+  (setq shr-max-image-proportion 0.2)
+  (setq shr-image-animate t)
   (setq shr-width (current-fill-column)))
 
 ;; Support the HTML pre tag with proper syntax highlighting.
 (use-package shr-tag-pre-highlight
   :straight (:type built-in)
-  :ensure
+  :disabled t
   :after shr
   :config
   (add-to-list 'shr-external-rendering-functions
@@ -5184,6 +5581,24 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
               ("P" . eww-previous-url)))
 
 
+;;;;; Message
+;; built-in email message editor mode
+;; [[https://www.emacswiki.org/emacs/MessageMode][Message Mode wiki]]
+(use-package message
+  :straight (:type built-in)
+  :config
+  (setq send-mail-function 'sendmail-send-it
+        sendmail-program "/usr/local/bin/msmtp"
+        mail-specify-envelope-from t
+        message-sendmail-envelope-from 'header
+        mail-envelope-from 'header
+        smtpmail-debug-info t
+        message-default-mail-headers "Cc: \nBcc: \n"
+        message-auto-save-directory (nl-var-expand "mail/drafts")
+        user-mail-address sej-mail-address
+        user-full-name sej-full-name))
+
+
 ;;; calendar, diary
 ;;;;; calendar
 ;; - the built-in calendar
@@ -5212,7 +5627,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :straight (:type built-in)
   :config
   (setq calendar-latitude 42.838213
-        calendar-longitude -83.728748))
+        calendar-longitude -83.728748
+        calendar-location-name "Fenton, Michigan"))
 
 
 ;;;;; lunar
