@@ -105,9 +105,21 @@
 
 (straight-use-package 'use-package)
 
+
+;;;;; bind-key
 ;; Required by `use-package'
 (use-package bind-key
-  :bind ("H-d" . describe-personal-keybindings))
+  :bind ("s-d" . describe-personal-keybindings))
+
+
+;;;;; Blackout
+;; Similar to packages like minions, diminish, or delight.
+;; You can alter how your minor and major modes show up in the mode-line.
+;; [[https://github.com/raxod502/blackout][Blackout]]
+(use-package blackout
+  :demand t
+  :straight (:host github :repo "raxod502/blackout"))
+
 
 ;; Auto installing OS system packages
 ;; ensure-system-package keyword to ensure system binaries exist alongside your package
@@ -185,6 +197,32 @@
       (unless (server-running-p) (server-start)) ) ) )
 
 
+;;;;; GCMH
+;; The Garbage Collector Magic Hack
+;; [[https://github.com/emacsmirror/gcmh][github gcmh]]
+(use-package gcmh
+  :blackout t
+  :straight t
+  :hook (after-init . gcmh-mode)
+  :init
+  (add-hook 'focus-out-hook #'gcmh-idle-garbage-collect)
+  (add-hook 'suspend-hook #'gcmh-idle-garbage-collect)
+  (setq gcmh-idle-delay 10))
+
+
+;;;;; restart-emacs
+;; simple package to restart Emacs within Emacs
+;; with a single universal-argument (C-u) Emacs is restarted with --debug-init flag
+;; with two universal-argument (C-u C-u) Emacs is restarted with -Q flag
+;; with three universal-argument (C-u C-u C-u) the user is prompted for the arguments
+;; restart-emacs-start-new-emacs starts new session of Emacs without killing the current one
+;; [[https://github.com/iqbalansari/restart-emacs][restart-emacs]]
+(use-package restart-emacs
+  :straight t
+  :init
+  (defalias 're #'restart-emacs))
+
+
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
 (defgroup sej nil
@@ -258,7 +296,7 @@
       (copy-file custom-template-file custom-file)))
 
 (if (file-exists-p custom-file)
-    (load custom-file))
+    (load custom-file :noerror))
 
 
 ;;;;; Load `custom-post.el'
@@ -268,11 +306,11 @@
             (let ((file
                    (expand-file-name "custom-post.el" user-emacs-directory)))
               (if (file-exists-p file)
-                  (load file)))
+                  (load file :noerror)))
             (let ((file
                    (expand-file-name "custom-post.el" "~/.ssh/")))
               (if (file-exists-p file)
-                  (load file))) )
+                  (load file :noerror))) )
 
 
 ;;;;; exec-path-from-shell
@@ -315,15 +353,6 @@
   :straight (:host gitlab :repo "jjzmajic/compdef"))
 
 
-;;;;; Blackout
-;; Similar to packages like minions, diminish, or delight.
-;; You can alter how your minor and major modes show up in the mode-line.
-;; [[https://github.com/raxod502/blackout][Blackout]]
-(use-package blackout
-  :demand t
-  :straight (:host github :repo "raxod502/blackout"))
-
-
 ;;;;; dash
 ;; A modern list API for Emacs. No 'cl required.
 ;; [[https://github.com/magnars/dash.el][dash.el]]
@@ -361,57 +390,6 @@
 ;;;;; Org-Plus-Contrib
 ;; We need to intercept the built-in org-version that ships with Emacs we have to do this early.
 (straight-use-package '(org :host github :repo "emacs-straight/org-mode" :local-repo "org"))
-
-
-;;;; keybindings sej-mode-map
-;;;;; sej-mode-map set-up
-;; - Below taken from stackexchange (Emacs)
-;; Main use is to have my key bindings have the highest priority
-;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-(defvar sej-mode-map (make-sparse-keymap)
-  "Keymap for 'sej-mode'.")
-
-        ;;;###autoload
-(define-minor-mode sej-mode
-  "A minor mode so that my key settings override annoying major modes."
-  ;; If init-value is not set to t, this mode does not get enabled in
-  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-  ;; More info: http://emacs.stackexchange.com/q/16693/115
-  :init-value t
-  :lighter " sej"
-  :keymap sej-mode-map)
-
-        ;;;###autoload
-(define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
-
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; The keymaps in `emulation-mode-map-alists' take precedence over
-;; `minor-mode-map-alist'
-(add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
-
-;; Turn off the minor mode in the minibuffer
-(defun turn-off-sej-mode ()
-  "Turn off 'sej-mode'."
-  (sej-mode -1))
-(add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
-
-(defmacro bind-to-sej-map (key fn)
-  "Bind to KEY (as FN) a function to the `sej-mode-map'.
-USAGE: (bind-to-sej-map \"f\" #'full-screen-center)."
-  `(define-key sej-mode-map (kbd ,key) ,fn))
-
-;; http://emacs.stackexchange.com/a/12906/115
-(defun unbind-from-sej-map (key)
-  "Unbind from KEY the function from the 'sej-mode-map'.
-USAGE: (unbind-from-modi-map \"key f\")."
-  (interactive "kUnset key from sej-mode-map: ")
-  (define-key sej-mode-map (kbd (key-description key)) nil)
-  (message "%s" (format "Unbound %s key from the %s."
-                        (propertize (key-description key)
-                                    'face 'font-lock-function-name-face)
-                        (propertize "sej-mode-map"
-                                    'face 'font-lock-function-name-face))))
-;; Minor mode tutorial: http://nullprogram.com/blog/2013/02/06/
 
 
 ;;;;; Emacs internal settings
@@ -487,31 +465,29 @@ USAGE: (unbind-from-modi-map \"key f\")."
       (prefer-coding-system 'utf-8) ; with sugar on top
 
       :init
-;;;;;; Add proper word wrapping
-      (global-visual-line-mode t)
 
-;;;;;; Sentences do not need double spaces to end. Period.
-      (setq sentence-end-double-space nil)
-
-;;;;;; turn on syntax highlighting for all buffers
-      (global-font-lock-mode t)
+      (setq sentence-end-double-space nil) ; Sentences do not need double spaces to end. Period.
+      (global-visual-line-mode t) ; Add proper word wrapping
+      (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
 
 ;;;;;; color codes
       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
 
-      (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
+;;;;;; Deleting files go to OS's trash folder
+      (setq delete-by-moving-to-trash t)
       (if sys/macp (setq trash-directory "~/.Trash"))
 
-      (add-hook 'before-save-hook 'time-stamp)   ; update time-stamps in files
+;;;;;; update time-stamps in files
+      (add-hook 'before-save-hook 'time-stamp)
 
-      ;; yes and no settings
+;;;;;; yes and no settings
       (defalias 'yes-or-no-p 'y-or-n-p)
 
-      ;; Don't use GTK+ tooltip
+;;;;;; Don't use GTK+ tooltip
       (when (boundp 'x-gtk-use-system-tooltips)
         (setq x-gtk-use-system-tooltips nil))
 
-      ;; windows
+;;;;;; windows
       (window-divider-mode)      )
 
 
@@ -522,8 +498,6 @@ USAGE: (unbind-from-modi-map \"key f\")."
   :blackout ((visual-line-mode . "")
              (auto-fill-mode . ""))
   :straight (:type built-in)
-  :bind (:map sej-mode-map
-              ("s-." . pop-to-mark-command))
   :init
   (setq blink-matching-paren 'jump-offscreen
         column-number-mode t
@@ -672,6 +646,38 @@ USAGE: (unbind-from-modi-map \"key f\")."
                             :repo "xahlee/xahk-mode.el") )  )
 
 
+;;;;; sej-mode-map set-up
+;; - Below taken from stackexchange (Emacs)
+;; Main use is to have my key bindings have the highest priority
+;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+(defvar sej-mode-map (make-sparse-keymap)
+  "Keymap for 'sej-mode'.")
+
+        ;;;###autoload
+(define-minor-mode sej-mode
+  "A minor mode so that my key settings override annoying major modes."
+  ;; If init-value is not set to t, this mode does not get enabled in
+  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+  ;; More info: http://emacs.stackexchange.com/q/16693/115
+  :init-value t
+  :lighter " sej"
+  :keymap sej-mode-map)
+
+        ;;;###autoload
+(define-globalized-minor-mode global-sej-mode sej-mode sej-mode)
+
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; The keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists `((sej-mode . ,sej-mode-map)))
+
+;; Turn off the minor mode in the minibuffer
+(defun turn-off-sej-mode ()
+  "Turn off 'sej-mode'."
+  (sej-mode -1))
+(add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
+
+
 ;;; general keybindings
 ;;;; modifiers
 ;;;;; OSX Apple keyboard
@@ -783,26 +789,31 @@ USAGE: (unbind-from-modi-map \"key f\")."
 (global-set-key (kbd "A-V") (λ (insert "✓")))
 
 
-;;;;; general sej-mode-map bindings
-(define-key global-map (kbd "C-c .") 'org-time-stamp)
-(define-key global-map (kbd "C-h C-h") nil)
-(define-key sej-mode-map (kbd "C-h C-h") nil)
-
-;;(define-key sej-mode-map (kbd "C-j") 'newline-and-indent)
-(define-key sej-mode-map (kbd "M-j") (lambda () (interactive) (join-line -1)))
-;;(global-set-key (kbd "RET") 'newline-and-indent)
+;;;;; sej-mode-map bindings
+(unbind-key "C-z")
+(unbind-key "M-z")
+(global-unset-key (kbd "C-h C-h"))
 
 ;; unset C- and M- digit keys
 (dotimes (n 10)
   (global-unset-key (kbd (format "C-%d" n)))
   (global-unset-key (kbd (format "M-%d" n))))
 
-(define-key sej-mode-map (kbd "C-M-d") 'backward-kill-word)
-(define-key sej-mode-map (kbd "A-SPC") 'cycle-spacing)
+(bind-keys :prefix-map sej-mode-cz-map
+           :prefix "C-z"
+           :prefix-docstring "SeJ Personal cz-key bindings"
+           ("v" . emacs-version)
+	   ("\\" . align-regexp) ;Align your code in a pretty way.
+           )
 
-;; Align your code in a pretty way.
-(define-key sej-mode-map (kbd "C-x \\") 'align-regexp)
-
+(bind-keys :map sej-mode-map
+	   ("C-c ." . org-time-stamp)
+           ("s-." . pop-to-mark-command)
+	   ("C-h C-h" . nil)
+	   ("A-SPC" . cycle-spacing)
+	   ("M-j" . (lambda () (join-line -1)))
+	   ("C-M-d" . backward-kill-word)
+           )
 
 ;;; general functions / packages
 ;;;;; sej/save-macro
@@ -957,6 +968,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; - set up any SSH or GPG keychains that the Keychain tool has set up for us
 ;; - https://github.com/tarsius/keychain-environment
 (use-package keychain-environment
+  :straight t
+  :ensure-system-package keychain
   :hook (emacs-startup . keychain-refresh-environment))
 
 
@@ -985,12 +998,14 @@ Return its absolute path.  Otherwise, return nil."
 ;; - https://github.com/justbur/emacs-which-key
 (use-package which-key
   :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
-  :blackout
+  :blackout t
   :hook (emacs-startup . which-key-mode)
   :commands which-key-mode
   :defines sej-mode-map
   :config
-  (setq which-key-use-C-h-commands t)
+  (setq which-key-use-C-h-commands t
+        which-key-separator " "
+        which-key-prefix-prefix "+")
   (which-key-setup-side-window-bottom))
 
 
@@ -1002,7 +1017,9 @@ Return its absolute path.  Otherwise, return nil."
   :bind ( ("C-h C-d" . helpful-at-point)
           ("C-h c" . helpful-command)
           ("C-h C" . helpful-command)
-          ("C-h k" . helpful-key)
+          ("C-h k" . helpful-key) ; C-h k
+          ("C-h v" . helpful-variable) ; C-h v
+          ("C-h f" . helpful-callable) ; C-f v
           ("C-h M" . helpful-macro))  )
 
 
@@ -1078,6 +1095,19 @@ Return its absolute path.  Otherwise, return nil."
     (set-fontset-font t 'unicode "Symbola" nil 'prepend))))
 
 
+;;;;; default-text-scale
+;; easily adjust the default font size in all Emacs frames
+;; [[https://github.com/purcell/default-text-scale][default-text-scale]]
+(use-package default-text-scale
+  :straight t
+  :bind (:map sej-mode-map
+              ("C-M-=" . default-text-scale-increase)
+              ("C-M--" . default-text-scale-decrease)
+              ("s-r" . default-text-scale-reset))
+  :config
+  (setq default-text-scale-amount 20))
+
+
 ;;;; frames
 ;;;;; frame
 ;; built-in frame package
@@ -1089,22 +1119,22 @@ Return its absolute path.  Otherwise, return nil."
               ("s-6" . delete-other-frames)
               ("s-w" . delete-frame)
               ("C-x w" . delete-frame)
-              ("C-c s <up>" . sej/frame-resize-full)
+              ("C-z <up>" . sej/frame-resize-full)
               ("H-C-j" . sej/frame-resize-full)
-              ("C-c s <left>" . sej/frame-resize-l)
+              ("C-z <left>" . sej/frame-resize-l)
               ("H-C-h" . sej/frame-resize-l)
               ("<A-M-left>" . sej/frame-resize-l)
-              ("C-c s <S-left>" . sej/frame-resize-l2)
+              ("C-z <S-left>" . sej/frame-resize-l2)
               ("H-C-S-h" . sej/frame-resize-l2)
-              ("C-c s <right>" . sej/frame-resize-r)
+              ("C-z <right>" . sej/frame-resize-r)
               ("H-C-l" . sej/frame-resize-r)
               ("<A-M-right>" . sej/frame-resize-r)
-              ("C-c s <S-right>" . sej/frame-resize-r2)
+              ("C-z <S-right>" . sej/frame-resize-r2)
               ("H-C-S-l" . sej/frame-resize-r2)
               ("H-C-f" . toggle-frame-fullscreen)
-              ("C-c s F" . toggle-frame-fullscreen)
+              ("C-z F" . toggle-frame-fullscreen)
               ("A-M-m" . sej/frame-recentre)
-              ("C-c s m" . sej/frame-recentre))
+              ("C-z m" . sej/frame-recentre))
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
@@ -1273,7 +1303,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (interactive)
   (browse-url sej-homepage))
 
-(define-key sej-mode-map (kbd "C-c s h") 'sej/browse-homepage)
+(define-key sej-mode-map (kbd "C-z h") 'sej/browse-homepage)
 
 
 ;;;;; sej/quit-and-kill-auxiliary-windows
@@ -1315,8 +1345,8 @@ If FRAME is omitted or nil, use currently selected frame."
     (emacs-lisp-mode)
     ))
 (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-(define-key sej-mode-map (kbd "C-c S") 'sej/create-scratch-buffer)
-(define-key sej-mode-map (kbd "C-c s S") 'sej/create-scratch-buffer)
+(define-key sej-mode-map (kbd "C-z S") 'sej/create-scratch-buffer)
+(define-key sej-mode-map (kbd "C-z S") 'sej/create-scratch-buffer)
 
 
 ;;;;; persistent-scratch
@@ -1359,10 +1389,10 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-'" . next-multiframe-window)
 
          ;; movement complementary to windmove / windswap
-         ("H-h" . left-char)
-         ("H-j" . previous-line)
-         ("H-k" . next-line)
-         ("H-l" . right-char)
+         ("A-h" . left-char)
+         ("A-j" . previous-line)
+         ("A-k" . next-line)
+         ("A-l" . right-char)
 
          ;;scroll window up/down by one line
          ("A-n" . (lambda () (interactive) (scroll-up 1)))
@@ -1434,7 +1464,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/abo-abo/ace-window
 (use-package ace-window
   :straight (ace-window :type git :host github :repo "abo-abo/ace-window")
-  :bind (([remap other-window] . ace-window)
+  :bind (("C-x o" . ace-window)
          ("M-o" . ace-window))
   :custom-face
   (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
@@ -1509,7 +1539,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - A fancy and fast mode-line inspired by minimalism design
 ;; - https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode))
+  :straight t
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq doom-modeline-hud t
+        doom-modeline-project-detection 'project))
 
 
 ;;;;; all-the-icons
@@ -1526,16 +1560,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;   :straight (display-lne-numbers :type built-in)
 ;;   :hook (prog-mode . display-line-numbers-mode)
 ;;   :init (setq display-line-numbers 'visual))
-
-
-;;;;; goto-line-preview
-;; - Preview line when executing goto-line command.
-;; - M-g g
-;; - https://github.com/jcs-elpa/goto-line-preview
-(use-package goto-line-preview
-  :hook ((goto-line-preview-before-hook . (lambda() (display-line-numbers-mode 1)))
-         (goto-line-preview-after-hook . (lambda() (display-line-numbers-mode -1))))
-  :bind ([remap goto-line] . goto-line-preview))
 
 
 ;;; text manipulation
@@ -1585,14 +1609,38 @@ If FRAME is omitted or nil, use currently selected frame."
         isearch-allow-scroll 'unlimited))
 
 
+;;;;; Anzu
+;; good query replace search
+;; [[https://github.com/emacsorphanage/anzu][anzu.el]]
+(use-package anzu
+  :blackout t
+  :straight t
+  :bind  (:map sej-mode-map
+               ([remap query-replace] . anzu-query-replace-regexp)
+               ([remap query-replace-regexp] . anzu-query-replace))
+  :init
+  (defalias 'qr #'anzu-query-replace)
+  (defalias 'qrr #'anzu-query-replace-regexp)
+  :config
+  (global-anzu-mode))
+
+
+;;;;; ctrlf
+;; single-buffer text search in Emacs
+;; [[https://github.com/raxod502/ctrlf#usage][ctrlf]]
+(use-package ctrlf
+  :straight t
+  :hook (emacs-startup . ctrlf-mode))
+
 
 ;;;;; selectrum
 ;; - alternative to ivy, ido, helm
 ;; - [[https://github.com/raxod502/selectrum#what-is-it][selectrum]]
 (use-package selectrum
+  :straight t
+  :hook (emacs-startup . selectrum-mode)
   :config
   (selectrum-mode +1)
-
   (advice-add 'slime-display-or-scroll-completions :around
              (defun my--slime-completion-in-region (_ completions start end)
                (completion-in-region start end completions))))
@@ -1602,36 +1650,45 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - library which sorts and filters lists of candidates
 ;; - [[https://github.com/raxod502/prescient.el][selectrum-precient]]
 (use-package selectrum-prescient
+  :straight t
+  :hook ((emacs-startup . selectrum-prescient-mode)
+         (emacs-startup . prescient-persist-mode))
   :init
-  (setq selectrum-prescient-enable-filtering nil)
-  (selectrum-prescient-mode +1)
-  (prescient-persist-mode +1))
+  (setq selectrum-prescient-enable-filtering nil
+        prescient-history-length 1000))
+
 
 ;;;;; marginalia
 ;; Enable richer annotations using the Marginalia package
 ;; [[https://github.com/minad/marginalia][marginalia]]
 (use-package marginalia
-  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+  :straight t
+  :hook (selectrum-mode . marginalia-mode)
   :bind (("M-A" . marginalia-cycle)
          :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
+         ("M-A" . marginalia-cycle)))
 
-  ;; The :init configuration is always executed (Not lazy!)
+
+;;;;; orderless
+;; provides an orderless completion style that divides the pattern into space-separated components,
+;; and matches candidates that match all of the components in any order.
+;; [[https://github.com/oantolin/orderless][orderless]]
+(use-package orderless
+  :straight t
+  :demand t
   :init
-
-  ;; Must be in the :init section of use-package such that the mode gets
-  ;; enabled right away. Note that this forces loading the package.
-  (marginalia-mode))
+  (setq completion-styles '(orderless))
+  (setq orderless-skip-highlighting (lambda () selectrum-is-active)))
 
 
 ;;;;; embark
 ;; acting on targets
 ;; [[https://github.com/oantolin/embark/][embark]]
 (use-package embark
-  :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ("M-." . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :straight t
+  :bind  (("C-." . embark-act)         ;; pick some comfortable binding
+          ("M-." . embark-dwim)        ;; good alternative: M-.
+          ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
@@ -1649,8 +1706,10 @@ If FRAME is omitted or nil, use currently selected frame."
                  nil
                  (window-parameters (mode-line-format . none)))))
 
+
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
+  :straight t
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   ;; if you want to have consult previews as you move around an
@@ -1663,6 +1722,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - complementary to selectrum
 ;; - [[https://github.com/minad/consult][consult]]
 (use-package consult
+  :straight t
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
@@ -1703,7 +1763,6 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s u" . consult-focus-lines)
          ;; Isearch integration
          ("M-s e" . consult-isearch)
-         ("C-s" . consult-isearch)
          :map isearch-mode-map
          ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
 
@@ -1823,7 +1882,7 @@ If FRAME is omitted or nil, use currently selected frame."
   "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
-(define-key sej-mode-map (kbd "C-c s <tab>") 'sej/indent-buffer)
+(define-key sej-mode-map (kbd "C-z <tab>") 'sej/indent-buffer)
 
 
 ;;;; history packages
@@ -1831,9 +1890,10 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Simple, stable linear undo with redo for Emacs.
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu
 (use-package undo-fu
+  :straight t
   :blackout
-  :bind ( ("C-z" . undo-fu-only-undo)
-          ("C-S-z" . undo-fu-only-redo))
+  :bind ( ("C-/" . undo-fu-only-undo)
+          ("C-S-/" . undo-fu-only-redo))
   :config (setq undo-fu-allow-undo-in-region t))
 
 
@@ -1841,8 +1901,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Save & recover undo steps between Emacs sessions.
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu-session
 (use-package undo-fu-session
+  :straight t
   :after undo-fu
-  :config (global-undo-fu-session-mode))
+  :hook (emacs-startup . global-undo-fu-session-mode))
 
 
 ;;;;; recentf
@@ -1897,7 +1958,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/bbatsov/crux
 (use-package crux
   :bind ( ("C-c o" . crux-open-with)
-          ("C-k" . crux-smart-kill-line)
+          ([remap kill-line] . crux-smart-kill-line) ; C-k
           ("C-S-RET" . crux-smart-open-line-above)
           ([(shift return)] . crux-smart-open-line)
           ("C-c n" . crux-cleanup-buffer-or-region)
@@ -1908,7 +1969,7 @@ If FRAME is omitted or nil, use currently selected frame."
           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
           ([remap kill-whole-line] . crux-kill-whole-line)
           ("C-<backspace>" . crux-kill-line-backwards)
-          ("C-c s I" . crux-find-shell-init-file))
+          ("C-z I" . crux-find-shell-init-file))
   :config
   (crux-with-region-or-buffer indent-region)
   (crux-with-region-or-buffer untabify)
@@ -1922,16 +1983,16 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - will cycle between end of code and end-of-code plus comments
 ;; - https://github.com/alezost/mwim.el
 (use-package mwim
-  :bind ( ("C-a" . mwim-beginning)
-          ("C-e" . mwim-end))) ; better than crux
+  :straight t
+  :bind ( ("C-a" . mwim-beginning) ; C-a
+          ("C-e" . mwim-end))) ; C-e better than crux
 
 
 ;;;;; avy
 ;; - Jump to things in Emacs tree-style
 ;; - https://github.com/abo-abo/avy
 (use-package avy
-  :bind ( ("C-'" . avy-goto-char)
-          ("H-'" . avy-goto-char-2)
+  :bind ( ("H-'" . avy-goto-char)
           ("M-g l" . avy-goto-line)
           ("H-l" . avy-goto-line)
           ("M-g w" . avy-goto-word-1)
@@ -1981,10 +2042,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/leoliu/easy-kill
 ;; - https://github.com/knu/easy-kill-extras.el
 (use-package easy-kill-extras
-  :bind (([remap kill-ring-save] . easy-kill) ; M-w
-         ([remap mark-sexp] . easy-mark-sexp) ; C-M-@
-         ([remap mark-word] . easy-mark-word) ; M-@
-         ([remap zap-to-char] . easy-mark-to-char)) ; M-z
+  :straight t
+  :bind (("M-w" . easy-kill) ; M-w
+         ("C-M-@" . easy-mark-sexp) ; C-M-@
+         ("M-@" . easy-mark-word) ; M-@
+         ("M-z" . easy-mark-to-char)) ; M-z
   :init
   (setq easy-kill-alist '((?w word           " ")
                           (?s sexp           "\n")
@@ -2047,7 +2109,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Hungry deletion
 ;; - https://github.com/hrehfeld/emacs-smart-hungry-delete
 (use-package smart-hungry-delete
-  :blackout
+  :straight t
+  :blackout t
   :bind (("<backspace>" . smart-hungry-delete-backward-char)
          ("C-d" . smart-hungry-delete-forward-char))
   :config (smart-hungry-delete-add-default-hooks))
@@ -2116,7 +2179,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/abo-abo/ace-link
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
-         ("C-c s u" . ace-link-addr)
+         ("C-z u" . ace-link-addr)
          :map org-mode-map
          ("H-u" . ace-link-org))
   :config (ace-link-setup-default))
@@ -2192,7 +2255,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/DarthFennec/highlight-indent-guides
 (use-package highlight-indent-guides
   :if window-system
-  :blackout
+  :straight t
+  :blackout t
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character)
@@ -2348,9 +2412,9 @@ If FRAME is omitted or nil, use currently selected frame."
     (advice-add cmd :after #'my-recenter-and-pulse)))
 
 
-;;;;; rainbow-delimiters
-;; - rainbow-delimiters-mode - multicoloured brackets
-;; - https://github.com/Fanael/rainbow-delimiters
+;;;;; paren
+;; - show paren mode
+;; - [[https://www.emacswiki.org/emacs/ShowParenMode][paren wiki]]
 (use-package paren
   :straight (:type built-in)
   :hook (prog-mode . show-paren-mode)
@@ -2365,6 +2429,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - show parens even off screen
 ;; - https://github.com/emacsattic/mic-paren/blob/d0410c7d805c9aaf51a1bcefaaef092bed5824c4/mic-paren.el
 (use-package mic-paren
+  :straight t
   :hook (prog-mode . paren-activate)
   :init
   (setq paren-highlight-offscreen t))
@@ -2374,9 +2439,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - rainbow-delimiters-mode - multicoloured brackets
 ;; - https://github.com/Fanael/rainbow-delimiters
 (use-package rainbow-delimiters
+  :straight t
   :blackout
-  :hook (prog-mode . rainbow-delimiters-mode)
-  )
+  :hook (prog-mode . rainbow-delimiters-mode)  )
 
 
 ;;;;; hideshow
@@ -2568,7 +2633,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
   :bind (:map sej-mode-map
-              ("C-c s f" . format-all-buffer)
+              ("C-z f" . format-all-buffer)
               ("A-f" . format-all-buffer)))
 
 
@@ -2713,7 +2778,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;;; electric
-;; electric indentmode
+;; electric indent mode
 (use-package electric
   :straight (:type built-in)
   :hook ('prog-mode . electric-indent-mode)
@@ -2778,12 +2843,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; dumb-jump
 ;; - Jump to definition via `ag'/`rg'/`grep'
 ;; - https://github.com/jacktasia/dumb-jump
- (use-package dumb-jump
+(use-package dumb-jump
+  :straight t
   :hook ((emacs-startup . dumb-jump-mode)
          (xref-backend-functions . dumb-jump-xref-activate))
   :defines sej-mode-map
   :config
   (setq dumb-jump-prefer-searcher 'rg))
+
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
@@ -2845,6 +2912,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package flymake-proselint
   :after flymake
   :straight (flymake-proselint :host github :repo "manuel-uberti/flymake-proselint")
+  :ensure-system-package proselint
   :ensure flymake-quickdef
   :hook (((markdown-mode org-mode text-mode adoc-mode) . flymake-proselint-setup)
          ((markdown-mode org-mode text-mode adoc-mode) . flymake-mode)))
@@ -2910,7 +2978,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
-              ("C-c s r" . emr-show-refactor-menu)
+              ("C-z r" . emr-show-refactor-menu)
               ("H-r" . emr-show-refactor-menu) ))
 
 
@@ -3054,7 +3122,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
   :bind (:map sej-mode-map
-              (("C-c s B" . browse-at-remote)
+              (("C-z B" . browse-at-remote)
                ("C-x v B" . browse-at-remote))
               :map vc-prefix-map
               ("B" . browse-at-remote)))
@@ -3087,7 +3155,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package gist
   :defines sej-mode-map
   :bind  (:map sej-mode-map
-               ("C-c s G" . gist-list)
+               ("C-z G" . gist-list)
                ("H-G" . gist-list)))
 
 
@@ -3123,7 +3191,7 @@ If FRAME is omitted or nil, use currently selected frame."
       (kill-buffer log-buf))
     (kill-buffer commit-buf)))
 
-(define-key sej-mode-map (kbd "C-c s b") 'sej/git-blame-line)
+(define-key sej-mode-map (kbd "C-z b") 'sej/git-blame-line)
 (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
 
 
@@ -3214,7 +3282,21 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Company is a text completion framework for Emacs
 ;; - [[http://company-mode.github.io/][company-mode homepage]]
 (use-package company
-  :hook (after-init . global-company-mode))
+  :straight t
+  :blackout t
+  :commands company-complete-common company-manual-begin company-grab-line
+  :hook (emacs-startup . global-company-mode)
+  :bind ((:map sej-mode-map
+              ([remap completion-at-point] . company-manual-begin)
+              ([remap complete-symbol] . company-manual-begin))
+         (:map company-active-map
+               ("TAB" . company-complete-selection)
+               ("<tab>" . company-complete-selection))
+         (:map comint-mode-map
+               ([remap indent-for-tab-command] . company-manual-begin)))
+  :config
+  (unbind-key "C-w" company-active-map)
+  (unbind-key "C-h" company-active-map)  )
 
 
 ;;;;; hydra
@@ -3229,6 +3311,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - works with Company
 ;; - [[https://github.com/joaotavora/yasnippet][yasnippet]]
 (use-package yasnippet
+  :straight t
+  :blackout ((yas-global-mode . "")
+             (yas-minor-mode . ""))
   :after company
   :hook (prog-mode . yas-minor-mode)
   :config
@@ -3253,7 +3338,7 @@ If the region is active and option `transient-mark-mode' is on, call
 (define-key emacs-lisp-mode-map (kbd "H-<return>") 'eval-buffer)
 
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-(global-set-key (kbd "C-c s E") 'toggle-debug-on-error)
+(global-set-key (kbd "C-z C-e") 'toggle-debug-on-error)
 
 ;; use flymake
 (add-hook 'emacs-lisp-mode-hook 'flymake-mode)
@@ -3392,7 +3477,9 @@ If the region is active and option `transient-mark-mode' is on, call
 ;;;;; hide-mode-line
 ;; required to hide the modeline
 ;; - [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]]
-(use-package hide-mode-line)
+(use-package hide-mode-line
+  :straight t
+  :commands (hide-mode-line-mode))
 
 
 ;;;;; pyenv-mode
@@ -3863,7 +3950,7 @@ the children of class at point."
   :init
   (setq compile-command "echo Building... && go build -v && echo Testing... && go test -v && echo Linter... && golint")
   (setq compilation-read-command nil)
-  :bind (("C-c s c" . compile)
+  :bind (("C-z c" . compile)
          ;; ("M-." . godef-jump)
          )
   :config
@@ -3967,12 +4054,12 @@ the children of class at point."
                :type git
                :host github
                :repo "emacs-dashboard/emacs-dashboard")
-    :blackout (dashboard-mode page-break-lines-mode)
+    :blackout (dashboard-mode)
     :commands sej/open-dashboard
     :hook (emacs-startup . sej/open-dashboard)
     :bind (("<f6>" . sej/open-dashboard)
            (:map sej-mode-map
-                 ("C-c s d" . sej/open-dashboard)))
+                 ("C-z d" . sej/open-dashboard)))
     :config
     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
     (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
@@ -3997,9 +4084,14 @@ the children of class at point."
 ;; - display ^L page breaks as tidy horizontal lines
 ;; - https://github.com/purcell/page-break-lines
 (use-package page-break-lines
-  :config
-  (setq global-page-break-lines-mode t)
-  )
+  :blackout t
+  :straight t
+  :hook ((dashboard-mode
+          text-mode
+          comint-mode
+          helpful-mode
+          help-mode
+          compilation-mode) . page-break-lines-mode))
 
 
 ;;;;; autoinsert
@@ -4192,8 +4284,7 @@ the children of class at point."
 (use-package quick-preview
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-c s q" . quick-preview-at-point)
-              ("C-c q" . quick-preview-at-point)
+              ("C-z q" . quick-preview-at-point)
               :map dired-mode-map
               ("Q" . quick-preview-at-point)))
 
@@ -4202,7 +4293,7 @@ the children of class at point."
 ;; - browse file at remote source
 ;; - https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind ("C-c s b" . browse-at-remote))
+  :bind ("C-z b" . browse-at-remote))
 
 
 ;;;;; diredfl
@@ -4221,8 +4312,7 @@ the children of class at point."
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
               ("<f7>" . deft)
-              ("C-c s D" . deft)
-              ("C-c D" . deft))
+              ("C-z D" . deft))
   :config
   (setq deft-directory sej-org-directory)
   (setq deft-use-filename-as-title t
@@ -4404,7 +4494,7 @@ the children of class at point."
           (forward-line 1)))
   (goto-char start))
 
-(define-key sej-mode-map (kbd "C-c s N") 'sej/number-rectangle)
+(define-key sej-mode-map (kbd "C-z N") 'sej/number-rectangle)
 (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
 
 
@@ -4416,6 +4506,7 @@ the children of class at point."
   :functions
   flyspell-correct-word
   flyspell-goto-next-error
+  :ensure-system-package aspell
   :defines
   sej-mode-map
   :bind
@@ -4473,7 +4564,7 @@ the children of class at point."
 ;; - https://github.com/SavchenkoValeriy/emacs-powerthesaurus
 (use-package powerthesaurus
   :bind (:map sej-mode-map
-              ("C-c s t" . powerthesaurus-lookup-word-dwim)
+              ("C-z t" . powerthesaurus-lookup-word-dwim)
               ("s-|" . powerthesaurus-lookup-word-dwim)))
 
 
@@ -4483,7 +4574,7 @@ the children of class at point."
 (use-package define-word
   :unless sys/macp
   :bind (:map sej-mode-map
-              ("C-c s s" . define-word-at-point)
+              ("C-z s" . define-word-at-point)
               ("s-\\" . define-word-at-point)))
 
 
@@ -4496,9 +4587,9 @@ the children of class at point."
   :if sys/macp
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-c s s" . osx-dictionary-search-word-at-point)
+              ("C-z s" . osx-dictionary-search-word-at-point)
               ("s-\\" . osx-dictionary-search-word-at-point)
-              ("C-c s i" . osx-dictionary-search-input)              ))
+              ("C-z i" . osx-dictionary-search-input)              ))
 
 
 ;;;;; sej/pdf-print-buffer-with-faces (ps-print)
@@ -4532,20 +4623,23 @@ the children of class at point."
 ;; - https://github.com/politza/pdf-tools
 (when (display-graphic-p)
   (use-package pdf-tools
+    :straight t
     :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
     :defines pdf-annot-activate-created-annotations
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
-    :config
-    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
-    (setq pdf-annot-activate-created-annotations t)
-
+    :preface
     ;; WORKAROUND: Fix compilation errors on macOS.
     ;; @see https://github.com/politza/pdf-tools/issues/480
     (when sys/macp
       (setenv "PKG_CONFIG_PATH"
-              "/usr/local/lib/pkgconfig:/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig"))
+              (mapconcat 'identity '( "/usr/local/lib/pkgconfig"
+                                      "/usr/local/Cellar/libffi/3.4.2/lib/pkgconfig"
+                                      "/usr/local/Cellar/zlib/1.2.11/lib/pkgconfig") ":")))
+    :config
     (pdf-tools-install t nil t t)
+    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
+    (setq pdf-annot-activate-created-annotations t)
 
     ;; Recover last viewed position
     (use-package pdf-view-restore
@@ -4895,7 +4989,7 @@ function with the \\[universal-argument]."
 ;; - https://github.com/pinard/poporg
 (use-package poporg
   :bind (:map sej-mode-map
-              ("C-c s o" . poporg-dwim)))
+              ("C-z o" . poporg-dwim)))
 
 
 ;;;;; org-pretty-tags
@@ -4993,9 +5087,7 @@ function with the \\[universal-argument]."
                                       ("C-l" . eshell/clear) ) )))
 
   :bind ( :map sej-mode-map
-         ("H-e" . eshell)
-         ("C-c e" . eshell)
-         ("C-c s e" . eshell) )
+         ("C-z E" . eshell) )
 
   :config
   ;; (require 'esh-opt)
@@ -5283,8 +5375,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-mode-map
-               ("H-S" . shell)
-               ("C-c s S" . shell))
+               ("C-z S" . shell))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -5332,7 +5423,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - pop-up shell
 ;; - https://github.com/kyagi/shell-pop-el
 (use-package shell-pop
-  :bind ("C-c s p" . shell-pop)
+  :bind ("C-z p" . shell-pop)
   :init (let ((val
                (if sys/win32p
                    '("eshell" "*eshell*" (lambda () (eshell)))
@@ -5376,6 +5467,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package term
   :straight (:type built-in)
   :commands (term ansi-term serial-term)
+  :bind (:map sej-mode-map
+              ("C-z A" . ansi-term)
+              ("C-z C-s" . serial-term)
+              ("C-z T" . term))
   :config
   (setq term-buffer-maximum-size 9999)
   (setq term-completion-autolist t)
@@ -5388,14 +5483,20 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://github.com/akermu/emacs-libvterm][vterm github]]
 (use-package vterm
   :commands vterm
+  :bind (:map sej-mode-map
+              ("C-z V" . vterm))
+  :preface
+  (setq vterm-install t
+        vterm-always-compile-module t)
   :config
-  (setq vterm-disable-bold-font nil)
-  (setq vterm-disable-inverse-video nil)
-  (setq vterm-disable-underline nil)
-  (setq vterm-kill-buffer-on-exit nil)
-  (setq vterm-max-scrollback 9999)
-  (setq vterm-shell "/bin/zsh")
-  (setq vterm-term-environment-variable "xterm-256color"))
+  (setq vterm-disable-bold-font nil
+        vterm-disable-inverse-video nil
+        vterm-use-vterm-prompt-detection-method t
+        vterm-disable-underline nil
+        vterm-kill-buffer-on-exit t
+        vterm-max-scrollback 9999
+        vterm-shell "/bin/zsh"
+        vterm-term-environment-variable "xterm-256color"))
 
 
 ;;;;; ERC IRC client
@@ -5403,7 +5504,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top][ERC]]
 (use-package erc
   :straight (:type built-in)
-  :bind ("C-c s C-e" . sej/erc-dwim)
+  :bind ("C-z I" . sej/erc-dwim)
   :config
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
     ;; erc hack for gnutls for client cert.
@@ -5532,6 +5633,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/eww.html][EWW]]
 (use-package eww
   :straight (:type built-in)
+  :bind (:map sej-mode-map
+              ("C-z W"))
   :config
   (setq eww-restore-desktop nil)
   (setq eww-desktop-remove-duplicates t)
@@ -5586,6 +5689,9 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; [[https://www.emacswiki.org/emacs/MessageMode][Message Mode wiki]]
 (use-package message
   :straight (:type built-in)
+  :commands (message-mail)
+  :bind (:map sej-mode-map
+              ("C-z M"))
   :config
   (setq send-mail-function 'sendmail-send-it
         sendmail-program "/usr/local/bin/msmtp"
@@ -5605,6 +5711,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html][calendar]]
 (use-package calendar
   :straight (:type built-in)
+  :bind (:map sej-mode-map
+              ("C-z C"))
   :config
   (setq calendar-mark-diary-entries-flag t)
   (setq calendar-time-display-form
