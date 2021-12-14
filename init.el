@@ -2512,15 +2512,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; javascript-mode: npm i -g javascript-typescript-langserver
 ;; json-mode: npm install -g vscode-html-languageserver-bin
 ;; perl-mode: cpan Perl::LanguageServer
-;; python: pip install ‘python-language-server[all]’
 (use-package lsp-mode
-  :if (eq sej-lsp 'lsp-mode)
+  :straight t
   :hook (((
-           c++-mode
-           c-mode
-           objc-mode
-           cuda-mode
-           cmake-mode
+           ;;c++-mode
+           ;;c-mode
+           ;;objc-mode
+           ;;cuda-mode
+           ;;cmake-mode
            fortran-mode
            go-mode
            html-mode
@@ -2539,9 +2538,9 @@ If FRAME is omitted or nil, use currently selected frame."
          )
   :commands (lsp lsp-deferred)
   :init
-  (setq lsp-keymap-prefix "C-c l")
+  (setq lsp-keymap-prefix "C-z l")
   :config
-  (setq lsp-prefer-flymake t)  )
+  (setq lsp-diagnostics-provider :flymake)  )
 
 
 ;;;;; lsp-ui
@@ -2550,6 +2549,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - M-. M-?
 (use-package lsp-ui
   :if (eq sej-lsp 'lsp-mode)
+  :straight t
   :after lsp-mode
   :bind (:map lsp-ui-mode-map
               ("C-c i" . lsp-ui-imenu)
@@ -2559,6 +2559,9 @@ If FRAME is omitted or nil, use currently selected frame."
   :commands lsp-ui-mode
   :config
   (setq lsp-ui-sideline-ignore-duplicate t
+        lsp-ui-doc-enable t
+        lsp-ui-doc-position 'top
+        lsp-ui-imenu-kind-position 'left
         lsp-ui-sideline-enable nil
         lsp-ui-doc-delay 2))
 
@@ -2568,23 +2571,45 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://github.com/emacs-lsp/dap-mode][dap-mode]]
 (use-package dap-mode
   :if (eq sej-lsp 'lsp-mode)
+  :straight t
   :after lsp-mode
+  :hook (lsp-mode . dap-mode)
   :config
   (dap-auto-configure-mode))
+
+
+(use-package dap-python
+  :straight nil)
 
 
 ;;;;; eglot
 ;; - simple client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
 (use-package eglot
-  :if (eq sej-lsp 'eglot-mode)
-  :hook ((python-mode c-mode c++-mode objc-mode cuda-mode go-mode javascript-mode java-mode)  . eglot-ensure)
+  :hook ((c-mode c++-mode objc-mode cuda-mode)  . eglot-ensure)
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
   :config
   (add-to-list 'eglot-server-programs '((c-mode c++-mode objc-mode cuda-mode) "ccls"))
   (setq help-at-pt-display-when-idle t))
+
+
+;;;;; tree-sitter
+;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
+;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
+(use-package tree-sitter
+  :demand t
+  :straight ( :host github
+              :repo "ubolonton/emacs-tree-sitter"
+              :files ("lisp/*.el") ))
+
+(use-package tree-sitter-langs
+  :demand t
+  :after tree-sitter
+  :straight ( :host github
+              :repo "emacs-tree-sitter/tree-sitter-langs"
+              :files ("*.el" "queries")))
 
 
 ;;;;; prog-mode
@@ -2727,6 +2752,14 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'tramp-remote-path "/opt/java/current/bin")
   (add-to-list 'tramp-remote-path "/opt/gradle/current/bin")
   (add-to-list 'tramp-remote-path "~/bin"))
+
+
+;;;;; ssh-config-mode
+;; A mode to edit SSH config files.
+;; [[https://github.com/jhgorrell/ssh-config-mode-el][ssh-config-mode]]
+;; add this to file for automatic usage: # -*- mode: ssh-config -*-
+(use-package ssh-config-mode
+  :straight t)
 
 
 ;;;;; indent-guide
@@ -2994,16 +3027,20 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - interface to the version control system Git
 ;; - https://magit.vc/
 (use-package magit
+  :straight t
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
          ("C-x M-g" . magit-dispatch)
          ("C-c M-g" . magit-file-popup))
+  :init
+  (add-hook 'magit-mode-hook #'hide-mode-line-mode)
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
-  (setq magit-repository-directories
-        '(("~/Projects" . 1)))
+  (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     ")
+        magit-diff-refine-hunk t
+        magit-repository-directories '(("~/Projects" . 1)))
 
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
@@ -3021,6 +3058,14 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package forge
   :after magit
   :demand)
+
+
+;;;;; git-gutter-fringe
+;; git fringe
+;; [[https://github.com/emacsorphanage/git-gutter-fringe][git-gutter-fringe]]
+(use-package git-gutter-fringe
+  :straight t
+  :hook (prog-mode . global-git-gutter-mode))
 
 
 ;;;;; magit-todos
@@ -3373,6 +3418,17 @@ If the region is active and option `transient-mark-mode' is on, call
   (global-unset-key (kbd "C-c C-d C-d")))
 
 
+;;;;; sly
+;; replacement repla for slime
+;; [[https://github.com/joaotavora/sly][sly]]
+(use-package sly
+  :straight t
+  :hook (lisp-mode . sly-mode)
+  :config
+  (setq inferior-lisp-program "/usr/local/bin/sbcl"
+        sly-mrepl-history-file-name (nl-var-expand "sly-mrepl-history")))
+
+
 ;;;;; eros
 ;; - eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
@@ -3429,16 +3485,17 @@ If the region is active and option `transient-mark-mode' is on, call
 ;;;;; python
 ;; - Install:
 ;; pip3 install -U setuptools
-;; pip3 install python-language-server[all] --isolated
-;; [all] should give you: jedi, rope, pyflakes, pycodestyle, pydocstyle,
-;; autopep8, YAPF
+;; brew install pyright
+;; YAPF or Black
 ;; - http://wikemacs.org/wiki/Python
 (use-package python
-  :straight (python :type built-in)
+  :straight (:type built-in)
   :bind (:map python-mode-map
               ("s-\\" . python-insert-docstring) )
   :config
-  (setq python-ident-guess-ident-offset-verbose nil)
+  (setq python-indent-guess-ident-offset-verbose nil
+        python-indent-offset 4
+        comment-inline-offset 2)
 
   (cond
    ((executable-find "ipython")
@@ -3452,19 +3509,20 @@ If the region is active and option `transient-mark-mode' is on, call
    (t
     (setq python-shell-interpreter "python")))
 
-  (setq
-        lsp-pyls-plugins-jedi-completion-enabled t
-        lsp-pyls-plugins-pylint-enabled t
-        lsp-pyls-plugins-pydocstyle-enabled t
-        lsp-pyls-plugins-rope-completion-enabled t
-        lsp-pyls-plugins-flake8-enabled t
-        lsp-pyls-plugins-mypy-enabled t
-        lsp-pyls-plugins-black-enabled t )
-
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
     "This string is ignored!"
     "\"\"\"" - "\n\n    \"\"\"")  )
+
+
+;;;;; lsp-pyright
+;; lsp server for python
+;; [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]]
+(use-package lsp-pyright
+  :straight t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))  ; or lsp
 
 
 ;;;;; inferior-python-mode
@@ -3562,7 +3620,8 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - Extends the builtin js-mode to add better syntax highlighting for JSON
 ;; and some nice editing keybindings.
 ;; - https://github.com/joshwnj/json-mode
-(use-package json-mode)
+(use-package json-mode
+  :straight t)
 
 
 ;;;;; js2-mode
@@ -3667,6 +3726,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - YAML major mode support
 ;; - https://www.emacswiki.org/emacs/YamlMode
 (use-package yaml-mode
+  :straight t
   :mode
   (("\\.yml$" . yaml-mode)
    ("\\.yaml$" . yaml-mode)))
@@ -3706,9 +3766,22 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - used for both lsp & eglot so no :if statement
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
+  :straight t
   :hook ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls)))
   :config
-  (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
+  (setq ccls-initialization-options
+        '(:index (:comments 2)
+                 :completion (:detailedLabel t)
+                 :clang
+                 ,(list
+                   :extraArgs
+                   ["-isystem/Library/Developer/CommandLineTools/usr/include/c++/v1"
+                    "-isysroot/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+                    "-isystem/usr/local/include"]
+                   :resourceDir (string-trim
+                                 (shell-command-to-string
+                                  "clang -print-resource-dir")))))
+
   ;; (setq company-transformers nil company-lsp-async t)
   (setq ccls-sem-highlight-method 'font-lock)
   ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
@@ -3743,89 +3816,20 @@ the children of class at point."
                 (cl-loop for child across (plist-get node :children)
                          do (push (cons (1+ depth) child) tree)))))))
     (eglot--error "Hierarchy unavailable")))
+  )
 
 
-  ;; direct callers
-  ;; (lsp-find-custom "$ccls/call")
-  ;; callers up to 2 levels
-  ;; (lsp-find-custom "$ccls/call" '(:levels 2))
-  ;; direct callees
-  ;; (lsp-find-custom "$ccls/call" '(:callee t))
+;;;;; clang-format
+;; Clang-format emacs integration for use with C/Objective-C/C++.
+;; [[https://github.com/sonatard/clang-format][clang-format]]
+(use-package clang-format
+  :straight t
+  :bind (:map c-mode-base-map
+              ("C-c v" . clang-format-region)
+              ("C-c u" . clang-format-buffer))
+  :config
+  (setq clang-format-style-option "llvm"))
 
-  ;; (lsp-find-custom "$ccls/vars")
-  ;; Use lsp-goto-implementation or lsp-ui-peek-find-implementation (textDocument/implementation) for derived types/functions
-  ;; $ccls/inheritance is more general
-
-  ;; Alternatively, use lsp-ui-peek interface
-  ;; (lsp-ui-peek-find-custom "$ccls/call")
-;;   (lsp-ui-peek-find-custom "$ccls/call" '(:callee t))
-
-;; (defun ccls/callee ()
-;;   "Peek find callee."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "$ccls/call" '(:callee t)))
-
-;; (defun ccls/caller ()
-;;   "Peek find caller."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "$ccls/call"))
-
-;; (defun ccls/vars (kind)
-;;   "Peek find custom KIND."
-;;   (lsp-ui-peek-find-custom "$ccls/vars" `(:kind ,kind)))
-
-;; (defun ccls/base (levels)
-;;   "Peek find custom LEVELS."
-;;   (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels)))
-
-;; (defun ccls/derived (levels)
-;;   "Peek find custom LEVELS derived."
-;;   (lsp-ui-peek-find-custom "$ccls/inheritance" `(:levels ,levels :derived t)))
-
-;; (defun ccls/member (kind)
-;;   "Peek find custome KIND."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "$ccls/member" `(:kind ,kind)))
-
-;; ;; ;; References w/ Role::Role
-;; (defun ccls/references-read ()
-;;   "Text documents references read."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "textDocument/references"
-;;     (plist-put (lsp--text-document-position-params) :role 8)))
-
-;; ;; References w/ Role::Write
-;; (defun ccls/references-write ()
-;;   "Text documents references write."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "textDocument/references"
-;;    (plist-put (lsp--text-document-position-params) :role 16)))
-
-;; ;; References w/ Role::Dynamic bit (macro expansions)
-;; (defun ccls/references-macro ()
-;;   "Text documents references macro."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "textDocument/references"
-;;    (plist-put (lsp--text-document-position-params) :role 64)))
-
-;; ;; References w/o Role::Call bit (e.g. where functions are taken addresses)
-;; (defun ccls/references-not-call ()
-;;   "Text documents references not call."
-;;   (interactive)
-;;   (lsp-ui-peek-find-custom "textDocument/references"
-;;    (plist-put (lsp--text-document-position-params) :excludeRole 32)))
-
-;; ccls/vars ccls/base ccls/derived ccls/members have a parameter while others are interactive.
-;; (ccls/base 1) direct bases
-;; (ccls/derived 1) direct derived
-;; (ccls/member 2) => 2 (Type) => nested classes / types in a namespace
-;; (ccls/member 3) => 3 (Func) => member functions / functions in a namespace
-;; (ccls/member 0) => member variables / variables in a namespace
-;; (ccls/vars 1) => field
-;; (ccls/vars 2) => local variable
-;; (ccls/vars 3) => field or local variable. 3 = 1 | 2
-;; (ccls/vars 4) => parameter
-)
 
 ;;;;; modern-cpp-font-lock
 ;; - Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
@@ -3974,15 +3978,29 @@ the children of class at point."
 ;; - major mode for csv
 ;; - https://www.emacswiki.org/emacs/csv-mode.el
 (use-package csv-mode
+  :straight t
+  :commands (csv-mode
+             csv-align-mode)
+  :hook (csv-mode . csv-align-mode)
   :mode "\\.[Cc][Ss][Vv]\\'"
   :config
   (setq csv-separators '("," ";" "|" " ")))
+
 
 ;;;;; ESS (Emacs Speaks Statistics)
 ;; - ESS configurationEmacs Speaks Statistics
 ;; - Used for R, S-Plus, SAS, Stata and OpenBUGS/JAGS.
 ;; - [[https://ess.r-project.org/][ESS R-project]]
 (use-package ess)
+
+
+;;;;; apple-script
+;; for editing apple-script
+;; [[https://github.com/tequilasunset/apples-mode][apples-mode]]
+(use-package apples-mode
+  :straight t
+  :mode "\\.\\(applescri\\|sc\\)pt\\'")
+
 
 ;;; files
 ;;;;; ibuffer
@@ -4274,7 +4292,7 @@ the children of class at point."
                           (insert icon))
                       (insert (all-the-icons-icon-for-file file :v-adjust -0.05))))
                   (insert "\t"))))
-            (forward-line 1))))))
+ ls           (forward-line 1))))))
   (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
 
 
@@ -4340,6 +4358,7 @@ the children of class at point."
 ;; - markdown-mode used a lot on Github
 ;; - https://jblevins.org/projects/markdown-mode/
 (use-package markdown-mode
+  :straight t
   :defines flycheck-markdown-markdownlint-cli-config
   :preface
   ;; Install: pip install grip
@@ -4742,6 +4761,69 @@ function with the \\[universal-argument]."
                            (sticky . t)))))))
 
 
+;;;; LaTex
+;;;;; AuCTeX
+;; GNU TeX in Emacs
+;; [[https://www.gnu.org/software/auctex/download-for-macosx.html][AUCTeX ]]
+(use-package tex
+  :straight auctex
+  :hook ((LaTeX-mode . TeX-fold-mode)
+         (LaTeX-mode . flymake-mode)
+         (LaTeX-mode . reftex-mode)))
+
+
+;;;;; LaTeX preview pane
+;; side by side preview
+;; [[https://www.emacswiki.org/emacs/LaTeXPreviewPane][latex-preview-pane wiki]]
+(use-package latex-preview-pane
+  :straight t)
+
+
+;;;;; auctex-latexmk
+;; This library adds LatexMk support to AUCTeX.
+;; [[https://github.com/tom-tan/auctex-latexmk][auctex-latexmk]]
+(use-package auctex-latexmk
+  :straight t
+  :after tex
+  :init
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+  :config
+  (auctex-latexmk-setup))
+
+
+;;;;; bibtex
+;; bibliography editing
+;; [[https://lucidmanager.org/productivity/emacs-bibtex-mode/][bibtex]]
+(use-package bibtex
+  :straight nil
+  :init
+  (setq-default bibtex-dialect 'biblatex))
+
+
+;;;;; biblio
+;; An extensible Emacs package for browsing and fetching references
+;; [[https://github.com/cpitclaudel/biblio.el][biblio]]
+(use-package biblio
+  :straight t)
+
+
+;;;;; reftex
+;; RefTeX is a package for managing Labels, References, Citations and index entries with GNU Emacs.
+;; [[https://www.gnu.org/software/auctex/manual/reftex.html][reftex]]
+(use-package reftex
+  :straight t
+  :init
+  (setq reftex-plug-into-AUCTeX t))
+
+
+;;;;; CDLaTex
+;; fast insertion of environment templates and math stuff in LaTeX
+;; [[https://github.com/cdominik/cdlatex][cdlatex]]
+(use-package cdlatex
+  :straight t)
+
+
+
 ;;;; org
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
@@ -4754,6 +4836,7 @@ function with the \\[universal-argument]."
 ;;    :includes (org)))
 
 (use-package org
+  :straight nil
   :defines  sej-mode-map
   org-agenda-span
   org-agenda-skip-scheduled-if-deadline-is-shown
@@ -4769,12 +4852,13 @@ function with the \\[universal-argument]."
   :bind ((:map sej-mode-map
               ("C-c l" . org-store-link)
               ("C-c c" . org-capture)
-              ("C-c a" . org-agenda))
+              ("C-c a" . org-agenda) )
               (:map org-mode-map
               ("C-M-\\" . org-indent-region)
               ("S-<left>" . org-shiftleft)
               ("S-<right>" . org-shiftright)
-              ))
+              ("C-c n" . outline-next-visible-heading)
+              ("C-c n" . outline-previous-visible-heading) ))
   :config
   (require 'org)
   (require 'org-capture)
@@ -4808,9 +4892,6 @@ function with the \\[universal-argument]."
                                  ("VERIFIED" . (:foreground "green" :weight bold))
                                  ("CANCELED" . (:foreground "grey" :weight bold)))
         org-confirm-babel-evaluate nil
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t
-        org-src-window-setup 'current-window
         org-startup-folded nil
         org-highlight-latex-and-related '(latex)        )
 
@@ -4883,25 +4964,10 @@ function with the \\[universal-argument]."
                                (list sej-project-org-capture-list)))
 
 
-  ;; org-mode agenda options
-  (setq org-agenda-files (list org-file-inbox org-file-journal org-file-notes org-file-someday org-file-gtd)
-        org-refile-targets '((org-file-gtd :maxlevel . 3)
+    (setq org-refile-targets '((org-file-gtd :maxlevel . 3)
                              (org-file-someday :maxlevel . 1))
-        org-agenda-window-setup (quote current-window) ;open agenda in current window
         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
-        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled if they are already shown as a deadline
-        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
-        (quote
-         ((agenda deadline-up priority-down)
-          (todo priority-down category-keep)
-          (tags priority-down category-keep)
-          (search category-keep))))
-
-  (setq org-confirm-babel-evaluate nil
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t)
+        org-confirm-babel-evaluate nil )
 
   (defvar load-language-list '((emacs-lisp . t)
                                (ein . t)
@@ -4920,6 +4986,110 @@ function with the \\[universal-argument]."
                                load-language-list))
 
 
+;;;;; org-agenda
+;; agenda for todo & calendar items
+;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
+(use-package org-agenda
+  :straight nil
+  :bind (("C-c a" . org-agenda)
+         ("C-c c" . org-capture))
+  :config
+  (setq org-agenda-block-separator nil
+        org-agenda-diary-file (concat org-directory "/diary.org")
+        org-agenda-dim-blocked-tasks 'invisible
+        org-agenda-inhibit-startup nil
+        org-agenda-show-all-dates t
+        org-agenda-skip-scheduled-if-done t
+        org-agenda-start-on-weekday nil
+        org-agenda-start-with-log-mode nil
+        org-agenda-tags-column -100
+        org-agenda-use-time-grid t
+        org-agenda-files (list org-file-inbox
+                               org-file-journal
+                               org-file-notes
+                               org-file-someday
+                               org-file-gtd)
+        org-agenda-window-setup (quote current-window) ;open agenda in current window
+        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
+        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled
+                                        ; if they are already shown as a deadline
+        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
+        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+                                   (quote
+                                    ((agenda deadline-up priority-down)
+                                     (todo priority-down category-keep)
+                                     (tags priority-down category-keep)
+                                     (search category-keep)))) )
+
+
+;;;;; org-src
+;; org src block settings
+;; [[https://orgmode.org/manual/Working-with-Source-Code.html][working with source code]]
+(use-package org-src
+  :straight nil
+  :config
+  (setq org-src-window-setup 'current-window
+        org-src-fontify-natively t
+        org-src-preserve-indentation t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 0))
+
+
+;;;;; org-Ox
+;; org mode exporter framework
+;; [[https://orgmode.org/worg/exporters/ox-overview.html][org-exporter manual]]
+(use-package ox
+  :straight nil
+  :config
+  (setq org-export-with-toc nil
+        org-export-headline-levels 8
+        org-export-backends '(ascii html latex md)
+        org-export-dispatch-use-expert-ui nil
+        org-export-coding-system 'utf-8
+        org-export-exclude-tags '("noexport" "no_export" "ignore")
+        org-export-with-author t
+        org-export-with-drawers t
+        org-export-with-email t
+        org-export-with-footnotes t
+        org-export-with-latex t
+        org-export-with-properties t
+        org-export-with-smart-quotes t
+        org-html-html5-fancy t
+        org-html-postamble nil))
+
+
+;;;;; ox-latex
+;; latex exporter
+;; [[https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export][LaTeX Export from the Org Mode manual]]
+(use-package ox-latex
+  :straight nil
+  :config
+  ;; LaTeX Settings
+  (setq org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f")
+        org-latex-remove-logfiles t
+        org-latex-prefer-user-labels t
+        bibtex-dialect 'biblatex))
+
+
+;;;;; ox-gfm
+;; github flavoured markdown exporter for Org mode
+;; [[https://github.com/larstvei/ox-gfm][ox-gfm]]
+(use-package ox-gfm
+  :straight (:host github :repo "larstvei/ox-gfm"))
+
+
+;;;;; ox-jdf-report
+;; exporter for the jdf style report
+;; [[https://githubhelp.com/dylanjm/ox-jdf][ox-jdf style report]]
+(use-package ox-jdf-report
+  :straight (:host github :repo "dylanjm/ox-jdf"))
+
+
+;;;;; ox-report
+;; meeting report exporter
+;; [[https://github.com/DarkBuffalo/ox-report][ox-report]]
+(use-package ox-report
+  :straight (:host github :repo "DarkBuffalo/ox-report"))
 
 
 ;;;;; ob-go
@@ -4957,8 +5127,9 @@ function with the \\[universal-argument]."
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
   :config
-  (setq org-superstar-special-todo-items t)
-  (setq org-superstar-prettify-item-bullets t)
+  (setq org-superstar-special-todo-items t
+        org-superstar-prettify-item-bullets t
+        org-superstar-remove-leading-stars t)
   ;; :custom
   ;; (org-superstar-headline--bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
   )
@@ -4968,7 +5139,7 @@ function with the \\[universal-argument]."
 ;; - displays org priorities as custom strings
 ;; - https://github.com/harrybournis/org-fancy-priorities
 (use-package org-fancy-priorities
-  :blackout
+  :blackout t
   :defines org-fancy-priorities-list
   :hook (org-mode . org-fancy-priorities-mode)
   :config
@@ -4980,7 +5151,12 @@ function with the \\[universal-argument]."
 ;; - Table of contents updated at save to header with TOC tag
 ;; - https://github.com/snosov1/toc-org
 (use-package toc-org
-  :hook (org-mode . toc-org-mode))
+  :blackout t
+  :straight t
+  :hook ((org-mode . toc-org-mode)
+         (markdown-mode . toc-org-mode))
+  :bind (:map markdown-mode-map
+         ("C-c C-o" . toc-org-mardown-follow-thing-at-point)))
 
 
 ;;;;; poporg
@@ -5750,32 +5926,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
           "First Quarter Moon"
           "Full Moon"
           "Last Quarter Moon")))
-
-
-;;;;; diary
-;; - simple diary interface
-;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Diary.html][the diary]]
-(use-package diary-lib
-  :straight (:type built-in)
-  :config
-  (require 'org-agenda)
-  (setq diary-file "~/.diary")
-  (setq diary-entry-marker "diary")
-  (setq diary-show-holidays-flag t)
-  (setq diary-header-line-flag nil)
-  (setq diary-mail-addr sej-mail-address)
-  (setq diary-mail-days 3)
-  (setq diary-number-of-entries 3)
-  (setq diary-comment-start ";")
-  (setq diary-comment-end "")
-  (setq diary-date-forms
-        '((day "/" month "[^/0-9]")
-          (day "/" month "/" year "[^0-9]")
-          (day " *" monthname " *" year "[^0-9]")
-          (monthname " *" day "[^,0-9]")
-          (monthname " *" day ", *" year "[^0-9]")
-          (year "[-/]" month "[-/]" day "[^0-9]")
-          (dayname "\\W"))))
 
 
 ;;; init.el --- end
