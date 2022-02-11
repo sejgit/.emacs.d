@@ -929,19 +929,24 @@ Return its absolute path.  Otherwise, return nil."
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/auth.html][auth-source docs]]
 (use-package auth-source
   :straight (:type built-in)
-  :config (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
-                               ,(f-expand "~/.ssh/.authinfo")
-                               :macos-keychain-generic
-                               :macos-keychain-internet)
-                auth-source-do-cache t))
+  :defer t
+  :config
+  (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
+                       ,(f-expand "~/.ssh/.authinfo")
+                       macos-keychain-generic
+                       macos-keychain-internet)
+        auth-source-do-cache t))
+
 
 ;;;;; epa
 ;; EasyPG assistant Emacs native support for GnuPG implementation of the OpenPGP standard
 ;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
 (use-package epa
+  :ensure t
   :straight (:type built-in)
   :config
-  (setq epa-replace-original-text 'ask))
+  (setq epa-replace-original-text 'ask)
+  (epa-file-enable))
 
 
 ;;;;; epq
@@ -961,7 +966,8 @@ Return its absolute path.  Otherwise, return nil."
   :config
   (setq gnutls-verify-error t
         gnutls-min-prime-bits 2048
-        tls-checktrust gnutls-verify-error))
+        tls-checktrust gnutls-verify-error)
+  (gnutls-available-p))
 
 
 ;;;;; keychain-environment
@@ -1420,24 +1426,24 @@ If FRAME is omitted or nil, use currently selected frame."
            (side . bottom)
            (slot . 0)
            (window-parameters . ((no-other-window . t))))
-          ("\\*e?shell.*"
-           (display-buffer-in-side-window)
-           (window-height . 0.16)
-           (side . bottom)
-           (slot . 1))
+          ;; ("\\*e?shell.*"
+          ;;  (display-buffer-in-side-window)
+          ;;  (window-height . 0.16)
+          ;;  (side . bottom)
+           ;; (slot . 1))
           ;; left side window
-          ("\\*helpful.*"
-           (display-buffer-in-side-window)
-           (window-width . 0.30)       ; See the :hook
-           (side . right)
-           (slot . 0)
-           (window-parameters . ((no-other-window . t))))
-          ("\\*Help.*"
-           (display-buffer-in-side-window)
-           (window-width . 0.30)       ; See the :hook
-           (side . right)
-           (slot . 0)
-           (window-parameters . ((no-other-window . t))))
+          ;; ("\\*helpful.*"
+          ;;  (display-buffer-in-side-window)
+          ;;  (window-width . 0.30)       ; See the :hook
+          ;;  (side . right)
+          ;;  (slot . 0)
+          ;;  (window-parameters . ((no-other-window . t))))
+          ;; ("\\*Help.*"
+          ;;  (display-buffer-in-side-window)
+          ;;  (window-width . 0.30)       ; See the :hook
+          ;;  (side . right)
+          ;;  (slot . 0)
+          ;;  (window-parameters . ((no-other-window . t))))
           ;; right side window
           ("\\*Faces\\*"
            (display-buffer-in-side-window)
@@ -2185,12 +2191,12 @@ If FRAME is omitted or nil, use currently selected frame."
   :config (ace-link-setup-default))
 
 
-;;;;; org-link-minor-mode
-;; enables org-mode style fontification and activation of bracket links
-;; [[https://github.com/seanohalpin/org-link-minor-mode][org-link-minor-mode github]]
-(use-package org-link-minor-mode
-  :straight (org-link-minor-mode :type git :host github :repo "seanohalpin/org-link-minor-mode")
-  :hook prog-mode)
+;;;;; orglink
+;; use Org mode links in other modes
+;; [[https://github.com/tarsius/orglink][orglink]]
+(use-package orglink
+  :straight (:type git :host github :repo "tarsius/orglink")
+  :hook (emacs-startup . global-orglink-mode))
 
 
 ;;;;; restclient
@@ -2441,7 +2447,16 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package rainbow-delimiters
   :straight t
   :blackout
-  :hook (prog-mode . rainbow-delimiters-mode)  )
+  ;; not using for now but available if wanted
+  ;; :hook (prog-mode . rainbow-delimiters-mode)
+  )
+
+;;;;; paren-face
+;; make parentheses less visible in Lisp code by dimming them
+;; [[https://github.com/tarsius/paren-face][paren-face]]
+(use-package paren-face
+  :straight t
+  :hook (emacs-startup . global-paren-face-mode))
 
 
 ;;;;; hideshow
@@ -2722,7 +2737,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package tramp
   :straight (tramp :type built-in)
   :init
-  (setq tramp-default-method "scp"
+  (setq tramp-default-method "ssh" ; or scp
         tramp-terminal-type "tramp"
         tramp-verbose 3
         tramp-completion-reread-directory-timeout nil
@@ -2734,7 +2749,7 @@ If FRAME is omitted or nil, use currently selected frame."
                                      tramp-file-name-regexp)
         ;; use the settings in ~/.ssh/config instead of Tramp's
         tramp-use-ssh-controlmaster-options nil
-        ;; don't generate backups for remote files opened as root (security hazzard)
+        ;; don't generate backups for remote files opened as root (security hazard)
         backup-enable-predicate
         (lambda (name)
           (and (normal-backup-enable-predicate name)
@@ -2742,7 +2757,7 @@ If FRAME is omitted or nil, use currently selected frame."
                       (when (stringp method)
                         (member method '("su" "sudo"))))))))
   :config
-        (add-to-list 'tramp-default-user-alist '(("\\`su\\(do\\)?\\'" nil "root"))))
+        (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su")))
 
 
 (use-package tramp-sh
@@ -2947,8 +2962,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight (flymake-proselint :host github :repo "manuel-uberti/flymake-proselint")
   :ensure-system-package proselint
   :ensure flymake-quickdef
-  :hook (((markdown-mode org-mode text-mode adoc-mode) . flymake-proselint-setup)
-         ((markdown-mode org-mode text-mode adoc-mode) . flymake-mode)))
+  :hook (((markdown-mode text-mode adoc-mode) . flymake-proselint-setup)
+         ((markdown-mode text-mode adoc-mode) . flymake-mode)))
 
 
 ;;;;; flycheck
@@ -3204,13 +3219,12 @@ If FRAME is omitted or nil, use currently selected frame."
                ("H-G" . gist-list)))
 
 
-;;;;; git config modes
+;;;;; git-modes
 ;; - Emacs major modes for various Git configuration files.
 ;; - gitattributes-mode , gitconfig-mode , gitignore-mode
 ;; - https://github.com/magit/git-modes
-(use-package gitattributes-mode)
-(use-package gitconfig-mode)
-(use-package gitignore-mode)
+(use-package git-modes
+  :straight t)
 
 
 ;;;;; sej/git-blame-line
@@ -3861,12 +3875,18 @@ the children of class at point."
              :host github
              :repo "stardiviner/arduino-mode")
   :hook (arduino-mode . arduino-cli-mode)
-  :ensure-system-package arduino-cli)
+  :ensure-system-package arduino-cli
+  :config
+  (setq arduino-mode-home "~/Projects/Arduino"
+        arduino-executable (expand-file-name "Arduino" "~/Applications/Arduino/Contents/MacOS/")))
+
+;;(remove-hook 'c++mode-hook #'arduino-mode-cli)
 
 ;;;;; arduino-cli-mode
 ;; - minor mode for using the excellent new arduino command line interface
 ;; - [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
 (use-package arduino-cli-mode
+  :disabled
   :straight (arduino-cli-mode
              :type git
              :host github
@@ -4885,15 +4905,15 @@ function with the \\[universal-argument]."
         org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
                             (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
                             (sequence "|" "CANCELED(x)"))
-        org-todo-keyword-faces '(("TODO" . org-warning)
-                                 ("WAITING" . (:foreground "blue" :weight bold))
-                                 ("DONE" . (:foreground "green" :weight bold))
-                                 ("DELIGATE" . (:foreground "blue" :weight bold))
-                                 ("VERIFIED" . (:foreground "green" :weight bold))
-                                 ("CANCELED" . (:foreground "grey" :weight bold)))
+        org-todo-keyword-faces '(("TODO" . (:foreground "pink" :weight bold :height 0.5))
+                                 ("WAITING" . (:foreground "blue" :weight bold :height 0.5))
+                                 ("DONE" . (:foreground "green" :weight bold :height 0.5))
+                                 ("DELIGATE" . (:foreground "blue" :weight bold :height 0.5))
+                                 ("VERIFIED" . (:foreground "green" :weight bold :height 0.5))
+                                 ("CANCELED" . (:foreground "grey" :weight bold :height 0.5)))
         org-confirm-babel-evaluate nil
         org-startup-folded nil
-        org-highlight-latex-and-related '(latex)        )
+        org-highlight-latex-and-related '(latex))
 
   (let* ((variable-tuple
           (if (display-graphic-p)
@@ -4913,10 +4933,10 @@ function with the \\[universal-argument]."
      `(org-level-6 ((t (,@headline ,@variable-tuple))))
      `(org-level-5 ((t (,@headline ,@variable-tuple))))
      `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.5))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 1.75 :underline nil))))))
 
   (custom-theme-set-faces
    'user
@@ -5004,11 +5024,7 @@ function with the \\[universal-argument]."
         org-agenda-start-with-log-mode nil
         org-agenda-tags-column -100
         org-agenda-use-time-grid t
-        org-agenda-files (list org-file-inbox
-                               org-file-journal
-                               org-file-notes
-                               org-file-someday
-                               org-file-gtd)
+        org-agenda-files (list org-directory)
         org-agenda-window-setup (quote current-window) ;open agenda in current window
         org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
         org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled
@@ -5155,7 +5171,7 @@ function with the \\[universal-argument]."
   :straight t
   :hook ((org-mode . toc-org-mode)
          (markdown-mode . toc-org-mode))
-  :bind (:map markdown-mode-map
+  :bind (:map org-mode-map
          ("C-c C-o" . toc-org-mardown-follow-thing-at-point)))
 
 
@@ -5881,7 +5897,38 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
         user-full-name sej-full-name))
 
 
-;;; calendar, diary
+;;;;; Emacs-Anywhere
+;; allows you to use Emacs editing in any application
+;; Installation:
+;; curl -fsSL https://raw.github.com/zachcurry/emacs-anywhere/master/install | bash
+;; navigate to keyboard > shortcuts > Services. Check the box beside "Emacs Anywhere",
+;; click "Add Shortcut" and key a shortcut. (I use control-option-command-space)
+;; [[https://github.com/zachcurry/emacs-anywhere][Emacs-Anywhere]]
+(use-package emacs_anywhere
+  :straight (:host github :repo "zachcurry/emacs-anywhere")
+  :init
+  (defun github-conversation-p (window-title)
+    (or (string-match-p "Pull Request" window-title)
+        (string-match-p "Issues" window-title)))
+
+  (defun popup-handler (app-name window-title x y w h)
+    (set-frame-position (selected-frame) x (+ y (- h 300)))
+    (unless (zerop w)
+      (set-frame-size (selected-frame) w 400 5))
+
+    (when (equal app-name "iTerm2")
+      ;; Tell Emacs Anywhere not to paste if launched from Terminal
+      (setq ea-paste nil)
+      (shell-script-mode))
+
+    (cond
+     ((github-conversation-p window-title) (gfm-mode))
+     (t (markdown-mode))))
+
+  (add-hook 'ea-popup-hook #'popup-handler))
+
+
+;;; calendar
 ;;;;; calendar
 ;; - the built-in calendar
 ;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html][calendar]]
