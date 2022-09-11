@@ -1875,7 +1875,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;; indentation
 ;;;;; indentation settings
 (setq-default indent-tabs-mode nil
-              fill-column 80)
+              fill-column 160)
 
 
 ;;;;; dtrt-indent
@@ -2665,7 +2665,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq prettify-symbols-unprettify-at-point 'right-edge
         global-prettify-symbols-mode t
         lisp-prettify-symbols-alist prettify-symbols-alist)
-  (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+  ;;(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
   (add-hook 'prog-mode-hook #'show-paren-mode)
   (add-hook 'prog-mode-hook #'prettify-symbols-mode)
   (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
