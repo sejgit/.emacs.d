@@ -1042,24 +1042,28 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq modus-themes-bold-constructs t
         modus-themes-slanted-constructs t
-        modus-themes-syntax 'alt-syntax ; {nil,'faint,'yellow-comments,'green-strings,'yellow-comments-green-strings,'alt-syntax,'alt-syntax-yellow-comments}
+        modus-themes-syntax '(alt-syntax) ; {nil,'faint,'yellow-comments,'green-strings,'alt-syntax,}
         modus-themes-no-mixed-fonts nil
-        modus-themes-links 'faint-neutral-underline ; {nil,'faint,'neutral-underline,'faint-neutral-underline,'no-underline}
+        modus-themes-links '(faint neutral-underline)
+        ;; Options for `modus-themes-links' are either nil (the default),
+        ;; or a list of properties that may include any of those symbols:
+        ;; `neutral-underline' OR `no-underline', `faint' OR `no-color',
+        ;; `bold', `italic', `background'
         modus-themes-prompts nil ;{nil,'subtle,'intense}
-        modus-themes-mode-line '3d ;{nil,'3d,'moody}
+        modus-themes-mode-line '(3d) ;{nil,'3d,'moody}
         modus-themes-completions nil ;{nil,'moderate,'opinionated}
         modus-themes-fringes 'intense ;{nil,'subtle,'intense}
         modus-theses-lang-checkers nil ;{nil,...}
         modus-themes-intense-hl-line nil
         modus-themes-intense-paren-match 'intense-bold ;{nil,'subtle-bold,'intense,'intense-bold}
-        modus-themes-region 'bg-only-no-extend ;{nil,'no-extend,'bg-only,'bg-only-no-extend}
+        modus-themes-region '(bg-only no-extend) ;{nil,'no-extend,'bg-only,'bg-only-no-extend}
         modus-themes-diffs 'fg-only ;{nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ;{nil,'greyscale,'rainbow}
         modus-themes-org-habit nil ;{nil,'simplified,'traffic-light}
         modus-themes-headings  ; Read the manual for this one
-        '((1 . t)
-          (2 . no-bold)
-          (t . rainbow-no-bold))
+        '((1 . (t))
+          (2 . (overline))
+          (t . (rainbow regular)))
         modus-themes-variable-pitch-headings t
         modus-themes-scale-headings t
         modus-themes-scale-1 1.05
@@ -1813,7 +1817,7 @@ If FRAME is omitted or nil, use currently selected frame."
    :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-file consult--source-project-file consult--source-bookmark
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    :preview-key (kbd "M-."))
 
   ;; Optionally configure the narrowing key.
@@ -2367,7 +2371,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package whitespace
   :straight (whitespace :type built-in)
   :blackout
-  :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
+  ;; :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
   :config
   ;; automatically clean up bad whitespace
   (setq whitespace-action '(auto-cleanup))
@@ -2959,7 +2963,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - need to install 'brew install proselint' or equivalent
 (use-package flymake-proselint
   :after flymake
-  :straight (flymake-proselint :host github :repo "manuel-uberti/flymake-proselint")
+  :straight (flymake-proselint)
   :ensure-system-package proselint
   :ensure flymake-quickdef
   :hook (((markdown-mode text-mode adoc-mode) . flymake-proselint-setup)
@@ -3566,11 +3570,9 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; There's also blacken if you like it better.
 (cond
 ((executable-find "black")
-(use-package blacken
-  :hook (python-mode . blacken-mode)))
+(use-package blacken  ))
 ((executable-find "yapf")
-(use-package yapfify
-  :hook (python-mode . yapf-mode))))
+(use-package yapfify  )))
 
 
 ;;;;; live-py-mode
@@ -3873,7 +3875,7 @@ the children of class at point."
   :straight (arduino-mode
              :type git
              :host github
-             :repo "stardiviner/arduino-mode")
+             :repo "sejgit/arduino-mode")
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
   :config
