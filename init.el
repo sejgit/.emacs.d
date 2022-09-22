@@ -2720,6 +2720,7 @@ If FRAME is omitted or nil, use currently selected frame."
       (when font-lock-mode
         (with-no-warnings
           (font-lock-fontify-buffer)))))
+  (use-package company-shell :straight)
   :init
   (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
   (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
