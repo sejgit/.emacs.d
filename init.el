@@ -1551,9 +1551,10 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package doom-modeline
   :straight t
   :hook (after-init . doom-modeline-mode)
-  :config
+  :preface
   (setq doom-modeline-hud t
-        doom-modeline-project-detection 'project))
+        doom-modeline-project-detection 'auto))
+
 
 
 ;;;;; all-the-icons
@@ -2684,8 +2685,12 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; sh-script
 ;; shell script mode built-in
 ;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
+(use-package company-shell
+  :straight)
+
 (use-package sh-script
   :straight (:type built-in)
+  :requires company-shell
   :preface
   (defun sej/sh-prettify-mode-line ()
     (setq mode-line-process nil)
