@@ -1746,9 +1746,9 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
+         ("C-z C-y" . consult-register-load)
+         ("C-z C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-z C-M-y" . consult-register)
          ;; Other custom bindings
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
@@ -2956,12 +2956,12 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; flymake-aspell
 ;; - flymake movement using flyspell checker
-;; - [[https://github.com/leotaku/flycheck-aspell/blob/master/flymake-aspell.el][flymake-aspell.el]]
+;; - [[https://github.com/leotaku/flycheck-aspell/blob/master/README-FLYMAKE.md][flycheck-aspell]]
 (use-package flymake-aspell
   :after (flyspell flymake)
   :hook (
-         ((markdown-mode org-mode text-mode adoc-mode) . flymake-aspell-setup)
-         ((markdown-mode org-mode text-mode adoc-mode) . flymake-mode)))
+         (text-mode . flymake-aspell-setup)))
+
 
 ;;;;; flymake-proselint
 ;; - flymake prose lint checker
@@ -4429,8 +4429,7 @@ the children of class at point."
   :bind (:map markdown-mode-command-map
               ("g" .  markdown-preview-grip)
               ("k" .  markdown-preview-kill-grip))
-  :hook ((markdown-mode . flyspell-mode)
-         (markdown-mode . auto-fill-mode)
+  :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . set-flycheck-markdownlint)
          (markdown-mode . visual-line-mode)
          (markdown-mode . writegood-mode))
@@ -4500,6 +4499,7 @@ the children of class at point."
 ;;;;; adoc-mode
 ;; - adoc-mode is an Emacs major mode for editing AsciiDoc files.
 ;; It emphasizes on the idea that the document is highlighted
+
 ;; so it pretty much looks like the final output.
 ;; - https://github.com/sensorflo/adoc-mode/wiki
 (use-package adoc-mode
@@ -4556,20 +4556,11 @@ the children of class at point."
   :ensure-system-package aspell
   :defines
   sej-mode-map
-  :bind
-  (:map sej-mode-map
-        ("<f8>" . ispell-word)
-        ("C-<f8>" . flyspell-mode)
-        ("M-<f8>" . flyspell-check-next-highlighted-word)
-        ("S-<f8>" . ispell-region)
-        :map flyspell-mode-map
-        ("C-;" . nil)        )
-  :hook (((text-mode outline-mode org-mode) . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+  :hook
+  (prog-mode . flyspell-prog-mode)
   :config
   (setq flyspell-abbrev-p t
                 flyspell-use-global-abbrev-table-p t
-                flyspell-issue-welcome-flag nil
                 flyspell-issue-message-flag nil)
   (cond
    ((executable-find "aspell")
@@ -4584,7 +4575,8 @@ the children of class at point."
   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
   (define-key flyspell-mouse-map [mouse-3] #'undefined)
 
-  (setq ispell-personal-dictionary "~/sej.ispell")
+  (setq ispell-personal-dictionary "~/sej.ispell"
+        ispell-silently-savep t)
 
   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
@@ -4596,47 +4588,24 @@ the children of class at point."
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
   (setq ispell-dictionary "canadian")
-
-  (defun flyspell-check-next-highlighed-word ()
-    "Custom function to spell check next highlighted word"
-    (interactive)
-    (flyspell-goto-next-error)
-    (ispell-word))
-  (setq flyspell-issue-welcome-flag nil)
-  (setq-default ispell-list-command "list"))
+ )
 
 
-;;;;; powerthesaurus
-;; - simple plugin to integrate Emacs with powerthesaurus.org
-;; - https://github.com/SavchenkoValeriy/emacs-powerthesaurus
-(use-package powerthesaurus
-  :bind (:map sej-mode-map
-              ("C-z t" . powerthesaurus-lookup-word-dwim)
-              ("s-|" . powerthesaurus-lookup-word-dwim)))
-
-
-;;;;; define-word
-;; - Word Definition search for non-osx
-;; - https://github.com/abo-abo/define-word
-(use-package define-word
-  :unless sys/macp
-  :bind (:map sej-mode-map
-              ("C-z s" . define-word-at-point)
-              ("s-\\" . define-word-at-point)))
-
-
-;;;;; osx-dictionary
-;; - define-word OR
-;; - pilot osx-dictionary only for osx
-;; use osx dictionary when possible
-;; - https://github.com/xuchunyang/osx-dictionary.el
-(use-package osx-dictionary
-  :if sys/macp
-  :defines sej-mode-map
-  :bind (:map sej-mode-map
-              ("C-z s" . osx-dictionary-search-word-at-point)
-              ("s-\\" . osx-dictionary-search-word-at-point)
-              ("C-z i" . osx-dictionary-search-input)              ))
+;;;;; dictionary lookup
+;; - built in with Emacs 28
+;; - [[https://www.masteringemacs.org/article/wordsmithing-in-emacs?utm_source=newsletter&utm_medium=email&utm_campaign=rss&utm_source=Mastering+Emacs+Newsletter&utm_campaign=3a391dbdb1-MASTERING_EMACS_NEW_POSTS&utm_medium=email&utm_term=0_777fab9be9-3a391dbdb1-355707361][mastering Emacs]]
+(use-package dictionary
+  :straight (:type built-in)
+  :bind (("M-#" . dictionary-lookup-definition)
+         ("C-#" . dictionary-search))
+  :config
+  ;; mandatory, as the dictionary misbehaves!
+  (setq switch-to-buffer-obey-display-actions t
+        dictionary-server "dict.org")
+(add-to-list 'display-buffer-alist
+   '("^\\*Dictionary\\*" display-buffer-in-side-window
+     (side . left)
+     (width . 50))))
 
 
 ;;;;; sej/pdf-print-buffer-with-faces (ps-print)
