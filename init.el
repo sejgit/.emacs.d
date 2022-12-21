@@ -58,6 +58,7 @@
 ;; - <2021-10-14 Thu> move from projectile to built-in project.el
 ;; - <2021-11-11 Thu> add frame centre function & fix no littering
 ;; - <2021-11-30 Tue> clean-up installed packages set-up
+;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
 
 
 ;;; Code:
@@ -66,7 +67,7 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-;; (setq debug-on-error t)
+(setq debug-on-error t)
 ;; (setq debug-on-event t)
 
 
@@ -231,7 +232,7 @@
 
 (defcustom sej-homepage "https://github.com/sejgit/.emacs.d"
   "The Github page of Emacs Owner."
-  :type 'string  )
+  :type 'string)
 
 (defcustom sej-full-name "Stephen Jenkins"
   "Set user full name."
@@ -248,13 +249,6 @@
 (defcustom sej-dashboard t
   "Use dashboard at startup or not. If Non-nil, use dashboard, otherwise will restore previous session."
   :type 'boolean)
-
-(defcustom sej-lsp 'lsp-mode
-  "Set language server."
-  :type '(choice
-          (const :tag "LSP Mode" 'lsp-mode)
-          (const :tag "eglot" 'eglot-mode)
-          nil))
 
 (defcustom sej-benchmark nil
   "Enable the init benchmark or not."
@@ -812,7 +806,6 @@
 	   ("C-h C-h" . nil)
 	   ("A-SPC" . cycle-spacing)
 	   ("M-j" . (lambda () (join-line -1)))
-	   ("C-M-d" . backward-kill-word)
            )
 
 ;;; general functions / packages
@@ -946,7 +939,8 @@ Return its absolute path.  Otherwise, return nil."
   :straight (:type built-in)
   :config
   (setq epa-replace-original-text 'ask)
-  (epa-file-enable))
+  ;;(epa-file-enable)
+  )
 
 
 ;;;;; epq
@@ -1031,78 +1025,12 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;; user interface
 ;;;; themes
-;;;;; modus themes
-(use-package modus-themes
-  :straight (modus-themes :type git :host github :repo "protesilaos/modus-themes")
-  :hook (after-init . (lambda() (load-theme 'modus-vivendi t)))
-  :bind ("<f5>" . modus-themes-toggle)
-  :custom
-  (custom-safe-themes
-   '("dbf58130f89f49aca831812c8df2452d7126388f6cc34a42666c691f88a8be3e" default))
-  :init
-  (setq modus-themes-bold-constructs t
-        modus-themes-slanted-constructs t
-        modus-themes-syntax '(alt-syntax) ; {nil,'faint,'yellow-comments,'green-strings,'alt-syntax,}
-        modus-themes-no-mixed-fonts nil
-        modus-themes-links '(faint neutral-underline)
-        ;; Options for `modus-themes-links' are either nil (the default),
-        ;; or a list of properties that may include any of those symbols:
-        ;; `neutral-underline' OR `no-underline', `faint' OR `no-color',
-        ;; `bold', `italic', `background'
-        modus-themes-prompts nil ;{nil,'subtle,'intense}
-        modus-themes-mode-line '(3d) ;{nil,'3d,'moody}
-        modus-themes-completions nil ;{nil,'moderate,'opinionated}
-        modus-themes-fringes 'intense ;{nil,'subtle,'intense}
-        modus-theses-lang-checkers nil ;{nil,...}
-        modus-themes-intense-hl-line nil
-        modus-themes-intense-paren-match 'intense-bold ;{nil,'subtle-bold,'intense,'intense-bold}
-        modus-themes-region '(bg-only no-extend) ;{nil,'no-extend,'bg-only,'bg-only-no-extend}
-        modus-themes-diffs 'fg-only ;{nil,'desaturated,'fg-only}
-        modus-themes-org-blocks 'greyscale ;{nil,'greyscale,'rainbow}
-        modus-themes-org-habit nil ;{nil,'simplified,'traffic-light}
-        modus-themes-headings  ; Read the manual for this one
-        '((1 . (t))
-          (2 . (overline))
-          (t . (rainbow regular)))
-        modus-themes-variable-pitch-headings t
-        modus-themes-scale-headings t
-        modus-themes-scale-1 1.05
-        modus-themes-scale-2 1.1
-        modus-themes-scale-3 1.15
-        modus-themes-scale-4 1.2
-        modus-themes-scale-5 1.3
-        modus-themes-variable-pitch-headings nil))
-
-
-;;;;; font
-(when (display-graphic-p)
-  ;; Set default fonts
-  (cond
-   ((member "Source Code Pro" (font-family-list))
-    (set-face-attribute 'default nil :font "Source Code Pro"))
-   ((member "Menlo" (font-family-list))
-    (set-face-attribute 'default nil :font "Menlo"))
-   ((member "Monaco" (font-family-list))
-    (set-face-attribute 'default nil :font "Monaco"))
-   ((member "DejaVu Sans Mono" (font-family-list))
-    (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
-   ((member "Consolas" (font-family-list))
-    (set-face-attribute 'default nil :font "Consolas")))
-
-  (cond
-   (sys/mac-x-p
-    (set-face-attribute 'default nil :height 130)
-    (set-face-attribute 'default nil :font "SF Mono-13")
-    (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend))
-   (sys/win32p
-    (set-face-attribute 'default nil :height 110)))
-
-  ;; Specify fonts for all unicode characters
-  (cond
-   ((member "Apple Color Emoji" (font-family-list))
-    (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
-   ((member "Symbola" (font-family-list))
-    (set-fontset-font t 'unicode "Symbola" nil 'prepend))))
+;;;;; wombat theme
+(use-package emacs
+  :straight (:type built-in)
+  :ensure t
+  :preface
+  (load-theme 'wombat))
 
 
 ;;;;; default-text-scale
@@ -1111,8 +1039,8 @@ Return its absolute path.  Otherwise, return nil."
 (use-package default-text-scale
   :straight t
   :bind (:map sej-mode-map
-              ("C-M-=" . default-text-scale-increase)
-              ("C-M--" . default-text-scale-decrease)
+              ("C-z +" . default-text-scale-increase)
+              ("C-z -" . default-text-scale-decrease)
               ("s-r" . default-text-scale-reset))
   :config
   (setq default-text-scale-amount 20))
@@ -1644,29 +1572,31 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . ctrlf-mode))
 
 
-;;;;; selectrum
+;;;;; vertico
 ;; - alternative to ivy, ido, helm
-;; - [[https://github.com/raxod502/selectrum#what-is-it][selectrum]]
-(use-package selectrum
+;; - [[https://github.com/minad/vertico][vertico]]
+(use-package vertico
   :straight t
-  :hook (emacs-startup . selectrum-mode)
-  :config
-  (selectrum-mode +1)
-  (advice-add 'slime-display-or-scroll-completions :around
-             (defun my--slime-completion-in-region (_ completions start end)
-               (completion-in-region start end completions))))
-
-
-;;;;; selectrum-precient
-;; - library which sorts and filters lists of candidates
-;; - [[https://github.com/raxod502/prescient.el][selectrum-precient]]
-(use-package selectrum-prescient
-  :straight t
-  :hook ((emacs-startup . selectrum-prescient-mode)
-         (emacs-startup . prescient-persist-mode))
   :init
-  (setq selectrum-prescient-enable-filtering nil
-        prescient-history-length 1000))
+  (vertico-mode)
+
+  ;; Different scroll margin
+  (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t)
+  )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
 
 
 ;;;;; marginalia
@@ -1688,8 +1618,9 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight t
   :demand t
   :init
-  (setq completion-styles '(orderless))
-  (setq orderless-skip-highlighting (lambda () selectrum-is-active)))
+  (setq completion-styles '(orderless basic))
+  completion-category-defaults nil
+  completion-category-overrides '((file (styles partial-completion)))  )
 
 
 ;;;;; embark
@@ -2477,7 +2408,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - program modes outline much like org-mode "C-c @"" prefix
 ;; - [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
 ;; - [[https://github.com/alphapapa/outshine][outshine]]
-;; - [[https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-outlines/pretty-outlines.el][pretty-outlines]]
 (use-package outshine
   :straight t
   :hook ((prog-mode          . outline-minor-mode)
@@ -2495,14 +2425,12 @@ If FRAME is omitted or nil, use currently selected frame."
    `(outline-3 ((t (:height 1.2 :foreground "#2aa198"
                             :background ,my-black :weight bold))))
    `(outline-4 ((t (:height 1.05 :foreground "#818e96"
-                            :background ,my-black :weight bold)))))
-  )
+                            :background ,my-black :weight bold)))))  )
 
 
 (use-package pretty-outlines
-  :straight (.spacemacs.d :type git :host github
-                          :repo "ekaschalk/.spacemacs.d"
-                          :files ("layers/display/local/pretty-outlines/*.el"))
+  :straight (pretty-outlines :type git :host github :repo "sejgit/pretty-outlines"
+                             :files ("*.el"))
   :after (outshine)
   :hook ((outline-mode . pretty-outlines-set-display-table)
          (outline-minor-mode . pretty-outlines-set-display-table)
@@ -2514,94 +2442,10 @@ If FRAME is omitted or nil, use currently selected frame."
     (defun package-installed-p (dummy) t))
   :config
   (setq pretty-outlines-ellipsis "~")
-  (setq pretty-outlines-bullets-bullet-list
-        '(#x2022 ))  )
+  (setq pretty-outlines-bullets-bullet-list '(#x2022 ))  )
 
 
 ;;; programming
-;;;;; lsp
-;; - client for Language Server Protocol servers
-;; - [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
-;; c++-mode, objc-mode, cudo-mode: ccls uses lsp-mode & see ccls below
-;; csharp-mode: supports automatic installation M-x lsp-csharp-update-server
-;; cmake: pip3 install cmake-language-server
-;; css-mode: npm install -g vscode-css-languageserver-bin
-;; go-mode: gopls
-;; html-mode: npm install -g vscode-html-languageserver-bin
-;; java-mode: self install eclipse JDT language server
-;; javascript-mode: npm i -g javascript-typescript-langserver
-;; json-mode: npm install -g vscode-html-languageserver-bin
-;; perl-mode: cpan Perl::LanguageServer
-(use-package lsp-mode
-  :straight t
-  :hook (((
-           ;;c++-mode
-           ;;c-mode
-           ;;objc-mode
-           ;;cuda-mode
-           ;;cmake-mode
-           fortran-mode
-           go-mode
-           html-mode
-           haskell-mode
-           java-mode
-           json-mode
-           perl-mode
-           python-mode
-           ruby-mode
-           rust-mode
-           sql-mode
-           yaml-mode
-           ) . lsp-deferred)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration)
-         )
-  :commands (lsp lsp-deferred)
-  :init
-  (setq lsp-keymap-prefix "C-z l")
-  :config
-  (setq lsp-diagnostics-provider :flymake)  )
-
-
-;;;;; lsp-ui
-;; - contains all the higher level UI modules of lsp-mode, like flycheck support and code lenses
-;; - [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]]
-;; - M-. M-?
-(use-package lsp-ui
-  :if (eq sej-lsp 'lsp-mode)
-  :straight t
-  :after lsp-mode
-  :bind (:map lsp-ui-mode-map
-              ("C-c i" . lsp-ui-imenu)
-              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-              ([remap xref-find-references] . lsp-ui-peek-find-references)) ; M-?
-  :hook (lsp-mode . lsp-ui-mode)
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-sideline-ignore-duplicate t
-        lsp-ui-doc-enable t
-        lsp-ui-doc-position 'top
-        lsp-ui-imenu-kind-position 'left
-        lsp-ui-sideline-enable nil
-        lsp-ui-doc-delay 2))
-
-
-;;;;; dap-mode
-;; - (use-package dap-LANGUAGE) to load the dap adapter for your language
-;; - [[https://github.com/emacs-lsp/dap-mode][dap-mode]]
-(use-package dap-mode
-  :if (eq sej-lsp 'lsp-mode)
-  :straight t
-  :after lsp-mode
-  :hook (lsp-mode . dap-mode)
-  :config
-  (dap-auto-configure-mode))
-
-
-(use-package dap-python
-  :straight nil)
-
-
 ;;;;; eglot
 ;; - simple client for Language Server Protocol servers
 ;; - https://github.com/joaotavora/eglot
@@ -2619,17 +2463,18 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
 ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
 (use-package tree-sitter
-  :demand t
-  :straight ( :host github
-              :repo "ubolonton/emacs-tree-sitter"
-              :files ("lisp/*.el") ))
+  :straight t
+  :hook ((python-mode c-mode c++-mode) . (lambda ()
+                     (require 'tree-sitter)
+                     (require 'tree-sitter-langs)
+                     (require 'tree-sitter-hl)
+                     (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
-  :demand t
-  :after tree-sitter
-  :straight ( :host github
-              :repo "emacs-tree-sitter/tree-sitter-langs"
-              :files ("*.el" "queries")))
+  :straight t)
+
+(use-package tree-sitter-indent
+  :straight t)
 
 
 ;;;;; prog-mode
@@ -3878,6 +3723,7 @@ the children of class at point."
 ;; - mode for .ino files only
 ;; - [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
 (use-package arduino-mode
+  :disabled
   :straight (arduino-mode
              :type git
              :host github
@@ -3885,7 +3731,7 @@ the children of class at point."
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
   :config
-  (setq arduino-mode-home "~/Projects/Arduino"
+  (setq arduino-mode-home "~/src/Arduino"
         arduino-executable (expand-file-name "Arduino" "~/Applications/Arduino/Contents/MacOS/")))
 
 ;;(remove-hook 'c++mode-hook #'arduino-mode-cli)
@@ -4280,7 +4126,7 @@ the children of class at point."
 ;; - https://github.com/jtbm37/all-the-icons-dired
 (use-package all-the-icons-dired
   :blackout
-  :custom-face (all-the-icons-dired-dir-face ((t (:foreground nil))))
+  :custom-face (all-the-icons-dired-dir-face ((t (:foreground unspecified))))
   :hook (dired-mode . all-the-icons-dired-mode)
   :config
   (defun my-all-the-icons-dired--display ()
