@@ -67,7 +67,7 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 ;; (setq debug-on-event t)
 
 
@@ -2144,13 +2144,18 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;;; highlighting faces fonts
+(add-to-list 'default-frame-alist '(cursor-color . "palegoldenrod"))
+
 ;;;;; hl-line
 ;; - Highlight the current line
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
 (use-package hl-line
   :straight (hl-line :type built-in)
   :hook ((prog-mode . hl-line-mode)
-         (text-mode . hl-line-mode)))
+         (text-mode . hl-line-mode)
+         (dashboard-mode . hl-line-mode))
+  :config
+  (set-face-attribute hl-line-face nil :underline nil))
 
 
 ;;;;; symbol-overlay
@@ -2367,26 +2372,6 @@ If FRAME is omitted or nil, use currently selected frame."
         show-paren-when-point-inside-paren t))
 
 
-;;;;; mic-paren
-;; - show parens even off screen
-;; - https://github.com/emacsattic/mic-paren/blob/d0410c7d805c9aaf51a1bcefaaef092bed5824c4/mic-paren.el
-(use-package mic-paren
-  :straight t
-  :hook (prog-mode . paren-activate)
-  :init
-  (setq paren-highlight-offscreen t))
-
-
-;;;;; rainbow-delimiters
-;; - rainbow-delimiters-mode - multicoloured brackets
-;; - https://github.com/Fanael/rainbow-delimiters
-(use-package rainbow-delimiters
-  :straight t
-  :blackout
-  ;; not using for now but available if wanted
-  ;; :hook (prog-mode . rainbow-delimiters-mode)
-  )
-
 ;;;;; paren-face
 ;; make parentheses less visible in Lisp code by dimming them
 ;; [[https://github.com/tarsius/paren-face][paren-face]]
@@ -2464,7 +2449,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
 (use-package tree-sitter
   :straight t
-  :hook ((python-mode c-mode c++-mode) . (lambda ()
+  :hook ((python-mode c-mode c++-mode rust-mode go-mode) . (lambda ()
                      (require 'tree-sitter)
                      (require 'tree-sitter-langs)
                      (require 'tree-sitter-hl)
@@ -3740,7 +3725,6 @@ the children of class at point."
 ;; - minor mode for using the excellent new arduino command line interface
 ;; - [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
 (use-package arduino-cli-mode
-  :disabled
   :straight (arduino-cli-mode
              :type git
              :host github
@@ -3969,7 +3953,8 @@ the children of class at point."
     (defun sej/open-dashboard ()
       "Move to the dashboard package buffer."
       (interactive)
-      (switch-to-buffer "*dashboard*") ) )
+      (switch-to-buffer "*dashboard*")
+      (hl-line-mode t)) )
 
 
 ;;;;; page-break-lines
@@ -4292,7 +4277,7 @@ the children of class at point."
         markdown-make-gfm-checkboxes-buttons t
         markdown-gfm-additional-languages '("sh")
         markdown-header-scaling t)
-  (setq markdown-command "pandoc --smart -f markdown -t html")
+  (setq markdown-command "pandoc -f markdown -t html")
 
   (when sys/macp
     (let ((typora "/Applications/Typora.app/Contents/MacOS/Typora"))
@@ -4333,6 +4318,18 @@ the children of class at point."
   ;; M-x markdown-toc-generate-toc
   ;; - https://github.com/ardumont/markdown-toc
   (use-package markdown-toc))
+
+
+;;;;; markdown-soma
+  ;; realtime preview by eww
+  ;; install soma
+  ;; - [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
+(use-package markdown-soma
+  :straight t
+  :hook (markdown-mode)
+  :bind (:map markdown-mode-command-map
+         ("p" . markdown-preview-eww)))
+
 
 
 ;;;;; textile-mode
