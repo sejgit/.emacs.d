@@ -4326,9 +4326,9 @@ the children of class at point."
   ;; - [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
   :straight t
-  :hook (markdown-mode)
+  :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
-         ("p" . markdown-preview-eww)))
+         ("p" . markdown-soma-mode)))
 
 
 
