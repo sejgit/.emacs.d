@@ -44,7 +44,8 @@
 
 ;; Prevents libgccjit error
 ;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc@11/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc@11/lib/gcc/11/gcc/x86_64-apple-darwin21/11.2.0")
+(if (eq system-type 'darwin)
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc@12/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc@12/lib/gcc/12/gcc/x86_64-apple-darwin21/12"))
 
 (setq auto-window-vscroll nil
               bidi-display-reordering 'left-to-right
@@ -92,6 +93,5 @@
                                 (ns-appearance . dark)
                                 ;; (font . "Iosevka-14")
                                 ))
-
 
 ;;; early-init.el ends here

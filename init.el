@@ -4,7 +4,7 @@
 
 ;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
 ;; URL: https://github.com/sejgit/.emacs.d
-;; Version: 1.0
+;; Version: 0.1.0
 ;; Keywords: .emacs.d sejgit
 
 ;; This file is not part of GNU Emacs.
@@ -30,8 +30,8 @@
 ;;
 ;; SeJ Emacs configurations.
 ;;
-;; My initial attempt at an ORG tangled init file.
-;; then back again to an outline / outshine / pretty-outlines file.
+;; a long journey to here...
+;; 
 
 
 ;;; Changelog
