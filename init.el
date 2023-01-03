@@ -1660,7 +1660,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (embark-collect-mode . consult-preview-at-point-mode))
 
 
-;;;;; selectrum-consult
+;;;;; consult
 ;; - complementary to selectrum
 ;; - [[https://github.com/minad/consult][consult]]
 (use-package consult
