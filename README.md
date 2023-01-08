@@ -12,5 +12,7 @@ main settings
 ## init-mini.el
 an alternate init.el for embedded controllers or smalller machines which require less packages
 I tend to use by a soft link to it from .emacs in your home directory
-ln -s ~/.emacs.d/init-mini.el .emacs
+````sh
+ln -s ~/.emacs.d/init-mini.el ~/.emacs
+````
 
