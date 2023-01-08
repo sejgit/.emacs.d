@@ -4322,14 +4322,13 @@ the children of class at point."
 
 ;;;;; markdown-soma
   ;; realtime preview by eww
-  ;; install soma
+  ;; install soma first in the .cargo directory (my dotfiles has path for this)
   ;; - [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
   :straight t
   :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
-         ("p" . markdown-soma-mode)))
-
+              ("p" . markdown-soma-mode))  )
 
 
 ;;;;; textile-mode
