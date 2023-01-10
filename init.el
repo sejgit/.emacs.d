@@ -2399,18 +2399,12 @@ If FRAME is omitted or nil, use currently selected frame."
          (outline-minor-mode . outshine-mode))
   :bind ("M-S-<return>" . outshine-insert-heading)
   :config
-  (setq my-black "#1b1b1e")
-
   (custom-theme-set-faces
    'user
-   `(outline-1 ((t (:height 1.8 :foreground "#c8d8e3"
-                            :background ,my-black :weight bold))))
-   `(outline-2 ((t (:height 1.5 :foreground "#268bd2"
-                            :background ,my-black :weight bold))))
-   `(outline-3 ((t (:height 1.2 :foreground "#2aa198"
-                            :background ,my-black :weight bold))))
-   `(outline-4 ((t (:height 1.05 :foreground "#818e96"
-                            :background ,my-black :weight bold)))))  )
+   `(outline-1 ((t (:height 1.8 :foreground "#c8d8e3" :weight bold))))
+   `(outline-2 ((t (:height 1.5 :foreground "#268bd2" :weight bold))))
+   `(outline-3 ((t (:height 1.2 :foreground "#2aa198" :weight bold))))
+   `(outline-4 ((t (:height 1.05 :foreground "#818e96" :weight bold)))))  )
 
 
 (use-package pretty-outlines
