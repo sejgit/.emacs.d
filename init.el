@@ -482,7 +482,17 @@
         (setq x-gtk-use-system-tooltips nil))
 
 ;;;;;; windows
-      (window-divider-mode)      )
+      (window-divider-mode)
+
+;;;;;; Automatically visit symlink sources
+      (setq find-file-visit-truename t)
+      (setq vc-follow-symlinks t)
+
+;;;;;; Smooth scrolling in Emacs29
+      (if (version< emacs-version "29.0")
+          (pixel-scroll-mode)
+        (pixel-scroll-precision-mode 1)
+        (setq pixel-scroll-precision-large-scroll-height 35.0))      )
 
 
 ;;;;; Simple
@@ -1592,11 +1602,6 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle t)
   )
-
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
-  :init
-  (savehist-mode))
 
 
 ;;;;; marginalia
@@ -5089,7 +5094,7 @@ function with the \\[universal-argument]."
                                       ("M-P" . eshell-previous-prompt)
                                       ("M-N" . eshell-next-prompt)
                                       ("M-R" . eshell-previous-matching-input)
-                                      ("C-l" . eshell/clear) ) )))
+                                      ("C-l" . eshell/clear) ))))
 
   :bind ( :map sej-mode-map
          ("C-z E" . eshell) )
