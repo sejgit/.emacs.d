@@ -3720,10 +3720,10 @@ the children of class at point."
 ;; - https://github.com/emacs-dashboard/emacs-dashboard
   (use-package dashboard
     :if (eq sej-dashboard t)
-    :straight (emacs-dashboard
-               :type git
-               :host github
-               :repo "emacs-dashboard/emacs-dashboard")
+    :straight (dashboard :type git
+                         :flavor melpa
+                         :files (:defaults "banners" "dashboard-pkg.el")
+                         :host github :repo "emacs-dashboard/emacs-dashboard")
     :blackout (dashboard-mode)
     :commands sej/open-dashboard
     :hook (emacs-startup . sej/open-dashboard)
