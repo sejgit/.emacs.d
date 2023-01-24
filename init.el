@@ -2744,6 +2744,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - interface to the version control system Git
 ;; - https://magit.vc/
 (use-package magit
+  ;; :straight (magit :type git
+  ;;                  ;; :flavor melpa
+  ;;                  :files ("lisp/magit" "lisp/magit*.el" "lisp/git-rebase.el" "docs/magit.texi" "docs/AUTHORS.md" "LICENSE" "Documentation/magit.texi" "Documentation/AUTHORS.md" (:exclude "lisp/magit-libgit.el" "lisp/magit-libgit-pkg.el" "lisp/magit-section.el" "lisp/magit-section-pkg.el") "magit-pkg.el")
+  ;;                  :host github
+                   ;; :repo "magit/magit")
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
          ("C-x M-g" . magit-dispatch)
