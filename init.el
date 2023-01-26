@@ -1573,6 +1573,12 @@ If FRAME is omitted or nil, use currently selected frame."
   completion-category-defaults nil
   completion-category-overrides '((file (styles partial-completion)))  )
 
+;;;;; prescient
+;; 
+(use-package prescient
+  :config
+  (prescient-presist-mode +1))
+
 ;;;;; embark
 ;; acting on targets
 ;; [[https://github.com/oantolin/embark/][embark]]
@@ -1612,12 +1618,10 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
-         ("C-c h" . consult-history)
          ("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
          ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
@@ -1627,7 +1631,6 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-z C-M-y" . consult-register)
          ;; Other custom bindings
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-         ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
@@ -2777,7 +2780,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/magit/forge
 (use-package forge
   :after magit
-  :demand)
+  :demand t)
 
 ;;;;; git-gutter-fringe
 ;; git fringe
