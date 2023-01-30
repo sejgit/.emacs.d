@@ -774,7 +774,7 @@
 
 
 ;;;;; sej-mode-map bindings
-(unbind-key "C-z")
+(unbind-key "C-q")
 (unbind-key "M-z")
 (global-unset-key (kbd "C-h C-h"))
 
@@ -784,7 +784,7 @@
   (global-unset-key (kbd (format "M-%d" n))))
 
 (bind-keys :prefix-map sej-mode-cz-map
-           :prefix "C-z"
+           :prefix "C-q"
            :prefix-docstring "SeJ Personal cz-key bindings"
            ("v" . emacs-version)
 	   ("\\" . align-regexp) ;Align your code in a pretty way.
@@ -1019,8 +1019,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; [[https://github.com/purcell/default-text-scale][default-text-scale]]
 (use-package default-text-scale
   :bind (:map sej-mode-map
-              ("C-z +" . default-text-scale-increase)
-              ("C-z -" . default-text-scale-decrease)
+              ("C-q +" . default-text-scale-increase)
+              ("C-q -" . default-text-scale-decrease)
               ("s-r" . default-text-scale-reset))
   :config
   (setq default-text-scale-amount 20))
@@ -1037,22 +1037,22 @@ Return its absolute path.  Otherwise, return nil."
               ("s-6" . delete-other-frames)
               ("s-w" . delete-frame)
               ("C-x w" . delete-frame)
-              ("C-z <up>" . sej/frame-resize-full)
+              ("C-q <up>" . sej/frame-resize-full)
               ("H-C-j" . sej/frame-resize-full)
-              ("C-z <left>" . sej/frame-resize-l)
+              ("C-q <left>" . sej/frame-resize-l)
               ("H-C-h" . sej/frame-resize-l)
               ("<A-M-left>" . sej/frame-resize-l)
-              ("C-z <S-left>" . sej/frame-resize-l2)
+              ("C-q <S-left>" . sej/frame-resize-l2)
               ("H-C-S-h" . sej/frame-resize-l2)
-              ("C-z <right>" . sej/frame-resize-r)
+              ("C-q <right>" . sej/frame-resize-r)
               ("H-C-l" . sej/frame-resize-r)
               ("<A-M-right>" . sej/frame-resize-r)
-              ("C-z <S-right>" . sej/frame-resize-r2)
+              ("C-q <S-right>" . sej/frame-resize-r2)
               ("H-C-S-l" . sej/frame-resize-r2)
               ("H-C-f" . toggle-frame-fullscreen)
-              ("C-z F" . toggle-frame-fullscreen)
+              ("C-q F" . toggle-frame-fullscreen)
               ("A-M-m" . sej/frame-recentre)
-              ("C-z m" . sej/frame-recentre))
+              ("C-q m" . sej/frame-recentre))
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
@@ -1221,7 +1221,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (interactive)
   (browse-url sej-homepage))
 
-(define-key sej-mode-map (kbd "C-z h") 'sej/browse-homepage)
+(define-key sej-mode-map (kbd "C-q h") 'sej/browse-homepage)
 
 
 ;;;;; sej/quit-and-kill-auxiliary-windows
@@ -1263,8 +1263,8 @@ If FRAME is omitted or nil, use currently selected frame."
     (emacs-lisp-mode)
     ))
 (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-(define-key sej-mode-map (kbd "C-z S") 'sej/create-scratch-buffer)
-(define-key sej-mode-map (kbd "C-z S") 'sej/create-scratch-buffer)
+(define-key sej-mode-map (kbd "C-q S") 'sej/create-scratch-buffer)
+(define-key sej-mode-map (kbd "C-q S") 'sej/create-scratch-buffer)
 
 
 ;;;;; persistent-scratch
@@ -1606,9 +1606,9 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ;; Custom M-# bindings for fast register access
-         ("C-z C-y" . consult-register-load)
-         ("C-z C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-z C-M-y" . consult-register)
+         ("C-q C-y" . consult-register-load)
+         ("C-q C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-q C-M-y" . consult-register)
          ;; Other custom bindings
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ;; M-g bindings (goto-map)
@@ -1747,7 +1747,7 @@ If FRAME is omitted or nil, use currently selected frame."
   "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
-(define-key sej-mode-map (kbd "C-z <tab>") 'sej/indent-buffer)
+(define-key sej-mode-map (kbd "C-q <tab>") 'sej/indent-buffer)
 
 
 ;;;; history packages
@@ -1756,8 +1756,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://gitlab.com/ideasman42/emacs-undo-fu
 (use-package undo-fu
   :blackout t
-  :bind ( ("C-/" . undo-fu-only-undo)
-          ("C-S-/" . undo-fu-only-redo))
+  :bind ( ("C-z" . undo-fu-only-undo)
+          ("C-S-z" . undo-fu-only-redo))
   :config (setq undo-fu-allow-undo-in-region t))
 
 ;;;;; undo-fu-session
@@ -1766,6 +1766,13 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package undo-fu-session
   :after undo-fu
   :hook (emacs-startup . global-undo-fu-session-mode))
+
+;;;;; vundo
+;; - visual undo displays the undo history as a tree
+;; - [[https://github.com/casouri/vundo][vundo]]
+(use-package vundo
+  :blackout t
+  :bind ("C-/" . vundo))
 
 ;;;;; recentf
 ;; - recent file history list settings
@@ -1828,8 +1835,7 @@ If FRAME is omitted or nil, use currently selected frame."
           ("C-c C-k" . crux-duplicate-current-line-or-region)
           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
           ([remap kill-whole-line] . crux-kill-whole-line)
-          ("C-<backspace>" . crux-kill-line-backwards)
-          ("C-z I" . crux-find-shell-init-file))
+          ("C-<backspace>" . crux-kill-line-backwards) )
   :config
   (crux-with-region-or-buffer indent-region)
   (crux-with-region-or-buffer untabify)
@@ -2023,7 +2029,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/abo-abo/ace-link
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
-         ("C-z u" . ace-link-addr)
          :map org-mode-map
          ("H-u" . ace-link-org))
   :config (ace-link-setup-default))
@@ -2378,7 +2383,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
   :bind (:map sej-mode-map
-              ("C-z f" . format-all-buffer)
+              ("C-q f" . format-all-buffer)
               ("A-f" . format-all-buffer)))
 
 ;;;;; sh-script
@@ -2692,7 +2697,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind (:map sej-mode-map
-              ("C-z r" . emr-show-refactor-menu)
+              ("C-q r" . emr-show-refactor-menu)
               ("H-r" . emr-show-refactor-menu) ))
 
 
@@ -2844,7 +2849,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
   :bind (:map sej-mode-map
-              (("C-z B" . browse-at-remote)
+              (("C-q B" . browse-at-remote)
                ("C-x v B" . browse-at-remote))
               :map vc-prefix-map
               ("B" . browse-at-remote)))
@@ -2876,7 +2881,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package gist
   :defines sej-mode-map
   :bind  (:map sej-mode-map
-               ("C-z G" . gist-list)
+               ("C-q G" . gist-list)
                ("H-G" . gist-list)))
 
 ;;;;; git-modes
@@ -2908,7 +2913,7 @@ If FRAME is omitted or nil, use currently selected frame."
       (kill-buffer log-buf))
     (kill-buffer commit-buf)))
 
-(define-key sej-mode-map (kbd "C-z b") 'sej/git-blame-line)
+(define-key sej-mode-map (kbd "C-q b") 'sej/git-blame-line)
 (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
 
 
@@ -3046,7 +3051,7 @@ If the region is active and option `transient-mark-mode' is on, call
 (define-key emacs-lisp-mode-map (kbd "H-<return>") 'eval-buffer)
 
 (define-key emacs-lisp-mode-map (kbd "C-c D") 'toggle-debug-on-error)
-(global-set-key (kbd "C-z C-e") 'toggle-debug-on-error)
+(global-set-key (kbd "C-q C-e") 'toggle-debug-on-error)
 
 ;; use flymake
 (add-hook 'emacs-lisp-mode-hook 'flymake-mode)
@@ -3564,7 +3569,7 @@ the children of class at point."
   :init
   (setq compile-command "echo Building... && go build -v && echo Testing... && go test -v && echo Linter... && golint")
   (setq compilation-read-command nil)
-  :bind (("C-z c" . compile)
+  :bind (("C-q c" . compile)
          ;; ("M-." . godef-jump)
          )
   :config
@@ -3682,7 +3687,7 @@ the children of class at point."
     :hook (emacs-startup . sej/open-dashboard)
     :bind (("<f6>" . sej/open-dashboard)
            (:map sej-mode-map
-                 ("C-z d" . sej/open-dashboard)))
+                 ("C-q d" . sej/open-dashboard)))
     :config
     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
     (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
@@ -3897,7 +3902,7 @@ the children of class at point."
 (use-package quick-preview
   :defines sej-mode-map
   :bind (:map sej-mode-map
-              ("C-z q" . quick-preview-at-point)
+              ("C-q q" . quick-preview-at-point)
               :map dired-mode-map
               ("Q" . quick-preview-at-point)))
 
@@ -3905,7 +3910,7 @@ the children of class at point."
 ;; - browse file at remote source
 ;; - https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind ("C-z b" . browse-at-remote))
+  :bind ("C-q b" . browse-at-remote))
 
 ;;;;; diredfl
 ;; - Extra font-lock rules for a more Colourful dired
@@ -3923,7 +3928,7 @@ the children of class at point."
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
               ("<f7>" . deft)
-              ("C-z D" . deft))
+              ("C-q D" . deft))
   :config
   (setq deft-directory sej-org-directory)
   (setq deft-use-filename-as-title t
@@ -4109,7 +4114,7 @@ the children of class at point."
           (forward-line 1)))
   (goto-char start))
 
-(define-key sej-mode-map (kbd "C-z N") 'sej/number-rectangle)
+(define-key sej-mode-map (kbd "C-q N") 'sej/number-rectangle)
 (define-key sej-mode-map (kbd "C-x r N") 'sej/number-rectangle)
 
 ;;;;; flyspell
@@ -4694,7 +4699,7 @@ function with the \\[universal-argument]."
 ;; - https://github.com/pinard/poporg
 (use-package poporg
   :bind (:map sej-mode-map
-              ("C-z o" . poporg-dwim)))
+              ("C-q o" . poporg-dwim)))
 
 ;;;;; org-pretty-tags
 ;; - Display text or image surrogates for Org mode tags.
@@ -4788,7 +4793,7 @@ function with the \\[universal-argument]."
                                       ("C-l" . eshell/clear) ))))
 
   :bind ( :map sej-mode-map
-         ("C-z E" . eshell) )
+         ("C-q E" . eshell) )
 
   :config
   ;; (require 'esh-opt)
@@ -5062,7 +5067,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-mode-map
-               ("C-z S" . shell))
+               ("C-q S" . shell))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -5109,7 +5114,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - pop-up shell
 ;; - https://github.com/kyagi/shell-pop-el
 (use-package shell-pop
-  :bind ("C-z p" . shell-pop)
+  :bind ("C-q p" . shell-pop)
   :init (let ((val
                (if sys/win32p
                    '("eshell" "*eshell*" (lambda () (eshell)))
@@ -5151,9 +5156,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :straight (:type built-in)
   :commands (term ansi-term serial-term)
   :bind (:map sej-mode-map
-              ("C-z A" . ansi-term)
-              ("C-z C-s" . serial-term)
-              ("C-z T" . term))
+              ("C-q A" . ansi-term)
+              ("C-q C-s" . serial-term)
+              ("C-q T" . term))
   :config
   (setq term-buffer-maximum-size 9999)
   (setq term-completion-autolist t)
@@ -5166,7 +5171,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package vterm
   :commands vterm
   :bind (:map sej-mode-map
-              ("C-z V" . vterm))
+              ("C-q V" . vterm))
   :preface
   (setq vterm-install t
         vterm-always-compile-module t)
@@ -5185,7 +5190,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top][ERC]]
 (use-package erc
   :straight (:type built-in)
-  :bind ("C-z I" . sej/erc-dwim)
+  :bind ("C-q I" . sej/erc-dwim)
   :config
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
     ;; erc hack for gnutls for client cert.
@@ -5313,7 +5318,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package eww
   :straight (:type built-in)
   :bind (:map sej-mode-map
-              ("C-z W"))
+              ("C-q W"))
   :config
   (setq eww-restore-desktop nil)
   (setq eww-desktop-remove-duplicates t)
@@ -5369,7 +5374,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :straight (:type built-in)
   :commands (message-mail)
   :bind (:map sej-mode-map
-              ("C-z M"))
+              ("C-q M"))
   :config
   (setq send-mail-function 'sendmail-send-it
         sendmail-program "/usr/local/bin/msmtp"
@@ -5420,7 +5425,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package calendar
   :straight (:type built-in)
   :bind (:map sej-mode-map
-              ("C-z C"))
+              ("C-q C"))
   :config
   (setq calendar-mark-diary-entries-flag t)
   (setq calendar-time-display-form
