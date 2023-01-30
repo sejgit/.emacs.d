@@ -988,8 +988,8 @@ Return its absolute path.  Otherwise, return nil."
   :config
   (setq which-key-use-C-h-commands t
         which-key-separator " "
-        which-key-prefix-prefix "+")
-  (which-key-setup-side-window-bottom))
+        which-key-prefix-prefix "+"
+        which-key-popup-type 'minibuffer)  )
 
 ;;;;; helpful
 ;; - helpful is an improved help-fns & help-fns+
@@ -1319,12 +1319,6 @@ If FRAME is omitted or nil, use currently selected frame."
   :init
   (setq display-buffer-alist
         '(;; top side window
-          ("\\*\\(Flycheck\\|Package-Lint\\).*"
-           (display-buffer-in-side-window)
-           (window-height . 0.16)
-           (side . bottom)
-           (slot . 0)
-           (window-parameters . ((no-other-window . t))))
           ("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|Messages\\)\\*"
            (display-buffer-in-side-window)
            (window-height . 0.16)
@@ -1338,25 +1332,6 @@ If FRAME is omitted or nil, use currently selected frame."
            (side . bottom)
            (slot . 0)
            (window-parameters . ((no-other-window . t))))
-          ;; ("\\*e?shell.*"
-          ;;  (display-buffer-in-side-window)
-          ;;  (window-height . 0.16)
-          ;;  (side . bottom)
-           ;; (slot . 1))
-          ;; left side window
-          ;; ("\\*helpful.*"
-          ;;  (display-buffer-in-side-window)
-          ;;  (window-width . 0.30)       ; See the :hook
-          ;;  (side . right)
-          ;;  (slot . 0)
-          ;;  (window-parameters . ((no-other-window . t))))
-          ;; ("\\*Help.*"
-          ;;  (display-buffer-in-side-window)
-          ;;  (window-width . 0.30)       ; See the :hook
-          ;;  (side . right)
-          ;;  (slot . 0)
-          ;;  (window-parameters . ((no-other-window . t))))
-          ;; right side window
           ("\\*Faces\\*"
            (display-buffer-in-side-window)
            (window-width . 0.25)
@@ -1414,21 +1389,26 @@ If FRAME is omitted or nil, use currently selected frame."
                                 "*esh command on file*")))
 
 
-;;;;; golden-ratio
-;; - keep windows balanced with in-focus window larger
-;; - https://github.com/roman/golden-ratio.el
-(use-package golden-ratio
-  :after which-key
-  :hook (emacs-startup . golden-ratio-mode)
+;;;;; zoom
+;; - replacement for golden-ratio
+;; - for managing window sizes
+;; - [[https://github.com/cyrus-and/zoom][zoom]]
+(use-package zoom
+  :hook (emacs-startup . zoom-mode)
+  :bind ("C-x +" . zoom) ; override the key binding of balance-windows
   :blackout
-  :init
-  (golden-ratio-mode 1)
-  :config
-  (add-to-list 'golden-ratio-extra-commands 'ace-window)
-  (add-to-list 'golden-ratio-extra-commands 'next-multiframe-window)
-  (setq golden-ratio-auto-scale t)
-  (add-to-list 'golden-ratio-exclude-buffer-names which-key-buffer-name)  )
-
+  :custom
+   (zoom-mode t)
+   (zoom-size '(0.6818 . 0.6818)) ; resize window using the golden ratio
+   ;(temp-buffer-resize-mode t) ; preserve completion buffer
+   ;(zoom-ignored-major-modes '(dired-mode markdown-mode)) ; ignore these major modes
+   ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
+   (zoom-ignored-buffer-name-regexps '("^*calc")) ; ignore related windows
+   (zoom-ignore-predicates '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
+   :config
+   (defun size-callback () ; resize the buffer according to frame size
+     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+           (t '(0.5 . 0.5))))  )
 
 ;;;; tabs
 ;;;;; tab-bar
@@ -1633,7 +1613,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g f" . consult-flymake)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
@@ -2655,26 +2635,6 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq flymake-diagnostic-at-point-display-diagnostic-function
         'flymake-diagnostic-at-point-display-minibuffer))
 
-;;;;; flymake-aspell
-;; - flymake movement using flyspell checker
-;; - [[https://github.com/leotaku/flycheck-aspell/blob/master/README-FLYMAKE.md][flycheck-aspell]]
-(use-package flymake-aspell
-  :after (flyspell flymake)
-  :hook (
-         (text-mode . flymake-aspell-setup)))
-
-;;;;; flymake-proselint
-;; - flymake prose lint checker
-;; - [[https://github.com/manuel-uberti/flymake-proselint][flymake-proselint]]
-;; - need to install 'brew install proselint' or equivalent
-(use-package flymake-proselint
-  :after flymake
-  :straight (flymake-proselint)
-  :ensure-system-package proselint
-  :ensure flymake-quickdef
-  :hook (((markdown-mode text-mode adoc-mode) . flymake-proselint-setup)
-         ((markdown-mode text-mode adoc-mode) . flymake-mode)))
-
 ;;;;; flycheck
 ;; - added in emacs syntax checker
 ;; - https://www.flycheck.org/en/latest/
@@ -3308,23 +3268,12 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - Improved JavaScript editing mode
 ;; - https://github.com/mooz/js2-mode
 (use-package js2-mode
-  :defines flycheck-javascript-eslint-executable
   :mode (("\\.js\\'" . js2-mode)
          ("\\.jsx\\'" . js2-jsx-mode))
   :interpreter (("node" . js2-mode)
                 ("node" . js2-jsx-mode))
   :hook ((js2-mode . js2-imenu-extras-mode)
-         (js2-mode . js2-highlight-unused-variables-mode))
-  :config
-  (with-eval-after-load 'flycheck
-    (if (or (executable-find "eslint_d")
-            (executable-find "eslint")
-            (executable-find "jshint"))
-        (setq js2-mode-show-strict-warnings nil))
-    (if (executable-find "eslint_d")
-        ;; https://github.com/mantoni/eslint_d.js
-        ;; npm -i -g eslint_d
-        (setq flycheck-javascript-eslint-executable "eslint_d"))))
+         (js2-mode . js2-highlight-unused-variables-mode)))
 
 ;;;;; js2-refactor
 ;; - JavaScript refactoring library for Emacs
@@ -3587,11 +3536,7 @@ the children of class at point."
 (use-package swift-mode
   :hook (swift-mode . (lambda() (lsp)))
   :config
-  (require 'lsp-sourcekit)
-  (use-package flycheck-swift
-    :after flycheck
-    :commands flycheck-swift-setup
-    :init (flycheck-swift-setup)))
+  (require 'lsp-sourcekit)  )
 
 ;;;;; lsp-sourcekit for swift-mode
 ;; - a client for sourcekit-lsp a swift/c/c++/objective-c language server created by apple
@@ -4004,7 +3949,6 @@ the children of class at point."
 ;; - markdown-mode used a lot on Github
 ;; - https://jblevins.org/projects/markdown-mode/
 (use-package markdown-mode
-  :defines flycheck-markdown-markdownlint-cli-config
   :preface
   ;; Install: pip install grip
   (defun markdown-preview-grip ()
@@ -4034,8 +3978,7 @@ the children of class at point."
         (kill-process process)
         (message "Process %s killed" process))))
 
-  ;; Install: npm i -g markdownlint-cli
-  (defun set-flycheck-markdownlint ()
+    (defun set-flycheck-markdownlint ()
     "Set the `mardkownlint' config file for the current buffer."
     (let* ((md-lint ".markdownlint.json")
            (md-file buffer-file-name)
@@ -4182,6 +4125,7 @@ the children of class at point."
   sej-mode-map
   :hook
   (prog-mode . flyspell-prog-mode)
+  (text-mode . flyspell-mode)
   :config
   (setq flyspell-abbrev-p t
                 flyspell-use-global-abbrev-table-p t
