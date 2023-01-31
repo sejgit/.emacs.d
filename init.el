@@ -1728,11 +1728,9 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package prescient)
   (use-package corfu-prescient
     :init
-    (corfu-prescient-mode))
-  (use-package vertico-prescient
-    :init
-    (vertico-prescient-mode)  )
+    (corfu-prescient-mode t))
 
+  (use-package vertico-prescient)
 
 ;;;;; embark
 ;; acting on targets
