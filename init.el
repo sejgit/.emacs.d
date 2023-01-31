@@ -245,7 +245,7 @@
   :type 'string)
 
 (defcustom sej-dashboard t
-  "Use dashboard at startup or not. If Non-nil, use dashboard, otherwise will restore previous session."
+  "If Non-nil, use dashboard at start-up, otherwise will restore previous session."
   :type 'boolean)
 
 (defcustom sej-benchmark nil
@@ -651,7 +651,7 @@
 ;; Main use is to have my key bindings have the highest priority
 ;; - https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
 (defvar sej-mode-map (make-sparse-keymap)
-  "Keymap for 'sej-mode'.")
+  "Keymap for <sej-mode>.")
 
         ;;;###autoload
 (define-minor-mode sej-mode
@@ -673,7 +673,7 @@
 
 ;; Turn off the minor mode in the minibuffer
 (defun turn-off-sej-mode ()
-  "Turn off 'sej-mode'."
+  "Turn off <sej-mode>."
   (sej-mode -1))
 (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
 
@@ -813,7 +813,7 @@
 ;;;;; sej/save-macro
 ;; - save last macro to init file
 (defun sej/save-macro (name)
-  "Save a macro.  Take a NAME as argument and save the last defined macro under this name at the end of your init file."
+  "Save a macro with NAME as argument; save the macro at the end of your init file."
   (interactive "SName of the macro :")
   (kmacro-name-last-macro name)
   (find-file user-init-file)
@@ -833,7 +833,7 @@
   (s-trim (shell-command-to-string command)))
 
 (defun sej/exec-with-rc (command &rest args)
-  "Run a shell COMMAND ARGS and return a list containing two values: its return code and its whitespace trimmed output."
+  "Run a shell COMMAND ARGS; return code and its whitespace trimmed output."
   (interactive)
   (with-temp-buffer
     (list (apply 'call-process command nil (current-buffer) nil args)
@@ -852,7 +852,7 @@ Return its absolute path.  Otherwise, return nil."
     (when (f-executable? path) path)))
 
 (defun sej/exec-if-exec (command args)
-  "If COMMAND satisfies `sej/is-exec', run it with ARGS and return its output as per `sej/exec'. Otherwise, return nil."
+  "If COMMAND `sej/is-exec' run it with ARGS, return per `sej/exec' or nil."
   (interactive)
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
 
@@ -1600,7 +1600,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq vertico-cycle t))
 
 ;;;;; corfu
-;; small completion program similar to company 
+;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
   :hook (emacs-startup . global-corfu-mode)
@@ -1791,7 +1791,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
-         ("M-g x" . consult-xref) 
+         ("M-g x" . consult-xref)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
@@ -1811,7 +1811,6 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
          ;; Isearch integration
-         ("M-s e" . consult-isearch)
          :map isearch-mode-map
          ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
 
@@ -3090,7 +3089,7 @@ If FRAME is omitted or nil, use currently selected frame."
   "Run `git blame` on the current line and add the commit id to the kill ring."
   (interactive)
   (let* ((line-number (save-excursion
-                        (goto-char (point-at-bol))
+                        (goto-char (pos-bol))
                         (+ 1 (count-lines 1 (point)))))
          (line-arg (format "%d,%d" line-number line-number))
          (commit-buf (generate-new-buffer "*git-blame-line-commit*")))
@@ -3508,7 +3507,7 @@ the children of class at point."
             (pcase-let ((`(,depth . ,node) (pop tree)))
               (cl-destructuring-bind (&key uri range) (plist-get node :location)
                 (insert (make-string depth ?\ ) (plist-get node :name) "\n")
-                (make-text-button (+ (point-at-bol 0) depth) (point-at-eol 0)
+                (make-text-button (+ (pos-bol 0) depth) (pos-eol 0)
                                   'action (lambda (_arg)
                                             (interactive)
                                             (find-file (eglot--uri-to-path uri))
@@ -3710,19 +3709,7 @@ the children of class at point."
                                     " " (icon 1 -1 :left :elide) "\t" (name 18 18 :left :elide)
                                     " " (size 9 -1 :right)
                                     " " (mode 16 16 :left :elide) " " filename-and-process)
-                              (mark " " (name 16 -1) " " filename)))))
-
-  (with-eval-after-load 'counsel
-    (defun my-ibuffer-find-file ()
-      (interactive)
-      (let ((default-directory (let ((buf (ibuffer-current-buffer)))
-                                 (if (buffer-live-p buf)
-                                     (with-current-buffer buf
-                                       default-directory)
-                                   default-directory))))
-        (counsel-find-file default-directory)))
-    (advice-add #'ibuffer-find-file :override #'my-ibuffer-find-file))
-  )
+                              (mark " " (name 16 -1) " " filename)))))  )
 
 ;;;;; registers
 ;; - Registers allow you to jump to a file or other location quickly.
@@ -4153,7 +4140,7 @@ the children of class at point."
 ;; This function allows you to hit ***C-x r N ***and specify the pattern
 ;; and starting offset to number lines in rectangular-selection mode:
 (defun sej/number-rectangle (start end format-string from)
-  "Delete text in the region-rectangle, then number it from (START to END with FORMAT-STRING FROM)."
+  "Delete text in region-rectangle; number (START to END with FORMAT-STRING FROM)."
   (interactive
    (list (region-beginning) (region-end)
          (read-string "Number rectangle: "
@@ -5057,7 +5044,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
                    (list 'setq 'process-environment
                          (list 'quote (eshell-copy-environment))))))
         (compile (eshell-flatten-and-stringify args))
-        (pop-to-buffer compilation-last-buffer))
+        (pop-to-buffer next-error-last-buffer))
     (throw 'eshell-replace-command
            (let ((l (eshell-stringify-list (eshell-flatten-list args))))
              (eshell-parse-command (car l) (cdr l))))))
@@ -5085,7 +5072,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;;;;; eshell/less
 ;; - Invoke `view-file' on a file.  \"less +42 foo\" will go to line 42 in the buffer
 (defun eshell/less (&rest args)
-  "Invoke `view-file' on a file (ARGS).  \"less +42 foo\" will go to line 42 in the buffer for foo."
+  "Invoke (view-file) on a file (ARGS).  \"less +42 foo\" will go to line 42 for foo."
   (while args
     (if (string-match "\\`\\+\\([0-9]+\\)\\'" (car args))
         (let* ((line (string-to-number (match-string 1 (pop args))))
@@ -5110,7 +5097,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;;;;; eshell/magit
 ;; - function to open magit-status for the current directory
 (defun eshell/magit ()
-  "Function to open 'magit-status' for the current directory."
+  "Function to open <magit-status> for the current directory."
   (interactive)
   (magit-status default-directory)
   nil)
