@@ -365,9 +365,9 @@
 ;; Common Lisp compatibility, beyond what is already built-in
 ;; in Emacs Lisp.
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/cl-lib.el][cl-lib.el]]
-(use-package cl-lib
-  :demand t
-  :straight (:type built-in))
+;; (use-package cl-lib
+;;   :demand t
+;;   :straight (:type built-in))
 
 ;;;;; Org-Plus-Contrib
 ;; We need to intercept the built-in org-version that ships with Emacs we have to do this early.
@@ -1691,7 +1691,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-history)
   ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
@@ -1699,7 +1699,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
   ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
-  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
   )
 
@@ -2395,21 +2395,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package volatile-highlights
   :blackout t
   :hook (emacs-startup . volatile-highlights-mode))
-
-;;;;; whitespace
-;; - Visualize TAB, (HARD) SPACE, NEWLINE
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/whitespace.el
-(use-package whitespace
-  :straight (whitespace :type built-in)
-  :blackout
-  ;; :hook ((prog-mode outline-mode conf-mode) . whitespace-mode)
-  :config
-  ;; automatically clean up bad whitespace
-  (setq whitespace-action '(auto-cleanup))
-  ;; only show bad whitespace
-  (setq whitespace-style '(face trailing space-before-tab empty space-after-tab))
-  (setq whitespace-line-column fill-column) ;; limit line length
-  )
 
 ;;;;; pulse
 ;; - Pulse current line
