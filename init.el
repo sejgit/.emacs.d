@@ -1,3 +1,4 @@
+
 ;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
@@ -35,7 +36,7 @@
 
 
 ;;; Changelog
-;;
+;; not every commit ; just the big stuff
 ;; - <2019-04-28> Merge from old .emacs.d
 ;; - <2019-10-20> remove helm stuff; remove most messages
 ;; - <2019-10-22> start to tangle in init-org.org
@@ -49,7 +50,6 @@
 ;; - <2020-02-21 Fri> package -> straight
 ;; - <2020-05-17 Sun> try outline/outshine/pretty-outlines
 ;; - <2020-07-26 Sun> clean-up init files final move from org tangled
-;; - <2020-09-21 Mon> small mods
 ;; - <2020-09-22 Tue> move to helm
 ;; - <2020-11-21 Sat> move custom.el fonts to init.el
 ;; - <2021-01-04 Mon> gccemacs changes & simplifications
@@ -57,8 +57,8 @@
 ;; - <2021-04-26 Mon> move from Helm to Selectrum
 ;; - <2021-10-14 Thu> move from projectile to built-in project.el
 ;; - <2021-11-11 Thu> add frame centre function & fix no littering
-;; - <2021-11-30 Tue> clean-up installed packages set-up
 ;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
+;; - <2023-01-30 Mon> vertigo orderless consult corfu
 
 
 ;;; Code:
@@ -377,7 +377,6 @@
 ;; - a use-package friendly place to put settings
 ;;   no real extra value to putting as setq but feels clean
 (use-package emacs
-  :demand t
   :straight (:type built-in)
   :custom
 ;;;;;; general
@@ -446,9 +445,35 @@
       (prefer-coding-system 'utf-8) ; with sugar on top
 
       :init
+;;;;;; completion
+      ;; Add prompt indicator to `completing-read-multiple'.
+      ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+      (defun crm-indicator (args)
+        (cons (format "[CRM%s] %s"
+                      (replace-regexp-in-string
+                       "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                       crm-separator)
+                      (car args))
+              (cdr args)))
+      (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+      ;; Do not allow the cursor in the minibuffer prompt
+      (setq minibuffer-prompt-properties
+            '(read-only t cursor-intangible t face minibuffer-prompt))
+      (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+      ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+      ;; Vertico commands are hidden in normal buffers.
+      (setq read-extended-command-predicate
+            #'command-completion-default-include-p)
+      
       (setq sentence-end-double-space nil) ; Sentences do not need double spaces to end. Period.
       (global-visual-line-mode t) ; Add proper word wrapping
       (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
+
+      ;; Enable indentation+completion using the TAB key.
+      ;; `completion-at-point' is often bound to M-TAB.
+      (setq tab-always-indent 'complete)
 
 ;;;;;; color codes
       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
@@ -569,15 +594,6 @@
          uniquify-strip-common-suffix t
          uniquify-after-kill-buffer-p t
          uniquify-separator "/"))
-
-;;;;; Mwheel
-;; mouse wheel settings
-;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/mwheel.el][Mwheel.el]]
-(use-package mwheel
-  :straight (:type built-in)
-  :init
-  (setq mouse-wheel-scroll-amount '(1 ((shift) .5) ((control)))
-                mouse-wheel-progressive-speed nil))
 
 ;;;;; no-littering feature
 ;; set the default paths for configuration files & persistent data
@@ -777,11 +793,6 @@
 (unbind-key "C-q")
 (unbind-key "M-z")
 (global-unset-key (kbd "C-h C-h"))
-
-;; unset C- and M- digit keys
-(dotimes (n 10)
-  (global-unset-key (kbd (format "C-%d" n)))
-  (global-unset-key (kbd (format "M-%d" n))))
 
 (bind-keys :prefix-map sej-mode-cz-map
            :prefix "C-q"
@@ -1508,11 +1519,66 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
   (global-anzu-mode))
 
-;;;;; ctrlf
-;; single-buffer text search in Emacs
-;; [[https://github.com/raxod502/ctrlf#usage][ctrlf]]
-(use-package ctrlf
-  :hook (emacs-startup . ctrlf-mode))
+
+;;;; completion
+;;;;; abbrev
+;; - for inserting abbreviations
+;; - https://www.emacswiki.org/emacs/AbbrevMode
+(use-package abbrev
+  :straight (abbrev :type built-in)
+  :hook ((emacs-startup org-mode) . abbrev-mode)
+  :blackout
+  :config
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+
+  (define-abbrev-table
+    'org-mode-abbrev-table
+    '(("orgh" "" sej/org-header 0)
+      ("orgl" "" sej/org-wrap-elisp 0)
+      ("orgs" "" sej/org-wrap-source 0))))
+
+;;;;; dabbrev
+;; built-in package to let you write just a few characters of words you've written
+;; earlier to be able to expand them.
+(use-package dabbrev
+  :straight (:type built-in)
+  :commands (dabbrev-expand
+             dabbrev-completion)
+  :init
+  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
+        dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
+        dabbrev-backward-only nil
+        dabbrev-case-distinction nil
+        dabbrev-case-fold-search t
+        dabbrev-case-replace nil
+        dabbrev-check-other-buffers t
+        dabbrev-eliminate-newlines nil
+        dabbrev-upcase-means-case-search t))
+
+;;;;; hippie-expand
+;; - built-in package to expand at point in various ways
+;; - https://www.emacswiki.org/emacs/HippieExpand
+
+(use-package hippie-expand
+  :straight (hippie-expand :type built-in)
+  :bind (:map sej-mode-map
+              ("M-/" . hippie-expand))
+  :init
+  (setq hippie-expand-try-functions-list
+        '(try-complete-file-name-partially
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-dabbrev-from-kill
+          try-expand-list-all-buffers
+          try-expand-list
+          try-expand-line-all-buffers
+          try-expand-line
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-complete-lisp-symbol-partially
+          try-compelete-lisp-symbol)))
 
 ;;;;; vertico
 ;; - alternative to ivy, ido, helm
@@ -1531,13 +1597,117 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq vertico-resize t)
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t)  )
+  (setq vertico-cycle t))
+
+;;;;; corfu
+;; small completion program similar to company 
+;; [[https://github.com/minad/corfu][corfu]]
+(use-package corfu
+  :hook (emacs-startup . global-corfu-mode)
+    ;; Optional customizations
+  :custom
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.
+  ;; This is recommended since Dabbrev can be used globally (M-/).
+  ;; See also `corfu-excluded-modes'.
+  (corfu-echo-documentation nil)
+  :config
+  (use-package corfu-history
+    :straight nil
+    :load-path "straight/build/corfu/extensions"
+    :demand t
+    :init
+    (savehist-mode 1)
+    (add-to-list 'savehist-additional-variables 'corfu-history)
+    :config
+    (corfu-history-mode t))
+  (use-package corfu-indexed
+    :straight nil
+    :load-path "straight/build/corfu/extensions"
+    :demand t
+    :config
+    (corfu-indexed-mode t))
+  (use-package corfu-popupinfo
+    :straight nil
+    :load-path "straight/build/corfu/extensions"
+    :demand t
+    :config
+    (corfu-popupinfo-mode t))
+  (use-package corfu-terminal
+  :unless (display-graphic-p)
+  :init
+  (corfu-terminal-mode +1)  )
+  (use-package corfu-doc-terminal
+    :straight (corfu-doc-terminal :type git
+                                  :repo "https://codeberg.org/akib/emacs-corfu-doc-terminal.git")
+    :unless (display-graphic-p)
+    :init
+    (corfu-doc-terminal-mode +1) ) )
+
+;;;;; cape
+;; completion at point extensions
+;; [[https://github.com/minad/cape][cape]]
+;; Enable Corfu completion UI
+;; See the Corfu README for more configuration tips.
+(use-package corfu
+  :init
+  (global-corfu-mode))
+
+;; Add extensions
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)
+         ("C-c p l" . cape-line)
+         ("C-c p w" . cape-dict)
+         ("C-c p \\" . cape-tex)
+         ("C-c p _" . cape-tex)
+         ("C-c p ^" . cape-tex)
+         ("C-c p &" . cape-sgml)
+         ("C-c p r" . cape-rfc1345))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  )
 
 ;;;;; marginalia
 ;; Enable richer annotations using the Marginalia package
 ;; [[https://github.com/minad/marginalia][marginalia]]
 (use-package marginalia
-  :hook (selectrum-mode . marginalia-mode)
+  :hook (emacs-startup . marginalia-mode)
   :bind (("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle)))
@@ -1555,9 +1725,14 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; prescient
 ;; 
-(use-package prescient
-  :config
-  (prescient-presist-mode +1))
+(use-package prescient)
+  (use-package corfu-prescient
+    :init
+    (corfu-prescient-mode))
+  (use-package vertico-prescient
+    :init
+    (vertico-prescient-mode)  )
+
 
 ;;;;; embark
 ;; acting on targets
@@ -1593,7 +1768,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;;;; consult
-;; - complementary to selectrum
+;; - completing read
 ;; - [[https://github.com/minad/consult][consult]]
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
@@ -1602,7 +1777,9 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-c b" . consult-bookmark)
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
+         ("C-x r" . consult-recent-file)
          ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x p b" . consult-project-buffer)      ;; switch to buffer within project
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ;; Custom M-# bindings for fast register access
@@ -1614,13 +1791,14 @@ If FRAME is omitted or nil, use currently selected frame."
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
+         ("M-g x" . consult-xref) 
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
-         ("M-g I" . consult-project-imenu)
+         ("M-g I" . consult-imenu-multi)
          ;; M-s bindings (search-map)
          ("M-s f" . consult-find)
          ("M-s L" . consult-locate)
@@ -1628,6 +1806,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
          ("M-s l" . consult-line)
+         ("M-s M-s l" . consult-line-multi)
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
@@ -1702,7 +1881,32 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; (setq consult-project-root-function #'vc-root-dir)
 ;;;;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
-)
+
+  (defun consult-info-emacs ()
+  "Search through Emacs info pages."
+  (interactive)
+  (consult-info "emacs" "efaq" "elisp" "cl" "compat"))
+
+(defun consult-info-org ()
+  "Search through the Org info page."
+  (interactive)
+  (consult-info "org"))
+
+(defun consult-info-completion ()
+  "Search through completion info pages."
+  (interactive)
+  (consult-info "vertico" "consult" "marginalia" "orderless" "embark"
+                "corfu" "cape" "tempel"))
+
+;; Use `consult-completion-in-region' if Vertico is enabled.
+;; Otherwise use the default `completion--in-region' function.
+(setq completion-in-region-function
+      (lambda (&rest args)
+        (apply (if vertico-mode
+                   #'consult-completion-in-region
+                 #'completion--in-region)
+               args))))
+
 
 ;;;;; bookmark+
 ;; - enhancements to the built-in bookmark package
@@ -1780,8 +1984,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package recentf
   :straight (recentf :type built-in)
   :hook (emacs-startup . recentf-mode)
-  :bind ("C-x C-r" . crux-recentf-find-file)
-  :config
+  :init
   (setq recentf-max-saved-items 2000
         recentf-max-menu-items 100
         recentf-auto-cleanup 'never
@@ -1791,7 +1994,6 @@ If FRAME is omitted or nil, use currently selected frame."
                           ".elfeed"
                           "bookmarks"
                           "cache"
-                          "ido.*"
                           "persp-confs"
                           "recentf"
                           "undo-tree-hist"
@@ -2246,11 +2448,14 @@ If FRAME is omitted or nil, use currently selected frame."
                  other-window ace-window windmove-do-window-select
                  pager-page-down pager-page-up
                  symbol-overlay-basic-jump))
-    (advice-add cmd :after #'my-pulse-momentary-line))
+  ;;  (advice-add cmd :after #'my-pulse-momentary-line)
+    )
   (dolist (cmd '(pop-to-mark-command
                  pop-global-mark
                  goto-last-change))
-    (advice-add cmd :after #'my-recenter-and-pulse)))
+    ;;  (advice-add cmd :after #'my-recenter-and-pulse)
+    )
+  )
 
 ;;;;; paren
 ;; - show paren mode
@@ -2322,7 +2527,8 @@ If FRAME is omitted or nil, use currently selected frame."
               ("C-c x" . xref-find-definitions))
   :config
   (add-to-list 'eglot-server-programs '((c-mode c++-mode objc-mode cuda-mode) "ccls"))
-  (setq help-at-pt-display-when-idle t))
+  (setq help-at-pt-display-when-idle t)
+  (setq completion-category-defaults nil))
 
 ;;;;; tree-sitter
 ;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
@@ -2389,11 +2595,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; sh-script
 ;; shell script mode built-in
 ;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
-(use-package company-shell)
-
 (use-package sh-script
   :straight (:type built-in)
-  :requires company-shell
   :preface
   (defun sej/sh-prettify-mode-line ()
     (setq mode-line-process nil)
@@ -2428,20 +2631,11 @@ If FRAME is omitted or nil, use currently selected frame."
       (when font-lock-mode
         (with-no-warnings
           (font-lock-fontify-buffer)))))
-  (use-package company-shell)
   :init
   (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
   (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
   :config
-  (setq-default sh-basic-offset 2)
-  (compdef
-   :modes '(sh-mode shell-script-mode)
-   :capf #'sh-completion-at-point-function
-   :company '(company-capf
-              company-shell
-              company-shell-env
-              company-files
-              company-dabbrev-code)))
+  (setq-default sh-basic-offset 2))
 
 ;;;;; tramp
 ;; - remote editing
@@ -2781,7 +2975,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
 (use-package smerge-mode
   :straight (:type built-in)
-  :after hydra
   :blackout
   :commands (smerge-mode
              smerge-auto-leave
@@ -2801,48 +2994,49 @@ If FRAME is omitted or nil, use currently selected frame."
              smerge-combine-with-next
              smerge-resolve
              smerge-kill-current)
-  :init
-  (defhydra hydra-smerge
-    (:color red :hint none :post (smerge-auto-leave))
-    "
-      ^Move^       ^Keep^               ^Diff^                 ^Other^
-      ^^──────────-^^───────────────────^^─────────────────────^^──────────────────
-      _n_ext       _b_ase               _<_: upper/base        _C_ombine
-      _p_rev       _u_pper              _=_: upper/lower       _r_esolve
-      ^^           _l_ower              _>_: base/lower        _k_ill current
-      ^^           _a_ll                _R_efine               _ZZ_: Save and bury
-      ^^           _RET_: current       _E_diff                _q_: cancel
-      "
-    ("n" smerge-next)
-    ("p" smerge-prev)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("R" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("k" smerge-kill-current)
-    ("ZZ" (lambda ()
-            (interactive)
-            (save-buffer)
-            (bury-buffer))
-     "Save and bury buffer" :color blue)
-    ("q" nil "cancel" :color blue))
-  :hook ((find-file . (lambda ()
-                        (save-excursion
-                          (goto-char (point-min))
-                          (when (re-search-forward "^<<<<<<< " nil t)
-                            (smerge-mode 1)))))
-         (magit-diff-visit-file . (lambda ()
-                                    (when smerge-mode
-                                      (hydra-smerge/body))))))
+  ;;:init
+  ;; (defhydra hydra-smerge
+  ;;   (:color red :hint none :post (smerge-auto-leave))
+  ;;   "
+  ;;     ^Move^       ^Keep^               ^Diff^                 ^Other^
+  ;;     ^^──────────-^^───────────────────^^─────────────────────^^──────────────────
+  ;;     _n_ext       _b_ase               _<_: upper/base        _C_ombine
+  ;;     _p_rev       _u_pper              _=_: upper/lower       _r_esolve
+  ;;     ^^           _l_ower              _>_: base/lower        _k_ill current
+  ;;     ^^           _a_ll                _R_efine               _ZZ_: Save and bury
+  ;;     ^^           _RET_: current       _E_diff                _q_: cancel
+  ;;     "
+  ;;   ("n" smerge-next)
+  ;;   ("p" smerge-prev)
+  ;;   ("b" smerge-keep-base)
+  ;;   ("u" smerge-keep-upper)
+  ;;   ("l" smerge-keep-lower)
+  ;;   ("a" smerge-keep-all)
+  ;;   ("RET" smerge-keep-current)
+  ;;   ("\C-m" smerge-keep-current)
+  ;;   ("<" smerge-diff-base-upper)
+  ;;   ("=" smerge-diff-upper-lower)
+  ;;   (">" smerge-diff-base-lower)
+  ;;   ("R" smerge-refine)
+  ;;   ("E" smerge-ediff)
+  ;;   ("C" smerge-combine-with-next)
+  ;;   ("r" smerge-resolve)
+  ;;   ("k" smerge-kill-current)
+  ;;   ("ZZ" (lambda ()
+  ;;           (interactive)
+  ;;           (save-buffer)
+  ;;           (bury-buffer))
+  ;;    "Save and bury buffer" :color blue)
+  ;;   ("q" nil "cancel" :color blue))
+  ;; :hook ((find-file . (lambda ()
+  ;;                       (save-excursion
+  ;;                         (goto-char (point-min))
+  ;;                         (when (re-search-forward "^<<<<<<< " nil t)
+  ;;                           (smerge-mode 1)))))
+  ;;        (magit-diff-visit-file . (lambda ()
+  ;;                                   (when smerge-mode
+  ;;                                     (hydra-smerge/body)))))
+  )
 
 ;;;;; browse-at-remote
 ;; - Open github/gitlab/bitbucket page
@@ -2915,122 +3109,6 @@ If FRAME is omitted or nil, use currently selected frame."
 
 (define-key sej-mode-map (kbd "C-q b") 'sej/git-blame-line)
 (define-key sej-mode-map (kbd "H-b") 'sej/git-blame-line)
-
-
-;;;; completion
-;;;;; abbrev
-;; - for inserting abbreviations
-;; - https://www.emacswiki.org/emacs/AbbrevMode
-(use-package abbrev
-  :straight (abbrev :type built-in)
-  :hook ((emacs-startup org-mode) . abbrev-mode)
-  :blackout
-  :config
-  (setq abbrev-file-name             ;; tell emacs where to read abbrev
-        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
-
-  (define-abbrev-table
-    'org-mode-abbrev-table
-    '(("orgh" "" sej/org-header 0)
-      ("orgl" "" sej/org-wrap-elisp 0)
-      ("orgs" "" sej/org-wrap-source 0))))
-
-;;;;; dabbrev
-;; built-in package to let you write just a few characters of words you've written
-;; earlier to be able to expand them.
-(use-package dabbrev
-  :straight (:type built-in)
-  :commands (dabbrev-expand
-             dabbrev-completion)
-  :init
-  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
-        dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
-        dabbrev-backward-only nil
-        dabbrev-case-distinction nil
-        dabbrev-case-fold-search t
-        dabbrev-case-replace nil
-        dabbrev-check-other-buffers t
-        dabbrev-eliminate-newlines nil
-        dabbrev-upcase-means-case-search t))
-
-;;;;; hippie-expand
-;; - built-in package to expand at point in various ways
-;; - https://www.emacswiki.org/emacs/HippieExpand
-
-(use-package hippie-expand
-  :straight (hippie-expand :type built-in)
-  :bind (:map sej-mode-map
-              ("M-/" . hippie-expand))
-  :init
-  (setq hippie-expand-try-functions-list
-        '(try-complete-file-name-partially
-          try-expand-dabbrev-visable
-          try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-expand-list-all-buffers
-          try-expand-list
-          try-expand-line-all-buffers
-          try-expand-line
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-complete-lisp-symbol-partially
-          try-compelete-lisp-symbol)))
-
-;;;;; iComplete
-;; built-in minibuffer completion helper
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Icomplete.html][Fast minibuffer selection]]
-(use-package icomplete
-  :straight (:type built-in)
-  :hook (emacs-startup . icomplete-mode)
-  :config
-  (setq icomplete-delay-completions-threshold 0
-        icomplete-max-chars 0
-        icomplete-compute-delay 0
-        icomplete-show-matches-on-no-input t
-        icomplete-hide-common-prefix nil
-        icomplete-prospects-height 1
-        icomplete-separator " · "
-        icomplete-with-completion-tables t
-        icomplete-in-buffer t)
-  (fido-mode -1))
-
-;;;;; company
-;; - Company is a text completion framework for Emacs
-;; - [[http://company-mode.github.io/][company-mode homepage]]
-(use-package company
-  :blackout t
-  :commands company-complete-common company-manual-begin company-grab-line
-  :hook (emacs-startup . global-company-mode)
-  :bind ((:map sej-mode-map
-              ([remap completion-at-point] . company-manual-begin)
-              ([remap complete-symbol] . company-manual-begin))
-         (:map company-active-map
-               ("TAB" . company-complete-selection)
-               ("<tab>" . company-complete-selection))
-         (:map comint-mode-map
-               ([remap indent-for-tab-command] . company-manual-begin)))
-  :config
-  (unbind-key "C-w" company-active-map)
-  (unbind-key "C-h" company-active-map)  )
-
-;;;;; hydra
-;; - Make bindings that stick around
-;; - https://github.com/abo-abo/hydra
-(use-package hydra)
-
-;;;;; yasnippet
-;; - template system for Emacs
-;; - works with Company
-;; - [[https://github.com/joaotavora/yasnippet][yasnippet]]
-(use-package yasnippet
-  :blackout ((yas-global-mode . "")
-             (yas-minor-mode . ""))
-  :after company
-  :hook (prog-mode . yas-minor-mode)
-  :config
-  (yas-reload-all))
 
 
 ;;;; lisp
@@ -3233,9 +3311,8 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - M-x ein:login to a running jupyter server
 ;; - https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
-  :blackout t
-  :defines ein:completion-backend
-  :init (setq ein:completion-backend 'ein:use-company-backend))
+  :blackout t)
+
 
 ;;;;; pip-requirements
 ;; - major mode for editing pip requirement files
@@ -3406,7 +3483,6 @@ If the region is active and option `transient-mark-mode' is on, call
                                  (shell-command-to-string
                                   "clang -print-resource-dir")))))
 
-  ;; (setq company-transformers nil company-lsp-async t)
   (setq ccls-sem-highlight-method 'font-lock)
   ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
 
@@ -3503,22 +3579,6 @@ the children of class at point."
         arduino-cli-verify t
         arduino-cli-default-fqbn "esp8266:esp8266:d1"
         arduino-cli-default-port "/dev/cu.wchusbserial1430"))
-
-;;;;; company-c-headers
-;; - This library enables the completion of C/C++ header file names using Company mode for Emacs
-;; - [[https://github.com/randomphrase/company-c-headers][company-c-headers]]
-(use-package company-c-headers
-  :after company
-  :straight (company-c-headers
-             :type git
-             :host github
-             :repo "randomphrase/company-c-headers")
-  :init
-  (add-to-list 'company-backends 'company-c-headers)
-  (defun my-company-c-headers-get-system-path ()
-  "Return the system include path for the current buffer."
-  (let ((default '("/usr/include/" "/usr/local/include/")))))
-(setq company-c-headers-path-system 'my-company-c-headers-get-system-path))
 
 ;;;;; platformio-mode
 ;; - minor mode which allows quick building and uploading of PlatformIO projects
