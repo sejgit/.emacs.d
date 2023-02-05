@@ -31,30 +31,17 @@
 
 ;;; Code:
 
+;;;;; Package-enable prevent early 
+;; Package initialize occurs automatically, before `user-init-file' is
+;; loaded, but after `early-init-file'. We handle package
+;; initialization, so we must prevent Emacs from doing it early!
+(setq package-enable-at-startup nil)
+
+;;;;; Garbage collection
 ;; Defer garbage collection further back in the startup process
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (defvar extended-gc-cons-threshold most-positive-fixnum)
 (defvar default-gc-cons-threshold (* 100 1024 1024))
-
-
-;; for gccemacs
-;; Native Compilation Vars
-(setq-default native-comp-speed 2
-              native-comp-deferred-compilation t)
-
-;; Prevents libgccjit error
-;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
-(if (eq system-type 'darwin)
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc@12/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc@12/lib/gcc/12/gcc/x86_64-apple-darwin21/12"))
-
-(setq auto-window-vscroll nil
-              bidi-display-reordering 'left-to-right
-              bidi-paragraph-direction 'left-to-right
-              frame-inhibit-implied-resize t
-              inhibit-default-init t
-              site-run-file nil
-              load-prefer-newer t
-              read-process-output-max (* 1024 1024 3))
 
 (setq file-name-handler-alist nil
       gc-cons-threshold extended-gc-cons-threshold)
@@ -74,24 +61,32 @@
 (add-hook 'after-init-hook #'sej/return-gc-to-default)
 (advice-add #'package--ensure-init-file :override #'ignore)
 
+;;;;; gccemacs
+;; Native Compilation Vars
+(setq-default native-comp-speed 2
+              native-comp-deferred-compilation t)
 
-;; Package initialize occurs automatically, before `user-init-file' is
-;; loaded, but after `early-init-file'. We handle package
-;; initialization, so we must prevent Emacs from doing it early!
-(setq package-enable-at-startup nil)
+;;;;; Prevents libgccjit error (may not still be needed)
+;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
+;; (if (eq system-type 'darwin)
+;; (setenv "LIBRARY_PATH" "/usr/local/opt/gcc@12/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc@12/lib/gcc/12/gcc/x86_64-apple-darwin21/12"))
 
-;; Faster to disable these here (before they've been initialized)
-(unless (and (display-graphic-p) (eq system-type 'darwin))
-  (setq menu-bar-mode nil))
+;;;;; frame settings early to prevent clutter
 (modify-all-frames-parameters '((width . 80)
                                 (height . 50)
                                 (left . 0)
                                 (right . 0)
-                                (internal-border-width . 1)
+                                (left-fringe . 6)
+                                (right-fringe . 8)
+                                (internal-border-width . 5)
+                                (child-frame-border-width . 2)
                                 (vertical-scroll-bars . nil)
+                                (horizontal-scroll-bars . nil)
                                 (tool-bar-lines . 0)
                                 (ns-appearance . dark)
-                                ;; (font . "Iosevka-14")
                                 ))
+(unless (display-graphic-p)
+  (add-to-list 'default-frame-alist '(menu-bar-mode . 0)))
 
+(provide 'early-init)
 ;;; early-init.el ends here
