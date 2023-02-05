@@ -84,6 +84,8 @@
                                 (horizontal-scroll-bars . nil)
                                 (tool-bar-lines . 0)
                                 (ns-appearance . dark)
+                                (undecorated . t)
+                                (undecorated-round . t)
                                 ))
 (unless (display-graphic-p)
   (add-to-list 'default-frame-alist '(menu-bar-mode . 0)))
