@@ -90,5 +90,6 @@
 (unless (display-graphic-p)
   (add-to-list 'default-frame-alist '(menu-bar-mode . 0)))
 
+
 (provide 'early-init)
 ;;; early-init.el ends here

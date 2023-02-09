@@ -70,7 +70,6 @@
 ;; (setq debug-on-error t)
 ;; (setq debug-on-event t)
 
-
 ;;;;; Straight package manager set-up
 (setq-default straight-repository-branch "develop"
               straight-fix-org t
@@ -171,6 +170,38 @@
 (when (not emacs/>27p)
   (error "This requires Emacs 28 and above")  )
 
+;;;;; OSX System specific environment setting
+(when sys/macp
+  (when sys/mac-x-p
+    (use-package exec-path-from-shell)
+    (setq exec-path-from-shell-arguments nil)
+    (exec-path-from-shell-initialize)))
+
+;;;;; Linux System specific environment setting
+(when sys/linuxp
+  (setq exec-path (append exec-path '("/usr/local/bin")))  )
+
+;;;;; Microsoft Windows specific environment settings
+;; set execution paths
+(when sys/win32p
+  (setenv "PATH"
+          (mapconcat
+           #'identity exec-path path-separator))
+
+  ;; set exec-path for latex installation
+  (setq exec-path (append (list sej-latex-directory
+                                "c:/msys64/mingw64/bin"
+                                "/mingw64/bin/") exec-path))
+
+;;;;; AutoHotkey Mode xahk-mode
+  ;; - load AutoHotkey mode only used for Microsoft Windows
+  ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
+  (use-package xahk-mode
+    :if sys/win32p
+    :demand t
+    :straight (xahk-mode.el :type git
+                            :host github
+                            :repo "xahlee/xahk-mode.el") )  )
 
 ;;;;;  Warnings
 ;; set-up server & suppress warnings
@@ -303,37 +334,6 @@
                    (expand-file-name "custom-post.el" "~/.ssh/")))
               (if (file-exists-p file)
                   (load file :noerror))) )
-
-
-;;;;; exec-path-from-shell
-;; set-up exec-path and hook for server-start
-;; [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]]
-(use-package exec-path-from-shell
-  :demand t
-  :when (or sys/macp sys/linuxp daemonp)
-  :init
-  (setq exec-path-from-shell-variables '("DOTFILES"
-                                         "EDITOR"
-                                         "EMACS"
-                                         "PYENV_ROOT"
-                                         "IPYTHONDIR"
-                                         "PYTHONSTARTUP"
-                                         "PYLINTHOME"
-                                         "FZF_DEFAULT_COMMAND"
-                                         "HIST_IGNORE"
-                                         "HISTSIZE"
-                                         "SAVEHIST"
-                                         "SSH_AUTH_SOCK"
-                                         "TREE_SITTER_DIR"
-                                         "JAVA_HOME"
-                                         "ZSH"
-                                         "PATH"
-                                         "MANPATH"
-                                         "FPATH"
-                                         )
-        exec-path-from-shell-arguments '("-l"))
-  :config
-  (exec-path-from-shell-initialize))
 
 ;;;;; Compdef
 ;; in buffer completion to set local completion backends
@@ -608,43 +608,6 @@
 
   (setq auto-save-file-name-transforms `((".*"
                                           ,(no-littering-expand-var-file-name "auto-save/") t))))
-
-
-;;;;; OSX System specific environment setting
-(when sys/macp
-  (setq exec-path (append exec-path '("/usr/local/bin")))
-  )
-
-
-;;;;; Linux System specific environment setting
-(when sys/linuxp
-  (setq exec-path (append exec-path '("/usr/local/bin")))
-  )
-
-
-;;;;; Microsoft Windows specific environment settings
-;; set execution paths
-(when sys/win32p
-  (setenv "PATH"
-          (mapconcat
-           #'identity exec-path path-separator))
-
-  ;; set exec-path for latex installation
-  (setq exec-path (append (list sej-latex-directory
-                                "c:/msys64/mingw64/bin"
-                                "/mingw64/bin/") exec-path))
-
-
-;;;;; AutoHotkey Mode xahk-mode
-  ;; - load AutoHotkey mode only used for Microsoft Windows
-  ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
-  (use-package xahk-mode
-    :if sys/win32p
-    :demand t
-    :straight (xahk-mode.el :type git
-                            :host github
-                            :repo "xahlee/xahk-mode.el") )  )
-
 
 ;;;;; sej-mode-map set-up
 ;; - Below taken from stackexchange (Emacs)
@@ -1115,35 +1078,35 @@ Return its absolute path.  Otherwise, return nil."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1))
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
 
   (defun sej/frame-resize-l ()
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1))
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
 
   (defun sej/frame-resize-l2 ()
     "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
 
   (defun sej/frame-resize-r ()
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
     (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
 
   (defun sej/frame-resize-r2 ()
     "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height))) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height)) -25) 1)  )
 
   (when sys/mac-x-p
     (setq ns-use-native-fullscreen nil))
@@ -1417,9 +1380,10 @@ If FRAME is omitted or nil, use currently selected frame."
    (zoom-ignored-buffer-name-regexps '("^*calc")) ; ignore related windows
    (zoom-ignore-predicates '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
    :config
-   (defun size-callback () ; resize the buffer according to frame size
-     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-           (t '(0.5 . 0.5))))  )
+   ;; (defun size-callback () ; resize the buffer according to frame size
+   ;;   (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+   ;;         (t '(0.5 . 0.5))))
+   )
 
 ;;;; tabs
 ;;;;; tab-bar
@@ -2499,33 +2463,6 @@ If FRAME is omitted or nil, use currently selected frame."
 
 
 ;;; programming
-;;;;; eglot
-;; - simple client for Language Server Protocol servers
-;; - https://github.com/joaotavora/eglot
-(use-package eglot
-  :hook ((c-mode c++-mode objc-mode cuda-mode)  . eglot-ensure)
-  :bind (:map eglot-mode-map
-              ("C-c h" . eglot-help-at-point)
-              ("C-c x" . xref-find-definitions))
-  :config
-  (add-to-list 'eglot-server-programs '((c-mode c++-mode objc-mode cuda-mode) "ccls"))
-  (setq help-at-pt-display-when-idle t)
-  (setq completion-category-defaults nil))
-
-;;;;; tree-sitter
-;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
-;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
-(use-package tree-sitter
-  :hook ((python-mode c-mode c++-mode rust-mode go-mode) . (lambda ()
-                     (require 'tree-sitter)
-                     (require 'tree-sitter-langs)
-                     (require 'tree-sitter-hl)
-                     (tree-sitter-hl-mode))))
-
-(use-package tree-sitter-langs)
-
-(use-package tree-sitter-indent)
-
 ;;;;; prog-mode
 ;; - generalized program mode
 ;; - Prettify Symbols
@@ -2564,6 +2501,58 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-hook 'prog-mode-hook #'show-paren-mode)
   (add-hook 'prog-mode-hook #'prettify-symbols-mode)
   (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
+
+;;;;; tree-sitter
+;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
+;; Important this is using the built-in Emacs version tree-sit.el
+;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
+  (use-package treesit
+  :straight (:type built-in)
+  :ensure t
+  :config
+  (when (treesit-available-p)
+    (setq major-mode-remap-alist
+          '((c-mode          . c-ts-mode)     ; completed set-up for all c-modes
+          (c++-mode        . c++-ts-mode)
+          (c-or-c++-mode   . c-or-c++-ts-mode)
+          (conf-toml-mode  . toml-ts-mode)    ; completed (no set-up)
+          (csharp-mode     . csharp-ts-mode)
+          (css-mode        . css-ts-mode)
+          (java-mode       . java-ts-mode)    ; not completed - keep current non-ts for now
+          (js-mode         . js-ts-mode)      ; not completed - keep current non-ts for now
+          (javascript-mode . js-ts-mode)      ; not completed - keep current non-ts for now
+          (js-json-mode    . json-ts-mode)    ; not completed - keep current non-ts for now
+          (python-mode     . python-ts-mode)  ; competed set-up
+          (ruby-mode       . ruby-ts-mode)    ; not completed - keep current non-ts for now
+          (sh-mode         . bash-ts-mode)    ; work in progress
+          ))))
+
+;;;;; eglot
+;; - simple client for Language Server Protocol servers
+;; - https://github.com/joaotavora/eglot
+;; - [[https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers][good how to use post]]
+(use-package eglot
+  :straight (:type built-in)
+  :hook (prog-mode  . eglot-ensure)
+  :bind (:map eglot-mode-map
+              ("C-c h" . eglot-help-at-point)
+              ("C-c x" . xref-find-definitions))
+  :config
+  (add-to-list 'eglot-server-programs
+               `((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
+                         c-ts-mode c++-ts-mode c-or-c++-ts-mode) .
+                         ,(eglot-alternatives
+                           '(("ccls" )
+                             ("clang")))))
+  (add-to-list 'eglot-server-programs
+               `(python-ts-mode . ,(eglot-alternatives
+                                    '(("pyright-langserver" "--stdio")
+                                      ("jedi-language-server")
+                                      ("pylsp" "pyls") ))))
+  (setq help-at-pt-display-when-idle t)
+  (setq completion-category-defaults nil)
+  (use-package consult-eglot
+    :commands consult-eglot-symbols))
 
 ;;;;; format-all
 ;; - auto-format source code in many languages using the same command for all languages
@@ -2840,7 +2829,6 @@ If FRAME is omitted or nil, use currently selected frame."
                                               idle-change
                                               idle-buffer-switch))
   (setq flycheck-emacs-lisp-load-path 'inherit)
-  (setq flycheck-python-flake8-executable "flake8")
   (setq flycheck-flake8-maximum-line-length 79)
   (setq flycheck-highlighting-mode 'lines)
   (progn    (set-face-attribute 'flycheck-warning nil
@@ -3209,39 +3197,40 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; brew install pyright
 ;; YAPF or Black
 ;; - http://wikemacs.org/wiki/Python
-(use-package python
-  :straight (:type built-in)
-  :bind (:map python-mode-map
-              ("s-\\" . python-insert-docstring) )
-  :config
-  (setq python-indent-guess-ident-offset-verbose nil
+(require 'python)
+
+(setq python-indent-guess-ident-offset-verbose nil
         python-indent-offset 4
         comment-inline-offset 2)
 
   (cond
-   ((executable-find "ipython")
+  ((executable-find "ipython")
     (setq python-shell-buffer-name "IPython"
           python-shell-interpreter "ipython"
           python-shell-interpreter-args "--simple-prompt -i") )
    ((executable-find "python3")
     (setq python-shell-interpreter "python3"))
-   ((executable-find "python2")
-    (setq python-shell-interpreter "python2"))
    (t
     (setq python-shell-interpreter "python")))
 
   (define-skeleton python-insert-docstring
     "Insert a Python docstring."
     "This string is ignored!"
-    "\"\"\"" - "\n\n    \"\"\"")  )
+    "\"\"\"" - "\n\n    \"\"\"")
+
 
 ;;;;; lsp-pyright
 ;; lsp server for python
 ;; [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]]
-(use-package lsp-pyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred))))  ; or lsp
+;; (use-package lsp-pyright
+;;   :hook ((python-mode . (lambda ()
+;;                           (require 'lsp-pyright)
+;;                           (lsp)
+;;                           (bind-key "s-\\" #'python-insert-docstring python-mode-map) ))
+;;         (python-ts-mode . (lambda ()
+;;                             (require 'lsp-pyright)
+;;                             (lsp)
+;;                             (bind-key "s-\\" #'python-insert-docstring python-ts-mode-map) ))  ))
 
 ;;;;; inferior-python-mode
 ;; runs a python interpreter as a subprocess of Emacs
@@ -3294,7 +3283,6 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
   :blackout t)
-
 
 ;;;;; pip-requirements
 ;; - major mode for editing pip requirement files
@@ -3447,33 +3435,36 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; ccls
 ;; - c++-mode, objc-mode, cuda-mode: lsp server
-;; - used for both lsp & eglot so no :if statement
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
-  :hook ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls)))
-  :config
-  (setq ccls-initialization-options
-        '(:index (:comments 2)
-                 :completion (:detailedLabel t)
-                 :clang
-                 ,(list
-                   :extraArgs
-                   ["-isystem/Library/Developer/CommandLineTools/usr/include/c++/v1"
-                    "-isysroot/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
-                    "-isystem/usr/local/include"]
-                   :resourceDir (string-trim
-                                 (shell-command-to-string
-                                  "clang -print-resource-dir")))))
 
-  (setq ccls-sem-highlight-method 'font-lock)
-  ;; alternatively, (setq ccls-sem-highlight-method 'overlay)
+ :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
+                c-ts-mode c++-ts-mode c-or-c++-ts-mode) . (lambda () (require 'ccls)))
+ :init
+(setq ccls-executable "ccls")
+(setq ccls-initialization-options
+      '(:index (:comments 2)
+               :completion (:detailedLabel t)
+               :clang
+               ,(list
+                 :extraArgs
+                 ["-isystem/Library/Developer/CommandLineTools/usr/include/c++/v1"
+                  "-isysroot/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+                  "-isystem/usr/local/include"]
+                 :resourceDir (string-trim
+                               (shell-command-to-string
+                                "clang -print-resource-dir")))))
 
-  ;; For rainbow semantic highlighting
-  (ccls-use-default-rainbow-sem-highlight)
+:config
+(setq ccls-sem-highlight-method 'font-lock)
+;; alternatively, (setq ccls-sem-highlight-method 'overlay)
+
+;; For rainbow semantic highlighting
+(ccls-use-default-rainbow-sem-highlight)
 
 
-  (defun eglot-ccls-inheritance-hierarchy (&optional derived)
-  "Show inheritance hierarchy for the thing at point.
+(defun eglot-ccls-inheritance-hierarchy (&optional derived)
+  "Show inheritance for the thing at point.
 If DERIVED is non-nil (interactively, with prefix argument), show
 the children of class at point."
   (interactive "P")
@@ -3497,9 +3488,22 @@ the children of class at point."
                                             (goto-char (car (eglot--range-region range)))))
                 (cl-loop for child across (plist-get node :children)
                          do (push (cons (1+ depth) child) tree)))))))
-    (eglot--error "Hierarchy unavailable")))
-  )
+    (eglot--error "Hierarchy unavailable"))))
 
+
+(use-package eglot-ccls
+  :straight (emacs-eglot-ccls
+             :type git
+             :host codeberg
+             :repo "akib/emacs-eglot-ccls")
+  :hook (((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
+                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . eglot-ccls-semhl-mode))
+  :init
+  (defun sej/eglot-ccls-use-colour ()
+    "front end for eglot-ccls-use-default"
+    (interactive)
+    (eglot-ccls-semhl-use-default-rainbow-highlight)) )
+  
 ;;;;; clang-format
 ;; Clang-format emacs integration for use with C/Objective-C/C++.
 ;; [[https://github.com/sonatard/clang-format][clang-format]]
@@ -3575,7 +3579,8 @@ the children of class at point."
              :type git
              :host github
              :repo "ZachMassia/PlatformIO-Mode")
-  :hook ((c++-mode c-mode objc-mode cuda-mode) . platformio-conditionally-enable))
+  :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
+                 c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
 
 ;;;;; swift-mode
 ;; - support for Apple's Swift programming language
