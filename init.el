@@ -1509,9 +1509,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - alternative to ivy, ido, helm
 ;; - [[https://github.com/minad/vertico][vertico]]
 (use-package vertico
-  :init
-  (vertico-mode)
-
+  :hook (emacs-startup . vertico-mode)
+  :config
   ;; Different scroll margin
   (setq vertico-scroll-margin 0)
 
@@ -1651,12 +1650,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; prescient
 ;; sorts and filters lists of candidates
 ;; [[https://github.com/radian-software/prescient.el][prescient]]
-(use-package prescient)
-  (use-package corfu-prescient
+(use-package prescient
+  :hook (emacs-startup . prescient-persist-mode)
     :init
-    (corfu-prescient-mode t))
-
-  (use-package vertico-prescient)
+    (add-to-list 'completion-styles 'prescient))
+(use-package vertico-prescient
+  :hook (vertico-mode . vertico-prescient-mode))
+(use-package corfu-prescient
+  :hook (corfu-mode . corfu-prescient-mode))
 
 ;;;;; embark
 ;; acting on targets
