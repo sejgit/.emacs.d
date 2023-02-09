@@ -34,7 +34,6 @@
 ;; a long journey to here...
 ;; 
 
-
 ;;; Changelog
 ;; not every commit ; just the big stuff
 ;; - <2019-04-28> Merge from old .emacs.d
@@ -59,7 +58,6 @@
 ;; - <2021-11-11 Thu> add frame centre function & fix no littering
 ;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
 ;; - <2023-01-30 Mon> vertigo orderless consult corfu
-
 
 ;;; Code:
 (message "Emacs start")
@@ -90,7 +88,6 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-
 ;;;;; Use-Package set-up
 ;; - https://github.com/jwiegley/use-package
 ;; - https://github.com/emacsmirror/diminish
@@ -105,12 +102,10 @@
 
 (straight-use-package 'use-package)
 
-
 ;;;;; bind-key
 ;; Required by `use-package'
 (use-package bind-key
   :bind ("s-d" . describe-personal-keybindings))
-
 
 ;;;;; Blackout
 ;; Similar to packages like minions, diminish, or delight.
@@ -121,11 +116,10 @@
   :straight (:host github :repo "raxod502/blackout"))
 
 
-;; Auto installing OS system packages
+;;;;; Auto installing OS system packages
 ;; ensure-system-package keyword to ensure system binaries exist alongside your package
 (use-package use-package-ensure-system-package
   :ensure t)
-
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -164,7 +158,6 @@
 (defconst emacs/>27p
   (> emacs-major-version 27)
   "Emacs is 28 or above.")
-
 
 ;;;;; should i even be here
 (when (not emacs/>27p)
@@ -212,7 +205,6 @@
   (setq warning-suppress-log-types (quote ((cl) )))
   (setq byte-compile-warnings '(cl-functions))
 
-
 ;;;;; Server set-up
 ;; set-up Emacs server
 (use-package emacs
@@ -228,7 +220,6 @@
       (load "server")
       (unless (server-running-p) (server-start)) ) ) )
 
-
 ;;;;; GCMH
 ;; The Garbage Collector Magic Hack
 ;; [[https://github.com/emacsmirror/gcmh][github gcmh]]
@@ -240,7 +231,6 @@
   (add-hook 'suspend-hook #'gcmh-idle-garbage-collect)
   (setq gcmh-idle-delay 10))
 
-
 ;;;;; restart-emacs
 ;; simple package to restart Emacs within Emacs
 ;; with a single universal-argument (C-u) Emacs is restarted with --debug-init flag
@@ -251,7 +241,6 @@
 (use-package restart-emacs
   :init
   (defalias 're #'restart-emacs))
-
 
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
@@ -307,7 +296,6 @@
   "Password for ERC/IRC."
   :type 'string)
 
-
 ;;;;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -320,7 +308,6 @@
 
 (if (file-exists-p custom-file)
     (load custom-file :noerror))
-
 
 ;;;;; Load `custom-post.el'
 ;; Put personal configurations to override defaults here.
@@ -678,7 +665,6 @@
         (setq ns-command-modifier 'meta)
         )))))
 
-
 ;;;;; Windows keyboard
 ;; - CapsLock::LControl through AutoHotkeys
 ;; scroll lock do hyper (tab to scroll lock using AutoHotkeys)
@@ -707,7 +693,6 @@
     (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
     )))
 
-
 ;;;;; Linux keyboard
 ;; - nothing set at this moment
 (cond
@@ -726,7 +711,6 @@
      (interactive)
      ,@body))
 
-
 ;;;;;  transpose lines/words/sexps/params global
 ;; - Transpose stuff with M-t
 (global-unset-key (kbd "M-t")) ;; which used to be transpose-words
@@ -734,7 +718,6 @@
 (global-set-key (kbd "M-t w") 'transpose-words)
 (global-set-key (kbd "M-t s") 'transpose-sexps)
 (global-set-key (kbd "M-t p") 'transpose-params)
-
 
 ;;;;;  special character definitions
 ;; - Neat bindings for C-x 8 ; put some Alt bindins there for fun as well
@@ -750,7 +733,6 @@
 (global-set-key (kbd "A-8") (λ (insert "∞")))
 (global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
 (global-set-key (kbd "A-V") (λ (insert "✓")))
-
 
 ;;;;; sej-mode-map bindings
 (unbind-key "C-q")
@@ -772,6 +754,7 @@
 	   ("M-j" . (lambda () (join-line -1)))
            )
 
+
 ;;; general functions / packages
 ;;;;; sej/save-macro
 ;; - save last macro to init file
@@ -785,7 +768,6 @@
   (insert-kbd-macro name)
   (newline)
   (switch-to-buffer nil))
-
 
 ;;;;; sej/exec
 ;; - executable functions from ohai and modified for my uses
@@ -819,14 +801,12 @@ Return its absolute path.  Otherwise, return nil."
   (interactive)
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
 
-
 ;;;;; list-environment
 ;; - environment variables tabulated
 ;; - process environment editor
 ;; - https://github.com/dgtized/list-environment.el
 (use-package list-environment
   :commands list-environment)
-
 
 ;;;;; esup
 ;; - Emacs startup profiler
@@ -835,7 +815,6 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (autoload 'esup "esup" "Emacs Start Up Profiler." nil))
 
-
 ;;;;; Advice
 ;; accept versus warn from the Advice system.
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][Advising Emacs Lisp Functions]]
@@ -843,7 +822,6 @@ Return its absolute path.  Otherwise, return nil."
   :straight (:type built-in)
   :init
   (setq-default ad-redefinition-action 'accept))
-
 
 ;;;;; calc
 ;; built-in calculator
@@ -862,7 +840,6 @@ Return its absolute path.  Otherwise, return nil."
           (Kib "1024 * b" "Kilo Bit")
           (b "B / 8" "Bit"))))
 
-
 ;;;;; checkdoc
 ;; built-in checker of buffer for style issues
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/checkdoc.el][checkdoc.el]]
@@ -870,7 +847,6 @@ Return its absolute path.  Otherwise, return nil."
   :straight (:type built-in)
   :config
   (put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp))
-
 
 ;;;;; face-remap
 ;; changes in the appearance of a face.
@@ -1142,22 +1118,16 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;; buffers
 ;;;;; buffer key-bindngs
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
-
 (define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
-
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
-
 ;;added tips from pragmatic emacs
 (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
-
 
 ;;;;; bs.el cycle buffer settings
 (define-key sej-mode-map (kbd "s-n") 'bs-cycle-next) ; buffer cycle next
 (define-key sej-mode-map (kbd "s-p") 'bs-cycle-previous)
-
 (setq-default bs-default-configuration "all-intern-last")
-
 
 ;;;;; sej/dos2unix
 ;; - convert the current buffer to UNIX file format
@@ -1167,7 +1137,6 @@ If FRAME is omitted or nil, use currently selected frame."
   (interactive)
   (set-buffer-file-coding-system 'undecided-unix nil))
 
-
 ;;;;; sej/unix2dos
 ;; - convert the current buffer to DOS file format
 ;; - not bound
@@ -1175,7 +1144,6 @@ If FRAME is omitted or nil, use currently selected frame."
   "Convert the current buffer to DOS file format."
   (interactive)
   (set-buffer-file-coding-system 'undecided-dos nil))
-
 
 ;;;;; sej/save-buffer-as-utf8
 ;; - revert a buffer with coding-system and save as utf-8
@@ -1186,7 +1154,6 @@ If FRAME is omitted or nil, use currently selected frame."
   (set-buffer-file-coding-system 'utf-8)
   (save-buffer))
 
-
 ;;;;; sej/browse-homepage
 ;; - Browse my github homepage
 ;; - bound to C-c s h
@@ -1194,9 +1161,7 @@ If FRAME is omitted or nil, use currently selected frame."
   "Browse the Github page of SeJ Emacs."
   (interactive)
   (browse-url sej-homepage))
-
 (define-key sej-mode-map (kbd "C-q h") 'sej/browse-homepage)
-
 
 ;;;;; sej/quit-and-kill-auxiliary-windows
 (defun sej/quit-and-kill-auxiliary-windows ()
@@ -1218,7 +1183,6 @@ If FRAME is omitted or nil, use currently selected frame."
         (bury-buffer)
       ad-do-it)))
 
-
 ;;;;; sej/create-scratch-buffer
 ;; - as name suggests
 ;; - defined as C-c b
@@ -1239,7 +1203,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
 (define-key sej-mode-map (kbd "C-q S") 'sej/create-scratch-buffer)
 (define-key sej-mode-map (kbd "C-q S") 'sej/create-scratch-buffer)
-
 
 ;;;;; persistent-scratch
 ;; - keep the scratch buffer from session to session
@@ -1323,7 +1286,6 @@ If FRAME is omitted or nil, use currently selected frame."
         even-window-sizes 'height-only
         window-sides-vertical nil))
 
-
 ;;;;; ace-window
 ;; - quickly selecting a window to switch to
 ;; - C-u prefex to move window
@@ -1339,7 +1301,6 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . ace-window-display-mode)
   :config
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-
 
 ;;;;; winner
 ;; - Restore old window configurations
@@ -1362,7 +1323,6 @@ If FRAME is omitted or nil, use currently selected frame."
                                 "*Ibuffer*"
                                 "*esh command on file*")))
 
-
 ;;;;; zoom
 ;; - replacement for golden-ratio
 ;; - for managing window sizes
@@ -1384,6 +1344,7 @@ If FRAME is omitted or nil, use currently selected frame."
    ;;   (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
    ;;         (t '(0.5 . 0.5))))
    )
+
 
 ;;;; tabs
 ;;;;; tab-bar
@@ -1688,7 +1649,8 @@ If FRAME is omitted or nil, use currently selected frame."
   completion-category-overrides '((file (styles partial-completion)))  )
 
 ;;;;; prescient
-;; 
+;; sorts and filters lists of candidates
+;; [[https://github.com/radian-software/prescient.el][prescient]]
 (use-package prescient)
   (use-package corfu-prescient
     :init
@@ -1868,7 +1830,6 @@ If FRAME is omitted or nil, use currently selected frame."
                  #'completion--in-region)
                args))))
 
-
 ;;;;; bookmark+
 ;; - enhancements to the built-in bookmark package
 ;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
@@ -1884,7 +1845,6 @@ If FRAME is omitted or nil, use currently selected frame."
     :config
     (setq ag-executable (executable-find "ag")))
   (setq-default ag-highlight-search t))
-
 
 ;;;;; re-builder
 ;; - set built in regex helper to string format
@@ -3218,7 +3178,6 @@ If the region is active and option `transient-mark-mode' is on, call
     "This string is ignored!"
     "\"\"\"" - "\n\n    \"\"\"")
 
-
 ;;;;; lsp-pyright
 ;; lsp server for python
 ;; [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]]
@@ -3376,7 +3335,7 @@ If the region is active and option `transient-mark-mode' is on, call
   (with-eval-after-load 'sgml-mode
     (bind-key "C-c b" #'web-beautify-html html-mode-map))
   (with-eval-after-load 'css-mode
-    (bind-key "C-c b" #'web-beautify-css css-mode-map))
+    (bind-key "C-c b" #'qweb-beautify-css css-mode-map))
   :config
   ;; Set indent size to 2
   (setq web-beautify-args '("-s" "2" "-f" "-")))
@@ -3431,7 +3390,6 @@ If the region is active and option `transient-mark-mode' is on, call
   (setq c-default-style
         '((awk-mode . "awk")
           (other . "java"))))
-
 
 ;;;;; ccls
 ;; - c++-mode, objc-mode, cuda-mode: lsp server
@@ -3489,7 +3447,6 @@ the children of class at point."
                 (cl-loop for child across (plist-get node :children)
                          do (push (cons (1+ depth) child) tree)))))))
     (eglot--error "Hierarchy unavailable"))))
-
 
 (use-package eglot-ccls
   :straight (emacs-eglot-ccls
@@ -4096,13 +4053,11 @@ the children of class at point."
   :bind (:map markdown-mode-command-map
               ("p" . markdown-soma-mode))  )
 
-
 ;;;;; textile-mode
 ;; - textile markup editing major mode
 ;; - https://github.com/juba/textile-mode
 (use-package textile-mode
   :mode "\\.textile\\'")
-
 
 ;;;;; adoc-mode
 ;; - adoc-mode is an Emacs major mode for editing AsciiDoc files.
@@ -4112,7 +4067,6 @@ the children of class at point."
 ;; - https://github.com/sensorflo/adoc-mode/wiki
 (use-package adoc-mode
   :mode "\\.txt\\'")
-
 
 ;;;;; sej/number-rectangle
 ;; - Let's say you have a list like:
@@ -4369,7 +4323,6 @@ function with the \\[universal-argument]."
          (LaTeX-mode . flymake-mode)
          (LaTeX-mode . reftex-mode)))
 
-
 ;;;;; LaTeX preview pane
 ;; side by side preview
 ;; [[https://www.emacswiki.org/emacs/LaTeXPreviewPane][latex-preview-pane wiki]]
@@ -4405,12 +4358,10 @@ function with the \\[universal-argument]."
   :init
   (setq reftex-plug-into-AUCTeX t))
 
-
 ;;;;; CDLaTex
 ;; fast insertion of environment templates and math stuff in LaTeX
 ;; [[https://github.com/cdominik/cdlatex][cdlatex]]
 (use-package cdlatex)
-
 
 
 ;;;; org
@@ -4786,7 +4737,6 @@ function with the \\[universal-argument]."
   > "#+BEGIN_SRC " str \n
   > _ \n
   > "#+END_SRC" \n)
-
 
 
 ;;; eshell & shell
