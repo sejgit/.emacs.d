@@ -1,5 +1,4 @@
-
-;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t no-byte-compile: t; -*-
+;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t; no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
@@ -58,6 +57,7 @@
 ;; - <2021-11-11 Thu> add frame centre function & fix no littering
 ;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
 ;; - <2023-01-30 Mon> vertigo orderless consult corfu
+;; - <2023-02-12 Sun> :disabled flycheck packages for now in favour of flymake
 
 ;;; Code:
 (message "Emacs start")
@@ -71,7 +71,7 @@
 ;;;;; Straight package manager set-up
 (setq-default straight-repository-branch "develop"
               straight-fix-org t
-              straight-fix-flycheck t
+              ; straight-fix-flycheck t ;; not currently using flycheck
               straight-use-package-by-default t
               straight-check-for-modifications '(check-on-save find-when-checking))
 (setq vc-follow-symlinks t)
@@ -1060,7 +1060,7 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 7)
                     (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
 
   (defun sej/frame-resize-l2 ()
@@ -1074,7 +1074,7 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
     (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 0)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 7)
                     (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
 
   (defun sej/frame-resize-r2 ()
@@ -1335,10 +1335,11 @@ If FRAME is omitted or nil, use currently selected frame."
    (zoom-mode t)
    (zoom-size '(0.6818 . 0.6818)) ; resize window using the golden ratio
    ;(temp-buffer-resize-mode t) ; preserve completion buffer
-   ;(zoom-ignored-major-modes '(dired-mode markdown-mode)) ; ignore these major modes
+   (zoom-ignored-major-modes '(reb-mode)) ; ignore these major modes
    ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
    (zoom-ignored-buffer-name-regexps '("^*calc")) ; ignore related windows
-   (zoom-ignore-predicates '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
+   (zoom-ignore-predicates nil)
+   ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
    :config
    ;; (defun size-callback () ; resize the buffer according to frame size
    ;;   (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
@@ -1547,7 +1548,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
-  ;; See also `corfu-excluded-modes'.
+  ;; See also `corfu-excluded-modes'. (currently added for markdown-mode see markdown-mode setup)
   (corfu-echo-documentation nil)
   :config
   (use-package corfu-history
@@ -1840,12 +1841,12 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; ag
 ;; - searching with the silver searcher
 ;; - https://github.com/Wilfred/ag.el
-(when (executable-find "ag")
   (use-package ag
+    :if (sej/is-exec "ag")
     :commands ag
     :config
-    (setq ag-executable (executable-find "ag")))
-  (setq-default ag-highlight-search t))
+    (setq ag-executable (executable-find "ag"))
+    (setq-default ag-highlight-search t))
 
 ;;;;; re-builder
 ;; - set built in regex helper to string format
@@ -2737,8 +2738,8 @@ If FRAME is omitted or nil, use currently selected frame."
               ("C-c ! p" . flymake-goto-prev-error)
               ("H-]" . flymake-goto-next-error)
               ("C-c ! n" . flymake-goto-next-error)
-              ("H-\\" . flymake-show-diagnostics-buffer)
-              ("C-c ! l" . flymake-show-diagnostics-buffer))
+              ("H-\\" . flymake-show-buffer-diagnostics)
+              ("C-c ! l" . flymake-show-buffer-diagnostics))
   :init
   (setq flymake-fringe-indicator-position 'right-fringe)
   (setq flymake-suppress-zero-counters t)
@@ -2758,7 +2759,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; flymake-diagnostic-at-point
 ;; - Minor mode for showing flymake diagnostics at point.
-;; - [[https://github.com/meqif/flymake-diagnostic-at-point][flyake-diagnostic-at-point]]
+;; - [[https://github.com/meqif/flymake-diagnostic-at-point][flymake-diagnostic-at-point]]
 (use-package flymake-diagnostic-at-point
   :after flymake
   :hook (flymake-mode . flymake-diagnostic-at-point-mode)
@@ -2766,10 +2767,38 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq flymake-diagnostic-at-point-display-diagnostic-function
         'flymake-diagnostic-at-point-display-minibuffer))
 
+;;;;; flymake-quickdef
+;; - package defines flymake-quickdef-backend to generate backends for flymake
+;; - [[https://github.com/karlotness/flymake-quickdef][flymake-quickdef]]
+(use-package flymake-quickdef)
+
+  ;; EXAMPLE BACKEND
+;;   (require 'flymake-quickdef)
+;; (flymake-quickdef-backend
+;;   flymake-proselint-backend
+;;   :pre-let ((proselint-exec (executable-find "proselint")))
+;;   :pre-check (unless proselint-exec (error "Proselint not found on PATH"))
+;;   :write-type 'pipe
+;;   :proc-form (list proselint-exec "-")
+;;   :search-regexp "^.+:\\([[:digit:]]+\\):\\([[:digit:]]+\\): \\(.+\\)$"
+;;   :prep-diagnostic
+;;   (let* ((lnum (string-to-number (match-string 1)))
+;;          (lcol (string-to-number (match-string 2)))
+;;          (msg (match-string 3))
+;;          (pos (flymake-diag-region fmqd-source lnum lcol))
+;;          (beg (car pos))
+;;          (end (cdr pos)))
+;;     (list fmqd-source beg end :warning msg)))
+;; 
+;; (defun flymake-proselint-setup ()
+;;   "Enable flymake backend."
+;;   (add-hook 'flymake-diagnostic-functions #'flymake-proselint-backend nil t))
+
 ;;;;; flycheck
 ;; - added in emacs syntax checker
 ;; - https://www.flycheck.org/en/latest/
 (use-package flycheck
+  :disabled ;; only using flymake for now
   :bind
   (:map flycheck-mode-map
         ("H-[" . flycheck-previous-error)
@@ -2803,6 +2832,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
 ;; - https://github.com/flycheck/flycheck-popup-tip
 (use-package flycheck-popup-tip
+  :disabled ;; only using flymake for now
   :hook (flycheck-mode . flycheck-popup-tip-mode)
   :config
   (setq flycheck-pos-tip-display-errors-tty-function #'flycheck-popup-tip-show-popup))
@@ -2812,6 +2842,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; the Flycheck state of the current buffer
 ;; - https://github.com/flycheck/flycheck-color-mode-line
 (use-package flycheck-color-mode-line
+  :disabled ;; only using flymake for now
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 ;;;;; emr
@@ -2837,11 +2868,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - interface to the version control system Git
 ;; - https://magit.vc/
 (use-package magit
-  ;; :straight (magit :type git
-  ;;                  ;; :flavor melpa
-  ;;                  :files ("lisp/magit" "lisp/magit*.el" "lisp/git-rebase.el" "docs/magit.texi" "docs/AUTHORS.md" "LICENSE" "Documentation/magit.texi" "Documentation/AUTHORS.md" (:exclude "lisp/magit-libgit.el" "lisp/magit-libgit-pkg.el" "lisp/magit-section.el" "lisp/magit-section-pkg.el") "magit-pkg.el")
-  ;;                  :host github
-                   ;; :repo "magit/magit")
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
          ("C-x M-g" . magit-dispatch)
@@ -2869,8 +2895,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; pulling all topics and even without having to clone the respective Git repository.
 ;; - https://github.com/magit/forge
 (use-package forge
-  :after magit
-  :demand t)
+  :after magit)
 
 ;;;;; git-gutter-fringe
 ;; git fringe
@@ -3159,11 +3184,9 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; YAPF or Black
 ;; - http://wikemacs.org/wiki/Python
 (require 'python)
-
 (setq python-indent-guess-ident-offset-verbose nil
         python-indent-offset 4
         comment-inline-offset 2)
-
   (cond
   ((executable-find "ipython")
     (setq python-shell-buffer-name "IPython"
@@ -3178,19 +3201,6 @@ If the region is active and option `transient-mark-mode' is on, call
     "Insert a Python docstring."
     "This string is ignored!"
     "\"\"\"" - "\n\n    \"\"\"")
-
-;;;;; lsp-pyright
-;; lsp server for python
-;; [[https://emacs-lsp.github.io/lsp-pyright/][lsp-pyright]]
-;; (use-package lsp-pyright
-;;   :hook ((python-mode . (lambda ()
-;;                           (require 'lsp-pyright)
-;;                           (lsp)
-;;                           (bind-key "s-\\" #'python-insert-docstring python-mode-map) ))
-;;         (python-ts-mode . (lambda ()
-;;                             (require 'lsp-pyright)
-;;                             (lsp)
-;;                             (bind-key "s-\\" #'python-insert-docstring python-ts-mode-map) ))  ))
 
 ;;;;; inferior-python-mode
 ;; runs a python interpreter as a subprocess of Emacs
@@ -3384,8 +3394,7 @@ If the region is active and option `transient-mark-mode' is on, call
          (c-mode-common . (lambda ()
                             (c-set-style "bsd")
                             (setq tab-width 4)
-                            (setq c-basic-offset 4)
-                            (flycheck-mode nil))))
+                            (setq c-basic-offset 4) )))
   :init
   ;; Set the default formatting styles for various C based modes
   (setq c-default-style
@@ -3539,24 +3548,6 @@ the children of class at point."
              :repo "ZachMassia/PlatformIO-Mode")
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
-
-;;;;; swift-mode
-;; - support for Apple's Swift programming language
-;; - https://github.com/swift-emacs/swift-mode
-(use-package swift-mode
-  :hook (swift-mode . (lambda() (lsp)))
-  :config
-  (require 'lsp-sourcekit)  )
-
-;;;;; lsp-sourcekit for swift-mode
-;; - a client for sourcekit-lsp a swift/c/c++/objective-c language server created by apple
-;; - support for Apple's Swift programming language
-;; - [[https://github.com/emacs-lsp/lsp-sourcekit][lsp-sourcekit]]
-(use-package lsp-sourcekit
-  :after lsp-mode
-  :commands swift-mode
-  :config
-  (setq lsp-sourcekit-executable "/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
 
 ;;;;; rust-mode
 ;; - rust language package
@@ -3946,6 +3937,7 @@ the children of class at point."
 ;;;;; markdown-mode
 ;; - markdown-mode used a lot on Github
 ;; - https://jblevins.org/projects/markdown-mode/
+;; - https://leanpub.com/markdown-mode
 (use-package markdown-mode
   :preface
   ;; Install: pip install grip
@@ -3976,21 +3968,14 @@ the children of class at point."
         (kill-process process)
         (message "Process %s killed" process))))
 
-    (defun set-flycheck-markdownlint ()
-    "Set the `mardkownlint' config file for the current buffer."
-    (let* ((md-lint ".markdownlint.json")
-           (md-file buffer-file-name)
-           (md-lint-dir (and md-file
-                             (locate-dominating-file md-file md-lint))))
-      (setq-local flycheck-markdown-markdownlint-cli-config
-                  (concat md-lint-dir md-lint))))
   :bind (:map markdown-mode-command-map
               ("g" .  markdown-preview-grip)
               ("k" .  markdown-preview-kill-grip))
   :hook ((markdown-mode . auto-fill-mode)
-         (markdown-mode . set-flycheck-markdownlint)
          (markdown-mode . visual-line-mode)
-         (markdown-mode . writegood-mode))
+         (markdown-mode . writegood-mode)
+         (markdown-mode . flymake-markdownlint-setup)
+         (markdown-mode . flymake-mode))
   :functions writegood-mode
   :commands (markdown-mode gfm-mode)
   :mode   (("README\\.md\\'" . gfm-mode)
@@ -3998,6 +3983,7 @@ the children of class at point."
            ("\\.md\\'"          . markdown-mode)
            ("\\.markdown\\'"    . markdown-mode))
   :init (setq markdown-command "multimarkdown")
+  (add-to-list 'corfu-excluded-modes 'markdown-mode)
   :config
   (setq markdown-enable-wiki-links t
         markdown-italic-underscore t
@@ -4036,7 +4022,7 @@ the children of class at point."
       });
       </script>
       ")
-
+  
 ;;;;; markdown-toc
   ;; - Table of contents
   ;; - Inside a markdown file, the first time,
@@ -4044,6 +4030,32 @@ the children of class at point."
   ;; M-x markdown-toc-generate-toc
   ;; - https://github.com/ardumont/markdown-toc
   (use-package markdown-toc))
+
+;;;;; flymake-markdownlint-backend
+  ;; using flymake-quickdef to make a flymake backend for markdownlint-cli
+  ;; brew install markdownlint-cli
+  (system-packages-ensure "markdownlint-cli")
+  (require 'flymake-quickdef)
+  (flymake-quickdef-backend flymake-markdownlint-backend
+   :pre-let ((markdownlint-exec (executable-find "markdownlint")))
+   :pre-check (unless markdownlint-exec (error "Markdownlint-cli not found on PATH"))
+   :write-type 'pipe
+   :proc-form (list markdownlint-exec "-s")
+   :search-regexp "^[^:]*:\\([[:digit:]]+\\):*\\([[:digit:]]* *\\)\\(MD[[:digit:]]\\{3\\}\\)\\(.*\\)$"
+   :prep-diagnostic
+   (let* ((lnum (string-to-number (match-string 1)))
+          (lcol (string-to-number (match-string 2)))
+          (code (match-string 3))
+          (text (match-string 4))
+          (pos (flymake-diag-region fmqd-source lnum lcol))
+          (beg (car pos))
+          (end (cdr pos))
+          (msg (format "%s (%s)" code text )))
+     (list fmqd-source beg end :warning msg)))
+
+  (defun flymake-markdownlint-setup ()
+    "Enable flymake backend."
+    (add-hook 'flymake-diagnostic-functions #'flymake-markdownlint-backend nil t))
 
 ;;;;; markdown-soma
   ;; realtime preview by eww
@@ -5297,6 +5309,43 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :config
   (add-to-list 'shr-external-rendering-functions
                '(pre . shr-tag-pre-highlight)))
+
+;;;;; xwidget webkit
+;; NOT USED FOR NOW AS I LIKE USING SAFARI WHEN ON OSX.  LEFT CODE FOR FUTURE REFERENCE
+;; use webkit (safari backend) to render urls
+;; emacs-plus must be compiled with --with-xwidgets
+;; [[https://github.com/veshboo/emacs][config from veshboo webkit]]
+;; Built from source on 2023-02-05 at 12:48:48 with: --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll --with-imagemagick
+;; (if sys/mac-x-p
+;;     (progn
+;;       (setq browse-url-browser-function 'xwidget-webkit-browse-url)
+;;       ;; set default url browser
+;;       ;; Then, many packages supporting `browse-url` will work with xwidget webkit
+;;       ;; For example, try `C-c C-c p` if you are using `markdown-preview`.
+;; 
+;;       ;; search-web withxwidget webkit
+;;       (use-package search-web
+;;         :bind ("C-c w" . search-web)
+;;         :init
+;;         (defun browse-url-default-browser (url &rest args)
+;;           "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS."
+;;           (xwidget-webkit-browse-url url args)))
+;; 
+;;       ;; browse to a URL bookmark from Bookmark List
+;;       (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
+;;       (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
+;;       (add-hook 'pre-command-hook
+;;                 (lambda ()
+;;                   (if (eq this-command #'bookmark-bmenu-list)
+;;                       (if (not (eq major-mode 'xwidget-webkit-mode))
+;;                           (setq xwidget-webkit-bookmark-jump-new-session t)
+;;                         (setq xwidget-webkit-bookmark-jump-new-session nil)
+;;                         (setq xwidget-webkit-last-session-buffer (current-buffer))))))
+;;       ;; `RET` on a URL bookmark will show the page in the window with current `*Bookmark List*`
+;;       ;; It will create a new `xwidget-webkit-mode` buffer if the previous buffer in the selected
+;;       ;;   window is not a `xwidget-webkit-mode`.  Otherwise, it will browse in the
+;;       ;;   previous `xwidget-webkit-mode` buffer.
+;;       ))
 
 ;;;;; eww Emacs-web-wowser
 ;; - Emacs internal web browser
