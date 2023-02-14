@@ -1555,7 +1555,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
-  ;; See also `corfu-excluded-modes'. 
+  ;; See also `corfu-excluded-modes'.
   (corfu-echo-documentation nil)
   :config
   (use-package corfu-history
@@ -2481,21 +2481,43 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
   (when (treesit-available-p)
     (setq major-mode-remap-alist
-          '((c-mode          . c-ts-mode)     ; completed set-up for all c-modes
+          '((c-mode          . c-ts-mode)       ; completed set-up for all c-modes
           (c++-mode        . c++-ts-mode)
           (c-or-c++-mode   . c-or-c++-ts-mode)
-          (conf-toml-mode  . toml-ts-mode)    ; completed (no set-up)
+          (conf-toml-mode  . toml-ts-mode)      ; completed (no set-up)
           (csharp-mode     . csharp-ts-mode)
-          (css-mode        . css-ts-mode)     ; completed
-          (java-mode       . java-ts-mode)    ; not completed - keep current non-ts for now
-          (js-mode         . js-ts-mode)      ; not completed - keep current non-ts for now
-          (javascript-mode . js-ts-mode)      ; not completed - keep current non-ts for now
-          (js-json-mode    . json-ts-mode)    ; not completed - keep current non-ts for now
-          (python-mode     . python-ts-mode)  ; competed set-up
-          (ruby-mode       . ruby-ts-mode)    ; not completed - keep current non-ts for now
-          (sh-mode         . bash-ts-mode)    ; work in progress
-          (yaml-mode       . yaml-ts-mode)    ; completed
-          ))))
+          (css-mode        . css-ts-mode)       ; completed
+          (java-mode       . java-ts-mode)      ; not completed - keep current non-ts for now
+          (js-mode         . js-ts-mode)        ; not completed - keep current non-ts for now
+          (javascript-mode . js-ts-mode)        ; not completed - keep current non-ts for now
+          (js-json-mode    . json-ts-mode)      ; not completed - keep current non-ts for now
+          (python-mode     . python-ts-mode)    ; competed set-up
+          (ruby-mode       . ruby-ts-mode)      ; not completed - keep current non-ts for now
+          (sh-mode         . bash-ts-mode)      ; work in progress
+          (yaml-mode       . yaml-ts-mode)      ; completed
+          (typescript-mode . tsx-ts-mode)       ;
+          )))
+
+  (use-package combobulate
+    :straight (:type git :host github :repo "mickeynp/combobulate")
+    ;; You can manually enable Combobulate with `M-x
+    ;; combobulate-mode'.
+    :hook ((c-ts-mode
+            c-ts-mode
+            c++-ts-mode
+            c-or-c++-ts-mode
+            toml-ts-mode
+            csharp-ts-mode
+            css-ts-mode
+            java-ts-mode
+            js-ts-mode
+            json-ts-mode
+            python-ts-mode
+            ruby-ts-mode
+            bash-ts-mode
+            yaml-ts-mode
+            typescript-ts-mode
+            tsx-ts-mode) . combobulate-mode)))
 
 ;;;;; eglot
 ;; - simple client for Language Server Protocol servers
