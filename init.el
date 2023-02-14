@@ -32,6 +32,9 @@
 ;;
 ;; a long journey to here...
 ;; 
+;; using Emacs 30
+;; on macos installing emacs-plus@30
+;; brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll
 
 ;;; Changelog
 ;; not every commit ; just the big stuff
@@ -58,6 +61,7 @@
 ;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
 ;; - <2023-01-30 Mon> vertigo orderless consult corfu
 ;; - <2023-02-12 Sun> :disabled flycheck packages for now in favour of flymake
+
 
 ;;; Code:
 (message "Emacs start")
