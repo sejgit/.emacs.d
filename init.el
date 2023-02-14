@@ -4034,7 +4034,6 @@ the children of class at point."
 ;;;;; flymake-markdownlint-backend
   ;; using flymake-quickdef to make a flymake backend for markdownlint-cli
   ;; brew install markdownlint-cli
-  (system-packages-ensure "markdownlint-cli")
   (require 'flymake-quickdef)
   (flymake-quickdef-backend flymake-markdownlint-backend
    :pre-let ((markdownlint-exec (executable-find "markdownlint")))
