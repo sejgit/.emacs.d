@@ -5,9 +5,10 @@ A kludge of the thoughts of many smart people then finally mine.
 
 ## early-init.el
 
-garbage collection
-gccemacs
-some-early settings
+garbage collection\
+gccemacs\
+default menu, toolbar, scroll-bar settings\
+default frame settings
 
 ## init.el
 
@@ -29,6 +30,7 @@ ln -s ~/.emacs.d/init-mini.el ~/.emacs
 
 - using Emacs 30
 - on macos installing emacs-plus@30
+- if you already have another Emacs installed brew uninstall it first
 
 ````bash
 brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll
