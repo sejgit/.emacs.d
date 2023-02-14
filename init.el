@@ -462,9 +462,9 @@
       (global-visual-line-mode t) ; Add proper word wrapping
       (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
 
-      ;; Enable indentation+completion using the TAB key.
+      ;; 'complete = Enable indentation+completion using the TAB key.
       ;; `completion-at-point' is often bound to M-TAB.
-      (setq tab-always-indent 'complete)
+      (setq tab-always-indent t)
 
 ;;;;;; color codes
       (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
@@ -1532,14 +1532,17 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
-  :hook (emacs-startup . global-corfu-mode)
-    ;; Optional customizations
+  :hook ((emacs-startup . global-corfu-mode)
+         ((eshell-mode markdown-mode) . (lambda ()
+                                          (setq-local corfu-auto nil)
+                                          (corfu-mode))))
+  ;; Optional customizations
   :custom
-  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)                 ;; Enable auto completion
-  (corfu-separator ?\s)          ;; Orderless field separator
+  (corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                    ;; Enable auto completion
+  (corfu-separator ?\s)             ;; Orderless field separator
   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
-  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  (corfu-quit-no-match t)           ;; t, 'separator, nil Never quit
   ;; (corfu-preview-current nil)    ;; Disable current candidate preview
   ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
@@ -1552,7 +1555,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
-  ;; See also `corfu-excluded-modes'. (currently added for markdown-mode see markdown-mode setup)
+  ;; See also `corfu-excluded-modes'. 
   (corfu-echo-documentation nil)
   :config
   (use-package corfu-history
@@ -1621,15 +1624,15 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-history)
-  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
-  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
-  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-ispell)
+  (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  (add-to-list 'completion-at-point-functions #'cape-line)
   )
 
 ;;;;; marginalia
@@ -2483,7 +2486,7 @@ If FRAME is omitted or nil, use currently selected frame."
           (c-or-c++-mode   . c-or-c++-ts-mode)
           (conf-toml-mode  . toml-ts-mode)    ; completed (no set-up)
           (csharp-mode     . csharp-ts-mode)
-          (css-mode        . css-ts-mode)
+          (css-mode        . css-ts-mode)     ; completed
           (java-mode       . java-ts-mode)    ; not completed - keep current non-ts for now
           (js-mode         . js-ts-mode)      ; not completed - keep current non-ts for now
           (javascript-mode . js-ts-mode)      ; not completed - keep current non-ts for now
@@ -2491,6 +2494,7 @@ If FRAME is omitted or nil, use currently selected frame."
           (python-mode     . python-ts-mode)  ; competed set-up
           (ruby-mode       . ruby-ts-mode)    ; not completed - keep current non-ts for now
           (sh-mode         . bash-ts-mode)    ; work in progress
+          (yaml-mode       . yaml-ts-mode)    ; completed
           ))))
 
 ;;;;; eglot
@@ -2499,7 +2503,12 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers][good how to use post]]
 (use-package eglot
   :straight (:type built-in)
-  :hook (prog-mode  . eglot-ensure)
+  :preface
+  (defun mp-eglot-eldoc ()
+    (setq eldoc-documentation-strategy
+            'eldoc-documentation-compose-eagerly))
+  :hook ((eglot-managed-mode . mp-eglot-eldoc)
+         (prog-mode  . eglot-ensure))
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
@@ -3104,6 +3113,11 @@ If the region is active and option `transient-mark-mode' is on, call
 (use-package eldoc
   :blackout t
   :straight (:type built-in)
+  :preface
+  (add-to-list 'display-buffer-alist
+               '("^\\*eldoc for" display-buffer-at-bottom
+                 (window-height . 4)))
+  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   :hook
   ((prog-mode . turn-on-eldoc-mode))
   :init
@@ -3986,8 +4000,8 @@ the children of class at point."
            ("github\\.com.*\\.txt\\'" . gfm-mode)
            ("\\.md\\'"          . markdown-mode)
            ("\\.markdown\\'"    . markdown-mode))
-  :init (setq markdown-command "multimarkdown")
-  (add-to-list 'corfu-excluded-modes 'markdown-mode)
+  :init
+  (setq markdown-command "multimarkdown")
   :config
   (setq markdown-enable-wiki-links t
         markdown-italic-underscore t
@@ -4127,6 +4141,7 @@ the children of class at point."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 (use-package flyspell
   :straight (:type built-in)
+  :bind ("s-$" . ispell-word) ; doesn't work well in osx due to keybindings
   :functions
   flyspell-correct-word
   flyspell-goto-next-error
