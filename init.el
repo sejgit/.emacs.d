@@ -2533,7 +2533,11 @@ If FRAME is omitted or nil, use currently selected frame."
     (setq eldoc-documentation-strategy
             'eldoc-documentation-compose-eagerly))
   :hook ((eglot-managed-mode . mp-eglot-eldoc)
-         (prog-mode  . eglot-ensure))
+         (prog-mode . (lambda ()
+                        (if (eq major-mode 'emacs-lisp-mode)
+                                t
+                                'eglot-ensure) )))
+
   :bind (:map eglot-mode-map
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
