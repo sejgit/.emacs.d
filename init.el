@@ -2506,19 +2506,18 @@ If FRAME is omitted or nil, use currently selected frame."
     :straight (:type git :host github :repo "mickeynp/combobulate")
     ;; You can manually enable Combobulate with `M-x
     ;; combobulate-mode'.
-    :hook ((c-ts-mode
-            c-ts-mode
-            c++-ts-mode
-            c-or-c++-ts-mode
-            toml-ts-mode
-            csharp-ts-mode
+    :hook ((;c-ts-mode
+            ;c++-ts-mode
+            ;c-or-c++-ts-mode
+            ;toml-ts-mode
+            ;csharp-ts-mode
             css-ts-mode
-            java-ts-mode
+            ;java-ts-mode
             js-ts-mode
-            json-ts-mode
+            ;json-ts-mode
             python-ts-mode
-            ruby-ts-mode
-            bash-ts-mode
+            ;ruby-ts-mode
+            ;bash-ts-mode
             yaml-ts-mode
             typescript-ts-mode
             tsx-ts-mode) . combobulate-mode)))
