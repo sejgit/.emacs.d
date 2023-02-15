@@ -1659,14 +1659,15 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; sorts and filters lists of candidates
 ;; [[https://github.com/radian-software/prescient.el][prescient]]
 (use-package prescient
+  :straight (:type git :host github :repo "radian-software/prescient.el" :files ("*.el"))
   :hook (emacs-startup . prescient-persist-mode)
-    :init
-    (add-to-list 'completion-styles 'prescient)
-    :config
-    (use-package vertico-prescient
-      :hook (vertico-mode . vertico-prescient-mode))
-    (use-package corfu-prescient
-      :hook (corfu-mode . corfu-prescient-mode)))
+  :init
+  (add-to-list 'completion-styles 'prescient)
+  :config
+  (use-package vertico-prescient
+    :hook (vertico-mode . vertico-prescient-mode))
+  (use-package corfu-prescient
+    :hook (corfu-mode . corfu-prescient-mode)))
 
 ;;;;; embark
 ;; acting on targets
