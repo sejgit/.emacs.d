@@ -2479,6 +2479,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight (:type built-in)
   :ensure t
   :config
+  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter_intel" "~/.emacs.d/tree-sitter_m1"))
   (when (treesit-available-p)
     (setq major-mode-remap-alist
           '((c-mode          . c-ts-mode)       ; completed set-up for all c-modes
