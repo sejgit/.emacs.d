@@ -2499,6 +2499,9 @@ If FRAME is omitted or nil, use currently selected frame."
           )))
 
   (use-package combobulate
+    ;; standard movement using treesitter
+    ;; [[https://github.com/mickeynp/combobulate][combobulate]]
+    ;; use C-c o o for menu
     :straight (:type git :host github :repo "mickeynp/combobulate")
     ;; You can manually enable Combobulate with `M-x
     ;; combobulate-mode'.
