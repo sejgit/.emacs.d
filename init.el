@@ -1661,11 +1661,12 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package prescient
   :hook (emacs-startup . prescient-persist-mode)
     :init
-    (add-to-list 'completion-styles 'prescient))
-(use-package vertico-prescient
-  :hook (vertico-mode . vertico-prescient-mode))
-(use-package corfu-prescient
-  :hook (corfu-mode . corfu-prescient-mode))
+    (add-to-list 'completion-styles 'prescient)
+    :config
+    (use-package vertico-prescient
+      :hook (vertico-mode . vertico-prescient-mode))
+    (use-package corfu-prescient
+      :hook (corfu-mode . corfu-prescient-mode)))
 
 ;;;;; embark
 ;; acting on targets
