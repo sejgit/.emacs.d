@@ -1665,8 +1665,10 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'completion-styles 'prescient)
   :config
   (use-package vertico-prescient
+    :load-path "straight/build/prescient"
     :hook (vertico-mode . vertico-prescient-mode))
   (use-package corfu-prescient
+    :load-path "straight/build/prescient"
     :hook (corfu-mode . corfu-prescient-mode)))
 
 ;;;;; embark
