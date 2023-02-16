@@ -2537,15 +2537,21 @@ If FRAME is omitted or nil, use currently selected frame."
     (setq eldoc-documentation-strategy
             'eldoc-documentation-compose-eagerly))
   :hook ((eglot-managed-mode . mp-eglot-eldoc)
-         (prog-mode . (lambda ()
-                        (if (eq major-mode 'emacs-lisp-mode)
-                                t
-                                'eglot-ensure) )))
+         (prog-mode . sej/eglot-ensure-prg))
 
   :bind (:map eglot-mode-map
+              ("C-c r" . eglot-rename)
+              ("C-c o" . eglot-code-action-organize-imports)
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
   :config
+  (defun sej/eglot-ensure-prg ()
+    "run eglot in all prog except"
+    (interactive)
+    (if (eq major-mode 'emacs-lisp-mode)
+        t
+    (eglot-ensure)))
+    
   (add-to-list 'eglot-server-programs
                `((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                          c-ts-mode c++-ts-mode c-or-c++-ts-mode) .
