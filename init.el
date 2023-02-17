@@ -5554,6 +5554,17 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
           "Full Moon"
           "Last Quarter Moon")))
 
+;;;;; TMR (timer)
+;; facilities for setting timers using a convenient notation
+;; [[https://protesilaos.com/emacs/tmr][tmr manual]]
+(use-package tmr
+  :bind (("C-q t" . tmr-prefix-map))
+  :config
+  ;; Desktop notification urgency level
+  (setq tmr-notification-urgency 'normal)
+
+  ;; Read the `tmr-descriptions-list' doc string
+  (setq tmr-descriptions-list 'tmr-description-history))
 
 ;;; init.el --- end
 (message "init.el ends here")
