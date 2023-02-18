@@ -2346,43 +2346,78 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/cedet/pulse.el
 (use-package pulse
   :straight (pulse :type built-in)
-  :preface
-  (defun my-pulse-momentary-line (&rest _)
-    "Pulse the current line."
-    (pulse-momentary-highlight-one-line (point) 'next-error))
-
-  (defun my-pulse-momentary (&rest _)
-    "Pulse the current line."
-    (if (fboundp 'xref-pulse-momentarily)
-        (xref-pulse-momentarily)
-      (my-pulse-momentary-line)))
-
-  (defun my-recenter-and-pulse(&rest _)
-    "Recenter and pulse the current line."
-    (recenter)
-    (my-pulse-momentary))
-
-  (defun my-recenter-and-pulse-line (&rest _)
-    "Recenter and pulse the current line."
-    (recenter)
-    (my-pulse-momentary-line))
-  :hook ((imenu-after-jump . my-recenter-and-pulse)
-         ((bookmark-after-jump
-           magit-diff-visit-file
-           next-error) . my-recenter-and-pulse-line))
-  :init
-  (dolist (cmd '(recenter-top-bottom
-                 other-window ace-window windmove-do-window-select
-                 pager-page-down pager-page-up
-                 symbol-overlay-basic-jump))
-  ;;  (advice-add cmd :after #'my-pulse-momentary-line)
-    )
-  (dolist (cmd '(pop-to-mark-command
-                 pop-global-mark
-                 goto-last-change))
-    ;;  (advice-add cmd :after #'my-recenter-and-pulse)
-    )
+  ;;preface
+  ;; (defun my-pulse-momentary-line (&rest _)
+  ;;   "Pulse the current line."
+  ;;   (pulse-momentary-highlight-one-line (point) 'next-error))
+  ;; 
+  ;; (defun my-pulse-momentary (&rest _)
+  ;;   "Pulse the current line."
+  ;;   (if (fboundp 'xref-pulse-momentarily)
+  ;;       (xref-pulse-momentarily)
+  ;;     (my-pulse-momentary-line)))
+  ;; 
+  ;; (defun my-recenter-and-pulse(&rest _)
+  ;;   "Recenter and pulse the current line."
+  ;;   (recenter)
+  ;;   (my-pulse-momentary))
+  ;; 
+  ;; (defun my-recenter-and-pulse-line (&rest _)
+  ;;   "Recenter and pulse the current line."
+  ;;   (recenter)
+  ;;   (my-pulse-momentary-line))
+  ;; :hook ((imenu-after-jump . my-recenter-and-pulse)
+  ;;        ((bookmark-after-jump
+  ;;          magit-diff-visit-file
+  ;;          next-error) . my-recenter-and-pulse-line))
+  ;; :init
+  ;; (dolist (cmd '(recenter-top-bottom
+  ;;                other-window ace-window windmove-do-window-select
+  ;;                pager-page-down pager-page-up
+  ;;                symbol-overlay-basic-jump))
+  ;; ;;  (advice-add cmd :after #'my-pulse-momentary-line)
+  ;;   )
+  ;; (dolist (cmd '(pop-to-mark-command
+  ;;                pop-global-mark
+  ;;                goto-last-change))
+  ;;   ;;  (advice-add cmd :after #'my-recenter-and-pulse)
+  ;;    )
   )
+
+;;;;; Pulsar
+;; [[https://protesilaos.com/emacs/pulsar][pulsar]]
+;; small package that temporarily highlights the current line after a given function is invoked
+;; additional to built-in pulse
+(use-package pulsar
+  :bind (("C-c h p" . pulsar-pulse-line)
+         ("C-c h h" . pulsar-highlight-line))
+  :hook ((emacs-startup . pulsar-global-mode)
+         ((consult-after-jump
+           bookmark-after-jump
+           magit-diff-visit-file) . pulsar-recenter-top)
+         ((consult-after-jump
+           imenu-after-jump) . pulsar-reveal-entry))
+
+  :config
+  ;; Check the default value of `pulsar-pulse-functions'.  That is where
+  ;; you add more commands that should cause a pulse after they are
+  ;; invoked
+  (setq pulsar-pulse-functions (-union pulsar-pulse-functions '(pop-to-mark-command
+                                                                flymake-goto-next-error
+                                                                flymake-goto-prev-error
+                                                                recenter-top-bottom)))
+  (setq pulsar-pulse t)
+  (setq pulsar-delay 0.055)
+  (setq pulsar-iterations 10)
+  (setq pulsar-face 'pulsar-magenta)
+  (setq pulsar-highlight-face 'pulsar-yellow)
+
+  ;; The author uses C-x l for `pulsar-pulse-line' and C-x L for
+  ;; `pulsar-highlight-line'.
+  ;;
+  ;; You can replace `pulsar-highlight-line' with the command
+  ;; `pulsar-highlight-dwim'.
+)
 
 ;;;;; paren
 ;; - show paren mode
@@ -2691,15 +2726,19 @@ If FRAME is omitted or nil, use currently selected frame."
         comment-multi-line t
         comment-style 'multi-line))
 
-;;;;; comment-dwim-2
+;;;;; comment-dwim
 ;; - replacement for the Emacs built-in command comment-dwim
-;; - https://github.com/remyferre/comment-dwim-2
-(use-package comment-dwim-2
-  :bind (([remap comment-dwim] . comment-dwim-2) ; M-;
-        ("C-;" . comment-indent) ; C-; trailing comment
-         ("C-:" . comment-kill) ; kill trailing comment
-         ("C-x C-;" . comment-box) ; box comment
-         ))
+;; - [[https://www.emacs.dyerdwelling.family/emacs/20230215204855-emacs--commenting-uncommenting/][comment-dwim replacement]]
+(defun sej/comment-or-uncomment ()
+  "Comments or uncomments the current line or region."
+  (interactive)
+  (if (region-active-p)
+      (comment-or-uncomment-region
+       (region-beginning)(region-end))
+    (comment-or-uncomment-region
+     (line-beginning-position)(line-end-position))))
+(global-set-key (kbd "M-;") 'sej/comment-or-uncomment)
+(global-set-key (kbd "H-;") 'comment-box)
 
 ;;;;; ediff
 ;; - A saner diff
