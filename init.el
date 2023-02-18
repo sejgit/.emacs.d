@@ -203,11 +203,19 @@
 ;;;;;  Warnings
 ;; set-up server & suppress warnings
 ;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
-  (require 'warnings)
+(require 'warnings)
   ;; remove warnings for cl depreciated and server already running
-  (setq warning-suppress-types (quote ((cl server iedit))))
-  (setq warning-suppress-log-types (quote ((cl) )))
-  (setq byte-compile-warnings '(cl-functions))
+(setq warning-suppress-types (quote ((cl server iedit))))
+(setq warning-suppress-log-types (quote ((cl) )))
+(setq byte-compile-warnings '(cl-functions))
+
+;;;;; Alert
+;; Alert is a Growl-workalike for Emacs
+;; uses a common notification interface and multiple, selectable "styles"
+;; [[https://github.com/jwiegley/alert][Alert]]
+(use-package alert
+  :config
+  (if sys/macp (setq alert-default-style #'osx-notifier))  )
 
 ;;;;; Server set-up
 ;; set-up Emacs server
@@ -5560,11 +5568,23 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package tmr
   :bind (("C-q t" . tmr-prefix-map))
   :config
-  ;; Desktop notification urgency level
-  (setq tmr-notification-urgency 'normal)
+    ;; Read the `tmr-descriptions-list' doc string
+  (setq tmr-descriptions-list 'tmr-description-history)
 
-  ;; Read the `tmr-descriptions-list' doc string
-  (setq tmr-descriptions-list 'tmr-description-history))
+  (if sys/macp
+      (progn
+        (defun sej/osx-alert-tmr (timer)
+          "function to display TIMER info on osx notification area"
+          (interactive)
+          (alert
+           (tmr--long-description-for-finished-timer timer)
+           :title "TMR"
+           :severity 'urgent
+           :id 'test-alert
+           :style 'osx-notifier) )
+
+        (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
+        (delete 'tmr-notification-notify tmr-timer-finished-functions))))
 
 ;;; init.el --- end
 (message "init.el ends here")
