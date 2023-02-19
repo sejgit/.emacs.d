@@ -1801,7 +1801,7 @@ If FRAME is omitted or nil, use currently selected frame."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key (kbd "M-."))
+   :preview-key "M-.")
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -2003,7 +2003,8 @@ If FRAME is omitted or nil, use currently selected frame."
           ("M-g l" . avy-goto-line)
           ("H-l" . avy-goto-line)
           ("M-g w" . avy-goto-word-1)
-          ("H-w" . avy-goto-word-1))
+          ("H-w" . avy-goto-word-1)
+          ("H-y" . avy-copy-line))
   :config (setq avy-background t))
 
 ;;;;; goto-chg
