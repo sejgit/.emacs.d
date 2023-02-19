@@ -1867,6 +1867,12 @@ If FRAME is omitted or nil, use currently selected frame."
     (setq ag-executable (executable-find "ag"))
     (setq-default ag-highlight-search t))
 
+;;;;; deadgrep
+;; [[https://github.com/Wilfred/deadgrep][deadgrep: use ripgrep from Emacs]]
+;; need ripgrep (rg) installed
+(use-package deadgrep
+  :bind ("M-s d" . deadgrep))
+
 ;;;;; re-builder
 ;; - set built in regex helper to string format
 ;; - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
