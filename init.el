@@ -650,6 +650,7 @@
 ;; Turn off the minor mode in the minibuffer
 (defun turn-off-sej-mode ()
   "Turn off <sej-mode>."
+  (interactive)
   (sej-mode -1))
 (add-hook 'minibuffer-setup-hook #'turn-off-sej-mode)
 
@@ -1797,7 +1798,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-c b" . consult-bookmark)
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
-         ("C-x r" . consult-recent-file)
+         ("C-x C-r" . consult-recent-file)
          ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
          ("C-x p b" . consult-project-buffer)      ;; switch to buffer within project
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
@@ -2022,14 +2023,13 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - smart moving to beginning of line or to beginning of text on line
 ;; - https://github.com/bbatsov/crux
 (use-package crux
-  :bind ( ("C-c o" . crux-open-with)
+  :bind ( :map sej-mode-map
           ([remap kill-line] . crux-smart-kill-line) ; C-k
           ("C-S-RET" . crux-smart-open-line-above)
           ([(shift return)] . crux-smart-open-line)
-          ("C-c n" . crux-cleanup-buffer-or-region)
-          ("C-c u" . crux-view-url)
+          ("C-q C" . crux-cleanup-buffer-or-region)
+          ("C-q u" . crux-view-url)
           ("s-k" . crux-duplicate-current-line-or-region)
-          ("C-x C-r" . crux-recentf-find-file)
           ("C-c C-k" . crux-duplicate-current-line-or-region)
           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
           ([remap kill-whole-line] . crux-kill-whole-line)
@@ -4022,7 +4022,7 @@ the children of class at point."
 (use-package deft
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
-              ("C-q D" . deft))
+              ("C-q C-d" . deft))
   :config
   (setq deft-directory sej-org-directory)
   (setq deft-use-filename-as-title t
@@ -4039,9 +4039,10 @@ the children of class at point."
 ;; - minor mode to aid in finding common writing problems
 ;; - https://github.com/bnbeckwith/writegood-mode
 (use-package writegood-mode
-  :bind (("C-c C-g w" . writegood-mode)
-         ("C-c C-g g" . writegood-grade-level)
-         ("C-c C-g e" . writegood-reading-ease))
+  :bind (:map sej-mode-map
+         ("C-q g w" . writegood-mode)
+         ("C-q g g" . writegood-grade-level)
+         ("C-q g e" . writegood-reading-ease))
   :hook (markdown-mode . writegood-mode) )
 
 ;;;;; markdown-mode
@@ -4375,14 +4376,16 @@ the children of class at point."
              annotate-export-annotations
              annotate-integrate-annotations
              annotate-show-annotation-summary)
-  :bind (
-         ("C-c C-a" . sej/annotate-annotate-dwim)
-         ("C-c C-s" . annotate-show-annotation-summary)
-         :map annotate-mode-map
-         ("C-c C-a" . sej/annotate-annotate-dwim)
-         ("C-c C-s" . annotate-show-annotation-summary)
-         ("C-c ]" . annotate-goto-next-annotation)
-         ("C-c [" . annotate-goto-previous-annotation)         )
+  :bind ((:map sej-mode-map
+         ("C-q C-a" . sej/annotate-annotate-dwim)
+         ("C-q C-S-a" . annotate-show-annotation-summary)
+         ("C-q ]" . annotate-goto-next-annotation)
+         ("C-q [" . annotate-goto-previous-annotation))
+         (:map annotate-mode-map
+         ("C-q C-a" . sej/annotate-annotate-dwim)
+         ("C-q C-S-a" . annotate-show-annotation-summary)
+         ("C-q ]" . annotate-goto-next-annotation)
+         ("C-q [" . annotate-goto-previous-annotation)) )
   :config
   (setq annotate-file (expand-file-name "annotations" user-emacs-directory))
   (setq annotate-annotation-column 73)
