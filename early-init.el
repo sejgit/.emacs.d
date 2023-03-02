@@ -64,7 +64,8 @@
 ;;;;; gccemacs
 ;; Native Compilation Vars
 (setq-default native-comp-speed 2
-              native-comp-deferred-compilation t)
+              native-comp-deferred-compilation t
+              native-comp-async-report-warnings-errors 'silent)
 
 ;;;;; Prevents libgccjit error (may not still be needed)
 ;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
@@ -90,6 +91,14 @@
 (unless (display-graphic-p)
   (add-to-list 'default-frame-alist '(menu-bar-mode . 0)))
 
+(setq frame-resize-pixelwise t
+      frame-inhibit-implied-resize t
+      use-dialog-box t
+      use-file-dialog nil
+      inhibit-splash-screen t
+      inhibit-startup-screen t
+      inhibit-startup-echo-area-message user-login-name
+      inhibit-startup-buffer-menu t)
 
 (provide 'early-init)
 ;;; early-init.el ends here

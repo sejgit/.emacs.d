@@ -379,10 +379,6 @@
   :straight (:type built-in)
   :custom
 ;;;;;; general
-      (inhibit-startup-message t "No splash screen.")
-      (inhibit-startup-screen t)
-      (inhibit-startup-echo-area-message t)
-      (use-file-dialog nil)
       (default-directory (f-expand "$HOME") "Set startup directory.")
       (locate-command "which")
       (message-log-max 16384 "Raise the maximum number of logs in the *Messages* buffer.")
@@ -395,7 +391,6 @@
       (confirm-kill-processes nil "Allow exit without asking to kill processes.")
       (visible-bell t "Flash for bell.")
       (inhibit-compacting-font-caches t "Don’t compact font caches during GC.")
-      (use-dialog-box nil "Use echo areas for yes-no as well as file.")
       (case-fold-search 1 "Ignore case when searching.")
       (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
       (next-line-add-newlines t "Add a new line when going to the next line.")
@@ -406,6 +401,12 @@
       (show-trailing-whitespace nil)
       (mode-require-final-newline nil)
       (require-final-newline nil)
+
+;;;;;; tabs, indentation and the TAB key
+      (tab-always-indent 'complete)
+      (tab-first-completion 'word-or-paren-or-punct)
+      (tab-width 4)
+      (indent-tabs-mode nil)
 
 ;;;;;; long line settings
       (truncate-lines 1)
@@ -571,14 +572,27 @@
   :config
   (setq completion-cycle-threshold 3
         completion-flex-nospace nil
-        completion-pcm-complete-word-inserts-delimiters t
-        completion-pcm-word-delimiters "-_./:| "
-        completion-styles '(partial-completion substring initials flex)
-        completion-category-overrides '((file (styles initials basic))
-                                        (buffer (styles initials basic))
-                                        (info-menu (styles basic)))
+        completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides
+        ;; `partial-completion' is a killer app for files, because it
+        ;; can expand ~/.l/s/fo to ~/.local/share/fonts.
+        ;;
+        ;; If `basic' cannot match my current input, Emacs tries the
+        ;; next completion style in the given order.  In other words,
+        ;; `orderless' kicks in as soon as I input a space or one of its
+        ;; style dispatcher characters.
+        '((file (styles . (basic partial-completion orderless)))
+          (project-file (styles . (basic substring partial-completion orderless)))
+          (imenu (styles . (basic substring orderless)))
+          (kill-ring (styles . (basic substring orderless)))
+          (consult-location (styles . (basic substring orderless)))
+          (eglot (styles . (basic substring orderless)))
+          (buffer (styles initials basic))
+          (info-menu (styles basic)))
         completions-format 'vertical
         read-answer-short t
+        completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t
         resize-mini-windows t))
@@ -751,21 +765,19 @@
 (unbind-key "M-z")
 (global-unset-key (kbd "C-h C-h"))
 
-(bind-keys :prefix-map sej-mode-cz-map
+(bind-keys :prefix-map sej-mode-cq-map
            :prefix "C-q"
-           :prefix-docstring "SeJ Personal cz-key bindings"
+           :prefix-docstring "SeJ Personal C-q key bindings"
            ("v" . emacs-version)
-	   ("\\" . align-regexp) ;Align your code in a pretty way.
+	       ("\\" . align-regexp) ;Align your code in a pretty way.
+           ("." . org-time-stamp)
            )
 
 (bind-keys :map sej-mode-map
-	   ("C-c ." . org-time-stamp)
            ("s-." . pop-to-mark-command)
-	   ("C-h C-h" . nil)
-	   ("A-SPC" . cycle-spacing)
-	   ("M-j" . (lambda () (join-line -1)))
+	       ("C-h C-h" . nil)
+	       ("M-j" . (lambda () (join-line -1)))
            )
-
 
 ;;; general functions / packages
 ;;;;; sej/save-macro
@@ -973,17 +985,29 @@ Return its absolute path.  Otherwise, return nil."
 (use-package emacs
   :straight (:type built-in)
   :ensure t
+  ;:preface
+  ;(load-theme 'wombat)
+  )
+
+;;;;; tron-legacy-theme
+;; alternate theme
+;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
+(use-package tron-legacy-theme
+  :hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
   :preface
-  (load-theme 'wombat))
+  (setq tron-legacy-theme-vivid-cursor t)
+  (setq tron-legacy-theme-dark-fg-bright-comments nil)
+  (setq tron-legacy-theme-softer-bg t))
+
 
 ;;;;; default-text-scale
 ;; easily adjust the default font size in all Emacs frames
 ;; [[https://github.com/purcell/default-text-scale][default-text-scale]]
 (use-package default-text-scale
   :bind (:map sej-mode-map
-              ("C-q +" . default-text-scale-increase)
-              ("C-q -" . default-text-scale-decrease)
-              ("s-r" . default-text-scale-reset))
+              ("A-H-M-+" . default-text-scale-increase)
+              ("A-H-M--" . default-text-scale-decrease)
+              ("A-H-M-r" . default-text-scale-reset))
   :config
   (setq default-text-scale-amount 20))
 
@@ -994,34 +1018,38 @@ Return its absolute path.  Otherwise, return nil."
 (use-package frame
   :straight (:type built-in)
   :bind (:map sej-mode-map
+              ; super combo
               ("s-4" . dired-other-frame)
               ("s-5" . make-frame-command)
               ("s-6" . delete-other-frames)
               ("s-w" . delete-frame)
+              ; C-x combo
               ("C-x w" . delete-frame)
-              ("C-q <up>" . sej/frame-resize-full)
-              ("H-C-j" . sej/frame-resize-full)
-              ("C-q <left>" . sej/frame-resize-l)
-              ("H-C-h" . sej/frame-resize-l)
-              ("<A-M-left>" . sej/frame-resize-l)
-              ("C-q <S-left>" . sej/frame-resize-l2)
-              ("H-C-S-h" . sej/frame-resize-l2)
-              ("C-q <right>" . sej/frame-resize-r)
-              ("H-C-l" . sej/frame-resize-r)
-              ("<A-M-right>" . sej/frame-resize-r)
-              ("C-q <S-right>" . sej/frame-resize-r2)
-              ("H-C-S-l" . sej/frame-resize-r2)
-              ("H-C-f" . toggle-frame-fullscreen)
-              ("C-q F" . toggle-frame-fullscreen)
-              ("A-M-m" . sej/frame-recentre)
+              ; C-q combo
               ("C-q m" . sej/frame-recentre))
+              ("C-q F" . toggle-frame-fullscreen)
+              ("C-q <up>" . sej/frame-resize-full)
+              ("C-q <left>" . sej/frame-resize-l)
+              ("C-q <right>" . sej/frame-resize-r)
+              ("C-q <S-left>" . sej/frame-resize-l2)
+              ("C-q <S-right>" . sej/frame-resize-r2)
+              ; Alt Meta combo
+              ("A-M-m" . sej/frame-recentre)
+              ("<A-M-left>" . sej/frame-resize-l)
+              ("<A-M-right>" . sej/frame-resize-r)
+              ; Hyper Control HJKL combo
+              ("H-C-f" . toggle-frame-fullscreen)
+              ("H-C-j" . sej/frame-resize-full)
+              ("H-C-h" . sej/frame-resize-l)
+              ("H-C-l" . sej/frame-resize-r)
+              ("H-C-S-h" . sej/frame-resize-l2)
+              ("H-C-S-l" . sej/frame-resize-r2)
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
         window-divider-default-right-width 1
         frame-title-format '("Emacs - %b")
         icon-title-format frame-title-format
-        frame-resize-pixelwise t
         )
 
   (blink-cursor-mode -1)
@@ -1124,14 +1152,15 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package fringe
   :straight (:type built-in)
   :init
-  (set-fringe-mode 5))
+  (fringe-mode nil)
+  (setq-default fringes-outside-margins nil))
 
 
 ;;;; buffers
 ;;;;; buffer key-bindngs
 (define-key sej-mode-map (kbd "s-s") 'save-buffer)
-(define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "s-y") 'bury-buffer)
+(define-key sej-mode-map (kbd "C-c y") 'bury-buffer)
 (define-key sej-mode-map (kbd "C-c r") 'revert-buffer)
 ;;added tips from pragmatic emacs
 (define-key sej-mode-map (kbd "C-x k") 'kill-this-buffer)
@@ -1431,8 +1460,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package isearch
   :straight (:type built-in)
   :init
-  (setq lazy-highlight-initial-delay 0
-        search-highlight t
+  (setq search-highlight t
         search-whitespace-regexp ".*?"
         isearch-lax-whitespace t
         isearch-regexp-lax-whitespace nil
@@ -1441,7 +1469,15 @@ If FRAME is omitted or nil, use currently selected frame."
         lazy-count-prefix-format "(%s/%s) "
         lazy-count-suffix-format nil
         isearch-yank-on-move 'shift
-        isearch-allow-scroll 'unlimited))
+        isearch-allow-scroll 'unlimited
+        isearch-repeat-on-direction-change t
+        lazy-highlight-initial-delay 0.5
+        lazy-highlight-no-delay-length 3
+        isearch-wrap-pause t)
+  (define-key minibuffer-local-isearch-map (kbd "M-/") #'isearch-complete-edit)
+  (let ((map isearch-mode-map))
+    (define-key map (kbd "C-g") #'isearch-cancel) ; instead of `isearch-abort'
+    (define-key map (kbd "M-/") #'isearch-complete)))
 
 ;;;;; Anzu
 ;; good query replace search
@@ -1456,6 +1492,41 @@ If FRAME is omitted or nil, use currently selected frame."
   (defalias 'qrr #'anzu-query-replace-regexp)
   :config
   (global-anzu-mode))
+
+;;;;; ag
+;; - searching with the silver searcher
+;; - https://github.com/Wilfred/ag.el
+  (use-package ag
+    :if (sej/is-exec "ag")
+    :commands ag
+    :config
+    (setq ag-executable (executable-find "ag"))
+    (setq-default ag-highlight-search t))
+
+;;;;; deadgrep
+;; [[https://github.com/Wilfred/deadgrep][deadgrep: use ripgrep from Emacs]]
+;; need ripgrep (rg) installed
+(use-package deadgrep
+  :bind ("M-s d" . deadgrep))
+
+;;;;; re-builder
+;; - set built in regex helper to string format
+;; - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
+(use-package re-builder
+  :straight (re-builder :type built-in)
+  :config (setq reb-re-syntax 'read))
+
+;;;;; bookmark+
+;; - enhancements to the built-in bookmark package
+;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
+(use-package bookmark+
+  :init
+  (setq bookmark-use-annotations nil)
+  (setq bookmark-automatically-show-annotations t)
+  (setq bookmark-set-fringe-mark t) ; Emacs28
+  (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
+  :config
+  (setq bookmark-save-flag +1))
 
 
 ;;;; completion
@@ -1487,11 +1558,11 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
         dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
         dabbrev-backward-only nil
-        dabbrev-case-distinction nil
+        dabbrev-case-distinction 'case-replace
         dabbrev-case-fold-search t
-        dabbrev-case-replace nil
+        dabbrev-case-replace 'case-replace
         dabbrev-check-other-buffers t
-        dabbrev-eliminate-newlines nil
+        dabbrev-eliminate-newlines t
         dabbrev-upcase-means-case-search t))
 
 ;;;;; hippie-expand
@@ -1502,6 +1573,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight (hippie-expand :type built-in)
   :bind (:map sej-mode-map
               ("M-/" . hippie-expand))
+
   :init
   (setq hippie-expand-try-functions-list
         '(try-complete-file-name-partially
@@ -1540,6 +1612,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
+  :bind (:map corfu-map
+              ("<tab>" . corfu-complete))
   :hook ((emacs-startup . global-corfu-mode)
          ((eshell-mode markdown-mode) . (lambda ()
                                           (setq-local corfu-auto nil)
@@ -1631,7 +1705,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
@@ -1640,7 +1714,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'completion-at-point-functions #'cape-ispell)
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-line)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
   )
 
 ;;;;; marginalia
@@ -1650,7 +1724,9 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . marginalia-mode)
   :bind (("M-A" . marginalia-cycle)
          :map minibuffer-local-map
-         ("M-A" . marginalia-cycle)))
+         ("M-A" . marginalia-cycle))
+  :config
+  (setq marginalia-max-relative-age 0))
 
 ;;;;; orderless
 ;; provides an orderless completion style that divides the pattern into space-separated components,
@@ -1659,9 +1735,9 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package orderless
   :demand t
   :init
-  (setq completion-styles '(orderless basic))
-  completion-category-defaults nil
-  completion-category-overrides '((file (styles partial-completion)))  )
+  (setq
+        orderless-matching-styles '(orderless-prefixes orderless-flex orderless-regexp)
+        orderless-component-separator " +"))
 
 ;;;;; prescient
 ;; sorts and filters lists of candidates
@@ -1718,7 +1794,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
-         ("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
@@ -1730,7 +1805,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ;; Custom M-# bindings for fast register access
          ("C-q C-y" . consult-register-load)
          ("C-q C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-q C-M-y" . consult-register)
+         ("C-q C-r" . consult-register)
          ;; Other custom bindings
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ;; M-g bindings (goto-map)
@@ -1757,7 +1832,9 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s u" . consult-focus-lines)
          ;; Isearch integration
          :map isearch-mode-map
-         ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
+         ("M-s l" . consult-line)                 ;; needed by consult-line to detect isearch
+         :map consult-narrow-map
+         ("?" . consult-narrow-help))
 
   ;; Enable automatic preview at point in the *Completions* buffer.
   ;; This is relevant when you use the default completion UI,
@@ -1851,35 +1928,6 @@ If FRAME is omitted or nil, use currently selected frame."
                  #'completion--in-region)
                args))))
 
-;;;;; bookmark+
-;; - enhancements to the built-in bookmark package
-;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
-(use-package bookmark+
-  :config (setq bookmark-save-flag +1))
-
-;;;;; ag
-;; - searching with the silver searcher
-;; - https://github.com/Wilfred/ag.el
-  (use-package ag
-    :if (sej/is-exec "ag")
-    :commands ag
-    :config
-    (setq ag-executable (executable-find "ag"))
-    (setq-default ag-highlight-search t))
-
-;;;;; deadgrep
-;; [[https://github.com/Wilfred/deadgrep][deadgrep: use ripgrep from Emacs]]
-;; need ripgrep (rg) installed
-(use-package deadgrep
-  :bind ("M-s d" . deadgrep))
-
-;;;;; re-builder
-;; - set built in regex helper to string format
-;; - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
-(use-package re-builder
-  :straight (re-builder :type built-in)
-  :config (setq reb-re-syntax 'string))
-
 
 ;;;; indentation
 ;;;;; indentation settings
@@ -1957,7 +2005,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :custom
   (history-delete-duplicates t)
   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
-  (history-length 3000)
+  (history-length 10000)
   (savehist-additional-variables '(mark-ring
                                    global-mark-ring
                                    search-ring
@@ -2091,14 +2139,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/rejeep/drag-stuff.el
 (use-package drag-stuff
   :blackout
-  :bind ( ("M-<down>" . drag-stuff-down)
+  :hook (emacs-startup . drag-stuff-global-mode)
+  :bind ( :map sej-mode-map
+          ("M-<down>" . drag-stuff-down)
           ("H-n" . drag-stuff-down)
           ("M-<up>" . drag-stuff-up)
           ("H-p" . drag-stuff-up)
           ("H-S-p" . drag-stuff-up))
   :config
-  (drag-stuff-global-mode)
-  (drag-stuff-define-keys)
   (add-to-list 'drag-stuff-except-modes 'org-mode))
 
 ;;;;; smart-region
@@ -2227,21 +2275,10 @@ If FRAME is omitted or nil, use currently selected frame."
          ("H-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
-         ("M-N" . symbol-overlay-switch-forward)
-         ("M-P" . symbol-overlay-switch-backward)
          ("M-C" . symbol-overlay-remove-all))
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . (lambda () (symbol-overlay-mode -1)))
          (iedit-mode-end . symbol-overlay-mode)))
-
-;;;;; dimmer
-;; - minor mode that indicates currently active buffer by dimming the faces in others
-;; - https://github.com/gonewest818/dimmer.el
-(use-package dimmer
-  :config
-  (setq dimmer-fraction 0.20)
-  (dimmer-configure-which-key)
-  (dimmer-mode t))
 
 ;;;;; highlight-numbers
 ;; - hightlight-numbers in a special way
@@ -2265,7 +2302,19 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
 (use-package rainbow-mode
   :blackout t
-  :hook (prog-mode . rainbow-mode))
+  :hook (prog-mode . rainbow-mode)
+  :config
+  (setq rainbow-ansi-colors nil
+        rainbow-x-colors nil)
+  (defun sej/rainbow-mode-in-themes ()
+    (when-let* ((file (buffer-file-name))
+                ((derived-mode-p 'emacs-lisp-mode))
+                ((string-match-p "-theme" file)))
+      (rainbow-mode 1)))
+
+  (add-hook 'emacs-lisp-mode-hook #'sej/rainbow-mode-in-themes)
+
+  (define-key ctl-x-x-map "c" #'rainbow-mode)) ; C-x x c
 
 ;;;;; hl-todo
 ;; - Highlight TODO and similar keywords in comments and strings
@@ -2403,8 +2452,8 @@ If FRAME is omitted or nil, use currently selected frame."
            bookmark-after-jump
            magit-diff-visit-file) . pulsar-recenter-top)
          ((consult-after-jump
-           imenu-after-jump) . pulsar-reveal-entry))
-
+           imenu-after-jump) . pulsar-reveal-entry)
+         (next-error . pulsar-pulse-line-red))
   :config
   ;; Check the default value of `pulsar-pulse-functions'.  That is where
   ;; you add more commands that should cause a pulse after they are
@@ -2431,12 +2480,13 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://www.emacswiki.org/emacs/ShowParenMode][paren wiki]]
 (use-package paren
   :straight (:type built-in)
-  :hook (prog-mode . show-paren-mode)
+  :hook (emacs-startup . show-paren-mode)
   :config
   (setq show-paren-delay 0
-        show-paren-style 'mixed ; parenthesis, expression, mixed
+        show-paren-style 'parenthesis ; parenthesis, expression, mixed
         show-paren-when-point-in-periphery t
-        show-paren-when-point-inside-paren t))
+        show-paren-when-point-inside-paren t
+        show-paren-context-when-offscreen 'overlay))
 
 ;;;;; paren-face
 ;; make parentheses less visible in Lisp code by dimming them
@@ -2461,6 +2511,8 @@ If FRAME is omitted or nil, use currently selected frame."
          (outline-minor-mode . outshine-mode))
   :bind ("M-S-<return>" . outshine-insert-heading)
   :config
+  (setq outline-minor-mode-use-buttons nil
+        outline-minor-mode-use-margins nil)
   (custom-theme-set-faces
    'user
    `(outline-1 ((t (:height 1.8 :foreground "#c8d8e3" :weight bold))))
@@ -2836,8 +2888,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
 (use-package flymake
   :straight (flymake :type built-in)
-  :hook ((post-command . flymake-error-at-point)
-         (emacs-startup . flymake-mode))
+  :hook (emacs-startup . flymake-mode)
   :bind (:map flymake-mode-map
               ("C-c ! s" . flymake-start)
               ("H-[" . flymake-goto-prev-error)
@@ -2845,7 +2896,8 @@ If FRAME is omitted or nil, use currently selected frame."
               ("H-]" . flymake-goto-next-error)
               ("C-c ! n" . flymake-goto-next-error)
               ("H-\\" . flymake-show-buffer-diagnostics)
-              ("C-c ! l" . flymake-show-buffer-diagnostics))
+              ("C-c ! l" . flymake-show-buffer-diagnostics)
+              ("C-c ! d" . flymake-show-project-diagnostics))
   :init
   (setq flymake-fringe-indicator-position 'right-fringe)
   (setq flymake-suppress-zero-counters t)
@@ -2853,25 +2905,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq flymake-no-changes-timeout nil)
   (setq flymake-start-on-save-buffer t)
   (setq flymake-proc-compilation-prevents-syntax-check t)
-  (setq flymake-wrap-around nil)
-
-  (defun flymake-error-at-point ()
-    "Show the flymake error in the minibuffer when point is on an invalid line."
-    (when (get-char-property (point) 'flymake-overlay)
-      (let ((help (get-char-property (point) 'help-echo)))
-        (if help (message "%s" help)))))
-  :config
-  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)   )
-
-;;;;; flymake-diagnostic-at-point
-;; - Minor mode for showing flymake diagnostics at point.
-;; - [[https://github.com/meqif/flymake-diagnostic-at-point][flymake-diagnostic-at-point]]
-(use-package flymake-diagnostic-at-point
-  :after flymake
-  :hook (flymake-mode . flymake-diagnostic-at-point-mode)
-  :config
-  (setq flymake-diagnostic-at-point-display-diagnostic-function
-        'flymake-diagnostic-at-point-display-minibuffer))
+  (setq flymake-wrap-around nil)  )
 
 ;;;;; flymake-quickdef
 ;; - package defines flymake-quickdef-backend to generate backends for flymake
@@ -3055,50 +3089,7 @@ If FRAME is omitted or nil, use currently selected frame."
              smerge-ediff
              smerge-combine-with-next
              smerge-resolve
-             smerge-kill-current)
-  ;;:init
-  ;; (defhydra hydra-smerge
-  ;;   (:color red :hint none :post (smerge-auto-leave))
-  ;;   "
-  ;;     ^Move^       ^Keep^               ^Diff^                 ^Other^
-  ;;     ^^──────────-^^───────────────────^^─────────────────────^^──────────────────
-  ;;     _n_ext       _b_ase               _<_: upper/base        _C_ombine
-  ;;     _p_rev       _u_pper              _=_: upper/lower       _r_esolve
-  ;;     ^^           _l_ower              _>_: base/lower        _k_ill current
-  ;;     ^^           _a_ll                _R_efine               _ZZ_: Save and bury
-  ;;     ^^           _RET_: current       _E_diff                _q_: cancel
-  ;;     "
-  ;;   ("n" smerge-next)
-  ;;   ("p" smerge-prev)
-  ;;   ("b" smerge-keep-base)
-  ;;   ("u" smerge-keep-upper)
-  ;;   ("l" smerge-keep-lower)
-  ;;   ("a" smerge-keep-all)
-  ;;   ("RET" smerge-keep-current)
-  ;;   ("\C-m" smerge-keep-current)
-  ;;   ("<" smerge-diff-base-upper)
-  ;;   ("=" smerge-diff-upper-lower)
-  ;;   (">" smerge-diff-base-lower)
-  ;;   ("R" smerge-refine)
-  ;;   ("E" smerge-ediff)
-  ;;   ("C" smerge-combine-with-next)
-  ;;   ("r" smerge-resolve)
-  ;;   ("k" smerge-kill-current)
-  ;;   ("ZZ" (lambda ()
-  ;;           (interactive)
-  ;;           (save-buffer)
-  ;;           (bury-buffer))
-  ;;    "Save and bury buffer" :color blue)
-  ;;   ("q" nil "cancel" :color blue))
-  ;; :hook ((find-file . (lambda ()
-  ;;                       (save-excursion
-  ;;                         (goto-char (point-min))
-  ;;                         (when (re-search-forward "^<<<<<<< " nil t)
-  ;;                           (smerge-mode 1)))))
-  ;;        (magit-diff-visit-file . (lambda ()
-  ;;                                   (when smerge-mode
-  ;;                                     (hydra-smerge/body)))))
-  )
+             smerge-kill-current)  )
 
 ;;;;; browse-at-remote
 ;; - Open github/gitlab/bitbucket page
@@ -3137,8 +3128,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package gist
   :defines sej-mode-map
   :bind  (:map sej-mode-map
-               ("C-q G" . gist-list)
-               ("H-G" . gist-list)))
+               ("C-q G" . gist-list)))
 
 ;;;;; git-modes
 ;; - Emacs major modes for various Git configuration files.
@@ -3504,7 +3494,6 @@ If the region is active and option `transient-mark-mode' is on, call
   :hook (
          (c-mode-common . (lambda ()
                             (c-set-style "bsd")
-                            (setq tab-width 4)
                             (setq c-basic-offset 4) )))
   :init
   ;; Set the default formatting styles for various C based modes
@@ -3890,9 +3879,12 @@ the children of class at point."
   (setq dired-recursive-copies 'always)
 
   ;; Show directory first
-  (setq dired-listing-switches "-aFGhlv --group-directories-first")
+  (setq dired-listing-switches "-AFGhlv --group-directories-first")
 
-  (setq dired-dwim-target t)
+  (setq dired-dwim-target t
+        dired-auto-revert-buffer #'dired-directory-changed-p
+        dired-free-space nil
+        dired-mouse-drag-files t)
 
   (when sys/macp
     ;; Suppress the warning: `ls does not support --dired'.
@@ -4022,7 +4014,6 @@ the children of class at point."
 (use-package deft
   :defines sej-mode-map deft-text-mode
   :bind (:map sej-mode-map
-              ("<f7>" . deft)
               ("C-q D" . deft))
   :config
   (setq deft-directory sej-org-directory)
@@ -4234,7 +4225,11 @@ the children of class at point."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 (use-package flyspell
   :straight (:type built-in)
-  :bind ("s-$" . ispell-word) ; doesn't work well in osx due to keybindings
+  :bind (:map sej-mode-map
+         ("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
+         :map ctl-x-x-map
+         ("s" . flyspell-mode)
+         ("w" . ispell-word))
   :functions
   flyspell-correct-word
   flyspell-goto-next-error
@@ -4247,7 +4242,8 @@ the children of class at point."
   :config
   (setq flyspell-abbrev-p t
                 flyspell-use-global-abbrev-table-p t
-                flyspell-issue-message-flag nil)
+                flyspell-issue-message-flag nil
+                flyspell-issue-welcome-flag nil)
   (cond
    ((executable-find "aspell")
     (setq-default ispell-program-name "aspell")
@@ -4281,7 +4277,7 @@ the children of class at point."
 ;; - [[https://www.masteringemacs.org/article/wordsmithing-in-emacs?utm_source=newsletter&utm_medium=email&utm_campaign=rss&utm_source=Mastering+Emacs+Newsletter&utm_campaign=3a391dbdb1-MASTERING_EMACS_NEW_POSTS&utm_medium=email&utm_term=0_777fab9be9-3a391dbdb1-355707361][mastering Emacs]]
 (use-package dictionary
   :straight (:type built-in)
-  :bind (("M-#" . dictionary-lookup-definition)
+  :bind (("M-#" . dictionary-lookup-definition) ; use esc # in osx
          ("C-#" . dictionary-search))
   :config
   ;; mandatory, as the dictionary misbehaves!
@@ -4537,7 +4533,11 @@ function with the \\[universal-argument]."
   (defconst org-file-notes (concat org-directory "/notes.org"))
   (defconst org-file-code (concat org-directory "/snippets.org"))
   (setq org-replace-disputed-keys t
-        org-hide-emphasis-markers t
+        org-adapt-indentation nil
+        org-special-ctrl-a/e nil
+        org-special-ctrl-k nil
+        org-M-RET-may-split-line '((default . nil))
+        org-hide-emphasis-markers nil
         org-fontify-done-headline t
         org-hide-leading-stars t
         org-pretty-entities t
@@ -4545,11 +4545,10 @@ function with the \\[universal-argument]."
         org-capture-bookmark t
         org-refile-use-outline-path 'file
         org-log-done 'note
-        org-log-done t
-        org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
-                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "VERIFIED(V)")
-                            (sequence "|" "CANCELED(x)"))
+        org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "CANCELED(c@)" "DONE(d!)")
+                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "CANCELED(x)" "VERIFIED(V)"))
         org-todo-keyword-faces '(("TODO" . (:foreground "pink" :weight bold :height 0.5))
+                                 ("MAYBE" . (:foreground "blue" :weight bold :height 0.5))
                                  ("WAITING" . (:foreground "blue" :weight bold :height 0.5))
                                  ("DONE" . (:foreground "green" :weight bold :height 0.5))
                                  ("DELIGATE" . (:foreground "blue" :weight bold :height 0.5))
@@ -4558,6 +4557,23 @@ function with the \\[universal-argument]."
         org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-highlight-latex-and-related '(latex))
+
+;;;;;; tags
+  (setq org-tag-alist ; I don't really use those, but whatever
+        '(("meeting")
+          ("admin")
+          ("emacs")
+          ("home")
+          ("home-routines")
+          ("kids")
+          ("purchase")
+          ("home-automation")
+          ("financial")
+          ("electronics")
+          ("computer")
+          ("projects")
+          ("3d-printer")
+          ("other")))
 
   (let* ((variable-tuple
           (if (display-graphic-p)
@@ -4659,11 +4675,12 @@ function with the \\[universal-argument]."
   :config
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
+        org-agenda-files `(,org-directory "~/Documents")
         org-agenda-dim-blocked-tasks 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
         org-agenda-skip-scheduled-if-done t
-        org-agenda-start-on-weekday nil
+        org-agenda-start-on-weekday 1 ; Monday
         org-agenda-start-with-log-mode nil
         org-agenda-tags-column -100
         org-agenda-use-time-grid t
@@ -4905,12 +4922,6 @@ function with the \\[universal-argument]."
          ("C-q E" . eshell) )
 
   :config
-  ;; (require 'esh-opt)
-  ;; (require 'em-cmpl)
-  ;; (require 'em-smart)
-  ;; (require 'em-term)
-  ;; (require 'em-prompt)
-
   (setenv "PAGER" "cat")
 
   ;; Visual commands
