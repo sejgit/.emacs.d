@@ -2275,7 +2275,10 @@ If FRAME is omitted or nil, use currently selected frame."
          ("H-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
+         ("M-N" . symbol-overlay-switch-next)
+         ("M-P" . symbol-overlay-switch-prev)
          ("M-C" . symbol-overlay-remove-all))
+  :bind-keymap ("C-q s" . symbol-overlay-map)
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . (lambda () (symbol-overlay-mode -1)))
          (iedit-mode-end . symbol-overlay-mode)))
@@ -2285,6 +2288,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/Fanael/highlight-numbers
 (use-package highlight-numbers
   :hook (prog-mode . highlight-numbers-mode))
+
+;;;;; highlight-quoted
+;; [[https://github.com/Fanael/highlight-quoted][highlight-quoted]]
+(use-package highlight-quoted
+  :hook (emacs-lisp-mode . highlight-quoted-mode))
 
 ;;;;; highlight-indent-guides
 ;; - Highlight indentations
