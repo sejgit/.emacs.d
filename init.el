@@ -2101,7 +2101,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - https://github.com/knu/easy-kill-extras.el
 (use-package easy-kill-extras
   :bind (("M-w" . easy-kill) ; M-w
-         ("C-M-@" . easy-mark-sexp) ; C-M-@
+         ([remap mark-sexp] . easy-mark-sexp) ; C-M-<SPC>
          ("M-@" . easy-mark-word) ; M-@
          ("M-z" . easy-mark-to-char)) ; M-z
   :init
@@ -2148,14 +2148,6 @@ If FRAME is omitted or nil, use currently selected frame."
           ("H-S-p" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode))
-
-;;;;; smart-region
-;; - Smartly select region, rectangle, multi cursors
-;; - remaping set-mark-command to smart-region
-;; - https://github.com/uk-ar/smart-region
-(use-package smart-region
-  :bind ("C-S-<SPC>" . smart-region) ; C-S-SPC
-  :config (smart-region-on))
 
 ;;;;; smart-hungry-delete
 ;; - Hungry deletion
@@ -2495,12 +2487,6 @@ If FRAME is omitted or nil, use currently selected frame."
         show-paren-when-point-in-periphery t
         show-paren-when-point-inside-paren t
         show-paren-context-when-offscreen 'overlay))
-
-;;;;; paren-face
-;; make parentheses less visible in Lisp code by dimming them
-;; [[https://github.com/tarsius/paren-face][paren-face]]
-(use-package paren-face
-  :hook (emacs-startup . global-paren-face-mode))
 
 ;;;;; hideshow
 ;; built-in mode to hideshow blocks
@@ -2899,13 +2885,13 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . flymake-mode)
   :bind (:map flymake-mode-map
               ("C-c ! s" . flymake-start)
-              ("H-[" . flymake-goto-prev-error)
               ("C-c ! p" . flymake-goto-prev-error)
-              ("H-]" . flymake-goto-next-error)
               ("C-c ! n" . flymake-goto-next-error)
-              ("H-\\" . flymake-show-buffer-diagnostics)
               ("C-c ! l" . flymake-show-buffer-diagnostics)
               ("C-c ! d" . flymake-show-project-diagnostics))
+              ("H-[" . flymake-goto-prev-error)
+              ("H-]" . flymake-goto-next-error)
+              ("H-\\" . flymake-show-buffer-diagnostics)
   :init
   (setq flymake-fringe-indicator-position 'right-fringe)
   (setq flymake-suppress-zero-counters t)
