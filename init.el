@@ -1458,6 +1458,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;; search
 ;;;;; isearch
 ;; built-in search function
+;; [[https://github.com/VernonGrant/discovering-emacs/blob/main/show-notes/3-making-incremental-search-work-for-you.md][good tutorial]]
 (use-package isearch
   :straight (:type built-in)
   :init
@@ -1474,6 +1475,8 @@ If FRAME is omitted or nil, use currently selected frame."
         isearch-repeat-on-direction-change t
         lazy-highlight-initial-delay 0.5
         lazy-highlight-no-delay-length 3
+        search-ring-max 30
+        regexp-search-ring-max 30
         isearch-wrap-pause t)
   (define-key minibuffer-local-isearch-map (kbd "M-/") #'isearch-complete-edit)
   (let ((map isearch-mode-map))
