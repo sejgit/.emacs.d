@@ -1421,10 +1421,17 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq doom-modeline-hud t
         doom-modeline-project-detection 'auto))
 
+;;;;; minions
+;; implements a nested menu that gives access to all minor modes
+;; [[https://github.com/tarsius/minions][minions]]
+(use-package minions
+  :config (minions-mode 1))
+
 ;;;;; all-the-icons
 ;; - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
 ;; - https://github.com/domtronn/all-the-icons.el
-(use-package all-the-icons)
+(use-package all-the-icons
+  :ensure t)
 
 
 ;;; text manipulation
@@ -3009,8 +3016,6 @@ If FRAME is omitted or nil, use currently selected frame."
          ("<f12>" . magit-status)
          ("C-x M-g" . magit-dispatch)
          ("C-c M-g" . magit-file-popup))
-  :init
-  (add-hook 'magit-mode-hook #'hide-mode-line-mode)
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
@@ -3305,12 +3310,6 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; - [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 (use-package inferior-pyton-mode
   :straight (:type built-in))
-
-;;;;; hide-mode-line
-;; required to hide the modeline
-;; - [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]]
-(use-package hide-mode-line
-  :commands (hide-mode-line-mode))
 
 ;;;;; pyenv-mode
 ;; integration with the pyenv tool
