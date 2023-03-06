@@ -983,23 +983,21 @@ Return its absolute path.  Otherwise, return nil."
 ;;; user interface
 ;;;; themes
 ;;;;; wombat theme
-(use-package emacs
-  :straight (:type built-in)
-  :ensure t
-  ;:preface
+;; previous preferred theme 
   ;(load-theme 'wombat)
-  )
 
 ;;;;; tron-legacy-theme
-;; alternate theme
+;; current preferred theme
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
 (use-package tron-legacy-theme
-  :hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
+  :demand t
+  ;:hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
   :preface
   (setq tron-legacy-theme-vivid-cursor t)
   (setq tron-legacy-theme-dark-fg-bright-comments nil)
-  (setq tron-legacy-theme-softer-bg t))
-
+  (setq tron-legacy-theme-softer-bg t)
+  :config
+  (load-theme 'tron-legacy))
 
 ;;;;; default-text-scale
 ;; easily adjust the default font size in all Emacs frames
