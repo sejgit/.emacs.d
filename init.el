@@ -524,11 +524,9 @@
         track-eol t
         line-move-visual nil
         line-number-mode t
-        mode-line-percent-position nil
         save-interprogram-paste-before-kill t
         kill-read-only-ok t
         shift-select-mode nil
-        show-trailing-whitespace nil
         set-mark-command-repeat-pop t)
 
   ;; When popping the mark, continue popping until the cursor actually moves
@@ -958,13 +956,15 @@ Return its absolute path.  Otherwise, return nil."
   :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
   :blackout t
   :hook (emacs-startup . which-key-mode)
+  :bind (("C-h h" . which-key-show-top-level)
+         ("C-h M-m" . which-key-show-major-mode))
   :commands which-key-mode
   :defines sej-mode-map
   :config
   (setq which-key-use-C-h-commands t
         which-key-separator " "
-        which-key-prefix-prefix "+"
-        which-key-popup-type 'minibuffer)  )
+        which-key-prefix-prefix "+")
+  (which-key-setup-side-window-bottom) )
 
 ;;;;; helpful
 ;; - helpful is an improved help-fns & help-fns+
@@ -1504,15 +1504,15 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
   (global-anzu-mode))
 
-;;;;; ag
-;; - searching with the silver searcher
-;; - https://github.com/Wilfred/ag.el
-  (use-package ag
-    :if (sej/is-exec "ag")
-    :commands ag
-    :config
-    (setq ag-executable (executable-find "ag"))
-    (setq-default ag-highlight-search t))
+;;;;; consult-ag
+;; - searching with the silver searcher, consult style
+;; - [[https://github.com/yadex205/consult-ag][consult-ag.el]]
+(use-package consult-ag
+  :after consult
+  :ensure-system-package (ag . the_silver_searcher)
+  :if (sej/is-exec "ag")
+  :commands consult-ag
+  :bind (("M-s a" . consult-ag))  )
 
 ;;;;; deadgrep
 ;; [[https://github.com/Wilfred/deadgrep][deadgrep: use ripgrep from Emacs]]
@@ -1605,6 +1605,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - alternative to ivy, ido, helm
 ;; - [[https://github.com/minad/vertico][vertico]]
 (use-package vertico
+  :demand t
   :hook (emacs-startup . vertico-mode)
   :config
   ;; Different scroll margin
@@ -1623,6 +1624,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
+  :demand t
   :bind (:map corfu-map
               ("<tab>" . corfu-complete))
   :hook ((emacs-startup . global-corfu-mode)
@@ -1689,11 +1691,13 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
 (use-package corfu
-  :init
+  :demand t
+  :config
   (global-corfu-mode))
 
 ;; Add extensions
 (use-package cape
+  :demand t
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
   :bind (("C-c p p" . completion-at-point) ;; capf
@@ -1732,6 +1736,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Enable richer annotations using the Marginalia package
 ;; [[https://github.com/minad/marginalia][marginalia]]
 (use-package marginalia
+  :demand t
   :hook (emacs-startup . marginalia-mode)
   :bind (("M-A" . marginalia-cycle)
          :map minibuffer-local-map
@@ -1755,6 +1760,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/radian-software/prescient.el][prescient]]
 (use-package prescient
   :straight (:type git :host github :repo "radian-software/prescient.el" :files ("*.el"))
+  :demand t
   :hook (emacs-startup . prescient-persist-mode)
   :init
   (add-to-list 'completion-styles 'prescient)
@@ -1770,6 +1776,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; acting on targets
 ;; [[https://github.com/oantolin/embark/][embark]]
 (use-package embark
+  :demand t
   :bind  (("C-." . embark-act)         ;; pick some comfortable binding
           ("M-." . embark-dwim)        ;; good alternative: M-.
           ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
@@ -1803,6 +1810,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - completing read
 ;; - [[https://github.com/minad/consult][consult]]
 (use-package consult
+  :demand t
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
          ("C-c b" . consult-bookmark)
@@ -1831,6 +1839,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ;; M-s bindings (search-map)
+         ;;see consult-ag for ("M-s a" . consult-ag) if executable ag "Silver-Searcher" exists
          ("M-s f" . consult-find)
          ("M-s L" . consult-locate)
          ("M-s g" . consult-grep)
@@ -1868,9 +1877,6 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-
-  ;; Optionally replace `completing-read-multiple' with an enhanced version.
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
 
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
@@ -1927,8 +1933,9 @@ If FRAME is omitted or nil, use currently selected frame."
 (defun consult-info-completion ()
   "Search through completion info pages."
   (interactive)
-  (consult-info "vertico" "consult" "marginalia" "orderless" "embark"
-                "corfu" "cape" "tempel"))
+  ;; below is ideal but some do not have .texti files yet
+  ;;(consult-info "vertico" "consult" "marginalia" "orderless" "embark" "corfu" "cape" "tempel")
+  (consult-info "consult" "marginalia" "orderless" "embark" "corfu" "cape" "tempel")  )
 
 ;; Use `consult-completion-in-region' if Vertico is enabled.
 ;; Otherwise use the default `completion--in-region' function.
