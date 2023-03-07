@@ -1099,7 +1099,7 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 7)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
                     (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
 
   (defun sej/frame-resize-l2 ()
@@ -1113,7 +1113,7 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
     (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 7)
+    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
                     (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
 
   (defun sej/frame-resize-r2 ()
@@ -1148,11 +1148,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; fringe
 ;; fringe-mode
 ;; [[https://www.emacswiki.org/emacs/TheFringe][The Fringe wiki]]
+;; [[https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/][Customizing the Fringes]]
 (use-package fringe
   :straight (:type built-in)
   :init
-  (fringe-mode nil)
-  (setq-default fringes-outside-margins nil))
+  (fringe-mode '(4 . 4)))
 
 
 ;;;; buffers
