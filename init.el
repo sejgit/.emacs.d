@@ -154,19 +154,21 @@
               use-package-expand-minimally t
               use-package-enable-imenu-support t)
 ;; part of Emacs built-in as of Emacs29
-(if nil        ;; emacs/>=29p  **short circuit until bind-key updates => Emacs@30**
-    (progn
-      (require 'use-package)
-      (require 'bind-key)
-      (use-package system-packages)
-      (require 'use-package-ensure-system-package))
-  (progn
+;;(if nil        ;; emacs/>=29p or nil to **short circuit until bind-key updates => Emacs@30**
+    ;; (progn
+    ;;   (eval-when-compile
+    ;;     (require 'use-package))
+    ;;   (require 'bind-key)
+    ;;   (use-package system-packages)
+    ;;   (require 'use-package-ensure-system-package))
+;;  (progn
     (straight-use-package 'use-package)
     (use-package bind-key
       :ensure t
       :demand t)
     (use-package use-package-ensure-system-package
-      :ensure t) ))
+      :ensure t)
+;;))
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -561,7 +563,68 @@
       (if (version< emacs-version "29.0")
           (pixel-scroll-mode)
         (pixel-scroll-precision-mode 1)
-        (setq pixel-scroll-precision-large-scroll-height 35.0))      )
+        (setq pixel-scroll-precision-large-scroll-height 35.0))
+
+;;;;;; shorthand for interactive lambdas
+      (defmacro λ (&rest body)
+        "Shorthand for interactive lambdas (BODY)."
+        `(lambda ()
+           (interactive)
+           ,@body))
+
+;;;;;; pop-to-mark-command
+      ;; When popping the mark, continue popping until the cursor actually moves
+      ;; Also, if the last command was a copy - skip past all the expand-region cruft.
+      (defadvice pop-to-mark-command (around ensure-new-position activate)
+        "When popping the mark, continue popping until we move the cursor."
+        (let ((p (point)))
+          (when (eq last-command 'save-region-or-current-line)
+            ad-do-it
+            ad-do-it
+            ad-do-it)
+          (dotimes (i 10)
+            (when (= p (point)) ad-do-it))))
+
+;;;;;; transpose lines/words/sexps/params global
+      (unbind-key "M-t") ;; which used to be transpose-words
+      (unbind-key "C-q")
+      (unbind-key "M-z")
+      (unbind-key "C-h C-h")
+
+      :bind* (:prefix-map transpose-map
+                          :prefix "M-t"
+                          :prefix-docstring "transpose map"
+                          ("l" . transpose-lines)
+                          ("w" . transpose-words)
+                          ("s" . transpose-sexps)
+                          ("p" . transpose-params))
+
+;;;;;; special character definitions λ
+      :bind* (:prefix-map special-char-map
+                          :prefix "C-x 8"
+                          :prefix-docstring "special char map"
+                          ("l" ("λ" . (lambda () (interactive) (insert "\u03bb"))))
+                          ("t" ("™" . (lambda () (interactive) (insert "™"))))
+                          ("c" ("©" . (lambda () (interactive) (insert "©"))))
+                          (">" ("→" . (lambda () (interactive) (insert "→"))))
+                          ("8" ("∞" . (lambda () (interactive) (insert "∞"))))
+                          ("v" ("✓" . (lambda () (interactive) (insert "✓")))))
+     
+;;;;;; sej-C-q bindings
+      :bind* (:prefix-map sej-C-q-map
+                          :prefix "C-q"
+                          :prefix-docstring "SeJ Personal C-q key bindings"
+                          ("v" . emacs-version)
+                          ("\\" . align-regexp) ;Align your code in a pretty way.
+                          ("." . org-time-stamp)
+                          ("D" . describe-personal-keybindings)
+                          :prefix-map term-map
+                          :prefix "C-q S"
+                          :prefix-docstring "Term bindings")
+                          
+      :bind* (:map override-global-map
+              ("s-." . pop-to-mark-command)
+	          ("M-j" . join-line)))
 
 ;;;;; Simple
 ;; built-in simple settings
@@ -585,19 +648,7 @@
         save-interprogram-paste-before-kill t
         kill-read-only-ok t
         shift-select-mode nil
-        set-mark-command-repeat-pop t)
-
-  ;; When popping the mark, continue popping until the cursor actually moves
-  ;; Also, if the last command was a copy - skip past all the expand-region cruft.
-  (defadvice pop-to-mark-command (around ensure-new-position activate)
-    "When popping the mark, continue popping until we move the cursor."
-    (let ((p (point)))
-      (when (eq last-command 'save-region-or-current-line)
-        ad-do-it
-        ad-do-it
-        ad-do-it)
-      (dotimes (i 10)
-        (when (= p (point)) ad-do-it)))))
+        set-mark-command-repeat-pop t))
 
 ;;;;; minibuffer
 ;; minibuffer settings
@@ -678,62 +729,6 @@
   (setq auto-save-file-name-transforms `((".*"
                                           ,(no-littering-expand-var-file-name "auto-save/") t))))
 
-
-;;; general keybindings
-;;;;;  shorthand for interactive lambdas
-(defmacro λ (&rest body)
-  "Shorthand for interactive lambdas (BODY)."
-  `(lambda ()
-     (interactive)
-     ,@body))
-
-;;;;;  transpose lines/words/sexps/params global
-;; - Transpose stuff with M-t
-(unbind-key "M-t") ;; which used to be transpose-words
-(bind-keys* :prefix-map transpose-map
-            :prefix "M-t"
-            :prefix-docstring "transpose map"
-            ("l" . transpose-lines)
-            ("w" . transpose-words)
-            ("s" . transpose-sexps)
-            ("p" . transpose-params))
-
-;;;;;  special character definitions λ
-;; - Neat bindings for C-x 8 ; put some Alt bindins there for fun as well
-;;(bind-key* "C-x 8 l" ("test" . (lambda () (interactive) (insert "\u03bb"))))
- 
-
-
-(global-set-key (kbd "C-x 8 t m") (λ (insert "™")))
-(global-set-key (kbd "A-T") (λ (insert "™")))
-(global-set-key (kbd "C-x 8 C") (λ (insert "©")))
-(global-set-key (kbd "A-C") (λ (insert "©")))
-(global-set-key (kbd "C-x 8 >") (λ (insert "→")))
-(global-set-key (kbd "A->") (λ (insert "→")))
-(global-set-key (kbd "C-x 8 8") (λ (insert "∞")))
-(global-set-key (kbd "A-8") (λ (insert "∞")))
-(global-set-key (kbd "C-x 8 v") (λ (insert "✓")))
-(global-set-key (kbd "A-V") (λ (insert "✓")))
-
-;;;;; sej-C-q bindings
-(unbind-key "C-q")
-(unbind-key "M-z")
-(unbind-key "C-h C-h")
-
-(bind-keys* :prefix-map sej-C-q-map
-            :prefix "C-q"
-            :prefix-docstring "SeJ Personal C-q key bindings"
-            ("v" . emacs-version)
-	        ("\\" . align-regexp) ;Align your code in a pretty way.
-            ("." . org-time-stamp)
-            ("D" . describe-personal-keybindings)
-            )
-
-(bind-keys* 
-            ("s-." . pop-to-mark-command)
-	        ("C-h C-h" . nil)
-	        ("M-j" . (lambda () (join-line -1)))
-            )
 
 ;;; general functions / packages
 ;;;;; sej/save-macro
