@@ -90,6 +90,22 @@
   (and (display-graphic-p) sys/macp)
   "Are we running under X on a Mac system?")
 
+(defconst sys/mac-x86-p
+  (and (string= (substring system-configuration 0 6) "x86_64") sys/macp)
+  "Are we running X86 Mac system?")
+
+(defconst sys/mac-AA64-p
+  (and (string= (substring system-configuration 0 7) "aarch64") sys/macp)
+  "Are we running Apple Silicon Mac system?")
+
+;; specific vars for different systems
+(cond (sys/mac-x86-p
+       (setq sej/menu-height -25)) ;; x86 Intel mac
+      (sys/mac-AA64-p
+       (setq sej/menu-height -37)) ;; Apple silicon mac
+      (t
+      (setq sej/menu-height -30))) ;; default for other
+
 (defconst sys/linux-x-p
   (and (display-graphic-p) sys/linuxp)
   "Are we running under X on a GNU/Linux system?")
@@ -332,16 +348,8 @@
   "Set user email address."
   :type 'string)
 
-(defcustom sej-proxy "localhost:80"
-  "Set network proxy."
-  :type 'string)
-
 (defcustom sej-dashboard t
   "If Non-nil, use dashboard at start-up, otherwise will restore previous session."
-  :type 'boolean)
-
-(defcustom sej-benchmark nil
-  "Enable the init benchmark or not."
   :type 'boolean)
 
 (defcustom sej-org-directory "~/Documents/orgtodo"
@@ -1017,35 +1025,35 @@ Return its absolute path.  Otherwise, return nil."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1))
 
   (defun sej/frame-resize-l ()
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1))
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1))
 
   (defun sej/frame-resize-l2 ()
     "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1)  )
 
   (defun sej/frame-resize-r ()
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
     (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) -25)) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1)  )
 
   (defun sej/frame-resize-r2 ()
     "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
     (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height)) -25) 1)  )
+                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height)) sej/menu-height) 1)  )
 
   (when sys/mac-x-p
     (setq ns-use-native-fullscreen nil))
