@@ -1711,6 +1711,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :bind* (;; C-c bindings (mode-specific-map)
           ("C-c b" . consult-bookmark)
           ("C-c k" . consult-kmacro)
+          ("C-c h" . consult-history)
+          ("C-c M-x" . consult-mode-command)
           ;; C-x bindings (ctl-x-map)
           ("C-x C-r" . consult-recent-file)
           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
@@ -1726,7 +1728,6 @@ If FRAME is omitted or nil, use currently selected frame."
           ;; M-g bindings (goto-map)
           ("M-g e" . consult-compile-error)
           ("M-g f" . consult-flymake)
-          ("M-g x" . consult-xref)
           ("M-g g" . consult-goto-line)             ;; orig. goto-line
           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
@@ -1748,9 +1749,16 @@ If FRAME is omitted or nil, use currently selected frame."
           ("M-s u" . consult-focus-lines)
           ;; Isearch integration
           :map isearch-mode-map
-          ("M-s l" . consult-line)                 ;; needed by consult-line to detect isearch
-          :map consult-narrow-map
-          ("?" . consult-narrow-help))
+          ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+          ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         :map consult-narrow-map
+         ("?" . consult-narrow-help)
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
   ;; Enable automatic preview at point in the *Completions* buffer.
   ;; This is relevant when you use the default completion UI,
@@ -1791,30 +1799,31 @@ If FRAME is omitted or nil, use currently selected frame."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key "M-.")
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; (kbd "C-+")
+  (setq consult-narrow-key "<") ;; "C-+"
+
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
-  ;; Optionally configure a function which returns the project root directory.
-  ;; There are multiple reasonable alternatives to chose from.
-;;;;;;; 1. project.el (project-roots)
-  (setq consult-project-root-function
-        (lambda ()
-          (when-let (project (project-current))
-           (car (project-roots project)))))
-;;;;;;; 2. projectile.el (projectile-project-root)
-   ;; (autoload 'projectile-project-root "projectile")
-   ;; (setq consult-project-root-function #'projectile-project-root)
-;;;;;;; 3. vc.el (vc-root-dir)
-  ;; (setq consult-project-root-function #'vc-root-dir)
-;;;;;;; 4. locate-dominating-file
-  ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+  ;; By default `consult-project-function' uses `project-root' from project.el.
+  ;; Optionally configure a different project root function.
+  ;;;;;; 1. project.el (the default)
+  ;; (setq consult-project-function #'consult--default-project--function)
+  ;;;;;; 2. vc.el (vc-root-dir)
+  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+  ;;;;;; 3. locate-dominating-file
+  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+  ;;;;;; 4. projectile.el (projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
+  ;;;;;; 5. No project support
+  ;; (setq consult-project-function nil)
 
   (defun consult-info-emacs ()
   "Search through Emacs info pages."
@@ -2696,12 +2705,23 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - Automatic parenthesis pairing
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
 (use-package elec-pair
+  :disabled ;; using smartparens for now
   :straight (elec-pair :type built-in)
   :hook (prog-mode . electric-pair-mode)
   :config
   (electric-layout-mode t)
   (electric-indent-mode t))
 
+;;;;; smartparens
+;; - minor mode for dealing with pairs in Emacs
+;; - [[https://github.com/Fuco1/smartparens][smartparens]]
+(use-package smartparens
+  :bind-keymap* ("C-q (" . smartparens-mode-map)
+  :hook (prog-mode . smartparens-mode)
+  :config
+  (require 'smartparens-config)
+  (sp-use-smartparens-bindings))
+  
 ;;;;; compile
 ;; - Compilation Mode
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
