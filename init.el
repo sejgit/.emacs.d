@@ -658,6 +658,46 @@
         shift-select-mode nil
         set-mark-command-repeat-pop t))
 
+;; Define the whitespace style.
+(setq-default whitespace-style
+              '(face spaces empty tabs newline trailing space-mark tab-mark newline-mark))
+
+;; Whitespace color corrections.
+(require 'color)
+(let* ((ws-lighten 30) ;; Amount in percentage to lighten up black.
+       (ws-color (color-lighten-name "#000000" ws-lighten)))
+  (custom-set-faces
+   `(whitespace-newline                ((t (:foreground ,ws-color))))
+   `(whitespace-missing-newline-at-eof ((t (:foreground ,ws-color))))
+   `(whitespace-space                  ((t (:foreground ,ws-color))))
+   `(whitespace-space-after-tab        ((t (:foreground ,ws-color))))
+   `(whitespace-space-before-tab       ((t (:foreground ,ws-color))))
+   `(whitespace-tab                    ((t (:foreground ,ws-color))))
+   `(whitespace-trailing               ((t (:foreground ,ws-color))))))
+
+;; Make these characters represent whitespace.
+(setq-default whitespace-display-mappings
+      '(
+        ;; space -> · else .
+        (space-mark 32 [183] [46])
+        ;; new line -> ¬ else $
+        (newline-mark ?\n [172 ?\n] [36 ?\n])
+        ;; carriage return (Windows) -> ¶ else #
+        (newline-mark ?\r [182] [35])
+        ;; tabs -> » else >
+        (tab-mark ?\t [187 ?\t] [62 ?\t])))
+
+;; Don't enable whitespace for.
+(setq-default whitespace-global-modes
+              '(not shell-mode
+                    help-mode
+                    magit-mode
+                    magit-diff-mode
+                    ibuffer-mode
+                    dired-mode
+                    occur-mode))
+(global-whitespace-mode)
+
 ;;;;; minibuffer
 ;; minibuffer settings
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el][minibuffer.el]]
@@ -1483,18 +1523,18 @@ If FRAME is omitted or nil, use currently selected frame."
   :bind* ("M-/" . hippie-expand)
   :init
   (setq hippie-expand-try-functions-list
-        '(try-complete-file-name-partially
+        '(try-expand-dabbrev-visible
           try-expand-dabbrev
           try-expand-dabbrev-all-buffers
           try-expand-dabbrev-from-kill
-          try-expand-list-all-buffers
-          try-expand-list
-          try-expand-line-all-buffers
-          try-expand-line
           try-complete-file-name-partially
           try-complete-file-name
           try-expand-all-abbrevs
+          try-expand-list
+          try-expand-line
           try-complete-lisp-symbol-partially
+          try-expand-list-all-buffers
+          try-expand-line-all-buffers
           try-compelete-lisp-symbol)))
 
 ;;;;; vertico
@@ -1522,7 +1562,12 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package corfu
   :demand t
   :bind (:map corfu-map
-              ("<tab>" . corfu-complete))
+              ("<tab>" . corfu-complete)
+              ("M-m" . corfu-move-to-minibuffer)
+              ("<escape>". corfu-quit)
+              ("<return>" . corfu-insert)
+              ("M-d" . corfu-show-documentation)
+              ("M-l" . 'corfu-show-location))
   :hook ((emacs-startup . global-corfu-mode)
          ((eshell-mode markdown-mode) . (lambda ()
                                           (setq-local corfu-auto nil)
@@ -1549,6 +1594,12 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; See also `corfu-excluded-modes'.
   (corfu-echo-documentation nil)
   :config
+  (defun corfu-move-to-minibuffer ()
+    "Move \"popup\" completion candidates to minibuffer.
+Useful if you want a more robust view into the recommend candidates."
+    (interactive)
+    (let (completion-cycle-threshold completion-cycling)
+      (apply #'consult-completion-in-region completion-in-region--data)))
   (use-package corfu-history
     :straight nil
     :load-path "straight/build/corfu/extensions"
@@ -1673,9 +1724,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/oantolin/embark/][embark]]
 (use-package embark
   :demand t
-  :bind*  (("C-." . embark-act)         ;; pick some comfortable binding
+  :bind*  (("C-." . embark-act)        ;; pick some comfortable binding
           ("M-." . embark-dwim)        ;; good alternative: M-.
-          ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+          ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
+          ("C-s-e" . embark-export)
+          ("H-e" . embark-export))
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
