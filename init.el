@@ -31,7 +31,7 @@
 ;; SeJ Emacs configurations.
 ;;
 ;; a long journey to here...
-;; 
+;;
 ;; using Emacs 30
 ;; on macos installing emacs-plus@30
 ;; brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll
@@ -542,7 +542,7 @@
       ;; Vertico commands are hidden in normal buffers.
       (setq read-extended-command-predicate
             #'command-completion-default-include-p)
-      
+
       (setq sentence-end-double-space nil) ; Sentences do not need double spaces to end. Period.
       (global-visual-line-mode t) ; Add proper word wrapping
       (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
@@ -625,7 +625,7 @@
                           (">" ("→" . (lambda () (interactive) (insert "→"))))
                           ("8" ("∞" . (lambda () (interactive) (insert "∞"))))
                           ("v" ("✓" . (lambda () (interactive) (insert "✓")))))
-     
+
 ;;;;;; sej-C-q bindings
       :bind* (:prefix-map sej-C-q-map
                           :prefix "C-q"
@@ -637,7 +637,7 @@
                           :prefix-map term-map
                           :prefix "C-q S"
                           :prefix-docstring "Term bindings")
-                          
+
       :bind* (:map override-global-map
               ("s-." . pop-to-mark-command)
 	          ("M-j" . join-line)))
@@ -2512,52 +2512,45 @@ Useful if you want a more robust view into the recommend candidates."
 ;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
 ;; Important this is using the built-in Emacs version tree-sit.el
 ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
-  (use-package treesit
+(use-package treesit
+  ;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
+  ;; Important this is using the built-in Emacs version tree-sit.el
+  ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
   :straight (:type built-in)
-  :ensure t
+  :demand t
   :config
-  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter_intel" "~/.emacs.d/tree-sitter_m1"))
-  (when (treesit-available-p)
-    (setq major-mode-remap-alist
-          '((c-mode          . c-ts-mode)       ; completed set-up for all c-modes
-          (c++-mode        . c++-ts-mode)
-          (c-or-c++-mode   . c-or-c++-ts-mode)
-          (conf-toml-mode  . toml-ts-mode)      ; completed (no set-up)
-          (csharp-mode     . csharp-ts-mode)
-          (css-mode        . css-ts-mode)       ; completed
-          (java-mode       . java-ts-mode)      ; not completed - keep current non-ts for now
-          (js-mode         . js-ts-mode)        ; not completed - keep current non-ts for now
-          (javascript-mode . js-ts-mode)        ; not completed - keep current non-ts for now
-          (js-json-mode    . json-ts-mode)      ; not completed - keep current non-ts for now
-          (python-mode     . python-ts-mode)    ; competed set-up
-          (ruby-mode       . ruby-ts-mode)      ; not completed - keep current non-ts for now
-          (sh-mode         . bash-ts-mode)      ; work in progress
-          (yaml-mode       . yaml-ts-mode)      ; completed
-          (typescript-mode . tsx-ts-mode)       ;
-          )))
+  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter_intel" "~/.emacs.d/tree-sitter_m1"))  )
 
-  (use-package combobulate
-    ;; standard movement using treesitter
-    ;; [[https://github.com/mickeynp/combobulate][combobulate]]
-    ;; use C-c o o for menu
-    :straight (:type git :host github :repo "mickeynp/combobulate")
-    ;; You can manually enable Combobulate with `M-x
-    ;; combobulate-mode'.
-    :hook ((;c-ts-mode
-            ;c++-ts-mode
-            ;c-or-c++-ts-mode
-            ;toml-ts-mode
-            ;csharp-ts-mode
-            css-ts-mode
-            ;java-ts-mode
-            js-ts-mode
-            ;json-ts-mode
-            python-ts-mode
-            ;ruby-ts-mode
-            ;bash-ts-mode
-            yaml-ts-mode
-            typescript-ts-mode
-            tsx-ts-mode) . combobulate-mode)))
+(use-package treesit-auto
+  ;; some auto features for tree-sit
+  ;; [[https://github.com/renzmann/treesit-auto][treesit-auto]]
+  :demand t
+  :config
+  (setq treesit-auto-install 'prompt)
+  (global-treesit-auto-mode))
+
+(use-package combobulate
+  ;; standard movement using treesitter
+  ;; [[https://github.com/mickeynp/combobulate][combobulate]]
+  ;; use C-c o o for menu
+  :straight (:type git :host github :repo "mickeynp/combobulate")
+  ;; You can manually enable Combobulate with `M-x
+  ;; combobulate-mode'.
+  :hook ((                              ;c-ts-mode
+                                        ;c++-ts-mode
+                                        ;c-or-c++-ts-mode
+                                        ;toml-ts-mode
+                                        ;csharp-ts-mode
+          css-ts-mode
+                                        ;java-ts-mode
+          js-ts-mode
+                                        ;json-ts-mode
+          python-ts-mode
+                                        ;ruby-ts-mode
+                                        ;bash-ts-mode
+          yaml-ts-mode
+          typescript-ts-mode
+          tsx-ts-mode) . combobulate-mode))
 
 ;;;;; eglot
 ;; - simple client for Language Server Protocol servers
@@ -2584,7 +2577,7 @@ Useful if you want a more robust view into the recommend candidates."
     (if (eq major-mode 'emacs-lisp-mode)
         t
     (eglot-ensure)))
-    
+
   (add-to-list 'eglot-server-programs
                `((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                          c-ts-mode c++-ts-mode c-or-c++-ts-mode) .
@@ -2782,7 +2775,7 @@ Useful if you want a more robust view into the recommend candidates."
   :config
   (require 'smartparens-config)
   (sp-use-smartparens-bindings))
-  
+
 ;;;;; compile
 ;; - Compilation Mode
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
@@ -2869,7 +2862,7 @@ Useful if you want a more robust view into the recommend candidates."
 ;;          (beg (car pos))
 ;;          (end (cdr pos)))
 ;;     (list fmqd-source beg end :warning msg)))
-;; 
+;;
 ;; (defun flymake-proselint-setup ()
 ;;   "Enable flymake backend."
 ;;   (add-hook 'flymake-diagnostic-functions #'flymake-proselint-backend nil t))
@@ -3497,7 +3490,7 @@ the children of class at point."
     "front end for eglot-ccls-use-default"
     (interactive)
     (eglot-ccls-semhl-use-default-rainbow-highlight)) )
-  
+
 ;;;;; clang-format
 ;; Clang-format emacs integration for use with C/Objective-C/C++.
 ;; [[https://github.com/sonatard/clang-format][clang-format]]
@@ -3948,38 +3941,6 @@ the children of class at point."
 ;; - https://jblevins.org/projects/markdown-mode/
 ;; - https://leanpub.com/markdown-mode
 (use-package markdown-mode
-  :preface
-  ;; Install: pip install grip
-  (defun markdown-preview-grip ()
-    "Render and preview with `grip'."
-    (interactive)
-    (let ((program "grip")
-          (port "6419")
-          (buffer "*gfm-to-html*"))
-
-      ;; If process exists, kill it.
-      (markdown-preview-kill-grip buffer)
-
-      ;; Start a new `grip' process.
-      (start-process program buffer program (buffer-file-name) port)
-      (sleep-for 1) ; wait for process start
-      (browse-url (format "http://localhost:%s/%s.%s"
-                          port
-                          (file-name-base)
-                          (file-name-extension
-                           (buffer-file-name))))))
-
-  (defun markdown-preview-kill-grip (&optional buffer)
-    "Kill `grip' process."
-    (interactive)
-    (let ((process (get-buffer-process (or buffer "*gfm-to-html*"))))
-      (when process
-        (kill-process process)
-        (message "Process %s killed" process))))
-
-  :bind (:map markdown-mode-command-map
-              ("g" .  markdown-preview-grip)
-              ("k" .  markdown-preview-kill-grip))
   :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . visual-line-mode)
          (markdown-mode . writegood-mode)
@@ -4001,37 +3962,6 @@ the children of class at point."
         markdown-header-scaling t)
   (setq markdown-command "pandoc -f markdown -t html")
 
-  (when sys/macp
-    (let ((typora "/Applications/Typora.app/Contents/MacOS/Typora"))
-      (if (file-exists-p typora)
-          (setq markdown-open-command typora))))
-
-  (setq markdown-content-type "application/xhtml+xml")
-  (setq markdown-css-paths '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
-                             "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"))
-  (setq markdown-xhtml-header-content "
-      <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
-      <style>
-      body {
-      box-sizing: border-box;
-      max-width: 740px;
-      width: 100%;
-      margin: 40px auto;
-      padding: 0 10px;
-      }
-      </style>
-      <script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
-      <script>
-      document.addEventListener('DOMContentLoaded', () => {
-      document.body.classList.add('markdown-body');
-      document.querySelectorAll('pre[lang] > code').forEach((code) => {
-      code.classList.add(code.parentElement.lang);
-      hljs.highlightBlock(code);
-      });
-      });
-      </script>
-      ")
-  
 ;;;;; markdown-toc
   ;; - Table of contents
   ;; - Inside a markdown file, the first time,
@@ -4072,7 +4002,13 @@ the children of class at point."
 (use-package markdown-soma
   :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
-              ("p" . markdown-soma-mode))  )
+              ("p" . markdown-soma-mode))
+  :config
+  ;; select css theme
+  (setq markdown-soma-custom-css
+        (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark"))
+  ;; Change "theme name" to the selected highlightjs theme.
+  (setq markdown-soma-highlightjs-theme "github-dark"))
 
 ;;;;; textile-mode
 ;; - textile markup editing major mode
@@ -5335,7 +5271,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;;       ;; set default url browser
 ;;       ;; Then, many packages supporting `browse-url` will work with xwidget webkit
 ;;       ;; For example, try `C-c C-c p` if you are using `markdown-preview`.
-;; 
+;;
 ;;       ;; search-web withxwidget webkit
 ;;       (use-package search-web
 ;;         :bind ("C-c w" . search-web)
@@ -5343,7 +5279,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;;         (defun browse-url-default-browser (url &rest args)
 ;;           "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS."
 ;;           (xwidget-webkit-browse-url url args)))
-;; 
+;;
 ;;       ;; browse to a URL bookmark from Bookmark List
 ;;       (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
 ;;       (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
@@ -5561,4 +5497,3 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
-

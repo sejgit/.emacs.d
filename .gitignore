@@ -1,3 +1,4 @@
+#*#
 *.bak
 *.data
 *.elc
@@ -5,7 +6,6 @@
 *.sqlite
 *bak/
 *~
-#*#
 eln-cache/
 .DS_Store
 .cache/
@@ -93,6 +93,7 @@ thumbs/
 tldr/
 tmp*
 transient/
+tree-sitter/
 tutorial/
 url/
 var/
