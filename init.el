@@ -376,6 +376,14 @@
   "Password for ERC/IRC."
   :type 'string)
 
+(defcustom sej-chatgpt-user "user"
+  "User name for chatgpt default user."
+  :type 'string)
+
+(defcustom sej-chatgpt-key "key"
+  "Key for chatgpt should be secret."
+  :type 'string)
+
 ;;;;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -5522,6 +5530,32 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 
         (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
         (delete 'tmr-notification-notify tmr-timer-finished-functions))))
+
+
+;;; ChatGPT
+;;;;; openai
+;; backend for chatgpt & codegpt
+;; [[https://github.com/emacs-openai/openai][emacs-openai]]
+(use-package openai
+  :straight (openai :type git :host github :repo "emacs-openai/openai")
+  :config
+  (setq openai-key sej-chatgpt-key
+        openai-user sej-chatgpt-user))
+
+(use-package chatgpt
+  ;; Emacs code extension to use official OpenAI API
+  ;; [[https://github.com/emacs-openai/chatgpt][emacs chatgpt]]
+  :straight (chatgpt :type git :host github :repo "emacs-openai/chatgpt")
+  :commands chatgpt
+  :config
+  (setq openai--show-log t))
+
+(use-package codegpt
+  ;; Emacs code extension to generate or check code in the official OpenAI API
+  ;; [[https://github.com/emacs-openai/codegpt][codegpt]]
+  :straight (codegpt :type git :host github :repo "emacs-openai/codegpt")
+  :commands codegpt codegpt-custom codegpt-doc codegpt-fix codegpt-expain codegpt-improve)
+
 
 ;;; init.el --- end
 (message "init.el ends here")
