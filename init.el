@@ -1645,12 +1645,6 @@ Useful if you want a more robust view into the recommend candidates."
 ;; [[https://github.com/minad/cape][cape]]
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
-(use-package corfu
-  :demand t
-  :config
-  (global-corfu-mode))
-
-;; Add extensions
 (use-package cape
   :demand t
   ;; Bind dedicated completion commands
@@ -3421,8 +3415,18 @@ If the region is active and option `transient-mark-mode' is on, call
         '((awk-mode . "awk")
           (other . "java"))))
 
+(use-package c-ts-mode
+  :straight (c-ts-mode :type built-in)
+  :bind (:map c-ts-base-mode-map
+              ("C-c c" . compile))
+  :init
+  ;; Set the default formatting styles for various C based modes
+  (setq c-ts-mode-set-global-style 'gnu)
+  (setq c-ts-mode-indent-style 'gnu)
+  )
+
 ;;;;; ccls
-;; - c++-mode, objc-mode, cuda-mode: lsp server
+;; - c++-mode, objc-mode, cuda-mode
 ;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
 
