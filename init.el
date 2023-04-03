@@ -1564,6 +1564,21 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle t))
 
+;;;;; vertico-directory
+;; Configure directory extension.
+(use-package vertico-directory
+  :straight nil
+  :after vertico
+  :demand t
+  :load-path "straight/build/vertico/extensions/"
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
 ;;;;; corfu
 ;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
