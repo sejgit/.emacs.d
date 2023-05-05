@@ -5388,35 +5388,15 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
         user-mail-address sej-mail-address
         user-full-name sej-full-name))
 
-;;;;; Emacs-Anywhere
+;;;;; Emacs-everywhere
 ;; allows you to use Emacs editing in any application
-;; Installation:
-;; curl -fsSL https://raw.github.com/zachcurry/emacs-anywhere/master/install | bash
-;; navigate to keyboard > shortcuts > Services. Check the box beside "Emacs Anywhere",
+;; Use:
+;; emacsclient --eval "(emacs-everywhere)"
+;; add shortcut for above
 ;; click "Add Shortcut" and key a shortcut. (I use control-option-command-space)
-;; [[https://github.com/zachcurry/emacs-anywhere][Emacs-Anywhere]]
-(use-package emacs_anywhere
-  :straight (:host github :repo "zachcurry/emacs-anywhere")
-  :init
-  (defun github-conversation-p (window-title)
-    (or (string-match-p "Pull Request" window-title)
-        (string-match-p "Issues" window-title)))
-
-  (defun popup-handler (app-name window-title x y w h)
-    (set-frame-position (selected-frame) x (+ y (- h 300)))
-    (unless (zerop w)
-      (set-frame-size (selected-frame) w 400 5))
-
-    (when (equal app-name "iTerm2")
-      ;; Tell Emacs Anywhere not to paste if launched from Terminal
-      (setq ea-paste nil)
-      (shell-script-mode))
-
-    (cond
-     ((github-conversation-p window-title) (gfm-mode))
-     (t (markdown-mode))))
-
-  (add-hook 'ea-popup-hook #'popup-handler))
+;; [[https://github.com/tecosaur/emacs-everywhere][emacs-everywhere]]
+(use-package emacs-everywhere
+  :straight t)
 
 
 ;;; calendar
