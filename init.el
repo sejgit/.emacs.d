@@ -640,7 +640,8 @@
 
       :bind* (:map override-global-map
               ("s-." . pop-to-mark-command)
-	          ("M-j" . join-line)))
+	          ("M-j" . join-line)
+              ("C-x j" . duplicate-dwim)))
 
 ;;;;; Simple
 ;; built-in simple settings
@@ -1005,16 +1006,6 @@ Return its absolute path.  Otherwise, return nil."
   (setq tron-legacy-theme-softer-bg t)
   :config
   (load-theme 'tron-legacy))
-
-;;;;; default-text-scale
-;; easily adjust the default font size in all Emacs frames
-;; [[https://github.com/purcell/default-text-scale][default-text-scale]]
-(use-package default-text-scale
-  :bind* ( ("A-H-M-+" . default-text-scale-increase)
-           ("A-H-M--" . default-text-scale-decrease)
-           ("A-H-M-r" . default-text-scale-reset))
-  :config
-  (setq default-text-scale-amount 20))
 
 
 ;;;; frames
@@ -2020,8 +2011,6 @@ Useful if you want a more robust view into the recommend candidates."
           ([(shift return)] . crux-smart-open-line)
           ("C-q C" . crux-cleanup-buffer-or-region)
           ("C-q u" . crux-view-url)
-          ("s-k" . crux-duplicate-current-line-or-region)
-          ("C-c C-k" . crux-duplicate-current-line-or-region)
           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
           ([remap kill-whole-line] . crux-kill-whole-line)
           ("C-<backspace>" . crux-kill-line-backwards) )
