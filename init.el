@@ -489,6 +489,8 @@
 
 ;;;;;; mouse
       (make-pointer-invisible t "Hide mouse while typing.")
+      (mouse-drag-mode-line-buffer t "dragging on the buffer name to other programs")
+      (mouse-drag-and-drop-region-cross-program t "allows dragging text in the region from Emacs to other program")
 
 ;;;;;; kill & clipboard settings
       (kill-buffer-query-functions
