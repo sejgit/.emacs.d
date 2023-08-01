@@ -1035,7 +1035,6 @@ Return its absolute path.  Otherwise, return nil."
         window-divider-default-right-width 1
         frame-title-format '("Emacs - %b")
         icon-title-format frame-title-format
-        undelete-frame-mode t
         )
 
   (blink-cursor-mode -1)
