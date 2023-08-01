@@ -556,7 +556,7 @@
       (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;;;;;; Don't use system tooltips
-      (setq use-system-tooltips nil))
+      (setq use-system-tooltips nil)
 
 ;;;;;; windows
       (window-divider-mode)
