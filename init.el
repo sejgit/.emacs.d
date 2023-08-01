@@ -555,9 +555,8 @@
 ;;;;;; yes and no settings
       (defalias 'yes-or-no-p 'y-or-n-p)
 
-;;;;;; Don't use GTK+ tooltip
-      (when (boundp 'x-gtk-use-system-tooltips)
-        (setq x-gtk-use-system-tooltips nil))
+;;;;;; Don't use system tooltips
+      (setq use-system-tooltips nil))
 
 ;;;;;; windows
       (window-divider-mode)
