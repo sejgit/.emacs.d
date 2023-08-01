@@ -319,17 +319,6 @@
   (add-hook 'suspend-hook #'gcmh-idle-garbage-collect)
   (setq gcmh-idle-delay 10))
 
-;;;;; restart-emacs
-;; simple package to restart Emacs within Emacs
-;; with a single universal-argument (C-u) Emacs is restarted with --debug-init flag
-;; with two universal-argument (C-u C-u) Emacs is restarted with -Q flag
-;; with three universal-argument (C-u C-u C-u) the user is prompted for the arguments
-;; restart-emacs-start-new-emacs starts new session of Emacs without killing the current one
-;; [[https://github.com/iqbalansari/restart-emacs][restart-emacs]]
-(use-package restart-emacs
-  :init
-  (defalias 're #'restart-emacs))
-
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
 (defgroup sej nil
