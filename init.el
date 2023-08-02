@@ -2412,7 +2412,7 @@ Useful if you want a more robust view into the recommend candidates."
         show-paren-style 'parenthesis ; parenthesis, expression, mixed
         show-paren-when-point-in-periphery t
         show-paren-when-point-inside-paren t
-        show-paren-context-when-offscreen 'overlay))
+        show-paren-context-when-offscreen 'child-frame))
 
 ;;;;; hideshow
 ;; built-in mode to hideshow blocks
