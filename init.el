@@ -2080,18 +2080,19 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;;;; url actions
 ;;;;; sej/url-insert
-;; - from jcs (Irreal) blog to copy url from safari and paste at point
+;; - improved from jcs (Irreal) blog to copy url from safari and paste at point
 ;; - https://irreal.org/blog/?p=2895
-(when sys/macp
-  (defun sej/url-insert (link)
+  (when sys/macp
+  (defun sej/url-insert (desc)
     "Retrieve URL from current Safari page and prompt for description.
       Insert an Org link at point."
-    (interactive "sLink Description: ")
-    (let ((result (shell-command-to-string
-                   "osascript -e 'tell application \"Safari\" to return URL of document 1'")))
-      (insert (format "[[%s][%s]]" (org-trim result) link))))
+    (interactive "sLink Description (None to display url): ")
+    (let ((link (do-applescript "tell application \"Safari\" to return URL of document 1")))
+      (if (> (length desc) 0)
+      (insert (format "[[%s][%s]]" (org-trim link) desc))
+      (insert (format "[[%s]]" (org-trim link)))) ))
 
-  (bind-key* "C-H-u" 'sej/url-insert))
+      (bind-key* "C-H-u" 'sej/url-insert))
 
 ;;;;; sej/url-git-clone-from-clipboard
 ;; - from Alvaro Ramirez function to git clone from url in clipboard mods by me
@@ -2947,30 +2948,14 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;;;;; gist
 ;; - gist client
-;; - Functions:
-;; gist-list - Lists your gists in a new buffer. Use arrow keys
-;; to browse, RET to open one in the other buffer.
-
-;; gist-region - Copies Gist URL into the kill ring.
-;; With a prefix argument, makes a private gist.
-
-;; gist-region-private - Explicitly create a private gist.
-
-;; gist-buffer - Copies Gist URL into the kill ring.
-;; With a prefix argument, makes a private gist.
-
-;; gist-buffer-private - Explicitly create a private gist.
-
-;; gist-region-or-buffer - Post either the current region, or if mark
-;; is not set, the current buffer as a new paste at gist.github.com .
-;; Copies the URL into the kill ring.
-;; With a prefix argument, makes a private paste.
-
-;; gist-region-or-buffer-private - Explicitly create a gist from the
-;; region or buffer.
-;; - https://github.com/defunkt/gist.el
-(use-package gist
-  :bind* (("C-q G" . gist-list)))
+;; - built-in self help
+;; [[https://github.com/KarimAziev/igist][igist github]]
+(use-package igist
+  :bind (("C-q G" . igist-dispatch))
+  :straight (igist
+             :repo "KarimAziev/igist"
+             :type git
+             :host github))
 
 ;;;;; git-modes
 ;; - Emacs major modes for various Git configuration files.
