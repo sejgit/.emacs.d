@@ -473,7 +473,7 @@
   (tab-first-completion 'word-or-paren-or-punct)
   (tab-width 4)
   (indent-tabs-mode nil)
-
+  
 ;;;;;; long line settings
   (truncate-lines 1)
   (font-lock-maximum-decoration t)
@@ -538,10 +538,6 @@
   (setq sentence-end-double-space nil) ; Sentences do not need double spaces to end. Period.
   (global-visual-line-mode t) ; Add proper word wrapping
   (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
-
-  ;; 'complete = Enable indentation+completion using the TAB key.
-  ;; `completion-at-point' is often bound to M-TAB.
-  (setq tab-always-indent t)
 
 ;;;;;; color codes
   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
@@ -1628,18 +1624,19 @@ Useful if you want a more robust view into the recommend candidates."
           ("C-c p &" . cape-sgml)
           ("C-c p r" . cape-rfc1345))
   :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  ;; completion functions takes precedence over the global list.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+  (add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+  (add-to-list 'completion-at-point-functions #'cape-line)
   )
 
 ;;;;; marginalia
