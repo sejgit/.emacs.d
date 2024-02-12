@@ -3123,6 +3123,10 @@ If the region is active and option `transient-mark-mode' is on, call
   (setq python-shell-interpreter "python3"))
  (t
   (setq python-shell-interpreter "python")))
+(defun python-ts-mode-setup ()
+  (treesit-font-lock-recompute-features
+   '(function variable) '(definition)))
+(add-hook 'python-ts-mode-hook #'python-ts-mode-setup)
 
 (define-skeleton python-insert-docstring
   "Insert a Python docstring."
