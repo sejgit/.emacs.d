@@ -314,7 +314,7 @@
 ;;;;; Server set-up
 ;; set-up Emacs server
 (use-package emacs
-  :when (or sys/macp sys/linuxp sys/freebsdxp)
+  :when (or sys/macp sys/linuxp sys/freebsdp)
   :straight (:type built-in)
   :hook (emacs-startup . sej/server-mode)
   :config
