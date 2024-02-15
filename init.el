@@ -63,6 +63,7 @@
 ;; - <2023-02-12 Sun> :disabled flycheck packages for now in favour of flymake
 ;; - <2023-03-06 Mon> mode to built-in use-package
 ;; - <2023-11-24 Fri> updates for Emacs30
+;; - <2024-02-15 Thu> free-bsd (berkley-unix) adds for EISY
 
 ;;; Code:
 (message "Emacs start")
@@ -83,13 +84,17 @@
   (eq system-type 'gnu/linux)
   "Are we running on a GNU/Linux system?")
 
+(defconst sys/freebsdp
+  (eq system-type 'berkeley-unix)
+  "Are we running on a FreeBSD system?")
+
 (defconst sys/macp
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
 
 (defconst sys/mac-x-p
   (and (display-graphic-p) sys/macp)
-  "Are we running under X on a Mac system?")
+  "Are we running on a graphic Mac system?")
 
 (defconst sys/mac-x86-p
   (and (string= (substring system-configuration 0 6) "x86_64") sys/macp)
@@ -110,6 +115,10 @@
 (defconst sys/linux-x-p
   (and (display-graphic-p) sys/linuxp)
   "Are we running under X on a GNU/Linux system?")
+
+(defconst sys/freebsd-x-p
+  (and (display-graphic-p) sys/freebsdp)
+  "Are we running under graphic FreeBSD system?")
 
 (defconst sys/cygwinp
   (eq system-type 'cygwin)
@@ -233,6 +242,14 @@
   ;; load-dir init.d
   (setq exec-path (append exec-path '("/usr/local/bin")))  )
 
+;;;;; FreeBSD System specific environment setting
+(when sys/freebsdp
+  (message "FreeBSD")
+;;;;;; FreeBSD keyboard
+  ;; - nothing set at this moment
+  ;; load-dir init.d
+  (setq exec-path (append exec-path '("/usr/local/bin")))  )
+
 ;;;;; Microsoft Windows specific environment settings
 ;; set execution paths
 (when sys/win32p
@@ -297,7 +314,7 @@
 ;;;;; Server set-up
 ;; set-up Emacs server
 (use-package emacs
-  :when (or sys/macp sys/linuxp)
+  :when (or sys/macp sys/linuxp sys/freebsdxp)
   :straight (:type built-in)
   :hook (emacs-startup . sej/server-mode)
   :config
@@ -1070,6 +1087,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/][Customizing the Fringes]]
 (use-package fringe
   :straight (:type built-in)
+  :if window-system
   :init
   (fringe-mode '(4 . 4)))
 
