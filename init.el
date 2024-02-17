@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; Author: Stephen Jenkins <sejgit@github.com>
 ;; URL: https://github.com/sejgit/.emacs.d
 ;; Version: 0.1.0
 ;; Keywords: .emacs.d sejgit
@@ -352,7 +352,7 @@
   "Set user full name."
   :type 'string)
 
-(defcustom sej-mail-address "stephenearljenkins@gmail.com"
+(defcustom sej-mail-address "random@gmail.com"
   "Set user email address."
   :type 'string)
 
