@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Stephen Jenkins <sejgit@github.com>
+;; Author: Stephen Jenkins
 ;; URL: https://github.com/sejgit/.emacs.d
 ;; Version: 0.1.0
 ;; Keywords: .emacs.d sejgit
