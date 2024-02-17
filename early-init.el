@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019 Stephen Jenkins
 
-;; Author: Stephen Jenkins <stephenearljenkins@gmail.com>
+;; Author: Stephen Jenkins
 ;; URL: https://github.com/sejgit/.emacs.d
 
 ;; This file is not part of GNU Emacs.
