@@ -71,8 +71,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-;; (setq debug-on-error t)
-;; (setq debug-on-event t)
+(setq debug-on-error t)
+(setq debug-on-event t)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -248,7 +248,8 @@
 ;;;;;; FreeBSD keyboard
   ;; - nothing set at this moment
   ;; load-dir init.d
-  (setq exec-path (append exec-path '("/usr/local/bin")))  )
+  (setq exec-path (append exec-path '("/usr/local/bin")))
+  (setq insert-directory-program "/usr/local/bin/gls"))
 
 ;;;;; Microsoft Windows specific environment settings
 ;; set execution paths
@@ -2163,8 +2164,13 @@ Useful if you want a more robust view into the recommend candidates."
 ;; use Org mode links in other modes
 ;; [[https://github.com/tarsius/orglink][orglink]]
 (use-package orglink
+  :defer 10 ; looking to fix issue when new install
   :straight (:type git :host github :repo "tarsius/orglink")
-  :hook (emacs-startup . global-orglink-mode))
+  :config
+  ;; (if sys/freebsdp (message "no orglink")
+    ;; (add-hook  'emacs-startup #'global-orglink-mode) )
+    (add-hook  'emacs-startup #'global-orglink-mode)
+  )
 
 ;;;;; restclient
 ;; - Allows query of a restclient with the results left into the buffer
