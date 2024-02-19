@@ -2774,6 +2774,7 @@ Useful if you want a more robust view into the recommend candidates."
   ("H-]" . flymake-goto-next-error)
   ("H-\\" . flymake-show-buffer-diagnostics)
   :init
+  (setq flymake-show-diagnostics-at-end-of-line 'short)
   (setq flymake-fringe-indicator-position 'right-fringe)
   (setq flymake-suppress-zero-counters t)
   (setq flymake-start-on-flymake-mode t)
@@ -4713,8 +4714,9 @@ function with the \\[universal-argument]."
         eshell-cmpl-cycle-completions nil
         ;; auto truncate after 12k lines
         eshell-buffer-maximum-lines 12000
+        eshell-history-append t
         ;; history size
-        eshell-history-size 500
+        eshell-history-size 1000
         ;; buffer shorthand -> echo foo > #'buffer
         eshell-buffer-shorthand t
         ;; my prompt is easy enough to see
