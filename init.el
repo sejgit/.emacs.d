@@ -664,6 +664,7 @@
         idle-update-delay 1
         kill-do-not-save-duplicates t
         kill-ring-max 300
+        kill-ring-deindent-mode t
         track-eol t
         line-move-visual nil
         line-number-mode t
