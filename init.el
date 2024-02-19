@@ -476,6 +476,7 @@
   (visible-bell t "Flash for bell.")
   (inhibit-compacting-font-caches t "Don’t compact font caches during GC.")
   (case-fold-search 1 "Ignore case when searching.")
+  (grep-use-headings t "use headings rather than per line")
   (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
   (next-line-add-newlines t "Add a new line when going to the next line.")
 
@@ -1420,14 +1421,6 @@ If FRAME is omitted or nil, use currently selected frame."
   :if (sej/is-exec "ag")
   :commands consult-ag
   :bind* ("M-s a" . consult-ag))
-
-;;;;; deadgrep
-;; [[https://github.com/Wilfred/deadgrep][deadgrep: use ripgrep from Emacs]]
-;; need ripgrep (rg) installed
-(use-package deadgrep
-  :bind* ("M-s d" . deadgrep)
-  :config
-  (setq deadgrep-extra-arguments '("--no-config") ))
 
 ;;;;; re-builder
 ;; - set built in regex helper to string format
@@ -2883,7 +2876,9 @@ Useful if you want a more robust view into the recommend candidates."
 ;; built-in project management
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html][Working with projects]]
 (use-package project
-  :straight (:type built-in))
+  :straight (:type built-in)
+  :config
+  (setq project-file-history-behavior 'relativize))
 
 ;;;;; magit
 ;; - interface to the version control system Git
@@ -3654,7 +3649,8 @@ the children of class at point."
           comint-mode
           helpful-mode
           help-mode
-          compilation-mode) . page-break-lines-mode))
+          compilation-mode
+          emacs-news-view-mode) . page-break-lines-mode))
 
 ;;;;; autoinsert
 ;; - mode that comes with Emacs that automagically inserts text into new buffers
