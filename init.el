@@ -2017,9 +2017,16 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;;;;; beginend
 ;; - smart moves redefining M-< and M-> for some modes
-;; - https://github.com/DamienCassou/beginend
+;; - [[https://github.com/DamienCassou/beginend]]
 (use-package beginend               ; smart M-< & M->
-  :hook (emacs-startup . beginend-global-mode))
+  :straight t
+  :ensure t
+  :demand t
+  :blackout beginend-global-mode
+  :config
+  (dolist (mode (cons 'beginend-global-mode (mapcar #'cdr beginend-modes)))
+            (blackout mode))
+  (beginend-global-mode))
 
 ;;;;; subword
 ;; - Handling capitalized subwords in a nomenclature
@@ -2154,7 +2161,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;;;;; ace-link
 ;; - Quickly follow links
-;; - https://github.com/abo-abo/ace-link
+;; - [[https://github.com/abo-abo/ace-link]]
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
          :map org-mode-map
@@ -2165,12 +2172,13 @@ Useful if you want a more robust view into the recommend candidates."
 ;; use Org mode links in other modes
 ;; [[https://github.com/tarsius/orglink][orglink]]
 (use-package orglink
-  :defer 10 ; looking to fix issue when new install
+  :blackout t
   :straight (:type git :host github :repo "tarsius/orglink")
-  :config
+  :hook (dashboard-mode . global-orglink-mode)
+  ;; :config
   ;; (if sys/freebsdp (message "no orglink")
     ;; (add-hook  'emacs-startup #'global-orglink-mode) )
-    (add-hook  'emacs-startup #'global-orglink-mode)
+    ;; (add-hook  'emacs-startup #'global-orglink-mode)
   )
 
 ;;;;; restclient
@@ -2375,10 +2383,12 @@ Useful if you want a more robust view into the recommend candidates."
 ;; - [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
 ;; - [[https://github.com/alphapapa/outshine][outshine]]
 (use-package outshine
+  :blackout t
   :hook ((prog-mode          . outline-minor-mode)
          (outline-minor-mode . outshine-mode))
   :bind ("M-S-<return>" . outshine-insert-heading)
   :config
+  (blackout 'outline-minor-mode)
   (setq outline-minor-mode-use-buttons nil
         outline-minor-mode-use-margins nil)
   (custom-theme-set-faces
@@ -2708,6 +2718,7 @@ Useful if you want a more robust view into the recommend candidates."
 ;; - minor mode for dealing with pairs in Emacs
 ;; - [[https://github.com/Fuco1/smartparens][smartparens]]
 (use-package smartparens
+  :blackout t
   :bind-keymap* ("C-q (" . smartparens-mode-map)
   :hook (prog-mode . smartparens-mode)
   :config
@@ -2909,7 +2920,9 @@ Useful if you want a more robust view into the recommend candidates."
 ;; git fringe
 ;; [[https://github.com/emacsorphanage/git-gutter-fringe][git-gutter-fringe]]
 (use-package git-gutter-fringe
-  :hook (prog-mode . global-git-gutter-mode))
+  :blackout t
+  :hook (prog-mode . global-git-gutter-mode)
+  :init (setq git-gutter:lighter ""))
 
 ;;;;; magit-todos
 ;; - Show tasks from commit files
@@ -4004,6 +4017,7 @@ the children of class at point."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 (use-package flyspell
   :straight (:type built-in)
+  :blackout t
   :bind* (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
           :map ctl-x-x-map
           ("s" . flyspell-mode)
