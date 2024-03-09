@@ -1646,10 +1646,10 @@ Useful if you want a more robust view into the recommend candidates."
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-line)
+  ;; (add-to-list 'completion-at-point-functions #'cape-line)
   )
 
 ;;;;; marginalia
@@ -1810,7 +1810,7 @@ Useful if you want a more robust view into the recommend candidates."
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key (kbd "M-."))
+  (setq consult-preview-key (kbd "M-."))
   ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
@@ -1830,12 +1830,12 @@ Useful if you want a more robust view into the recommend candidates."
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+  (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
   ;;;;;; 1. project.el (the default)
-  ;; (setq consult-project-function #'consult--default-project--function)
+  (setq consult-project-function #'consult--default-project--function)
   ;;;;;; 2. vc.el (vc-root-dir)
   ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
   ;;;;;; 3. locate-dominating-file
@@ -2277,22 +2277,23 @@ Useful if you want a more robust view into the recommend candidates."
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
   :config
-  ;; defcustom hl-todo-keyword-faces
-  ;;   '(("HOLD" . "#d0bf8f")
-  ;;     ("TODO" . "#cc9393")
-  ;;     ("NEXT" . "#dca3a3")
-  ;;     ("THEM" . "#dc8cc3")
-  ;;     ("PROG" . "#7cb8bb")
-  ;;     ("OKAY" . "#7cb8bb")
-  ;;     ("DONT" . "#5f7f5f")
-  ;;     ("FAIL" . "#8c5353")
-  ;;     ("DONE" . "#afd8af")
-  ;;     ("NOTE"   . "#d0bf8f")
-  ;;     ("KLUDGE" . "#d0bf8f")
-  ;;     ("HACK"   . "#d0bf8f")
-  ;;     ("TEMP"   . "#d0bf8f")
-  ;;     ("FIXME"  . "#cc9393")
-  ;;     ("XXX+"   . "#cc9393"))
+  ;; (setq hl-todo-keyword-faces
+  ;;       '(("HOLD" . "#d0bf8f")
+  ;;         ("TODO" . "#cc9393")
+  ;;         ("NEXT" . "#dca3a3")
+  ;;         ("THEM" . "#dc8cc3")
+  ;;         ("PROG" . "#7cb8bb")
+  ;;         ("OKAY" . "#7cb8bb")
+  ;;         ("DONT" . "#5f7f5f")
+  ;;         ("FAIL" . "#8c5353")
+  ;;         ("DONE" . "#afd8af")
+  ;;         ("NOTE" . "#d0bf8f")
+  ;;         ("MAYBE" . "#d0bf8f")
+  ;;         ("KLUDGE" . "#d0bf8f")
+  ;;         ("HACK" . "#d0bf8f")
+  ;;         ("TEMP" . "#d0bf8f")
+  ;;         ("FIXME" . "#cc9393")
+  ;;         ("XXXX*" . "#cc9393")))
   (push 'org-mode hl-todo-include-modes))
 
 ;; ;;;;; diff-hl
