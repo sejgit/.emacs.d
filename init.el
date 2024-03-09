@@ -1810,7 +1810,7 @@ Useful if you want a more robust view into the recommend candidates."
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
-  (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (kbd "M-."))
   ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
@@ -1835,7 +1835,7 @@ Useful if you want a more robust view into the recommend candidates."
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
   ;;;;;; 1. project.el (the default)
-  (setq consult-project-function #'consult--default-project--function)
+  ;; (setq consult-project-function #'project-root)
   ;;;;;; 2. vc.el (vc-root-dir)
   ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
   ;;;;;; 3. locate-dominating-file
@@ -3156,6 +3156,7 @@ If the region is active and option `transient-mark-mode' is on, call
  (t
   (setq python-shell-interpreter "python")))
 (defun python-ts-mode-setup ()
+ "Python TreeSit mode setup."
   (treesit-font-lock-recompute-features
    '(function variable) '(definition)))
 (add-hook 'python-ts-mode-hook #'python-ts-mode-setup)
