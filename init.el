@@ -72,7 +72,7 @@
 ;;;;; debug
 ;; only turned on when needed
 (setq debug-on-error t)
-(setq debug-on-event t)
+;;(setq debug-on-event t)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -128,17 +128,17 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
-(defconst emacs/>=28p
-  ( >= emacs-major-version 28 )
-  "Emacs is 28 or above.")
+(defconst emacs/>=30p
+  ( >= emacs-major-version 30 )
+  "Emacs is 30 or above.")
 
 (defconst emacs/>=29p
   (>= emacs-major-version 29)
   "Emacs is 29 or above.")
 
 ;;;;; should i even be here
-(when (not emacs/>=28p)
-  (error "This requires Emacs 28 and above")  )
+(when (not emacs/>=29p)
+  (error "This requires Emacs 29 and above")  )
 
 ;;;;;  Warnings
 ;; set-up server & suppress warnings
@@ -941,9 +941,16 @@ Return its absolute path.  Otherwise, return nil."
         which-key-prefix-prefix "+")
   (which-key-setup-side-window-bottom) )
 
+;;;;; discover
+;; discover more of Emacs using context menus
+;; [[https://github.com/mickeynp/discover.el]]
+(use-package discover
+  :straight t
+  :hook (emacs-startup . global-discover-mode))
+
 ;;;;; helpful
-;; - helpful is an improved help-fns & help-fns+
-;; - https://github.com/Wilfred/helpful
+;; helpful is an improved help-fns & help-fns+
+;; https://github.com/Wilfred/helpful
 (use-package helpful
   :straight (helpful :type git :host github :repo "Wilfred/helpful")
   :bind* ( ("C-h C-d" . helpful-at-point)
@@ -969,8 +976,8 @@ Return its absolute path.  Otherwise, return nil."
                                         ;:hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
   :preface
   (setq tron-legacy-theme-vivid-cursor t)
-  (setq tron-legacy-theme-dark-fg-bright-comments nil)
-  (setq tron-legacy-theme-softer-bg t)
+  (setq tron-legacy-theme-dark-fg-bright-comments t)
+  (setq tron-legacy-theme-softer-bg nil)
   :config
   (load-theme 'tron-legacy))
 
@@ -1083,7 +1090,6 @@ If FRAME is omitted or nil, use currently selected frame."
                            (/ (- monitor-h frame-h) 2))))
         (apply 'set-frame-position (flatten-list (list frame center)))))))
 
-
 ;;;;; fringe
 ;; fringe-mode
 ;; [[https://www.emacswiki.org/emacs/TheFringe][The Fringe wiki]]
@@ -1102,6 +1108,7 @@ If FRAME is omitted or nil, use currently selected frame."
  ("s-y" . bury-buffer)
  ("C-c y" . bury-buffer)
  ("C-c r" . revert-buffer)
+ ("s-r" . revert-buffer)
  ("C-x k" . kill-this-buffer)
  ("s-n" . bs-cycle-next) ; buffer cycle next
  ("s-p" . bs-cycle-previous))
@@ -1284,15 +1291,15 @@ If FRAME is omitted or nil, use currently selected frame."
   (zoom-mode t)
   (zoom-size '(0.6818 . 0.6818)) ; resize window using the golden ratio
                                         ;(temp-buffer-resize-mode t) ; preserve completion buffer
-  (zoom-ignored-major-modes '(reb-mode)) ; ignore these major modes
+  (zoom-ignored-major-modes '(reb-mode )) ; ignore these major modes
                                         ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
-  (zoom-ignored-buffer-name-regexps '("^*calc")) ; ignore related windows
+  (zoom-ignored-buffer-name-regexps '("^*calc" "^*makey-key" "^magit:")) ; ignore related windows
   (zoom-ignore-predicates nil)
                                         ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
   :config
-  ;; (defun size-callback () ; resize the buffer according to frame size
-  ;;   (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-  ;;         (t '(0.5 . 0.5))))
+  (defun size-callback () ; resize the buffer according to frame size
+    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+          (t '(0.5 . 0.5))))
   )
 
 
@@ -1303,6 +1310,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][tab bars Emacs manual]]
 (use-package tab-bar
   :straight (:type built-in)
+  :bind (("M-["  . tab-bar-history-back)
+         ("M-]" . tab-bar-history-forward))
   :config
   (setq tab-bar-close-button-show t)
   (setq tab-bar-close-last-tab-choice 'tab-bar-mode-disable)
@@ -1314,8 +1323,8 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq tab-bar-tab-hints nil)
   (setq tab-bar-tab-name-function 'tab-bar-tab-name-all)
 
-  (tab-bar-mode -1)
-  (tab-bar-history-mode -1))
+  (tab-bar-mode t)
+  (tab-bar-history-mode t))
 
 
 ;;;; mode-line
@@ -1417,10 +1426,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - [[https://github.com/yadex205/consult-ag][consult-ag.el]]
 (use-package consult-ag
   :after consult
-  :ensure-system-package (ag . the_silver_searcher)
-  :if (sej/is-exec "ag")
   :commands consult-ag
-  :bind* ("M-s a" . consult-ag))
+  :bind (:map search-map
+              ("a" . consult-ag)))
 
 ;;;;; re-builder
 ;; - set built in regex helper to string format
@@ -1757,18 +1765,18 @@ Useful if you want a more robust view into the recommend candidates."
           ("M-g i" . consult-imenu)
           ("M-g I" . consult-imenu-multi)
           ;; M-s bindings (search-map)
-          ;;see consult-ag for ("M-s a" . consult-ag) if executable ag "Silver-Searcher" exists
-          ("M-s f" . consult-find)
-          ("M-s L" . consult-locate)
-          ("M-s g" . consult-grep)
-          ("M-s G" . consult-git-grep)
-          ("M-s r" . consult-ripgrep)
-          ("M-s l" . consult-line)
-          ("M-s M-s l" . consult-line-multi)
-          ("M-s m" . consult-multi-occur)
-          ("M-s k" . consult-keep-lines)
-          ("M-s u" . consult-focus-lines)
-          ;; Isearch integration
+          :map search-map
+          ("a" . consult-ag)                    ;;if executable ag "Silver-Searcher" exists
+          ("f" . consult-find)
+          ("L" . consult-locate)
+          ("g" . consult-grep)
+          ("G" . consult-git-grep)
+          ("r" . consult-ripgrep)
+          ("l" . consult-line)
+          ("m" . consult-multi-occur)
+          ("k" . consult-keep-lines)
+          ("u" . consult-focus-lines)
+          ;; isearch integration
           :map isearch-mode-map
           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
@@ -1961,26 +1969,6 @@ Useful if you want a more robust view into the recommend candidates."
 
 
 ;;;; movement
-;;;;; crux
-;; - a Colection of Rediculously Useful eXtensions
-;; - smart moving to beginning of line or to beginning of text on line
-;; - https://github.com/bbatsov/crux
-;; (use-package crux
-;;   :bind* (([remap kill-line] . crux-smart-kill-line) ; C-k
-;;           ("C-S-RET" . crux-smart-open-line-above)
-;;           ([(shift return)] . crux-smart-open-line)
-;;           ("C-q C" . crux-cleanup-buffer-or-region)
-;;           ("C-q u" . crux-view-url)
-;;           ("C-c M-k" . crux-duplicate-and-comment-current-line-or-region)
-;;           ([remap kill-whole-line] . crux-kill-whole-line)
-;;           ("C-<backspace>" . crux-kill-line-backwards) )
-;;   :config
-;;   (crux-with-region-or-buffer indent-region)
-;;   (crux-with-region-or-buffer untabify)
-;;   (crux-with-region-or-line comment-or-uncomment-region)
-;;   (crux-with-region-or-point-to-eol kill-ring-save)
-;;   (crux-reopen-as-root-mode))
-
 ;;;;; mwim
 ;; - better than crux for C-e mwim-end
 ;; - will cycle between end of code and end-of-code plus comments
@@ -2846,8 +2834,8 @@ Useful if you want a more robust view into the recommend candidates."
                                 :underline nil)))
 
 ;;;;; flycheck-popup-tip
-;; - Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
-;; - https://github.com/flycheck/flycheck-popup-tip
+;; Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
+;; https://github.com/flycheck/flycheck-popup-tip
 (use-package flycheck-popup-tip
   :disabled ;; only using flymake for now
   :hook (flycheck-mode . flycheck-popup-tip-mode)
@@ -2855,18 +2843,18 @@ Useful if you want a more robust view into the recommend candidates."
   (setq flycheck-pos-tip-display-errors-tty-function #'flycheck-popup-tip-show-popup))
 
 ;;;;; flycheck-color-mode-line
-;; - minor-mode for Flycheck which colors the mode line according to
+;; minor-mode for Flycheck which colors the mode line according to
 ;; the Flycheck state of the current buffer
-;; - https://github.com/flycheck/flycheck-color-mode-line
+;; https://github.com/flycheck/flycheck-color-mode-line
 (use-package flycheck-color-mode-line
   :disabled ;; only using flymake for now
   :hook (flycheck-mode . flycheck-color-mode-line-mode))
 
 ;;;;; emr
-;; - a framework for providing language-specific refactoring in Emacs.
+;; a framework for providing language-specific refactoring in Emacs.
 ;; It includes refactoring commands for a variety of languages
 ;; Just hit M-RET to access your refactoring tools in any supported mode.
-;; - https://github.com/emacsmirror/emr
+;; https://github.com/emacsmirror/emr
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
   :bind* ( ("C-q r" . emr-show-refactor-menu)
@@ -2883,8 +2871,8 @@ Useful if you want a more robust view into the recommend candidates."
   (setq project-file-history-behavior 'relativize))
 
 ;;;;; magit
-;; - interface to the version control system Git
-;; - https://magit.vc/
+;; interface to the version control system Git
+;; https://magit.vc/
 (use-package magit
   :bind (("C-x g" . magit-status)
          ("<f12>" . magit-status)
@@ -2904,12 +2892,12 @@ Useful if you want a more robust view into the recommend candidates."
         "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 ;;;;; forge
-;; - Access Git forges from Magit
+;; Access Git forges from Magit
 ;; To start using Forge in a certain repository visit the Magit status buffer
-;; for that repository and type f y (forge-pull). Alternatively you can use M-x
+;; for that repository and type N f f (forge-pull). Alternatively you can use M-x
 ;; forge-add-repostiory, which makes it possible to add a forge repository without
 ;; pulling all topics and even without having to clone the respective Git repository.
-;; - https://github.com/magit/forge
+;; https://github.com/magit/forge
 (use-package forge
   :after magit)
 
@@ -2922,8 +2910,8 @@ Useful if you want a more robust view into the recommend candidates."
   :init (setq git-gutter:lighter ""))
 
 ;;;;; magit-todos
-;; - Show tasks from commit files
-;; - https://github.com/alphapapa/magit-todos
+;; Show tasks from commit files
+;; https://github.com/alphapapa/magit-todos
 (use-package magit-todos
   :commands(magit-todos-mode)
   :config
@@ -2935,8 +2923,8 @@ Useful if you want a more robust view into the recommend candidates."
    '(magit-todos-exclude-globs '("*.map" "*.html"))))
 
 ;;;;; git-timemachine
-;; - Walk through git revisions of a file
-;; - https://github.com/emacsmirror/git-timemachine
+;; Walk through git revisions of a file
+;; https://github.com/emacsmirror/git-timemachine
 (use-package git-timemachine
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
@@ -3049,9 +3037,9 @@ If the region is active and option `transient-mark-mode' is on, call
 (eval-after-load "dash" '(dash-enable-font-lock))
 
 ;;;;; eldoc
-;; - we don't want this minor mode to be shown in the minibuffer, however
+;; we don't want this minor mode to be shown in the minibuffer, however
 ;; we use eldoc to show the signature of the function at point in the minibuffer
-;; - https://www.emacswiki.org/emacs/ElDoc
+;; https://www.emacswiki.org/emacs/ElDoc
 (use-package eldoc
   :blackout t
   :straight (:type built-in)
@@ -3067,10 +3055,10 @@ If the region is active and option `transient-mark-mode' is on, call
         eldoc-echo-area-use-multiline-p 3) )
 
 ;;;;; elisp-slime-nav
-;; - turn on elisp-slime-nav
-;; - M-. works to jump to function definitions
-;; - M-, to jump back
-;; - https://github.com/purcell/elisp-slime-nav
+;; turn on elisp-slime-nav
+;; M-. works to jump to function definitions
+;; M-, to jump back
+;; https://github.com/purcell/elisp-slime-nav
 (use-package elisp-slime-nav
   :blackout t
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
@@ -3125,9 +3113,9 @@ If the region is active and option `transient-mark-mode' is on, call
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
 
 ;;;;; geiser ( guile ) ( closure )
-;; - Emacs for guile
-;; - [[https://www.nongnu.org/geiser/geiser_2.html#Installation][geiser]]
-;; - [[https://jeko.frama.io/en/emacs.html][guile hacking manual]]
+;; Emacs for guile
+;; [[https://www.nongnu.org/geiser/geiser_2.html#Installation][geiser]]
+;; [[https://jeko.frama.io/en/emacs.html][guile hacking manual]]
 (use-package geiser
   :straight (geiser
              :type git
@@ -3137,11 +3125,11 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;; python
 ;;;;; python
-;; - Install:
+;; Install:
 ;; pip3 install -U setuptools
 ;; brew install pyright
 ;; YAPF or Black
-;; - http://wikemacs.org/wiki/Python
+;; http://wikemacs.org/wiki/Python
 (require 'python)
 (setq python-indent-guess-ident-offset-verbose nil
       python-indent-offset 4
@@ -3168,13 +3156,13 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; inferior-python-mode
 ;; runs a python interpreter as a subprocess of Emacs
-;; - [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
+;; [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 (use-package inferior-pyton-mode
   :straight (:type built-in))
 
 ;;;;; pyenv-mode
 ;; integration with the pyenv tool
-;; - [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
+;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
 (use-package pyenv-mode
   :hook (python-mode . pyenv-mode))
 
@@ -3188,15 +3176,15 @@ If the region is active and option `transient-mark-mode' is on, call
   (use-package yapfify  )))
 
 ;;;;; live-py-mode
-;; - Live Coding in Python
-;; - Open any Python file, and activate live-py-mode with M-x live-py-mode.
-;; - You should see an extra window on the right that shows the results of
+;; Live Coding in Python
+;; Open any Python file, and activate live-py-mode with M-x live-py-mode.
+;; You should see an extra window on the right that shows the results of
 ;; running your code.
-;; - https://github.com/donkirkby/live-py-plugin
+;; https://github.com/donkirkby/live-py-plugin
 (use-package live-py-mode)
 
 ;;;;; ein
-;; - Emacs IPython Notebook
+;; Emacs IPython Notebook
 ;; #BEGIN_SRC ein-python :session localhost :results raw drawer
 ;; import numpy, math, matplotlib.pyplot as plt
 ;; %matplotlib inline
@@ -3204,25 +3192,25 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; plt.plot(x, numpy.sin(x))
 ;; #+END_SRC
 
-;; - Use M-x ein:connect-to-notebook to submit code from an arbitrary
+;; Use M-x ein:connect-to-notebook to submit code from an arbitrary
 ;; buffer to a running jupyter kernel
-;; - M-x ein:run launches a jupyter process from emacs
-;; - M-x ein:login to a running jupyter server
-;; - https://github.com/millejoh/emacs-ipython-notebook
+;; M-x ein:run launches a jupyter process from emacs
+;; M-x ein:login to a running jupyter server
+;; https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
   :blackout t)
 
 ;;;;; pip-requirements
-;; - major mode for editing pip requirement files
-;; - https://github.com/Wilfred/pip-requirements.el
+;; major mode for editing pip requirement files
+;; https://github.com/Wilfred/pip-requirements.el
 (use-package pip-requirements)
 
 
 ;;;; web modes
 ;;;;; web-mode
-;; - Major mode for editing web templates
-;; - http://web-mode.org/
-;; - https://github.com/fxbois/web-mode
+;; Major mode for editing web templates
+;; http://web-mode.org/
+;; https://github.com/fxbois/web-mode
 (use-package web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
   :config
@@ -3231,22 +3219,22 @@ If the region is active and option `transient-mark-mode' is on, call
   (setq web-mode-code-indent-offset 2))
 
 ;;;;; css-eldoc
-;; - eldoc-mode plugin for CSS
-;; - https://github.com/zenozeng/css-eldoc
+;; eldoc-mode plugin for CSS
+;; https://github.com/zenozeng/css-eldoc
 (use-package css-eldoc
   :commands turn-on-css-eldoc
   :hook ((css-mode scss-mode less-css-mode) . turn-on-css-eldoc))
 
 ;;;;; json-mode
-;; - Major mode for editing JSON files.
-;; - Extends the builtin js-mode to add better syntax highlighting for JSON
+;; Major mode for editing JSON files.
+;; Extends the builtin js-mode to add better syntax highlighting for JSON
 ;; and some nice editing keybindings.
-;; - https://github.com/joshwnj/json-mode
+;; https://github.com/joshwnj/json-mode
 (use-package json-mode)
 
 ;;;;; js2-mode
-;; - Improved JavaScript editing mode
-;; - https://github.com/mooz/js2-mode
+;; Improved JavaScript editing mode
+;; https://github.com/mooz/js2-mode
 (use-package js2-mode
   :mode (("\\.js\\'" . js2-mode)
          ("\\.jsx\\'" . js2-jsx-mode))
@@ -3256,8 +3244,8 @@ If the region is active and option `transient-mark-mode' is on, call
          (js2-mode . js2-highlight-unused-variables-mode)))
 
 ;;;;; js2-refactor
-;; - JavaScript refactoring library for Emacs
-;; - https://github.com/magnars/js2-refactor.el
+;; JavaScript refactoring library for Emacs
+;; https://github.com/magnars/js2-refactor.el
 (use-package js2-refactor
   :after js2-mode
   :blackout t
@@ -3265,21 +3253,21 @@ If the region is active and option `transient-mark-mode' is on, call
   :config (js2r-add-keybindings-with-prefix "C-c C-m"))
 
 ;;;;; mocha
-;; - Run Mocha or Jasmine tests
-;; - https://github.com/scottaj/mocha.el
+;; Run Mocha or Jasmine tests
+;; https://github.com/scottaj/mocha.el
 (use-package mocha
   :config (use-package mocha-snippets))
 
 ;;;;; skewer-mode
-;; - Live browser JavaScript, CSS, and HTML interaction
-;; - M-x run-skewer to attach a browser to Emacs
+;; Live browser JavaScript, CSS, and HTML interaction
+;; M-x run-skewer to attach a browser to Emacs
 ;; C-x C-e: Evaluate the form before the point and display the result in the
 ;; minibuffer. If given a prefix argument, insert the result into the
 ;; current buffer.
 ;; C-M-x: Evaluate the top-level form around the point.
 ;; C-c C-k: Load the current buffer.
 ;; C-c C-z: Select the REPL buffer
-;; - https://github.com/skeeto/skewer-mode
+;; https://github.com/skeeto/skewer-mode
 (use-package skewer-mode
   :blackout t
   :hook ((js2-mode . skewer-mode)
@@ -3288,9 +3276,9 @@ If the region is active and option `transient-mark-mode' is on, call
          (html-mode . skewer-html-mode)))
 
 ;;;;; web-beautify
-;; - Format HTML, CSS and JavaScript/JSON by js-beautify
-;; - Insta;; npm -g install js-beautify
-;; - https://github.com/yasuyk/web-beautify
+;; Format HTML, CSS and JavaScript/JSON by js-beautify
+;; Insta;; npm -g install js-beautify
+;; https://github.com/yasuyk/web-beautify
 (use-package web-beautify
   :init
   (with-eval-after-load 'js-mode
@@ -3310,13 +3298,13 @@ If the region is active and option `transient-mark-mode' is on, call
   (setq web-beautify-args '("-s" "2" "-f" "-")))
 
 ;;;;; haml-mode
-;; - major mode for the haml mark-up language
-;; - https://github.com/nex3/haml-mode
+;; major mode for the haml mark-up language
+;; https://github.com/nex3/haml-mode
 (use-package haml-mode)
 
 ;;;;; php-mode
-;; - major mode for editing PHP code
-;; - https://github.com/emacs-php/php-mode
+;; major mode for editing PHP code
+;; https://github.com/emacs-php/php-mode
 (use-package php-mode
   :mode (("\\.module$" . php-mode)
          ("\\.inc$" . php-mode)
@@ -3325,16 +3313,16 @@ If the region is active and option `transient-mark-mode' is on, call
          ("\\.\\(?:php\\|phtml\\)\\'" . php-mode)))
 
 ;;;;; yaml-mode
-;; - YAML major mode support
-;; - https://www.emacswiki.org/emacs/YamlMode
+;; YAML major mode support
+;; https://www.emacswiki.org/emacs/YamlMode
 (use-package yaml-mode
   :mode
   (("\\.yml$" . yaml-mode)
    ("\\.yaml$" . yaml-mode)))
 
 ;;;;; nxml-mode
-;; - major mode for editing XML
-;; - https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
+;; major mode for editing XML
+;; https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
 (use-package nxml-mode
   :straight (nxml-mode :type built-in)
   :mode (("\\.xaml$" . xml-mode)))
@@ -3342,8 +3330,8 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;; c program modes
 ;;;;; c-mode
-;; - C/C++ Mode
-;; - https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
+;; C/C++ Mode
+;; https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
 (use-package cc-mode
   :straight (cc-mode :type built-in)
   :bind (:map c-mode-base-map
@@ -3369,8 +3357,8 @@ If the region is active and option `transient-mark-mode' is on, call
   )
 
 ;;;;; ccls
-;; - c++-mode, objc-mode, cuda-mode
-;; - [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
+;; c++-mode, objc-mode, cuda-mode
+;; [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
 (use-package ccls
 
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
@@ -3449,8 +3437,8 @@ the children of class at point."
   (setq clang-format-style-option "llvm"))
 
 ;;;;; modern-cpp-font-lock
-;; - Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
-;; - [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
+;; Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
+;; [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
 (use-package modern-cpp-font-lock
   :straight (modern-cpp-font-lock
              :type git
@@ -3459,8 +3447,8 @@ the children of class at point."
   :hook (c++-mode . modern-c++-font-lock-mode))
 
 ;;;;; csharp-mode
-;; - mode for editing C# in emacs. It’s based on cc-mode
-;; - https://github.com/josteink/csharp-mode
+;; mode for editing C# in emacs. It’s based on cc-mode
+;; https://github.com/josteink/csharp-mode
 (use-package csharp-mode
   :straight (csharp-mode
              :type git
@@ -3468,8 +3456,8 @@ the children of class at point."
              :repo "josteink/csharp-mode"))
 
 ;;;;; arduino-mode
-;; - mode for .ino files only
-;; - [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
+;; mode for .ino files only
+;; [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
 (use-package arduino-mode
   :disabled
   :straight (arduino-mode
@@ -3485,8 +3473,8 @@ the children of class at point."
 ;;(remove-hook 'c++mode-hook #'arduino-mode-cli)
 
 ;;;;; arduino-cli-mode
-;; - minor mode for using the excellent new arduino command line interface
-;; - [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
+;; minor mode for using the excellent new arduino command line interface
+;; [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
 (use-package arduino-cli-mode
   :straight (arduino-cli-mode
              :type git
@@ -3517,16 +3505,16 @@ the children of class at point."
                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
 
 ;;;;; rust-mode
-;; - rust language package
-;; - https://github.com/rust-lang/rust-mode
+;; rust language package
+;; https://github.com/rust-lang/rust-mode
 (use-package rust-mode
   :config (setq rust-format-on-save t))
 
 ;;;;; go lang
-;; - two different ways to configure
-;; - [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
-;; - need to install golang and go get golang/x/tools/gopls
-;; - [[https://sandyuraz.com/articles/go-emacs/][go-mode native completion]]
+;; two different ways to configure
+;; [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
+;; need to install golang and go get golang/x/tools/gopls
+;; [[https://sandyuraz.com/articles/go-emacs/][go-mode native completion]]
 (use-package go-mode
   :mode ("\\.go\\'" . go-mode)
   :init
@@ -3539,8 +3527,8 @@ the children of class at point."
 
 ;;;; other program modes
 ;;;;; csv-mode
-;; - major mode for csv
-;; - https://www.emacswiki.org/emacs/csv-mode.el
+;; major mode for csv
+;; https://www.emacswiki.org/emacs/csv-mode.el
 (use-package csv-mode
   :commands (csv-mode
              csv-align-mode)
@@ -3550,9 +3538,9 @@ the children of class at point."
   (setq csv-separators '("," ";" "|" " ")))
 
 ;;;;; ESS (Emacs Speaks Statistics)
-;; - ESS configurationEmacs Speaks Statistics
-;; - Used for R, S-Plus, SAS, Stata and OpenBUGS/JAGS.
-;; - [[https://ess.r-project.org/][ESS R-project]]
+;; ESS configurationEmacs Speaks Statistics
+;; Used for R, S-Plus, SAS, Stata and OpenBUGS/JAGS.
+;; [[https://ess.r-project.org/][ESS R-project]]
 (use-package ess)
 
 ;;;;; apple-script
@@ -3564,8 +3552,8 @@ the children of class at point."
 
 ;;; files
 ;;;;; ibuffer
-;; - operate on buffers much in the same manner as Dired.
-;; - https://www.emacswiki.org/emacs/IbufferMode
+;; operate on buffers much in the same manner as Dired.
+;; https://www.emacswiki.org/emacs/IbufferMode
 (use-package ibuffer
   :straight (ibuffer :type built-in)
   :functions (all-the-icons-icon-for-file
@@ -3600,17 +3588,17 @@ the children of class at point."
                               (mark " " (name 16 -1) " " filename)))))  )
 
 ;;;;; registers
-;; - Registers allow you to jump to a file or other location quickly.
+;; Registers allow you to jump to a file or other location quickly.
 ;; (i for init.el, r for this file) to jump to it.
-;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
 (set-register ?c '(file . "~/.ssh/custom-post.el"))
 (set-register ?d '(file . "~/.dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 
 ;;;;; dashboard
-;; - all-in-one start-up screen with current files / projects
-;; - https://github.com/emacs-dashboard/emacs-dashboard
+;; all-in-one start-up screen with current files / projects
+;; https://github.com/emacs-dashboard/emacs-dashboard
 (use-package dashboard
   :if (eq sej-dashboard t)
   :straight (dashboard :type git
@@ -3643,8 +3631,8 @@ the children of class at point."
     (hl-line-mode t)) )
 
 ;;;;; page-break-lines
-;; - display ^L page breaks as tidy horizontal lines
-;; - https://github.com/purcell/page-break-lines
+;; display ^L page breaks as tidy horizontal lines
+;; https://github.com/purcell/page-break-lines
 (use-package page-break-lines
   :blackout t
   :hook ((dashboard-mode
@@ -3656,9 +3644,9 @@ the children of class at point."
           emacs-news-view-mode) . page-break-lines-mode))
 
 ;;;;; autoinsert
-;; - mode that comes with Emacs that automagically inserts text into new buffers
+;; mode that comes with Emacs that automagically inserts text into new buffers
 ;;   based on file extension or the major mode
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
 (use-package autoinsert
   :straight (:type built-in)
   :commands (auto-insert)
@@ -3687,9 +3675,9 @@ the children of class at point."
         revert-without-query '(".*")))
 
 ;;;;; sej/create-non-existent-directory
-;; - Offer to create parent directories if they do not exist
+;; Offer to create parent directories if they do not exist
 ;; automatically run after save
-;; - http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
+;; http://iqbalansari.github.io/blog/2014/12/07/automatically-create-parent-directories-on-visiting-a-new-file-in-emacs/
 (defun sej/create-non-existent-directory ()
   "Ask to make directory for file if it does not exist."
   (let ((parent-directory (file-name-directory buffer-file-name)))
@@ -3700,15 +3688,15 @@ the children of class at point."
 (add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
 
 ;;;;; sudo-edit
-;; - Open files as sudo
-;; - https://github.com/nflath/sudo-edit
+;; Open files as sudo
+;; https://github.com/nflath/sudo-edit
 (unless sys/win32p
   (use-package sudo-edit))
 
 ;;;;; vlf-setup
-;; - vlf lets you handle very large files for viewing
-;; - VLF operations are grouped under the C-c C-v prefix by default
-;; - https://github.com/m00natic/vlfi
+;; vlf lets you handle very large files for viewing
+;; VLF operations are grouped under the C-c C-v prefix by default
+;; https://github.com/m00natic/vlfi
 (use-package vlf-setup
   :straight (vlf :host github
                  :repo "m00natic/vlfi")
@@ -3717,8 +3705,8 @@ the children of class at point."
 
 ;;; dired
 ;;;;; dired
-;; - Directory operations
-;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
+;; Directory operations
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
 (use-package dired
   :straight (dired :type built-in)
   :hook (dired-mode . hl-line-mode)
@@ -3748,8 +3736,8 @@ the children of class at point."
             dired-use-ls-dired t) ))  )
 
 ;;;;; dired-aux
-;; - auxiliary functionality of dired
-;; - https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
+;; auxiliary functionality of dired
+;; https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
 (use-package dired-aux
   :straight (dired-aux :type built-in)
   :config
@@ -3758,8 +3746,8 @@ the children of class at point."
   (setq dired-vc-rename-file t)  )
 
 ;;;;; dired-x
-;; - Extra Dired functionality
-;; - https://www.gnu.org/software/emacs/manual/html_node/dired-x/
+;; Extra Dired functionality
+;; https://www.gnu.org/software/emacs/manual/html_node/dired-x/
 (use-package dired-x
   :straight (:type built-in)
   :demand t
