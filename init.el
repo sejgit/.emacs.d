@@ -2885,7 +2885,10 @@ Useful if you want a more robust view into the recommend candidates."
   (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     ")
         magit-diff-refine-hunk t
         magit-repository-directories '(("~/Projects" . 1)))
-
+  (setq magit-display-buffer-function
+      #'magit-display-buffer-fullframe-status-v1)
+  (setq magit-bury-buffer-function
+      #'magit-restore-window-configuration)
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
