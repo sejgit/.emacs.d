@@ -946,7 +946,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; [[https://github.com/mickeynp/discover.el]]
 (use-package discover
   :straight t
-  :hook (emacs-startup . global-discover-mode))
+  :hook (dired-mode . dired-turn-on-discover))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
@@ -2885,8 +2885,11 @@ Useful if you want a more robust view into the recommend candidates."
   (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     ")
         magit-diff-refine-hunk t
         magit-repository-directories '(("~/Projects" . 1)))
+
+  ; enter magit full frame
   (setq magit-display-buffer-function
-      #'magit-display-buffer-fullframe-status-v1)
+        #'magit-display-buffer-fullframe-status-v1)
+  ; exit magit restoring frame config
   (setq magit-bury-buffer-function
       #'magit-restore-window-configuration)
   (if (fboundp 'transient-append-suffix)
@@ -4408,21 +4411,21 @@ function with the \\[universal-argument]."
 
   (setq org-capture-templates (append
                                '(
+                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                 ("i" "NewFile" plain (function sej/open-new-project-file))
                                  ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
                                   "* %U\n %l\n %i%?\n")
-                                 ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
-                                  "* %U\n %:annotation\n i=%i%?\n")
                                  ("n" "Notes" entry (file+headline org-file-notes  "Notes")
                                   "* %U\n %i%?\n")
                                  ("s" "Someday" entry (file+headline org-file-someday  "Someday")
                                   "* %?\n %i\n %a")
                                  ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
                                   "* TODO %?\n %i\n %a")
-                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                 ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
+                                  "* %U\n %:annotation\n i=%i%?\n")
                                  )
                                (list sej-project-org-capture-list)))
-
 
   (setq org-refile-targets '((org-file-gtd :maxlevel . 3)
                              (org-file-someday :maxlevel . 1))
@@ -4444,6 +4447,38 @@ function with the \\[universal-argument]."
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list))
+
+  (let (( make-empty-file (fpath (read-file-name "File name: " (concat sej-org-directory "/") nil nil nil )) PARENTS)))
+ (defun my-dired-create-file (file)
+       "Create a file called FILE.
+If FILE already exists, signal an error."
+
+
+
+
+
+
+
+(defun sej/open-new-project-file (file)
+  "Function to allow new FILE in 'org-capture'."
+  (interactive
+        (list (read-file-name "File name: " (concat sej-org-directory "/"))))
+       (let* ((expanded (expand-file-name file))
+              (try expanded)
+              (dir (directory-file-name (file-name-directory expanded)))
+              new)
+         (if (file-exists-p expanded)
+             (error "Cannot create file %s: file exists" expanded))
+         ;; Find the topmost nonexistent parent dir (variable `new')
+         (while (and try (not (file-exists-p try)) (not (equal new try)))
+           (setq new try
+                 try (directory-file-name (file-name-directory try))))
+         (when (not (file-exists-p dir))
+           (make-directory dir t))
+         (write-region "" nil expanded t)
+         (when new
+           (dired-add-file new)
+           (dired-move-to-filename))))
 
 ;;;;; org-agenda
 ;; agenda for todo & calendar items
