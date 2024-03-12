@@ -992,9 +992,9 @@ Return its absolute path.  Otherwise, return nil."
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
           ("s-w" . delete-frame)
-                                        ; C-x combo
+          ;; C-x combo
           ("C-x w" . delete-frame)
-                                        ; C-q combo
+          ;; C-q combo
           ("C-q m" . sej/frame-recentre)
           ("C-q F" . toggle-frame-fullscreen)
           ("C-q <up>" . sej/frame-resize-full)
@@ -1002,11 +1002,11 @@ Return its absolute path.  Otherwise, return nil."
           ("C-q <right>" . sej/frame-resize-r)
           ("C-q <S-left>" . sej/frame-resize-l2)
           ("C-q <S-right>" . sej/frame-resize-r2)
-                                        ; Alt Meta combo
+          ;; Alt Meta combo
           ("A-M-m" . sej/frame-recentre)
           ("<A-M-left>" . sej/frame-resize-l)
           ("<A-M-right>" . sej/frame-resize-r)
-                                        ; Hyper Control HJKL combo
+          ;; Hyper Control HJKL combo
           ("H-C-f" . toggle-frame-fullscreen)
           ("H-C-j" . sej/frame-resize-full)
           ("H-C-h" . sej/frame-resize-l)
@@ -1963,7 +1963,7 @@ Useful if you want a more robust view into the recommend candidates."
                                    search-ring
                                    regexp-search-ring
                                    extended-command-history)
-                                 "each varible is perssted accross Emacs sessions.")
+                                 "each variable is persisted across Emacs sessions.")
   (savehist-autosave-interval 300)
   (savehist-save-minibuffer-history t))
 
@@ -2076,10 +2076,9 @@ Useful if you want a more robust view into the recommend candidates."
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
   :bind* (("M-<down>" . drag-stuff-down)
-          ("C-H-n" . drag-stuff-down)
           ("M-<up>" . drag-stuff-up)
-          ("C-H-p" . drag-stuff-up)
-          ("H-S-p" . drag-stuff-up))
+          ("A-n" . drag-stuff-down)
+          ("A-p" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode))
 
