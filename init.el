@@ -973,10 +973,10 @@ Return its absolute path.  Otherwise, return nil."
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
 (use-package tron-legacy-theme
   :demand t
-                                        ;:hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
+  ;:hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
   :preface
   (setq tron-legacy-theme-vivid-cursor t)
-  (setq tron-legacy-theme-dark-fg-bright-comments t)
+  (setq tron-legacy-theme-dark-fg-bright-comments nil)
   (setq tron-legacy-theme-softer-bg nil)
   :config
   (load-theme 'tron-legacy))
@@ -1666,7 +1666,7 @@ Useful if you want a more robust view into the recommend candidates."
 (use-package marginalia
   :ensure t
   :hook (emacs-startup . marginalia-mode)
-  :bind (("M-A" . marginalia-cycle)
+  :bind (;; ("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
   :config
