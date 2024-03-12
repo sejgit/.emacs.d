@@ -211,8 +211,9 @@
   ;; - https://github.com/pqrs-org/Karabiner-Elements
   (if (boundp 'mac-carbon-version-string) ;; using mac-port?
       ( progn
+        (message "Mac-port")
         ;; for emacs-mac-port -- default
-        (setq mac-right-command-modifier 'none) ;right command is left alone to mac
+        (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
         (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
         (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
         (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
@@ -220,8 +221,9 @@
         (setq mac-option-modifier 'alt) ; left option is A-alt key
         (setq mac-command-modifier 'meta)) ;left command is meta
     ( progn
+      (message "ns-port")
       ;; for regular Emacs port -- in-case other is installed
-      (setq ns-right-command-modifier 'none)
+      (setq ns-right-command-modifier 'left)
       (setq ns-right-option-modifier 'none)
       (setq ns-function-modifier 'hyper)
       (setq ns-control-modifier 'control)
