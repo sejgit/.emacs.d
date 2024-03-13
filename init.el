@@ -72,7 +72,7 @@
 ;;;;; debug
 ;; only turned on when needed
 (setq debug-on-error t)
-;;(setq debug-on-event t)
+(setq debug-on-event t)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -179,22 +179,11 @@
               use-package-compute-statistics t
               use-package-expand-minimally t
               use-package-enable-imenu-support t)
+
 ;; part of Emacs built-in as of Emacs29
-;;(if nil        ;; emacs/>=29p or nil to **short circuit until bind-key updates => Emacs@30**
-;; (progn
-;;   (eval-when-compile
-;;     (require 'use-package))
-;;   (require 'bind-key)
-;;   (use-package system-packages)
-;;   (require 'use-package-ensure-system-package))
-;;  (progn
-(straight-use-package 'use-package)
-(use-package bind-key
-  :ensure t
-  :demand t)
-(use-package use-package-ensure-system-package
-  :ensure t)
-;;))
+(require 'use-package)
+(use-package system-packages)
+(require 'use-package-ensure-system-package)
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -624,15 +613,24 @@
                       ("p" . transpose-params))
 
 ;;;;;; special character definitions λ
+  ;; FIXME lambda issues with bind
   :bind* (:prefix-map special-char-map
                       :prefix "C-x 8"
                       :prefix-docstring "special char map"
-                      ("l" ("λ" . (lambda () (interactive) (insert "\u03bb"))))
-                      ("t" ("™" . (lambda () (interactive) (insert "™"))))
-                      ("c" ("©" . (lambda () (interactive) (insert "©"))))
-                      (">" ("→" . (lambda () (interactive) (insert "→"))))
-                      ("8" ("∞" . (lambda () (interactive) (insert "∞"))))
-                      ("v" ("✓" . (lambda () (interactive) (insert "✓")))))
+		      ("l" . sej/insert-lambda)
+		      ("t" . sej/insert-tm)
+		      ("c" . sej/insert-copyright)
+		      (">" . sej/insert-rightarrow)
+		      ("8" . sej/insert-infinity)
+		      ("v" . sej/insert-check))
+
+  ;; :bind (:map special-char-map
+  ;; 	      ("l" ("λ" . sej/special-char-insert-lambda))
+  ;;             ("t" ("™" . sej/special-char-insert-tm))
+  ;;             ("c" ("©" . sej/special-char-insert-copyright))
+  ;;             (">" ("→" . sej/special-char-insert-rightarrow))
+  ;;             ("8" ("∞" . sej/special-char-insert-infinity))
+  ;;             ("v" ("✓" . sej/special-char-insert-check)))
 
 ;;;;;; sej-C-q bindings
   :bind* (:prefix-map sej-C-q-map
@@ -648,8 +646,38 @@
 
   :bind* (:map override-global-map
                ("s-." . pop-to-mark-command)
-	           ("M-j" . join-line)
+	       ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)))
+
+(defun sej/insert-lambda()
+  "Insert lambda for 'special-char-map'."
+  (interactive)
+  (insert "\u03bb"))
+
+(defun sej/insert-tm()
+  "Insert ™ for 'special-char-map'."
+  (interactive)
+  (insert "™"))
+
+(defun sej/insert-copyright()
+  "Insert © for 'special-char-map'."
+  (interactive)
+  (insert "©"))
+
+(defun sej/insert-rightarrow()
+  "Insert → for 'special-char-map'."
+  (interactive)
+  (insert "→"))
+
+(defun sej/insert-infinity()
+  "Insert ∞ for 'special-char-map'."
+  (interactive)
+  (insert "∞"))
+
+(defun sej/insert-check()
+  "Insert ✓ for 'special-char-map'."
+  (interactive)
+  (insert "✓"))
 
 ;;;;; Simple
 ;; built-in simple settings
@@ -1221,10 +1249,7 @@ If FRAME is omitted or nil, use currently selected frame."
           ("s-1" . delete-other-windows)
           ("s-2" . split-window-vertically)
           ("s-3" . split-window-right)
-          ("s-7" .  (lambda () (interactive)
-                      (save-excursion
-                        (other-window 1)
-                        (quit-window))))
+          ("s-7" . sej/quit-other)
 
           ;; wind move to multifram window
           ("M-'" . next-multiframe-window)
@@ -1236,13 +1261,29 @@ If FRAME is omitted or nil, use currently selected frame."
           ("A-l" . right-char)
 
           ;;scroll window up/down by one line
-          ("A-n" ("scroll up 1" . (lambda () (interactive) (scroll-up 1))))
-          ("A-p" ("scroll down 1" . (lambda () (interactive) (scroll-down 1))))
-          )
+          ("A-n" . sej/scroll-up-one)
+          ("A-p" . sej/scroll-down-one) )
   :init
   (setq window-combination-resize t
         even-window-sizes 'height-only
         window-sides-vertical nil))
+
+(defun sej/quit-other()
+"Quit other window."
+  (interactive)
+  (save-excursion
+  (other-window 1)
+  (quit-window)))
+
+(defun sej/scroll-up-one()
+"Scroll up one to avoid lambda."
+(interactive)
+(scroll-up 1))
+
+(defun sej/scroll-down-one()
+"Scroll down one to avoid lambda."
+(interactive)
+(scroll-down 1))
 
 ;;;;; ace-window
 ;; - quickly selecting a window to switch to
@@ -2078,9 +2119,7 @@ Useful if you want a more robust view into the recommend candidates."
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
   :bind* (("M-<down>" . drag-stuff-down)
-          ("M-<up>" . drag-stuff-up)
-          ("A-n" . drag-stuff-down)
-          ("A-p" . drag-stuff-up))
+          ("M-<up>" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode))
 
@@ -2204,8 +2243,13 @@ Useful if you want a more robust view into the recommend candidates."
          ("M-C" . symbol-overlay-remove-all))
   :bind-keymap ("C-q s" . symbol-overlay-map)
   :hook ((prog-mode . symbol-overlay-mode)
-         (iedit-mode . (lambda () (symbol-overlay-mode -1)))
+         (iedit-mode . sej/symbol-overlay-mode-off)
          (iedit-mode-end . symbol-overlay-mode)))
+
+(defun sej/symbol-overlay-mode-off()
+  "Turn symbol-overlay-mode off."
+  (interactive)
+  (symbol-overlay-mode -1))
 
 ;;;;; highlight-numbers
 ;; - hightlight-numbers in a special way
@@ -2317,8 +2361,9 @@ Useful if you want a more robust view into the recommend candidates."
 ;; small package that temporarily highlights the current line after a given function is invoked
 ;; additional to built-in pulse
 (use-package pulsar
-  :bind* (("C-q p p" . pulsar-pulse-line)
-          ("C-q p h" . pulsar-highlight-line))
+  :bind* (:map sej-C-q-map
+               ("p p" . pulsar-pulse-line)
+               ("p h" . pulsar-highlight-line))
   :hook ((emacs-startup . pulsar-global-mode)
          ((consult-after-jump
            bookmark-after-jump
@@ -2978,7 +3023,8 @@ Useful if you want a more robust view into the recommend candidates."
 ;; - built-in self help
 ;; [[https://github.com/KarimAziev/igist][igist github]]
 (use-package igist
-  :bind (("C-q G" . igist-dispatch))
+  :bind (:map sej-C-q-map
+              ("G" . igist-dispatch))
   :straight (igist
              :repo "KarimAziev/igist"
              :type git
@@ -5032,7 +5078,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - pop-up shell
 ;; - https://github.com/kyagi/shell-pop-el
 (use-package shell-pop
-  :bind ("C-q p" . shell-pop)
+  :bind (:map sej-C-q-map
+              ("p" . shell-pop))
   :init (let ((val
                (if sys/win32p
                    '("eshell" "*eshell*" (lambda () (eshell)))
@@ -5111,7 +5158,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://github.com/akermu/emacs-libvterm][vterm github]]
 (use-package vterm
   :commands vterm
-  :bind ( ("C-q S v" . vterm))
+  :bind (:map sej-C-q-map
+              ("S v" . vterm))
   :preface
   (setq vterm-install t
         vterm-always-compile-module t)
