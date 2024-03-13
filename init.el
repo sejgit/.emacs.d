@@ -4414,7 +4414,8 @@ function with the \\[universal-argument]."
                                '(
                                  ("c" "code snippet" entry (file+headline org-file-code "code snippets")
                                   "* %?\n%(my/org-capture-code-snippet \"%F\")")
-                                 ("i" "NewFile" plain (function sej/open-new-project-file))
+                                 ("i" "NewFile" plain (file sej/new-org-capture-file)
+                                  "* %U\n %i%?\n")
                                  ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
                                   "* %U\n %l\n %i%?\n")
                                  ("n" "Notes" entry (file+headline org-file-notes  "Notes")
@@ -4444,27 +4445,17 @@ function with the \\[universal-argument]."
                                (sass . t)
                                (C . t)
                                (java . t)
-                               (shell . t)                               ))
+                               (shell . t)
+                               ))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list))
 
-  (let (( make-empty-file (fpath (read-file-name "File name: " (concat sej-org-directory "/") nil nil nil )) PARENTS)))
- (defun my-dired-create-file (file)
-       "Create a file called FILE.
-If FILE already exists, signal an error."
-
-
-
-
-
-
-
-(defun sej/open-new-project-file (file)
+(defun sej/new-org-capture-file()
   "Function to allow new FILE in 'org-capture'."
-  (interactive
-        (list (read-file-name "File name: " (concat sej-org-directory "/"))))
-       (let* ((expanded (expand-file-name file))
+  (interactive)
+  (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
+    (let* ((expanded (expand-file-name file))
               (try expanded)
               (dir (directory-file-name (file-name-directory expanded)))
               new)
@@ -4479,7 +4470,8 @@ If FILE already exists, signal an error."
          (write-region "" nil expanded t)
          (when new
            (dired-add-file new)
-           (dired-move-to-filename))))
+           (message new)
+           ))))
 
 ;;;;; org-agenda
 ;; agenda for todo & calendar items
