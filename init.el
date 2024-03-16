@@ -483,7 +483,7 @@
   (tab-first-completion 'word-or-paren-or-punct)
   (tab-width 4)
   (indent-tabs-mode nil)
-  
+
 ;;;;;; long line settings
   (truncate-lines 1)
   (font-lock-maximum-decoration t)
@@ -613,7 +613,6 @@
                       ("p" . transpose-params))
 
 ;;;;;; special character definitions λ
-  ;; FIXME lambda issues with bind
   :bind* (:prefix-map special-char-map
                       :prefix "C-x 8"
                       :prefix-docstring "special char map"
@@ -653,8 +652,15 @@
 
   :bind* (:map override-global-map
                ("s-." . pop-to-mark-command)
-	       ("M-j" . join-line)
+	           ("M-j" . join-line)
+	           ("M-<return>" . sej/open-new-line)
                ("C-x j" . duplicate-dwim)))
+
+(defun sej/open-new-line()
+  "Open new line without breaking and place cursor there."
+  (interactive)
+  (move-end-of-line 1)
+  (newline-and-indent))
 
 (defconst org-file-inbox (concat sej-org-directory "/inbox.org"))
 (defconst org-file-someday (concat sej-org-directory "/someday.org"))
@@ -1062,7 +1068,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; built-in frame package
 (use-package frame
   :straight (:type built-in)
-  :bind* (; super combo
+  :bind* (("M-`" . other-frame)
+          ; super combo
           ("s-4" . dired-other-frame)
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
@@ -1179,7 +1186,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;; buffers
 ;;;;; buffer key-bindngs
 (bind-keys*
- ("s-s" . save-buffer)
+ ("C-<return>" . save-buffer)
  ("s-y" . bury-buffer)
  ("C-c y" . bury-buffer)
  ("C-c r" . revert-buffer)
@@ -1481,6 +1488,7 @@ If FRAME is omitted or nil, use currently selected frame."
         isearch-regexp-lax-whitespace nil
         isearch-lazy-highlight t
         isearch-lazy-count t
+        isearch-yank-on-move t
         lazy-count-prefix-format "(%s/%s) "
         lazy-count-suffix-format nil
         isearch-yank-on-move 'shift
@@ -2062,7 +2070,7 @@ Useful if you want a more robust view into the recommend candidates."
 ;; - will cycle between end of code and end-of-code plus comments
 ;; - https://github.com/alezost/mwim.el
 (use-package mwim
-  :bind* (("C-a" . mwim-beginning) ; C-a
+  :bind* (("C-a" . mwim-beginning) ; C-a Cycles between Absolute and Logical line beginning
           ("C-e" . mwim-end))) ; C-e better than crux
 
 ;;;;; avy
@@ -2126,7 +2134,8 @@ Useful if you want a more robust view into the recommend candidates."
   :bind* (("M-w" . easy-kill) ; M-w
           ([remap mark-sexp] . easy-mark-sexp) ; C-M-<SPC>
           ("M-@" . easy-mark-word) ; M-@
-          ([remap zap-to-char] . easy-mark-to-char)) ; M-z
+          ("H-<SPC>" . easy-mark) ; H-<SPC>
+          ("M-z" . easy-mark-to-char)) ; M-z
   :init
   (setq easy-kill-alist '((?w word           " ")
                           (?s sexp           "\n")
@@ -2828,15 +2837,6 @@ Useful if you want a more robust view into the recommend candidates."
              (makefile-imake-mode . "Makefile"))
   :straight (:type built-in)
   :config (setq-local indent-tabs-mode t))
-
-;;;;; dumb-jump
-;; - Jump to definition via `ag'/`rg'/`grep'
-;; - https://github.com/jacktasia/dumb-jump
-(use-package dumb-jump
-  :hook ((emacs-startup . dumb-jump-mode)
-         (xref-backend-functions . dumb-jump-xref-activate))
-  :config
-  (setq dumb-jump-prefer-searcher 'rg))
 
 ;;;;; flymake
 ;; - built-in emacs syntax checker
