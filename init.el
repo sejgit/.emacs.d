@@ -640,6 +640,13 @@
                       ("\\" . align-regexp) ;Align your code in a pretty way.
                       ("." . org-time-stamp)
                       ("D" . describe-personal-keybindings)
+                      ("o c" . sej/open-code)
+                      ("o e" . sej/open-electronics)
+                      ("o i" . sej/open-index)
+                      ("o j" . sej/open-journal)
+                      ("o n" . sej/open-notes)
+                      ("o s" . sej/open-someday)
+                      ("o t" . sej/open-gtd)
                       :prefix-map term-map
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
@@ -649,10 +656,48 @@
 	       ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)))
 
-(defun sej/insert-lambda()
-  "Insert lambda for 'special-char-map'."
+(defconst org-file-inbox (concat sej-org-directory "/inbox.org"))
+(defconst org-file-someday (concat sej-org-directory "/someday.org"))
+(defconst org-file-gtd (concat sej-org-directory "/gtd.org"))
+(defconst org-file-journal (concat sej-org-directory "/journal.org"))
+(defconst org-file-notes (concat sej-org-directory "/notes.org"))
+(defconst org-file-code (concat sej-org-directory "/snippets.org"))
+(defconst org-file-electronics (concat sej-org-directory "/electronics.org"))
+
+(defun sej/open-code()
+ "Open code snippets org file."
   (interactive)
-  (insert "\u03bb"))
+  (find-file org-file-code))
+
+(defun sej/open-electronics()
+ "Open electronics org file."
+  (interactive)
+  (find-file org-electronics-code))
+
+(defun sej/open-index()
+ "Open index org file."
+  (interactive)
+  (find-file org-file-inbox))
+
+(defun sej/open-gtd()
+ "Open gtd org file."
+  (interactive)
+  (find-file org-file-gtd))
+
+(defun sej/open-journal()
+ "Open journal org file."
+  (interactive)
+  (find-file org-file-journal))
+
+(defun sej/open-notes()
+ "Open notes org file."
+  (interactive)
+  (find-file org-file-notes))
+
+(defun sej/open-someday()
+ "Open someday org file."
+  (interactive)
+  (find-file org-file-someday))
 
 (defun sej/insert-tm()
   "Insert ™ for 'special-char-map'."
@@ -4356,12 +4401,13 @@ function with the \\[universal-argument]."
   (require 'org-protocol)
   (require 'ol-man)
   (setq org-directory sej-org-directory)
-  (defconst org-file-inbox (concat org-directory "/inbox.org"))
-  (defconst org-file-someday (concat org-directory "/someday.org"))
-  (defconst org-file-gtd (concat org-directory "/gtd.org"))
-  (defconst org-file-journal (concat org-directory "/journal.org"))
-  (defconst org-file-notes (concat org-directory "/notes.org"))
-  (defconst org-file-code (concat org-directory "/snippets.org"))
+  ;; below are defined above
+  ;; (defconst org-file-inbox (concat org-directory "/inbox.org"))
+  ;; (defconst org-file-someday (concat org-directory "/someday.org"))
+  ;; (defconst org-file-gtd (concat org-directory "/gtd.org"))
+  ;; (defconst org-file-journal (concat org-directory "/journal.org"))
+  ;; (defconst org-file-notes (concat org-directory "/notes.org"))
+  ;; (defconst org-file-code (concat org-directory "/snippets.org"))
   (setq org-replace-disputed-keys t
         org-adapt-indentation nil
         org-special-ctrl-a/e nil
@@ -4459,7 +4505,7 @@ function with the \\[universal-argument]."
   (setq org-capture-templates (append
                                '(
                                  ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-                                  "* %?\n%(my/org-capture-code-snippet \"%F\")")
+                                  "* #code %?\n %i\n %a")
                                  ("i" "NewFile" plain (file sej/new-org-capture-file)
                                   "* %U\n %i%?\n")
                                  ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
