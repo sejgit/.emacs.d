@@ -2126,6 +2126,7 @@ Useful if you want a more robust view into the recommend candidates."
           ("H-l" . avy-goto-line)
           ("M-g w" . avy-goto-word-1)
           ("H-w" . avy-goto-word-1)
+          ("H-/" . avy-goto-char-timer)
           ("H-y" . avy-copy-line))
   :config (setq avy-background t))
 
