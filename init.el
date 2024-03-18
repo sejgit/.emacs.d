@@ -2128,6 +2128,8 @@ Useful if you want a more robust view into the recommend candidates."
           ("M-g w" . avy-goto-word-1)
           ("H-w" . avy-goto-word-1)
           ("H-j" . avy-copy-line)
+          ("C-M-s" . isearch-forward-other-window)
+          ("C-M-r" . isearch-backward-other-window)
           :map isearch-mode-map
           ("H-s" . avy-isearch))
   :config
@@ -2138,8 +2140,8 @@ Useful if you want a more robust view into the recommend candidates."
                     ?k ?l ?' ?x ?c ?v ?b
                     ?n ?, ?/))
 
-
-(defun avy-show-dispatch-help ()  
+(defun avy-show-dispatch-help ()
+  "Display help for Avy dispatch."
   (let* ((len (length "avy-action-"))
          (fw (frame-width))
          (raw-strings (mapcar
@@ -2159,12 +2161,10 @@ Useful if you want a more robust view into the recommend candidates."
              (push (concat string " ") display-strings)
              (when (= (mod N per-row) 0) (push "\n" display-strings)))
     (message "%s" (apply #'concat (nreverse display-strings)))))
-
-;; Avy command
-(global-set-key (kbd "M-j") 'avy-goto-char-timer)
-
+  
 ;; Kill text
 (defun avy-action-kill-whole-line (pt)
+  "Avy kill whole line at PT selected."
   (save-excursion
     (goto-char pt)
     (kill-whole-line))
@@ -2178,6 +2178,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;; Copy text
 (defun avy-action-copy-whole-line (pt)
+  "Avy copy whole line at PT selected."
   (save-excursion
     (goto-char pt)
     (cl-destructuring-bind (start . end)
@@ -2193,6 +2194,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;; Yank text
 (defun avy-action-yank-whole-line (pt)
+  "Avy yank whole line at PT selected."
   (avy-action-copy-whole-line pt)
   (save-excursion (yank))
   t)
@@ -2202,6 +2204,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;; Transpose/Move text
 (defun avy-action-teleport-whole-line (pt)
+  "Avy teleport whole line at PT selected."
   (avy-action-kill-whole-line pt)
   (save-excursion (yank)) t)
 
@@ -2210,6 +2213,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;; Mark text
 (defun avy-action-mark-to-char (pt)
+  "Avy mark to char at PT selected."
   (activate-mark)
   (goto-char pt))
 
@@ -2217,6 +2221,7 @@ Useful if you want a more robust view into the recommend candidates."
 
 ;; Flyspell words
 (defun avy-action-flyspell (pt)
+  "Avy action auto correct at PT selected."
   (save-excursion
     (goto-char pt)
     (when (require 'flyspell nil t)
@@ -2231,9 +2236,9 @@ Useful if you want a more robust view into the recommend candidates."
 ;; Dictionary: define words
 ;; Replace your package manager or preferred dict package
 (defun dictionary-search-dwim (&optional arg)
-  "Search for definition of word at point. If region is active,
-search for contents of region instead. If called with a prefix
-argument, query for word to search."
+  "Avy action search for definition of word at point depending on ARG.
+If region is active, search for contents of region instead.
+If called with a prefix argument, query for word to search."
   (interactive "P")
   (if arg
       (dictionary-search nil)
@@ -2246,6 +2251,7 @@ argument, query for word to search."
         (dictionary-search-dwim '(4))))))
 
 (defun avy-action-define (pt)
+  "Avy action Dictionary search at PT dwim."
   (save-excursion
     (goto-char pt)
     (dictionary-search-dwim))
@@ -2258,6 +2264,7 @@ argument, query for word to search."
 ;; Get Elisp Help
 ;; Replace with your package manager or help library of choice
 (defun avy-action-helpful (pt)
+  "Avy action Helpful at PT."
   (save-excursion
     (goto-char pt)
     (helpful-at-point))
@@ -2269,6 +2276,7 @@ argument, query for word to search."
 
 ;; Embark
 (defun avy-action-embark (pt)
+  "Avy action Embark on expression at PT."
     (unwind-protect
         (save-excursion
           (goto-char pt)
@@ -2279,12 +2287,9 @@ argument, query for word to search."
 
 (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
 
-;; Avy + Isearch
-(define-key isearch-mode-map (kbd "M-j") 'avy-isearch)
-
 ;; Isearch in other windows
 (defun isearch-forward-other-window (prefix)
-  "Function to isearch-forward in other-window."
+  "Function to 'isearch-forward' in 'other-window', modified by PREFIX."
   (interactive "P")
   (unless (one-window-p)
     (save-excursion
@@ -2294,65 +2299,14 @@ argument, query for word to search."
         (other-window (- next))))))
 
 (defun isearch-backward-other-window (prefix)
-  "Function to isearch-backward in other-window."
+  "Function to 'isearch-backward' in 'other-window', modified by PREFIX."
   (interactive "P")
   (unless (one-window-p)
     (save-excursion
       (let ((next (if prefix 1 -1)))
         (other-window next)
         (isearch-backward)
-        (other-window (- next))))))
-
-(define-key global-map (kbd "C-M-s") 'isearch-forward-other-window)
-(define-key global-map (kbd "C-M-r") 'isearch-backward-other-window)
-
-;; Google search: requires executable Tuxi
-(defvar google-search-history nil
-  "List of queries to google-search-string.")
-(defun google-search-string (search-string)
-  "Read SEARCH-STRING from the minibuffer and call the shell
-command tuxi on it."
-  (interactive (list (read-string "Google: " nil
-                                  google-search-history
-                                  (thing-at-point 'sexp))))
-  (unless (executable-find "tuxi")
-    (user-error "Cannot find shell command: tuxi"))
-  (let ((search-output (string-trim-right
-                        (shell-command-to-string
-                         (concat
-                          "tuxi -r "
-                          (shell-quote-argument search-string))))))
-    (with-current-buffer (get-buffer-create "*Tuxi Output*")
-      (erase-buffer)
-      (insert search-output)
-      ;; (fill-region (point-min) (point-max))
-      (if (<= (count-lines (point-min) (point-max)) 1)
-          (message search-output)
-        (goto-char (point-min))
-        (display-buffer (current-buffer))
-        (goto-address-mode 1)))))
-(defun google-search-at-point (&optional beg end)
-  "Call the shell command tuxi on the symbol at point. With an
-active region use it instead."
-  (interactive "r")
-  (if-let ((search-string (if (use-region-p)
-                              (buffer-substring-no-properties beg end)
-                            (thing-at-point 'symbol))))
-      (google-search-string search-string)
-    ;; (message "No symbol to search for at point!")
-    (call-interactively #'google-search-string)))
-
-(defun avy-action-tuxi (pt)
-  (cl-letf (((symbol-function 'keyboard-quit)
-             #'abort-recursive-edit))
-    (save-excursion
-      (goto-char pt)
-      (google-search-at-point))
-    (select-window
-     (cdr (ring-ref avy-ring 0))))
-  t)
-
-(setf (alist-get ?G avy-dispatch-alist) 'avy-action-tuxi))
+        (other-window (- next)))))))
 
 ;;;;; goto-chg
 ;; - goto the last changes made in buffer
@@ -2570,7 +2524,7 @@ active region use it instead."
          (iedit-mode-end . symbol-overlay-mode)))
 
 (defun sej/symbol-overlay-mode-off()
-  "Turn symbol-overlay-mode off."
+  "Turn 'symbol-overlay-mode' off."
   (interactive)
   (symbol-overlay-mode -1))
 
