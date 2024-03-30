@@ -523,6 +523,10 @@
   (prefer-coding-system 'utf-8) ; with sugar on top
 
   :init
+;;;;;; global so-long mode
+  ;; set-up global so long mode to protect us
+  (global-so-long-mode)
+  
 ;;;;;; whitespace
   ;; Define the whitespace style.
   (setq-default whitespace-style
