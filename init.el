@@ -3489,7 +3489,14 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; integration with the pyenv tool
 ;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
 (use-package pyenv-mode
-  :hook (python-mode . pyenv-mode))
+  :hook ((python-mode . pyenv-mode)
+         (python-ts-mode . pyenv-mode)))
+
+;;;;; pyenv-mode-auto
+;; pyenv automatically based on .python-mode
+;; 
+(use-package pyenv-mode-auto
+  :ensure t)
 
 ;;;;; blacken & yapfify
 ;; Format the python buffer following YAPF rules
