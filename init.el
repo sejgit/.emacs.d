@@ -2851,7 +2851,24 @@ If called with a prefix argument, query for word to search."
                `(python-ts-mode . ,(eglot-alternatives
                                     '(("pyright-langserver" "--stdio")
                                       ("jedi-language-server")
-                                      ("pylsp" "pyls") ))))
+                                      ("pylsp") ))))
+  (setq-default eglot-workspace-configuration
+                '((:pylsp . (:configurationSources ["flake8"]
+                             :plugins (
+                                       :pycodestyle (:enabled :json-false)
+                                       :mccabe (:enabled :json-false)
+                                       :pyflakes (:enabled :json-false)
+                                       :flake8 (:enabled :json-false
+                                                :maxLineLength 88)
+                                       :ruff (:enabled t
+                                              :lineLength 88)
+                                       :pydocstyle (:enabled t
+                                                    :convention "numpy")
+                                       :yapf (:enabled :json-false)
+                                       :autopep8 (:enabled :json-false)
+                                       :black (:enabled t
+                                               :line_length 88
+                                               :cache_config t))))))
   (setq help-at-pt-display-when-idle t)
   (setq completion-category-defaults nil)
   (use-package consult-eglot
