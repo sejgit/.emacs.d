@@ -4248,6 +4248,7 @@ the children of class at point."
   :config
   (setq markdown-enable-wiki-links t
         markdown-italic-underscore t
+        markdown-fontify-code-blocks-natively t
         markdown-make-gfm-checkboxes-buttons t
         markdown-gfm-additional-languages '("sh")
         markdown-header-scaling t)
@@ -4293,7 +4294,8 @@ the children of class at point."
 (use-package markdown-soma
   :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
-              ("p" . markdown-soma-mode))
+              ("p" . markdown-soma-mode)
+              ("r" . markdown-soma-restart) )
   :config
   ;; select css theme
   (setq markdown-soma-custom-css
