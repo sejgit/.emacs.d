@@ -957,7 +957,8 @@ Return its absolute path.  Otherwise, return nil."
 (use-package calc
   :straight (:type built-in)
   :bind (:map sej-C-q-map
-              ("c" . calc))
+              ("c" . calc)
+              ("C-c" . calc))
   :commands (quick-calc calc)
   :config
   (setq math-additional-units
