@@ -956,6 +956,8 @@ Return its absolute path.  Otherwise, return nil."
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/calc.html][GNU Emacs Calculator]]
 (use-package calc
   :straight (:type built-in)
+  :bind (:map sej-C-q-map
+              ("c" . calc))
   :commands (quick-calc calc)
   :config
   (setq math-additional-units
