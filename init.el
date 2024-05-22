@@ -3241,6 +3241,16 @@ If called with a prefix argument, query for word to search."
       (transient-append-suffix 'magit-fetch
         "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
+(use-package magit-file-icons
+  :ensure t
+  :init
+  (magit-file-icons-mode 1)
+  :custom
+  ;; These are the default values:
+  (magit-file-icons-enable-diff-file-section-icons t)
+  (magit-file-icons-enable-untracked-icons t)
+  (magit-file-icons-enable-diffstat-icons t))
+
 ;;;;; forge
 ;; Access Git forges from Magit
 ;; To start using Forge in a certain repository visit the Magit status buffer
