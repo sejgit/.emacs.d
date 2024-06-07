@@ -1093,6 +1093,45 @@ Return its absolute path.  Otherwise, return nil."
            ("C-h F" . helpful-function)
            ("C-h M" . helpful-macro))  )
 
+;;;;; casual
+;; triansient based jump screens
+;; [[https://github.com/kickingvegas?tab=repositories][casual-parent-github]]
+
+;; (use-package casual-suite
+;;   :straight (casual-suite :type git :flavor melpa :host github
+;;                           :repo "kickingvegas/casual-suite"
+;;                           :branch "development"))
+
+(use-package casual
+  :straight (casual :type git :flavor melpa :host github
+                    :repo "kickingvegas/casual")
+  :ensure t
+  :hook (calc . casual-main-menu)
+  :bind (:map calc-mode-map ("C-o" . 'casual-main-menu)))
+
+(use-package casual-info
+  :straight (casual-info :type git :flavor melpa :host github
+                         :repo "kickingvegas/casual-info")
+  :ensure t
+  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
+
+(use-package casual-dired
+  :straight (casual-dired :type git :flavor melpa :host github
+                          :repo "kickingvegas/casual-dired")
+  :ensure t
+  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
+
+(use-package cc-isearch-menu
+  :straight (cc-isearch-menu :type git :flavor melpa :host github
+                             :repo "kickingvegas/cc-isearch-menu")
+  :ensure t
+  :bind (:map isearch-mode-map ("C-o" . 'cc-isearch-menu-transient)))
+
+(use-package casual-avy
+  :straight (casual-avy :type git :flavor melpa :host github
+                        :repo "kickingvegas/casual-avy")
+  :ensure t
+  :bind ("H-/" . casual-avy-tmenu))
 
 ;;; user interface
 ;;;; themes
