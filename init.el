@@ -490,7 +490,23 @@
   (truncate-partial-width-windows 1)
 
 ;;;;;; backups
-  (backup-directory-alist '(("." . ".saves")) "Don't litter my fs tree.")
+  ;; Put backup files neatly away
+  (let ((backup-dir "~/tmp/emacs/backups")
+      (auto-saves-dir "~/tmp/emacs/auto-saves/"))
+  (dolist (dir (list backup-dir auto-saves-dir))
+    (when (not (file-directory-p dir))
+      (make-directory dir t)))
+  (setq backup-directory-alist `(("." . ,backup-dir))
+        auto-save-file-name-transforms `((".*" ,auto-saves-dir t))
+        auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
+        tramp-backup-directory-alist `((".*" . ,backup-dir))
+        tramp-auto-save-directory auto-saves-dir))
+
+(setq backup-by-copying t    ; Don't delink hardlinks
+      delete-old-versions t  ; Clean up the backups
+      version-control t      ; Use version numbers on backups,
+      kept-new-versions 5    ; keep some new versions
+      kept-old-versions 2)   ; and some old ones, too(backup-directory-alist '(("." . "~/.saves")) "Don't litter my fs tree.")
   (vc-make-backup-files t)
   (backup-by-copying t)
   (delete-old-versions t)
@@ -3455,7 +3471,7 @@ If the region is active and option `transient-mark-mode' is on, call
   ((prog-mode . turn-on-eldoc-mode))
   :init
   (setq eldoc-idle-delay 0.2
-        eldoc-echo-area-use-multiline-p 3) )
+        eldoc-echo-area-use-multiline-p nil) )
 
 ;;;;; elisp-slime-nav
 ;; turn on elisp-slime-nav
@@ -4350,13 +4366,37 @@ the children of class at point."
   :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
               ("p" . markdown-soma-mode)
-              ("r" . markdown-soma-restart) )
+              ("r" . markdown-soma-restart)
+              ("+" . sej/markdown-soma-mod-plus)
+              ("=" . sej/markdown-soma-mod-plus)
+              ("-" . sej/markdown-soma-mod-minus)
+              )
   :config
   ;; select css theme
   (setq markdown-soma-custom-css
         (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark"))
   ;; Change "theme name" to the selected highlightjs theme.
-  (setq markdown-soma-highlightjs-theme "github-dark"))
+  (setq markdown-soma-highlightjs-theme "github-dark")
+
+(setq sej/markdown-soma-mod-var 0)
+
+(defun sej/markdown-soma-mod (x)
+  "Modify markdown-soma display by X."
+  (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
+  (print x))
+
+(defun sej/markdown-soma-mod-plus ()
+  "Add to display mod."
+  (interactive)
+  (setq sej/markdown-soma-mod-var (+ sej/markdown-soma-mod-var 5)))
+
+(defun sej/markdown-soma-mod-minus ()
+  "Add to display mod."
+  (interactive)
+  (setq sej/markdown-soma-mod-var (- sej/markdown-soma-mod-var 5)))
+
+;; (advice-remove 'markdown-soma--window-point #'sej/markdown-soma-mod)
+(advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod))
 
 ;;;;; textile-mode
 ;; - textile markup editing major mode
