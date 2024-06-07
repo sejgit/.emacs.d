@@ -1103,6 +1103,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;                           :branch "development"))
 
 (use-package casual
+  :after calc
   :straight (casual :type git :flavor melpa :host github
                     :repo "kickingvegas/casual")
   :ensure t
@@ -1116,12 +1117,14 @@ Return its absolute path.  Otherwise, return nil."
   :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
 
 (use-package casual-dired
+  :after dired
   :straight (casual-dired :type git :flavor melpa :host github
                           :repo "kickingvegas/casual-dired")
   :ensure t
   :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
 
 (use-package cc-isearch-menu
+  :after isearch
   :straight (cc-isearch-menu :type git :flavor melpa :host github
                              :repo "kickingvegas/cc-isearch-menu")
   :ensure t
