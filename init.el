@@ -2849,7 +2849,7 @@ If called with a prefix argument, query for word to search."
                          c-ts-mode c++-ts-mode c-or-c++-ts-mode) .
                          ,(eglot-alternatives
                            '(("ccls" )
-                             ("clang")))))
+                             ("clangd")))))
   (add-to-list 'eglot-server-programs
                `(python-ts-mode . ,(eglot-alternatives
                                     '(("pyright-langserver" "--stdio")
