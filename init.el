@@ -71,8 +71,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error t)
-(setq debug-on-event t)
+(setq debug-on-error nil)
+(setq debug-on-event nil)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -1300,7 +1300,7 @@ If FRAME is omitted or nil, use currently selected frame."
  ("C-c y" . bury-buffer)
  ("C-c r" . revert-buffer)
  ("s-r" . revert-buffer)
- ("C-x k" . kill-this-buffer)
+ ("C-x k" . kill-current-buffer)
  ("s-n" . bs-cycle-next) ; buffer cycle next
  ("s-p" . bs-cycle-previous))
 
