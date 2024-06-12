@@ -223,7 +223,12 @@
   (when sys/mac-x-p
     (use-package exec-path-from-shell)
     (setq exec-path-from-shell-arguments nil)
-    (exec-path-from-shell-initialize)))
+    (exec-path-from-shell-initialize))
+  (if (not (getenv "TERM_PROGRAM"))
+       (setenv "PATH"
+               (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
+(setq exec-path (split-string (getenv "PATH") ":"))
+  )
 
 ;;;;; Linux System specific environment setting
 (when sys/linuxp
@@ -1378,7 +1383,8 @@ If FRAME is omitted or nil, use currently selected frame."
     (emacs-lisp-mode)
     ))
 (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-(bind-key* "C-q C-s" 'sej/create-scratch-buffer)
+(bind-key* "C-q C-S" 'sej/create-scratch-buffer)
+(bind-key* "C-q C-s" 'scratch-buffer)
 
 ;;;;; persistent-scratch
 ;; - keep the scratch buffer from session to session
@@ -2903,37 +2909,62 @@ If called with a prefix argument, query for word to search."
       (eglot-ensure)))
 
   (add-to-list 'eglot-server-programs
-               `((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
-                         c-ts-mode c++-ts-mode c-or-c++-ts-mode) .
-                         ,(eglot-alternatives
+               `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
                            '(("ccls" )
                              ("clangd")))))
-  (add-to-list 'eglot-server-programs
-               `(python-ts-mode . ,(eglot-alternatives
-                                    '(("pyright-langserver" "--stdio")
-                                      ("jedi-language-server")
-                                      ("pylsp") ))))
-  (setq-default eglot-workspace-configuration
-                '((:pylsp . (:configurationSources ["flake8"]
-                             :plugins (
-                                       :pycodestyle (:enabled :json-false)
-                                       :mccabe (:enabled :json-false)
-                                       :pyflakes (:enabled :json-false)
-                                       :flake8 (:enabled :json-false
-                                                :maxLineLength 88)
-                                       :ruff (:enabled t
-                                              :lineLength 88)
-                                       :pydocstyle (:enabled t
-                                                    :convention "numpy")
-                                       :yapf (:enabled :json-false)
-                                       :autopep8 (:enabled :json-false)
-                                       :black (:enabled t
-                                               :line_length 88
-                                               :cache_config t))))))
+  ;; (add-to-list 'eglot-server-programs
+  ;;              `(python-ts-mode . ,(eglot-alternatives
+  ;;                                   '(("pyright-langserver" "--stdio")
+  ;;                                     ("jedi-language-server")
+  ;;                                     ("pylsp") ))))
+  ;; (setq-default eglot-workspace-configuration
+  ;;               '((:pylsp . (:configurationSources ["flake8"]
+  ;;                            :plugins (
+  ;;                                      :pycodestyle (:enabled :json-false)
+  ;;                                      :mccabe (:enabled :json-false)
+  ;;                                      :pyflakes (:enabled :json-false)
+  ;;                                      :flake8 (:enabled :json-false
+  ;;                                               :maxLineLength 88)
+  ;;                                      :ruff (:enabled t
+  ;;                                             :lineLength 88)
+  ;;                                      :pydocstyle (:enabled t
+  ;;                                                   :convention "numpy")
+  ;;                                      :yapf (:enabled :json-false)
+  ;;                                      :autopep8 (:enabled :json-false)
+  ;;                                      :black (:enabled t
+  ;;                                              :line_length 88
+  ;;                                              :cache_config t))))))
   (setq help-at-pt-display-when-idle t)
   (setq completion-category-defaults nil)
   (use-package consult-eglot
     :commands consult-eglot-symbols))
+
+;;;;; flymake-ruff
+;; - ruff linter
+;; - [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
+;;("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
+(use-package flymake-ruff
+  :ensure t
+  :straight (flymake-ruff
+             :type git
+             :host github
+             :repo "erickgnavar/flymake-ruff")
+  :hook (python-base-mode . flymake-ruff-load)
+  ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
+  )
+
+;;;;; reformatter
+;; - base reformatter
+;; - [[https://github.com/purcell/emacs-reformatter][reformatter]]
+(use-package reformatter
+  :straight t)
+
+;;;;; ruff-format
+;; - ruff format using reformatter
+;; - [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
+(use-package ruff-format
+  :straight t
+  :after reformatter)
 
 ;;;;; format-all
 ;; - auto-format source code in many languages using the same command for all languages
@@ -4455,6 +4486,7 @@ the children of class at point."
 ;; - main spelling package
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 (use-package flyspell
+  :disabled t
   :straight (:type built-in)
   :blackout t
   :bind* (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
@@ -4499,6 +4531,20 @@ the children of class at point."
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
   (setq ispell-dictionary "canadian")
+  )
+
+(use-package jinx
+  :after vertico
+  :init
+  (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (("C-;" . jinx-correct-nearest)
+         ("C-M-;" . jinx-languages)
+         ("C-," . jinx-next))
+  :config
+  (vertico-multiform-mode 1)
+  (add-to-list 'vertico-multiform-categories
+             '(jinx grid (vertico-grid-annotate . 20)))
   )
 
 ;;;;; dictionary lookup
@@ -5918,3 +5964,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
+
+;; Local Variables:
+;; jinx-local-words: "reformatter"
+;; End:
