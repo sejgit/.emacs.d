@@ -1948,7 +1948,8 @@ Useful if you want a more robust view into the recommend candidates."
 (use-package consult
   :demand t
   ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind* (;; C-c bindings (mode-specific-map)
+  :bind* (("H-M-," . consult-recent-xref)
+          ;; C-c bindings (mode-specific-map)
           ("C-c b" . consult-bookmark)
           ("C-c k" . consult-kmacro)
           ("C-c h" . consult-history)
@@ -2089,7 +2090,29 @@ Useful if you want a more robust view into the recommend candidates."
           (apply (if vertico-mode
                      #'consult-completion-in-region
                    #'completion--in-region)
-                 args))))
+                 args)))
+
+  (defvar consult--xref-history nil
+  "History for the `consult-recent-xref' results.")
+
+  (defun consult-recent-xref (&optional markers)
+  "Jump to a marker in MARKERS list (defaults to `xref--history'.
+
+  The command supports preview of the currently selected marker position.
+  The symbol at point is added to the future history."
+  (interactive)
+  (consult--read
+    (consult--global-mark-candidates
+      (or markers (flatten-list xref--history)))
+    :prompt "Go to Xref: "
+    :annotate (consult--line-prefix)
+    :category 'consult-location
+    :sort nil
+    :require-match t
+    :lookup #'consult--lookup-location
+    :history '(:input consult--xref-history)
+    :add-history (thing-at-point 'symbol)
+    :state (consult--jump-state))))
 
 
 ;;;; indentation
