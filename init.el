@@ -511,13 +511,11 @@
       delete-old-versions t  ; Clean up the backups
       version-control t      ; Use version numbers on backups,
       kept-new-versions 5    ; keep some new versions
-      kept-old-versions 2)   ; and some old ones, too(backup-directory-alist '(("." . "~/.saves")) "Don't litter my fs tree.")
-  (vc-make-backup-files t)
-  (backup-by-copying t)
-  (delete-old-versions t)
-  (kept-new-versions 6)
-  (kept-old-versions 2)
-  (version-control t)
+      kept-old-versions 2   ; and some old ones, too
+      backup-directory-alist '(("." . "~/.saves"))
+      vc-make-backup-files t
+      backup-by-copying t
+      version-control t)
 
 ;;;;;; mouse
   (make-pointer-invisible t "Hide mouse while typing.")
