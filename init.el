@@ -34,36 +34,7 @@
 ;;
 ;; using Emacs 30
 ;; on macos installing emacs-plus@30
-;; brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll
-
-;;; Changelog
-;; not every commit ; just the big stuff
-;; - <2019-04-28> Merge from old .emacs.d
-;; - <2019-10-20> remove helm stuff; remove most messages
-;; - <2019-10-22> start to tangle in init-org.org
-;; - <2019-11-27> remove untangled files
-;; - <2019-10-29 Tue> Init SeJ
-;; - <2019-11-27 Wed> tangled done now working on efficiency
-;; - <2019-12-05 Thu> testing with clean install
-;; - <2019-12-23 Mon> add links to all packages
-;; - <2020-01-04 Sat> linux changes
-;; - <2020-01-31 Fri> orgmode pretty changes
-;; - <2020-02-21 Fri> package -> straight
-;; - <2020-05-17 Sun> try outline/outshine/pretty-outlines
-;; - <2020-07-26 Sun> clean-up init files final move from org tangled
-;; - <2020-09-22 Tue> move to helm
-;; - <2020-11-21 Sat> move custom.el fonts to init.el
-;; - <2021-01-04 Mon> gccemacs changes & simplifications
-;; - <2021-01-08 Fri> some clean-up
-;; - <2021-04-26 Mon> move from Helm to Selectrum
-;; - <2021-10-14 Thu> move from projectile to built-in project.el
-;; - <2021-11-11 Thu> add frame centre function & fix no littering
-;; - <2022-12-20 Tue> remove lsp -yes again- as Eglot & Tree-sitter are in for Emacs29
-;; - <2023-01-30 Mon> vertigo orderless consult corfu
-;; - <2023-02-12 Sun> :disabled flycheck packages for now in favour of flymake
-;; - <2023-03-06 Mon> mode to built-in use-package
-;; - <2023-11-24 Fri> updates for Emacs30
-;; - <2024-02-15 Thu> free-bsd (berkley-unix) adds for EISY
+;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-poll
 
 ;;; Code:
 (message "Emacs start")
