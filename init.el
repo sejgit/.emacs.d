@@ -4171,7 +4171,8 @@ the children of class at point."
   :straight (dired :type built-in)
   :hook (dired-mode . hl-line-mode)
   :bind (:map dired-mode-map
-              ("C-c C-p" . wdired-change-to-wdired-mode))
+              ("C-c C-p" . wdired-change-to-wdired-mode)
+              ("C-u D" . sej/dired-do-delete-skip-trash))
   :config
   ;; Always delete and copy recursively
   (setq dired-recursive-deletes 'always)
@@ -4193,7 +4194,11 @@ the children of class at point."
     ;; Prefer g-prefixed coreutils version of standard utilities when available
     (when (executable-find "gls")
       (setq insert-directory-program (executable-find "gls")
-            dired-use-ls-dired t) ))  )
+            dired-use-ls-dired t) ))
+  (defun sej/dired-do-delete-skip-trash (&optional arg)
+  (interactive "P")
+  (let ((delete-by-moving-to-trash nil))
+    (dired-do-delete arg))))
 
 ;;;;; dired-aux
 ;; auxiliary functionality of dired
