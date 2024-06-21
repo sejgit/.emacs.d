@@ -463,14 +463,6 @@
   (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
   (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name))
 
-
-;;;;; Emacs internal settings
-;; - a use-package friendly place to put settings
-;;   no real extra value to putting as setq but feels clean
-(use-package emacs
-  :demand t
-  :straight (:type built-in)
-  :init
 ;;;;;; backups
   ;; Put backup files neatly away
   (let ((backup-dir (nl-var-expand "backups/"))
@@ -493,6 +485,12 @@
         backup-by-copying t
         version-control t)
 
+;;;;; Emacs internal settings
+;; - a use-package friendly place to put settings
+;;   no real extra value to putting as setq but feels clean
+(use-package emacs
+  :demand t
+  :straight (:type built-in)
   :custom
 ;;;;;; general
   (default-directory (f-expand "$HOME") "Set startup directory.")
