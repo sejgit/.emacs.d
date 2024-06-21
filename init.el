@@ -452,11 +452,47 @@
 ;; We need to intercept the built-in org-version that ships with Emacs we have to do this early.
 (straight-use-package '(org :host github :repo "emacs-straight/org-mode" :local-repo "org"))
 
+;;;;; no-littering feature
+;; set the default paths for configuration files & persistent data
+;; [[https://github.com/emacscollective/no-littering][no-littering]]
+(use-package no-littering
+  :demand t
+  :init
+  (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
+        no-littering-var-directory (expand-file-name "~/.cache/emacs/"))
+  (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
+  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name))
+
+
 ;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
 ;;   no real extra value to putting as setq but feels clean
 (use-package emacs
+  :demand t
   :straight (:type built-in)
+  :init
+;;;;;; backups
+  ;; Put backup files neatly away
+  (let ((backup-dir (nl-var-expand "backups/"))
+      (auto-saves-dir (nl-var-expand "auto-saves/")))
+  (dolist (dir (list backup-dir auto-saves-dir))
+    (when (not (file-directory-p dir))
+      (make-directory dir t)))
+  (setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
+        auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
+        auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
+        tramp-backup-directory-alist `((".*" . ,backup-dir))
+        tramp-auto-save-directory auto-saves-dir))
+
+  (setq backup-by-copying t    ; Don't delink hardlinks
+        delete-old-versions t  ; Clean up the backups
+        version-control t      ; Use version numbers on backups,
+        kept-new-versions 5    ; keep some new versions
+        kept-old-versions 2   ; and some old ones, too
+        vc-make-backup-files t
+        backup-by-copying t
+        version-control t)
+
   :custom
 ;;;;;; general
   (default-directory (f-expand "$HOME") "Set startup directory.")
@@ -493,29 +529,6 @@
   (truncate-lines 1)
   (font-lock-maximum-decoration t)
   (truncate-partial-width-windows 1)
-
-;;;;;; backups
-  ;; Put backup files neatly away
-  (let ((backup-dir "~/tmp/emacs/backups")
-      (auto-saves-dir "~/tmp/emacs/auto-saves/"))
-  (dolist (dir (list backup-dir auto-saves-dir))
-    (when (not (file-directory-p dir))
-      (make-directory dir t)))
-  (setq backup-directory-alist `(("." . ,backup-dir))
-        auto-save-file-name-transforms `((".*" ,auto-saves-dir t))
-        auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
-        tramp-backup-directory-alist `((".*" . ,backup-dir))
-        tramp-auto-save-directory auto-saves-dir))
-
-(setq backup-by-copying t    ; Don't delink hardlinks
-      delete-old-versions t  ; Clean up the backups
-      version-control t      ; Use version numbers on backups,
-      kept-new-versions 5    ; keep some new versions
-      kept-old-versions 2   ; and some old ones, too
-      backup-directory-alist '(("." . "~/.saves"))
-      vc-make-backup-files t
-      backup-by-copying t
-      version-control t)
 
 ;;;;;; mouse
   (make-pointer-invisible t "Hide mouse while typing.")
@@ -887,21 +900,6 @@
          uniquify-strip-common-suffix t
          uniquify-after-kill-buffer-p t
          uniquify-separator "/"))
-
-;;;;; no-littering feature
-;; set the default paths for configuration files & persistent data
-;; [[https://github.com/emacscollective/no-littering][no-littering]]
-(use-package no-littering
-  :demand t
-  :init
-  (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
-        no-littering-var-directory (expand-file-name "~/.cache/emacs/"))
-  (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
-  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name)
-
-  (setq auto-save-file-name-transforms `((".*"
-                                          ,(no-littering-expand-var-file-name "auto-save/") t))))
-
 
 ;;; general functions / packages
 ;;;;; sej/save-macro
@@ -3631,6 +3629,21 @@ If the region is active and option `transient-mark-mode' is on, call
 (use-package inferior-pyton-mode
   :straight (:type built-in))
 
+;;;;; pipenv
+;; a [[https://github.com/pwalsh/pipenv.el][pipenv]] integration
+(use-package pipenv
+  :hook (python-mode . pipenv-mode)
+  :init
+  (defun pipenv-activate-project ()
+  "Activate integration of Pipenv with Project."
+  ;; (add-hook
+  ;;  'project-
+  ;;  ile-after-switch-project-hook
+  ;;  (lambda () (funcall pipenv-projectile-after-switch-function))))
+
+  (setq pipenv-with-flycheck nil
+        pipenv-with-projectile nil)))
+
 ;;;;; pyenv-mode
 ;; integration with the pyenv tool
 ;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
@@ -5221,9 +5234,10 @@ function with the \\[universal-argument]."
                             (eshell/alias "d" "dired $1")
                             (eshell/alias "ll" "ls  -al $1")
                             (eshell/alias "la" "ls -a $1")
-                            (eshell/alias "l" "ls -a $1")
+                            (eshell/alias "l" "ls -l $1")
                             (eshell/alias "gd" "magit-diff-unstaged")
                             (eshell/alias "gds" "magit-diff-staged")
+                            (eshell/alias "d" "dired $1")
                             (bind-keys :map eshell-mode-map
                                        ("M-P" . eshell-previous-prompt)
                                        ("M-N" . eshell-next-prompt)
@@ -5232,13 +5246,15 @@ function with the \\[universal-argument]."
 
   :bind* (("C-q S e" . eshell) )
 
+  :init
+  (defvar eshell-visual-commands '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail"))
+  (defvar eshell-visual-options '("git" "--help" "--paginate"))
+  (defvar eshell-visual-subcommands '("git" "log" "diff" "show"))
+
   :config
   (setenv "PAGER" "cat")
 
   ;; Visual commands
-  (setq eshell-visual-commands (append '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail")))
-  (setq eshell-visual-subcommands (append '("git" ("log" "diff" "show"))))
-
   (setq eshell-glob-case-insensitive nil
         eshell-error-if-no-glob nil
         eshell-scroll-to-bottom-on-input nil
@@ -5324,7 +5340,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :straight (:type built-in)
   :config
   (setq eshell-modules-list             ; Needs review
-        '(eshell-alias
+        '(eshell-smart
+          eshell-alias
           eshell-basic
           eshell-cmpl
           eshell-dirs
@@ -5392,9 +5409,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (setq sej/eshell-truncate-timer
       (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
 
-;;;;; eshell/clear
+;;;;; eshell/cls
 ;; - clear the eshell buffer / screen
-(defun eshell/clear ()
+(defun eshell/cls ()
   "Clear the eshell buffer."
   (interactive)
   (let ((eshell-buffer-maximum-lines 0))
