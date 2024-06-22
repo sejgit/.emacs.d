@@ -1651,7 +1651,11 @@ If FRAME is omitted or nil, use currently selected frame."
   :straight (:type built-in)
   :commands (dabbrev-expand
              dabbrev-completion)
-  :init
+  ;; Use Dabbrev with Corfu!
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+:init
   (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
         dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
         dabbrev-backward-only nil
@@ -1660,7 +1664,13 @@ If FRAME is omitted or nil, use currently selected frame."
         dabbrev-case-replace 'case-replace
         dabbrev-check-other-buffers t
         dabbrev-eliminate-newlines t
-        dabbrev-upcase-means-case-search t))
+        dabbrev-upcase-means-case-search t)
+  :config
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 ;;;;; hippie-expand
 ;; - built-in package to expand at point in various ways
@@ -1722,7 +1732,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; small completion program similar to company
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
-  :demand t
   :bind (:map corfu-map
               ("<tab>" . corfu-complete)
               ("M-m" . corfu-move-to-minibuffer)
@@ -1730,10 +1739,8 @@ If FRAME is omitted or nil, use currently selected frame."
               ("<return>" . corfu-insert)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
-  :hook ((emacs-startup . global-corfu-mode)
-         ((eshell-mode markdown-mode) . (lambda ()
-                                          (setq-local corfu-auto nil)
-                                          (corfu-mode))))
+  :hook (emacs-startup . global-corfu-mode)
+
   ;; Optional customizations
   :custom
   (corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
@@ -1744,7 +1751,8 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; (corfu-preview-current nil)    ;; Disable current candidate preview
   ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  (corfu-scroll-margin 5)        ;; Use scroll margin
+  ;; (corfu-echo-documentation nil)
 
   ;; Enable Corfu only for certain modes.
   ;; :hook ((prog-mode . corfu-mode)
@@ -1754,8 +1762,25 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
-  (corfu-echo-documentation nil)
+
   :config
+  ;; (setq global-corfu-modes '((not markdown-mode) t))
+ ;; TAB cycle if there are only few candidates
+  ;; (setq completion-cycle-threshold 3)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (setq tab-always-indent 'complete)
+
+  ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
+  ;; try `cape-dict'.
+  (setq text-mode-ispell-word-completion nil)
+
+  ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+  ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+  ;; setting is useful beyond Corfu.
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
+
   (defun corfu-move-to-minibuffer ()
     "Move \"popup\" completion candidates to minibuffer.
 Useful if you want a more robust view into the recommend candidates."
@@ -1915,32 +1940,35 @@ Useful if you want a more robust view into the recommend candidates."
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind* (("H-M-," . consult-recent-xref)
           ;; C-c bindings (mode-specific-map)
-          ("C-c b" . consult-bookmark)
           ("C-c k" . consult-kmacro)
           ("C-c h" . consult-history)
           ("C-c M-x" . consult-mode-command)
-          ;; C-x bindings (ctl-x-map)
-          ("C-x C-r" . consult-recent-file)
-          ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-          ("C-x p b" . consult-project-buffer)      ;; switch to buffer within project
-          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-          ;; Custom M-# bindings for fast register access
-          ("C-q C-y" . consult-register-load)
-          ("C-q C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-          ("C-q C-r" . consult-register)
           ;; Other custom bindings
           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+          ;; C-x bindings (ctl-x-map)
+          :map ctl-x-map
+          ("C-r" . consult-recent-file)
+          ("b" . consult-buffer)                ;; orig. switch-to-buffer
+          ("p b" . consult-project-buffer)      ;; switch to buffer within project
+          ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+          ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+          ;; Custom sej bindings for fast register access
+          :map sej-C-q-map
+          ("C-y" . consult-register-load)
+          ("C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+          ("C-r" . consult-register)
+          ("C-t" . consult-theme)
           ;; M-g bindings (goto-map)
-          ("M-g e" . consult-compile-error)
-          ("M-g f" . consult-flymake)
-          ("M-g g" . consult-goto-line)             ;; orig. goto-line
-          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-          ("M-g m" . consult-mark)
-          ("M-g k" . consult-global-mark)
-          ("M-g i" . consult-imenu)
-          ("M-g I" . consult-imenu-multi)
+          :map goto-map
+          ("e" . consult-compile-error)
+          ("f" . consult-flymake)
+          ("g" . consult-goto-line)             ;; orig. goto-line
+          ("M-g" . consult-goto-line)           ;; orig. goto-line
+          ("o" . consult-outline)               ;; Alternative: consult-org-heading
+          ("m" . consult-mark)
+          ("k" . consult-global-mark)
+          ("i" . consult-imenu)
+          ("I" . consult-imenu-multi)
           ;; M-s bindings (search-map)
           :map search-map
           ("a" . consult-ag)                    ;;if executable ag "Silver-Searcher" exists
@@ -1977,7 +2005,7 @@ Useful if you want a more robust view into the recommend candidates."
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
-  (setq register-preview-delay 0
+  (setq register-preview-delay 0.5
         register-preview-function #'consult-register-format)
 
   ;; Optionally tweak the register preview window.
@@ -4420,17 +4448,17 @@ the children of class at point."
 (setq sej/markdown-soma-mod-var 0)
 
 (defun sej/markdown-soma-mod (x)
-  "Modify markdown-soma display by X."
+  "Calibrate  markdown-soma display by X."
   (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
   (print x))
 
 (defun sej/markdown-soma-mod-plus ()
-  "Add to display mod."
+  "Add to display mod correction."
   (interactive)
   (setq sej/markdown-soma-mod-var (+ sej/markdown-soma-mod-var 5)))
 
 (defun sej/markdown-soma-mod-minus ()
-  "Add to display mod."
+  "Subtract from display mod correction."
   (interactive)
   (setq sej/markdown-soma-mod-var (- sej/markdown-soma-mod-var 5)))
 
@@ -4540,6 +4568,7 @@ the children of class at point."
 
   (setq ispell-dictionary "canadian")
   )
+
 
 (use-package jinx
   :after vertico
