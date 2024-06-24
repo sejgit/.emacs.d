@@ -3044,11 +3044,12 @@ If called with a prefix argument, query for word to search."
   :straight (tramp :type built-in)
   :init
   (setq tramp-default-method "ssh" ; or scp
-        ;; tramp-terminal-type "tramp"
+        tramp-terminal-type "tramp"
         tramp-verbose 10
         tramp-completion-reread-directory-timeout nil
         tramp-histfile-override "/tmp/tramp_history"
         remote-file-name-inhibit-cache nil
+        tramp-default-remote-shell "/bin/bash"
         tramp-chunksize 500
         vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
                                      vc-ignore-dir-regexp
