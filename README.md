@@ -44,8 +44,10 @@ brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native
 
 - [markdown-soma](https://github.com/jasonm23/markdown-soma/tree/e604b9e4a65bbd2057befbfaebfa73d00bd9826a)
 - used for live updates for markdown
-- requires install of `rustup` which can happen from `brew` in osx or direct in others
-- then you will need to cd to `.emacs.d/straight/repost/` directory which has `markdown-soma`
+- requires install of `rustup` which can happen from `brew` in osx or best is direct in others
+- curl https://sh.rustup.rs -sSf | sh
+- then you will need to cd to `.emacs.d/straight/repos/markdown-soma`
+- cargo install --path . # note the . after path
 - this should compile `soma` and install it in the `~/.cargo/bin/` directory
 - my dotfiles in the `.zshenv` file handles adding this directory to the path
 - markdownlint-cli is used for the linting of markdown-mode files

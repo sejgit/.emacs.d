@@ -1803,11 +1803,13 @@ Useful if you want a more robust view into the recommend candidates."
     :config
     (corfu-indexed-mode t))
   (use-package corfu-popupinfo
+    ;; :disabled t
     :straight nil
     :load-path "straight/build/corfu/extensions"
     :demand t
     :config
     (corfu-popupinfo-mode t))
+  
   (use-package corfu-terminal
     :unless (display-graphic-p)
     :init
@@ -3042,8 +3044,8 @@ If called with a prefix argument, query for word to search."
   :straight (tramp :type built-in)
   :init
   (setq tramp-default-method "ssh" ; or scp
-        tramp-terminal-type "tramp"
-        tramp-verbose 3
+        ;; tramp-terminal-type "tramp"
+        tramp-verbose 10
         tramp-completion-reread-directory-timeout nil
         tramp-histfile-override "/tmp/tramp_history"
         remote-file-name-inhibit-cache nil
@@ -3653,6 +3655,13 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; 
 (use-package pyenv-mode-auto
   :ensure t)
+
+;;;;; envrc
+;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
+;; environment variables and then set those environment variables on a per-buffer basis.
+;; [[https://github.com/purcell/envrc][envrc.el - buffer-local direnv integration]]
+(use-package envrc
+  :hook (after-init . envrc-global-mode))
 
 ;;;;; blacken & yapfify
 ;; Format the python buffer following YAPF rules
@@ -4428,9 +4437,17 @@ the children of class at point."
 ;;;;; markdown-soma
 ;; realtime preview by eww
 ;; install soma first in the .cargo directory (my dotfiles has path for this)
+;; - used for live updates for markdown
+;; - requires install of `rustup` which can happen from `brew` in osx or best is direct in others
+;; - curl https://sh.rustup.rs -sSf | sh
+;; - then you will need to cd to `.emacs.d/straight/repos/markdown-soma`
+;; - cargo install --path . # note the . after path
+;; - this should compile `soma` and install it in the `~/.cargo/bin/` directory
+;; - my dotfiles in the `.zshenv` file handles adding this directory to the path
+;; - markdownlint-cli is used for the linting of markdown-mode files
 ;; - [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
-  :hook (markdown-mode . markdown-soma-mode)
+  ;; :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
               ("p" . markdown-soma-mode)
               ("r" . markdown-soma-restart)
@@ -6006,7 +6023,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 
     ;; :defer t ;; lazy loading, if you want
     :config
-    (setq use-dialog-box nil) ;; do not use popup boxes
+    (setq use-dialog-box t) ;; do not use popup boxes
 
     ;; if you don't want to use customize to save the api-key
     ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
