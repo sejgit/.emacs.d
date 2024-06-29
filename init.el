@@ -4584,14 +4584,18 @@ the children of class at point."
                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
 
-  (setq ispell-dictionary "canadian")
-  )
+  (setq ispell-dictionary "canadian"))
 
-
+;;;;; jinx
+;; - spell checking
+;; [[https://github.com/minad/jinx#][jinx.el - enchanted spell checker]]
+(when (eval 'sys/macp)
 (use-package jinx
   :after vertico
+  :ensure-system-package (("/usr/local/Cellar/enchant" . "brew install enchant")
+                          (pkg-config . "brew install pkg-config"))
   :init
-  (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
+  ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
   :hook (emacs-startup . global-jinx-mode)
   :bind (("C-;" . jinx-correct-nearest)
          ("C-M-;" . jinx-languages)
@@ -4599,8 +4603,23 @@ the children of class at point."
   :config
   (vertico-multiform-mode 1)
   (add-to-list 'vertico-multiform-categories
-             '(jinx grid (vertico-grid-annotate . 20)))
-  )
+               '(jinx grid (vertico-grid-annotate . 20)))))
+
+(when (eval 'sys/freebsdp)
+(use-package jinx
+  :after vertico
+  :ensure-system-package ((enchant-2 . "pkg install enchant2")
+                          (pkg-config . "pkg install pkgconf"))
+  :init
+  ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (("C-;" . jinx-correct-nearest)
+         ("C-M-;" . jinx-languages)
+         ("C-," . jinx-next))
+  :config
+  (vertico-multiform-mode 1)
+  (add-to-list 'vertico-multiform-categories
+             '(jinx grid (vertico-grid-annotate . 20)))))
 
 ;;;;; dictionary lookup
 ;; - built in with Emacs 28
