@@ -430,7 +430,9 @@
   :demand t
   :init
   (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
-        no-littering-var-directory (expand-file-name "~/.cache/emacs/"))
+        no-littering-var-directory (expand-file-name "~/.cache/emacs/")
+        temporary-file-directory (expand-file-name "~/.cache/emacs/tmp/"))
+  (make-directory temporary-file-directory :parents)
   (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
   (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name))
 
@@ -637,15 +639,16 @@
 ;;;;;; pop-to-mark-command
   ;; When popping the mark, continue popping until the cursor actually moves
   ;; Also, if the last command was a copy - skip past all the expand-region cruft.
-  (defadvice pop-to-mark-command (around ensure-new-position activate)
+  (defun ensure-new-position (pop-to-mark-command &rest args)
     "When popping the mark, continue popping until we move the cursor."
     (let ((p (point)))
       (when (eq last-command 'save-region-or-current-line)
-        ad-do-it
-        ad-do-it
-        ad-do-it)
+        (apply pop-to-mark-command args)
+        (apply pop-to-mark-command args)
+        (apply pop-to-mark-command args))
       (dotimes (i 10)
-        (when (= p (point)) ad-do-it))))
+        (when (= p (point)) (apply pop-to-mark-command args)))))
+  (advice-add 'pop-to-mark-command :around #'ensure-new-position)
 
 ;;;;;; transpose lines/words/sexps/params global
   (unbind-key "M-t") ;; which used to be transpose-words
@@ -1323,12 +1326,13 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - initial message
 ;; - bury don't kill scratch
 (setq initial-scratch-message "")
-(defadvice kill-buffer (around kill-buffer-around-advice activate)
-  "Bury the *scratch* buffer, but never kill it."
-  (let ((buffer-to-kill (ad-get-arg 0)))
+(defun kill-buffer-around-advice (kill-current-buffer &rest args)
+  "Bury the *scratch* buffer, but never kill it when using KILL-CURRENT-BUFFER ARGS."
+  (let ((buffer-to-kill (buffer-name)))
     (if (equal buffer-to-kill "*scratch*")
         (bury-buffer)
-      ad-do-it)))
+      (apply kill-current-buffer args))))
+(advice-add 'kill-current-buffer :around #'kill-buffer-around-advice)
 
 ;;;;; sej/create-scratch-buffer
 ;; - as name suggests
@@ -1700,6 +1704,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package vertico
   :demand t
   :hook (emacs-startup . vertico-mode)
+  :bind (:map vertico-map
+              ("H-RET" . vertico-exit-input))
   :config
   ;; Different scroll margin
   (setq vertico-scroll-margin 0)
@@ -3044,7 +3050,7 @@ If called with a prefix argument, query for word to search."
   :straight (tramp :type built-in)
   :init
   (setq tramp-default-method "ssh" ; or scp
-        tramp-terminal-type "tramp"
+        tramp-terminal-type "dumb"
         tramp-verbose 10
         tramp-completion-reread-directory-timeout nil
         tramp-histfile-override "/tmp/tramp_history"
@@ -3268,8 +3274,10 @@ If called with a prefix argument, query for word to search."
   (flycheck-error ((((class color)) (:underline "Red"))))
   (flycheck-warning ((((class color)) (:underline "Orange"))))
   :config
-  (defadvice flycheck-next-error (before wh/flycheck-next-error-push-mark activate)
+  (defun sej/flycheck-next-eror-push-mark (flycheck-next-error &rest args)
     (push-mark))
+  (advice-add 'flycheck-next-error :before #'sej/flycheck-next-error-push-mark)
+
   (setq flycheck-indication-mode 'right-fringe
         flycheck-check-syntax-automatically '(save
                                               mode-enabled
@@ -6084,3 +6092,4 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; Local Variables:
 ;; jinx-local-words: "reformatter"
 ;; End:
+(put 'set-goal-column 'disabled nil)
