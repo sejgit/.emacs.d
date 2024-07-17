@@ -4600,7 +4600,7 @@ the children of class at point."
 (when (eval 'sys/macp)
 (use-package jinx
   :after vertico
-  :ensure-system-package (("/usr/local/Cellar/enchant" . "brew install enchant")
+  :ensure-system-package ((enchant-2 . "brew install enchant")
                           (pkg-config . "brew install pkg-config"))
   :init
   ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
