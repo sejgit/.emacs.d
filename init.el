@@ -603,9 +603,10 @@
 ;;;;;; color codes
   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
 
-;;;;;; Deleting files go to OS's trash folder
+;;;;;; Deleting files go to OS's trash folder, but not remote in v30.1
   (setq delete-by-moving-to-trash t)
   (if sys/macp (setq trash-directory "~/.Trash"))
+  (setq remote-file-name-inhibit-delete-by-moving-to-trash t)
 
 ;;;;;; update time-stamps in files
   (add-hook 'before-save-hook 'time-stamp)
@@ -4242,6 +4243,7 @@ the children of class at point."
       (setq insert-directory-program (executable-find "gls")
             dired-use-ls-dired t) ))
   (defun sej/dired-do-delete-skip-trash (&optional arg)
+    ""Only needed for pre-version 30.1""
   (interactive "P")
   (let ((delete-by-moving-to-trash nil))
     (dired-do-delete arg))))
