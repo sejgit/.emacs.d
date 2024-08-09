@@ -1837,7 +1837,8 @@ Useful if you want a more robust view into the recommend candidates."
   :demand t
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind* (("A-/ p" . completion-at-point) ;; capf
+  :bind* (("s-/" . completion-at-point) ;; capf
+          ("A-/ p" . completion-at-point) ;; capf
           ("A-/ t" . complete-tag)        ;; etags
           ("A-/ d" . cape-dabbrev)        ;; or dabbrev-completion
           ("A-/ h" . cape-history)
@@ -4233,15 +4234,17 @@ the children of class at point."
         dired-free-space nil
         dired-mouse-drag-files t)
 
-  (when sys/macp
+  ;; (when sys/macp
     ;; Suppress the warning: `ls does not support --dired'.
-    (setq dired-use-ls-dired nil)
+    ;; (setq dired-use-ls-dired nil)
 
     ;; Use GNU ls as `gls' from `coreutils' if available.
     ;; Prefer g-prefixed coreutils version of standard utilities when available
-    (when (executable-find "gls")
-      (setq insert-directory-program (executable-find "gls")
-            dired-use-ls-dired t) ))
+    ;; NOT REQUIRED with 30.1
+    ;; (when (executable-find "gls")
+    ;;   (setq insert-directory-program (executable-find "gls")
+    ;;         dired-use-ls-dired t) )
+    ;; )
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
   (interactive "P")
@@ -6042,14 +6045,16 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
     (add-hook 'python-mode-hook
         (lambda ()
             (setq-local completion-at-point-functions
-                (list (cape-super-capf #'codeium-completion-at-point #'lsp-completion-at-point)))))
-    ;; an async company-backend is coming soon!
-
+                (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
+    (add-hook 'emacs-lisp-mode-hook
+        (lambda ()
+            (setq-local completion-at-point-functions
+                (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
     ;; codeium-completion-at-point is autoloaded, but you can
     ;; optionally set a timer, which might speed up things as the
     ;; codeium local language server takes ~0.2s to start up
-    ;; (add-hook 'emacs-startup-hook
-    ;;  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
+    (add-hook 'emacs-startup-hook
+     (lambda () (run-with-timer 0.1 nil #'codeium-init)))
 
     ;; :defer t ;; lazy loading, if you want
     :config
