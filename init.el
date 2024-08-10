@@ -2700,7 +2700,7 @@ If called with a prefix argument, query for word to search."
           ("HACK" . "#d0bf8f")
           ("TEMP" . "#d0bf8f")
           ("FIXME" . "#cc9393")
-          ("XXXX*" . "#cc9393")
+          ("FIX" . "#cc9393")
           ("DEBUG" . "#7cb8bb")
           ("STARTED" . "#5f7f5f")
           ("HELP" . "#ff0000")
