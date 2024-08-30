@@ -1051,8 +1051,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; - minibuffer keybinding prompts
 ;; - https://github.com/justbur/emacs-which-key
 (use-package which-key
-  :straight (which-key :type git :host github :repo "justbur/emacs-which-key")
-  :blackout t
+  :straight (:type built-in)
   :hook (emacs-startup . which-key-mode)
   :bind* (("C-h h" . which-key-show-top-level)
           ("C-h M-m" . which-key-show-major-mode))
@@ -1060,28 +1059,20 @@ Return its absolute path.  Otherwise, return nil."
   :config
   (setq which-key-use-C-h-commands t
         which-key-separator " "
-        which-key-prefix-prefix "+")
-  (which-key-setup-side-window-bottom) )
-
-;;;;; discover
-;; discover more of Emacs using context menus
-;; [[https://github.com/mickeynp/discover.el]]
-(use-package discover
-  :straight t
-  :hook (dired-mode . dired-turn-on-discover))
+        which-key-prefix-prefix "+"))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
 ;; https://github.com/Wilfred/helpful
 (use-package helpful
   :straight (helpful :type git :host github :repo "Wilfred/helpful")
-  :bind* ( ("C-h C-d" . helpful-at-point)
-           ("C-h c" . helpful-command)
-           ("C-h k" . helpful-key) ; C-h k
-           ("C-h v" . helpful-variable) ; C-h v
-           ("C-h f" . helpful-callable) ; C-f v
-           ("C-h F" . helpful-function)
-           ("C-h M" . helpful-macro))  )
+  :bind* (("C-c C-d" . helpful-at-point)
+          ("C-h x" . helpful-command)
+          ("C-h k" . helpful-key) ; C-h k
+          ("C-h v" . helpful-variable) ; C-h v
+          ("C-h f" . helpful-callable) ; C-f v
+          ("C-h F" . helpful-function)
+          ("C-h M" . helpful-macro))  )
 
 ;;;;; casual
 ;; triansient based jump screens
@@ -1092,46 +1083,68 @@ Return its absolute path.  Otherwise, return nil."
 ;;                           :repo "kickingvegas/casual-suite"
 ;;                           :branch "development"))
 
-(use-package casual
-  :after calc
-  :straight (casual :type git :flavor melpa :host github
-                    :repo "kickingvegas/casual")
-  :ensure t
-  :hook (calc . casual-main-menu)
-  :bind (:map calc-mode-map ("C-o" . 'casual-main-menu)))
+(use-package casual-calc
+  :ensure nil
+  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
 
 (use-package casual-info
-  :straight (casual-info :type git :flavor melpa :host github
-                         :repo "kickingvegas/casual-info")
-  :ensure t
+  :ensure nil
   :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
 
 (use-package casual-dired
-  :after dired
-  :straight (casual-dired :type git :flavor melpa :host github
-                          :repo "kickingvegas/casual-dired")
-  :ensure t
+  :ensure nil
   :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
 
-(use-package cc-isearch-menu
-  :after isearch
-  :straight (cc-isearch-menu :type git :flavor melpa :host github
-                             :repo "kickingvegas/cc-isearch-menu")
-  :ensure t
-  :bind (:map isearch-mode-map ("C-o" . 'cc-isearch-menu-transient)))
-
 (use-package casual-avy
-  :straight (casual-avy :type git :flavor melpa :host github
-                        :repo "kickingvegas/casual-avy")
-  :ensure t
+  :ensure nil
   :bind ("H-/" . casual-avy-tmenu))
+
+(use-package casual-isearch
+  :ensure nil
+  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
+
+(use-package ibuffer
+  :hook (ibuffer-mode . ibuffer-auto-mode)
+  :defer t)
+(use-package casual-ibuffer
+  :ensure nil
+  :bind (:map
+         ibuffer-mode-map
+         ("C-o" . casual-ibuffer-tmenu)
+         ("F" . casual-ibuffer-filter-tmenu)
+         ("s" . casual-ibuffer-sortby-tmenu)
+         ("<double-mouse-1>" . ibuffer-visit-buffer) ; optional
+         ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window) ; optional
+         ("{" . ibuffer-backwards-next-marked) ; optional
+         ("}" . ibuffer-forward-next-marked)   ; optional
+         ("[" . ibuffer-backward-filter-group) ; optional
+         ("]" . ibuffer-forward-filter-group)  ; optional
+         ("$" . ibuffer-toggle-filter-group))  ; optional
+  :after (ibuffer))
+
+(use-package re-builder
+  :defer t)
+(use-package casual-re-builder
+  :ensure nil
+  :bind (:map
+         reb-mode-map ("C-o" . casual-re-builder-tmenu)
+         :map
+         reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu))
+  :after (re-builder))
+
+(use-package bookmark
+  :ensure nil
+  :defer t)
+(use-package casual-bookmarks
+  :ensure nil
+  :bind (:map bookmark-bmenu-mode-map
+              ("C-o" . casual-bookmarks-tmenu)
+              ("S" . casual-bookmarks-sortby-tmenu)
+              ("J" . bookmark-jump))
+  :after (bookmark))
 
 ;;; user interface
 ;;;; themes
-;;;;; wombat theme
-;; previous preferred theme
-                                        ;(load-theme 'wombat)
-
 ;;;;; tron-legacy-theme
 ;; current preferred theme
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
@@ -1307,7 +1320,6 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; sej/browse-homepage
 ;; - Browse my github homepage
-;; - bound to C-c s h
 (defun sej/browse-homepage ()
   "Browse the Github page of SeJ Emacs."
   (interactive)
@@ -1475,7 +1487,7 @@ If FRAME is omitted or nil, use currently selected frame."
                                         ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
   (zoom-ignored-buffer-name-regexps '("^*calc" "^*makey-key" "^magit:")) ; ignore related windows
   (zoom-ignore-predicates nil)
-                                        ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
+  ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
   :config
   (defun size-callback () ; resize the buffer according to frame size
     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
@@ -3408,10 +3420,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; https://github.com/purcell/elisp-slime-nav
 (use-package elisp-slime-nav
   :blackout t
-  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
-  :config
-  (unbind-key "C-c C-d d")
-  (unbind-key "C-c C-d C-d"))
+  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
 ;;;;; sly
 ;; replacement repla for slime
