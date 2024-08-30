@@ -1837,24 +1837,8 @@ Useful if you want a more robust view into the recommend candidates."
   :demand t
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind* (("s-/" . completion-at-point) ;; capf
-          ("A-/ p" . completion-at-point) ;; capf
-          ("A-/ t" . complete-tag)        ;; etags
-          ("A-/ d" . cape-dabbrev)        ;; or dabbrev-completion
-          ("A-/ h" . cape-history)
-          ("A-/ f" . cape-file)
-          ("A-/ k" . cape-keyword)
-          ("A-/ s" . cape-elisp-symbol)
-          ("A-/ e" . cape-elisp-block)
-          ("A-/ a" . cape-abbrev)
-          ("A-/ i" . cape-dict)
-          ("A-/ l" . cape-line)
-          ("A-/ w" . cape-dict)
-          ("A-/ \\" . cape-tex)
-          ("A-/ _" . cape-tex)
-          ("A-/ ^" . cape-tex)
-          ("A-/ &" . cape-sgml)
-          ("A-/ r" . cape-rfc1345))
+  :bind* ("s-/" . completion-at-point) ;; capf
+  :bind ("A-/" . cape-prefix-map)
   :init
   ;; completion functions takes precedence over the global list.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1880,8 +1864,8 @@ Useful if you want a more robust view into the recommend candidates."
   :bind (;; ("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
-  :config
-  (setq marginalia-max-relative-age 0))
+  :init
+  (marginalia-mode))
 
 ;;;;; orderless
 ;; provides an orderless completion style that divides the pattern into space-separated components,
@@ -5697,7 +5681,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
     ;; if you use straight
     :straight '(:type git :host github :repo "Exafunction/codeium.el")
     ;; otherwise, make sure that the codeium.el file is on load-path
-    :bind ("A-/ c" . codeium-completion-at-point)
+    :bind (:map cape-prefix-map
+                ("c" . codeium-completion-at-point))
     :init
     ;; use globally
     (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
