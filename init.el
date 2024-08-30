@@ -3232,86 +3232,6 @@ If called with a prefix argument, query for word to search."
   (setq flymake-proc-compilation-prevents-syntax-check t)
   (setq flymake-wrap-around nil)  )
 
-;;;;; flymake-quickdef
-;; - package defines flymake-quickdef-backend to generate backends for flymake
-;; - [[https://github.com/karlotness/flymake-quickdef][flymake-quickdef]]
-(use-package flymake-quickdef)
-
-;; EXAMPLE BACKEND
-;;   (require 'flymake-quickdef)
-;; (flymake-quickdef-backend
-;;   flymake-proselint-backend
-;;   :pre-let ((proselint-exec (executable-find "proselint")))
-;;   :pre-check (unless proselint-exec (error "Proselint not found on PATH"))
-;;   :write-type 'pipe
-;;   :proc-form (list proselint-exec "-")
-;;   :search-regexp "^.+:\\([[:digit:]]+\\):\\([[:digit:]]+\\): \\(.+\\)$"
-;;   :prep-diagnostic
-;;   (let* ((lnum (string-to-number (match-string 1)))
-;;          (lcol (string-to-number (match-string 2)))
-;;          (msg (match-string 3))
-;;          (pos (flymake-diag-region fmqd-source lnum lcol))
-;;          (beg (car pos))
-;;          (end (cdr pos)))
-;;     (list fmqd-source beg end :warning msg)))
-;;
-;; (defun flymake-proselint-setup ()
-;;   "Enable flymake backend."
-;;   (add-hook 'flymake-diagnostic-functions #'flymake-proselint-backend nil t))
-
-;;;;; flycheck
-;; - added in emacs syntax checker
-;; - https://www.flycheck.org/en/latest/
-(use-package flycheck
-  :disabled ;; only using flymake for now
-  :bind
-  (:map flycheck-mode-map
-        ("H-[" . flycheck-previous-error)
-        ("C-c ! p" . flycheck-previous-error)
-        ("H-]" . flycheck-next-error)
-        ("C-c ! n" . flycheck-next-error)
-        ("C-c ! l" . flycheck-list-errors)
-        ("H-\\" . flycheck-list-errors)        )
-  :custom-face
-  (flycheck-error ((((class color)) (:underline "Red"))))
-  (flycheck-warning ((((class color)) (:underline "Orange"))))
-  :config
-  (defun sej/flycheck-next-eror-push-mark (flycheck-next-error &rest args)
-    (push-mark))
-  (advice-add 'flycheck-next-error :before #'sej/flycheck-next-error-push-mark)
-
-  (setq flycheck-indication-mode 'right-fringe
-        flycheck-check-syntax-automatically '(save
-                                              mode-enabled
-                                              idle-change
-                                              idle-buffer-switch))
-  (setq flycheck-emacs-lisp-load-path 'inherit)
-  (setq flycheck-flake8-maximum-line-length 79)
-  (setq flycheck-highlighting-mode 'lines)
-  (progn    (set-face-attribute 'flycheck-warning nil
-                                :inherit 'warning
-                                :underline nil)
-            (set-face-attribute 'flycheck-error nil
-                                :inherit 'error
-                                :underline nil)))
-
-;;;;; flycheck-popup-tip
-;; Flycheck extension minor-mode for displaying errors from Flycheck using popup.el
-;; https://github.com/flycheck/flycheck-popup-tip
-(use-package flycheck-popup-tip
-  :disabled ;; only using flymake for now
-  :hook (flycheck-mode . flycheck-popup-tip-mode)
-  :config
-  (setq flycheck-pos-tip-display-errors-tty-function #'flycheck-popup-tip-show-popup))
-
-;;;;; flycheck-color-mode-line
-;; minor-mode for Flycheck which colors the mode line according to
-;; the Flycheck state of the current buffer
-;; https://github.com/flycheck/flycheck-color-mode-line
-(use-package flycheck-color-mode-line
-  :disabled ;; only using flymake for now
-  :hook (flycheck-mode . flycheck-color-mode-line-mode))
-
 ;;;;; emr
 ;; a framework for providing language-specific refactoring in Emacs.
 ;; It includes refactoring commands for a variety of languages
@@ -3600,7 +3520,6 @@ If the region is active and option `transient-mark-mode' is on, call
              :type git
              :host gitlab
              :repo "jaor/geiser"))
-
 
 ;;;; python
 ;;;;; python
@@ -4201,16 +4120,6 @@ the children of class at point."
 (unless sys/win32p
   (use-package sudo-edit))
 
-;;;;; vlf-setup
-;; vlf lets you handle very large files for viewing
-;; VLF operations are grouped under the C-c C-v prefix by default
-;; https://github.com/m00natic/vlfi
-(use-package vlf-setup
-  :straight (vlf :host github
-                 :repo "m00natic/vlfi")
-  :commands (vlf vlf-occur-load vlf-ediff-files))
-
-
 ;;; dired
 ;;;;; dired
 ;; Directory operations
@@ -4360,34 +4269,6 @@ the children of class at point."
 
 
 ;;; writing & reading
-;;;;; deft
-;; - Deft is an Emacs mode for quickly browsing, filtering,
-;; and editing directories of plain text notes
-;; - https://jblevins.org/projects/deft/
-(use-package deft
-  :defines deft-text-mode
-  :bind* ( ("C-q C-d" . deft))
-  :config
-  (setq deft-directory sej-org-directory)
-  (setq deft-use-filename-as-title t
-        deft-default-extension "org"
-        deft-text-mode (quote (org-mode))
-        deft-org-mode-title-prefix t
-        deft-use-filter-string-for-filename t
-        deft-auto-save-interval 0
-        deft-recursive t
-        deft-extensions (quote ("org" "text" "md" "markdown" "txt"))
-        deft-org-mode-title-prefix t))
-
-;;;;; writegood-mode
-;; - minor mode to aid in finding common writing problems
-;; - https://github.com/bnbeckwith/writegood-mode
-(use-package writegood-mode
-  :bind* ( ("C-q g w" . writegood-mode)
-           ("C-q g g" . writegood-grade-level)
-           ("C-q g e" . writegood-reading-ease))
-  :hook (markdown-mode . writegood-mode) )
-
 ;;;;; markdown-mode
 ;; - markdown-mode used a lot on Github
 ;; - https://jblevins.org/projects/markdown-mode/
@@ -4774,27 +4655,6 @@ function with the \\[universal-argument]."
     (if arg
         (sej/annotate-mode)
       (sej/annotate-annotate))))
-
-;;;;; yequake
-;; - configurable drop-down Emacs frames.
-;; - run a shortcut with:  emacsclient -n -e '(yequake-toggle "org-capture")'
-;; - [[https://github.com/alphapapa/yequake][alphapapa/yequake]]
-(use-package yequake
-  :straight (yequake
-             :type git
-             :host github
-             :repo "alphapapa/yequake")
-  :custom
-  (yequake-frames
-   '(("org-capture"
-      (buffer-fns . (yequake-org-capture))
-      (width . 0.75)
-      (height . 0.5)
-      (alpha . 0.95)
-      (frame-parameters . ((undecorated . t)
-                           (skip-taskbar . t)
-                           (sticky . t)))))))
-
 
 ;;;; LaTex
 ;;;;; AuCTeX
@@ -5837,43 +5697,6 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (add-to-list 'shr-external-rendering-functions
                '(pre . shr-tag-pre-highlight)))
 
-;;;;; xwidget webkit
-;; NOT USED FOR NOW AS I LIKE USING SAFARI WHEN ON OSX.  LEFT CODE FOR FUTURE REFERENCE
-;; use webkit (safari backend) to render urls
-;; emacs-plus must be compiled with --with-xwidgets
-;; [[https://github.com/veshboo/emacs][config from veshboo webkit]]
-;; Built from source on 2023-02-05 at 12:48:48 with: --with-xwidgets --with-no-frame-refocus --with-native-comp --with-poll --with-imagemagick
-;; (if sys/mac-x-p
-;;     (progn
-;;       (setq browse-url-browser-function 'xwidget-webkit-browse-url)
-;;       ;; set default url browser
-;;       ;; Then, many packages supporting `browse-url` will work with xwidget webkit
-;;       ;; For example, try `C-c C-c p` if you are using `markdown-preview`.
-;;
-;;       ;; search-web withxwidget webkit
-;;       (use-package search-web
-;;         :bind ("C-c w" . search-web)
-;;         :init
-;;         (defun browse-url-default-browser (url &rest args)
-;;           "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS."
-;;           (xwidget-webkit-browse-url url args)))
-;;
-;;       ;; browse to a URL bookmark from Bookmark List
-;;       (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
-;;       (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
-;;       (add-hook 'pre-command-hook
-;;                 (lambda ()
-;;                   (if (eq this-command #'bookmark-bmenu-list)
-;;                       (if (not (eq major-mode 'xwidget-webkit-mode))
-;;                           (setq xwidget-webkit-bookmark-jump-new-session t)
-;;                         (setq xwidget-webkit-bookmark-jump-new-session nil)
-;;                         (setq xwidget-webkit-last-session-buffer (current-buffer))))))
-;;       ;; `RET` on a URL bookmark will show the page in the window with current `*Bookmark List*`
-;;       ;; It will create a new `xwidget-webkit-mode` buffer if the previous buffer in the selected
-;;       ;;   window is not a `xwidget-webkit-mode`.  Otherwise, it will browse in the
-;;       ;;   previous `xwidget-webkit-mode` buffer.
-;;       ))
-
 ;;;;; eww Emacs-web-wowser
 ;; - Emacs internal web browser
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/eww.html][EWW]]
@@ -5928,25 +5751,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
               ("N" . eww-next-url)
               ("P" . eww-previous-url)))
 
-;;;;; Message
-;; built-in email message editor mode
-;; [[https://www.emacswiki.org/emacs/MessageMode][Message Mode wiki]]
-(use-package message
-  :straight (:type built-in)
-  :commands (message-mail)
-  :bind* (("C-q M"))
-  :config
-  (setq send-mail-function 'sendmail-send-it
-        sendmail-program "/usr/local/bin/msmtp"
-        mail-specify-envelope-from t
-        message-sendmail-envelope-from 'header
-        mail-envelope-from 'header
-        smtpmail-debug-info t
-        message-default-mail-headers "Cc: \nBcc: \n"
-        message-auto-save-directory (nl-var-expand "mail/drafts")
-        user-mail-address sej-mail-address
-        user-full-name sej-full-name))
-
 ;;;;; Emacs-everywhere
 ;; allows you to use Emacs editing in any application
 ;; Use:
@@ -5978,28 +5782,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
         (append holiday-local-holidays  ; TODO set local holidays
                 holiday-solar-holidays))
   :hook (calendar-today-visible-hook . calendar-mark-today))
-
-;;;;; solar
-;; - S in Calendar , Display M-x sunrise-sunset or sunrise-sunset
-;; - [[https://github.com/jwiegley/emacs-release/blob/master/lisp/calendar/solar.el][solar.el]]
-(use-package solar
-  :straight (:type built-in)
-  :config
-  (setq calendar-latitude 42.838213
-        calendar-longitude -83.728748
-        calendar-location-name "Fenton, Michigan"))
-
-;;;;; lunar
-;; - M in calendar or M-x phases-of-moon
-;; - [[https://ftp.gnu.org/old-gnu/Manuals/emacs-21.2/html_node/emacs_423.html][phases of the moon]]
-(use-package lunar
-  :straight (:type built-in)
-  :config
-  (setq lunar-phase-names
-        '("New Moon"
-          "First Quarter Moon"
-          "Full Moon"
-          "Last Quarter Moon")))
 
 ;;;;; TMR (timer)
 ;; facilities for setting timers using a convenient notation
