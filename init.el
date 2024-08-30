@@ -2585,19 +2585,6 @@ If called with a prefix argument, query for word to search."
 
 
 ;;;; highlighting faces fonts
-(add-to-list 'default-frame-alist '(cursor-color . "palegoldenrod"))
-
-;;;;; hl-line
-;; - Highlight the current line
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/hl-line.el
-(use-package hl-line
-  :straight (hl-line :type built-in)
-  :hook ((prog-mode . hl-line-mode)
-         (text-mode . hl-line-mode)
-         (dashboard-mode . hl-line-mode))
-  :config
-  (set-face-attribute hl-line-face nil :underline nil))
-
 ;;;;; symbol-overlay
 ;; - Highlight symbols and move between them
 ;; - https://github.com/wolray/symbol-overlay
@@ -2644,8 +2631,12 @@ If called with a prefix argument, query for word to search."
   :blackout t
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
-  (setq highlight-indent-guides-method 'character)
-  (setq highlight-indent-guides-responsive 'stack))
+  (setq highlight-indent-guides-method 'bitmap)
+  (setq highlight-indent-guides-responsive 'stack)
+  (setq highlight-indent-guides-auto-enabled nil)
+  (set-face-background 'highlight-indent-guides-odd-face "darkgray")
+  (set-face-background 'highlight-indent-guides-even-face "dimgray")
+  (set-face-foreground 'highlight-indent-guides-character-face "dimgray"))
 
 ;;;;; rainbow-mode
 ;; - Colorize color names in buffers
@@ -2708,26 +2699,6 @@ If called with a prefix argument, query for word to search."
           ))
    
   (push 'org-mode hl-todo-include-modes))
-
-;; ;;;;; diff-hl
-;; ;; - Highlight uncommitted changes
-;; ;; - https://github.com/dgutov/diff-hl
-;; (use-package diff-hl
-;;   :custom-face
-;;   (diff-hl-change ((t (:background "#46D9FF"))))
-;;   (diff-hl-delete ((t (:background "#ff6c6b"))))
-;;   (diff-hl-insert ((t (:background "#98be65"))))
-;;   :bind (:map diff-hl-command-map
-;;               ("SPC" . diff-hl-mark-hunk))
-;;   :hook ((emacs-startup . global-diff-hl-mode)
-;;          (dired-mode . diff-hl-dired-mode))
-;;   :config
-;;   ;; Highlight on-the-fly
-;;   (diff-hl-flydiff-mode 1)
-;;   ;; Integration with magit
-;;   (with-eval-after-load 'magit
-;;     (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
-;;     (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)))
 
 ;;;;; volatile-highlights
 ;; - Highlight some buffer region operations
@@ -3087,13 +3058,6 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/jhgorrell/ssh-config-mode-el][ssh-config-mode]]
 ;; add this to file for automatic usage: # -*- mode: ssh-config -*-
 (use-package ssh-config-mode)
-
-;;;;; indent-guide
-;; - show vertical lines to guide indentation
-;; - https://github.com/zk-phi/indent-guide
-(use-package indent-guide
-  :hook (prog-mode . indent-guide-mode)
-  :blackout t)
 
 ;;;;; New-Comment
 ;; built-in library contains functions and variables for commenting and
@@ -4143,17 +4107,6 @@ the children of class at point."
         dired-free-space nil
         dired-mouse-drag-files t)
 
-  ;; (when sys/macp
-    ;; Suppress the warning: `ls does not support --dired'.
-    ;; (setq dired-use-ls-dired nil)
-
-    ;; Use GNU ls as `gls' from `coreutils' if available.
-    ;; Prefer g-prefixed coreutils version of standard utilities when available
-    ;; NOT REQUIRED with 30.1
-    ;; (when (executable-find "gls")
-    ;;   (setq insert-directory-program (executable-find "gls")
-    ;;         dired-use-ls-dired t) )
-    ;; )
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
   (interactive "P")
@@ -4203,49 +4156,7 @@ the children of class at point."
 ;; - Shows icons in dired buffer
 ;; - https://github.com/jtbm37/all-the-icons-dired
 (use-package all-the-icons-dired
-  :blackout t
-  :custom-face (all-the-icons-dired-dir-face ((t (:foreground unspecified))))
-  :hook (dired-mode . all-the-icons-dired-mode)
-  :config
-  (defun my-all-the-icons-dired--display ()
-    "Display the icons of files without colors in a dired buffer."
-
-    ;; Fix: not display icons after dired commands (e.g insert-subdir, create-directory)
-    ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
-    (all-the-icons-dired--reset)
-
-    (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
-      (setq-local all-the-icons-dired-displayed t)
-      (let ((inhibit-read-only t)
-            (remote-p (and (fboundp 'tramp-tramp-file-p)
-                           (tramp-tramp-file-p default-directory))))
-        (save-excursion
-          (setq-local tab-width 1)
-          (goto-char (point-min))
-          (while (not (eobp))
-            (when (dired-move-to-filename nil)
-              (insert "\t")
-              (let ((file (dired-get-filename 'verbatim t)))
-                (unless (member file '("." ".."))
-                  (let ((filename (dired-get-filename nil t)))
-                    (if (file-directory-p filename)
-                        (let ((icon
-                               (cond
-                                (remote-p
-                                 (all-the-icons-octicon "file-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                ((file-symlink-p filename)
-                                 (all-the-icons-octicon "file-symlink-directory" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                ((all-the-icons-dir-is-submodule filename)
-                                 (all-the-icons-octicon "file-submodule" :height 1.0 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust))
-                                ((file-exists-p (format "%s/.git" filename))
-                                 (all-the-icons-octicon "repo" :height 1.1 :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust ))
-                                (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
-                                     (apply (car matcher) (list (cadr matcher) :face 'all-the-icons-dired-dir-face :v-adjust all-the-icons-dired-v-adjust)))))))
-                          (insert icon))
-                      (insert (all-the-icons-icon-for-file file :v-adjust -0.05))))
-                  (insert "\t"))))
-            ls           (forward-line 1))))))
-  (advice-add #'all-the-icons-dired--display :override #'my-all-the-icons-dired--display))
+  :hook (dired-mode . all-the-icons-dired-mode))
 
 ;;;;; quick-preview
 ;; - Quick-preview provides a nice preview of the thing at point for files.
@@ -4276,10 +4187,8 @@ the children of class at point."
 (use-package markdown-mode
   :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . visual-line-mode)
-         (markdown-mode . writegood-mode)
          (markdown-mode . flymake-markdownlint-setup)
          (markdown-mode . flymake-mode))
-  :functions writegood-mode
   :commands (markdown-mode gfm-mode)
   :mode   (("README\\.md\\'" . gfm-mode)
            ("github\\.com.*\\.txt\\'" . gfm-mode)
@@ -4303,31 +4212,6 @@ the children of class at point."
   ;; M-x markdown-toc-generate-toc
   ;; - https://github.com/ardumont/markdown-toc
   (use-package markdown-toc))
-
-;;;;; flymake-markdownlint-backend
-;; using flymake-quickdef to make a flymake backend for markdownlint-cli
-;; brew install markdownlint-cli
-(require 'flymake-quickdef)
-(flymake-quickdef-backend flymake-markdownlint-backend
-  :pre-let ((markdownlint-exec (executable-find "markdownlint")))
-  :pre-check (unless markdownlint-exec (error "Markdownlint-cli not found on PATH"))
-  :write-type 'pipe
-  :proc-form (list markdownlint-exec "-s")
-  :search-regexp "^[^:]*:\\([[:digit:]]+\\):*\\([[:digit:]]* *\\)\\(MD[[:digit:]]\\{3\\}\\)\\(.*\\)$"
-  :prep-diagnostic
-  (let* ((lnum (string-to-number (match-string 1)))
-         (lcol (string-to-number (match-string 2)))
-         (code (match-string 3))
-         (text (match-string 4))
-         (pos (flymake-diag-region fmqd-source lnum lcol))
-         (beg (car pos))
-         (end (cdr pos))
-         (msg (format "%s (%s)" code text )))
-    (list fmqd-source beg end :warning msg)))
-
-(defun flymake-markdownlint-setup ()
-  "Enable flymake backend."
-  (add-hook 'flymake-diagnostic-functions #'flymake-markdownlint-backend nil t))
 
 ;;;;; markdown-soma
 ;; realtime preview by eww
@@ -4729,7 +4613,6 @@ function with the \\[universal-argument]."
   org-agenda-skip-deadline-prewarning-if-scheduled
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . flyspell-mode)
-          (org-mode . writegood-mode)
           (org-mode . visual-line-mode)
           (org-mode . org-num-mode))
   :bind* (( ("C-c l" . org-store-link)
