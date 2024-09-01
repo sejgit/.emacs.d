@@ -194,7 +194,9 @@
   (when sys/mac-x-p
     (use-package exec-path-from-shell)
     (setq exec-path-from-shell-arguments nil)
-    (exec-path-from-shell-initialize))
+    (exec-path-from-shell-initialize)
+    (global-set-key (kbd "M-`") 'ns-next-frame)
+    (global-set-key (kbd "M-h") 'ns-do-hide-emacs))
   (if (not (getenv "TERM_PROGRAM"))
        (setenv "PATH"
                (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
@@ -1078,36 +1080,29 @@ Return its absolute path.  Otherwise, return nil."
 ;; triansient based jump screens
 ;; [[https://github.com/kickingvegas?tab=repositories][casual-parent-github]]
 
-;; (use-package casual-suite
-;;   :straight (casual-suite :type git :flavor melpa :host github
-;;                           :repo "kickingvegas/casual-suite"
-;;                           :branch "development"))
+(use-package casual-suite)
 
 (use-package casual-calc
-  :ensure nil
-  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
+  :after calc
+  :bind* (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
 
 (use-package casual-info
-  :ensure nil
   :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
 
 (use-package casual-dired
-  :ensure nil
+  :after dired
   :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
 
 (use-package casual-avy
-  :ensure nil
+  :after avy
   :bind ("H-/" . casual-avy-tmenu))
 
 (use-package casual-isearch
-  :ensure nil
+  :after isearch
   :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
 
-(use-package ibuffer
-  :hook (ibuffer-mode . ibuffer-auto-mode)
-  :defer t)
 (use-package casual-ibuffer
-  :ensure nil
+  :after ibuffer
   :bind (:map
          ibuffer-mode-map
          ("C-o" . casual-ibuffer-tmenu)
@@ -1119,44 +1114,50 @@ Return its absolute path.  Otherwise, return nil."
          ("}" . ibuffer-forward-next-marked)   ; optional
          ("[" . ibuffer-backward-filter-group) ; optional
          ("]" . ibuffer-forward-filter-group)  ; optional
-         ("$" . ibuffer-toggle-filter-group))  ; optional
-  :after (ibuffer))
+         ("$" . ibuffer-toggle-filter-group))) ; optional
 
-(use-package re-builder
-  :defer t)
 (use-package casual-re-builder
-  :ensure nil
+  :after re-builder
   :bind (:map
          reb-mode-map ("C-o" . casual-re-builder-tmenu)
          :map
-         reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu))
-  :after (re-builder))
+         reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
 
-(use-package bookmark
-  :ensure nil
-  :defer t)
 (use-package casual-bookmarks
-  :ensure nil
+  :after bookmark
   :bind (:map bookmark-bmenu-mode-map
               ("C-o" . casual-bookmarks-tmenu)
               ("S" . casual-bookmarks-sortby-tmenu)
-              ("J" . bookmark-jump))
-  :after (bookmark))
+              ("J" . bookmark-jump)))
 
 ;;; user interface
 ;;;; themes
 ;;;;; tron-legacy-theme
-;; current preferred theme
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
 (use-package tron-legacy-theme
   :demand t
-  ;:hook (emacs-startup . (lambda () (load-theme 'tron-legacy)))
   :preface
   (setq tron-legacy-theme-vivid-cursor t)
   (setq tron-legacy-theme-dark-fg-bright-comments nil)
   (setq tron-legacy-theme-softer-bg nil)
-  :config
-  (load-theme 'tron-legacy))
+  ;; :config
+  ;; (load-theme 'tron-legacy :no-confirm))
+  )
+
+;;;;; modus-themes
+;; current preferred theme
+;; [[https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111][modus-theme-manual]]
+(use-package tron-legacy-theme
+  :straight (:type built-in)
+  :bind ("C-c C-t" . modus-themes-toggle)
+  :custom
+  (modus-themes-italic-constructs t)
+  (modus-themes-bold-constructs nil)
+  (modus-themes-mixed-fonts t)
+  (modus-themes-to-toggle
+   '(modus-operandi-tinted modus-vivendi))
+  :init
+  (load-theme 'modus-vivendi :no-confirm))
 
 
 ;;;; frames
@@ -1164,8 +1165,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; built-in frame package
 (use-package frame
   :straight (:type built-in)
-  :bind* (("M-`" . other-frame)
-          ; super combo
+  :bind* (; super combo
           ("s-4" . dired-other-frame)
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
@@ -1179,18 +1179,7 @@ Return its absolute path.  Otherwise, return nil."
           ("C-q <left>" . sej/frame-resize-l)
           ("C-q <right>" . sej/frame-resize-r)
           ("C-q <S-left>" . sej/frame-resize-l2)
-          ("C-q <S-right>" . sej/frame-resize-r2)
-          ;; Alt Meta combo
-          ("A-M-m" . sej/frame-recentre)
-          ("<A-M-left>" . sej/frame-resize-l)
-          ("<A-M-right>" . sej/frame-resize-r)
-          ;; Hyper Control HJKL combo
-          ("H-C-f" . toggle-frame-fullscreen)
-          ("H-C-j" . sej/frame-resize-full)
-          ("H-C-h" . sej/frame-resize-l)
-          ("H-C-l" . sej/frame-resize-r)
-          ("H-C-S-h" . sej/frame-resize-l2)
-          ("H-C-S-l" . sej/frame-resize-r2))
+          ("C-q <S-right>" . sej/frame-resize-r2))
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
@@ -1200,7 +1189,6 @@ Return its absolute path.  Otherwise, return nil."
         undelete-frame-mode t
         )
 
-  (blink-cursor-mode -1)
   (unless (display-graphic-p)
     (menu-bar-mode -1))
 
@@ -2046,24 +2034,9 @@ Useful if you want a more robust view into the recommend candidates."
   ;; Both < and C-+ work reasonably well.
   (setq consult-narrow-key "<") ;; "C-+"
 
-
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
-
-  ;; By default `consult-project-function' uses `project-root' from project.el.
-  ;; Optionally configure a different project root function.
-  ;;;;;; 1. project.el (the default)
-  ;; (setq consult-project-function #'project-root)
-  ;;;;;; 2. vc.el (vc-root-dir)
-  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
-  ;;;;;; 3. locate-dominating-file
-  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
-  ;;;;;; 4. projectile.el (projectile-project-root)
-  ;; (autoload 'projectile-project-root "projectile")
-  ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
-  ;;;;;; 5. No project support
-  ;; (setq consult-project-function nil)
 
   (defun consult-info-emacs ()
     "Search through Emacs info pages."
@@ -2630,9 +2603,10 @@ If called with a prefix argument, query for word to search."
   (setq highlight-indent-guides-method 'bitmap)
   (setq highlight-indent-guides-responsive 'stack)
   (setq highlight-indent-guides-auto-enabled nil)
-  (set-face-background 'highlight-indent-guides-odd-face "darkgray")
-  (set-face-background 'highlight-indent-guides-even-face "dimgray")
-  (set-face-foreground 'highlight-indent-guides-character-face "dimgray"))
+  (set-face-background 'highlight-indent-guides-odd-face "slategray")
+  (set-face-background 'highlight-indent-guides-even-face "lightslategray")
+  (set-face-foreground 'highlight-indent-guides-character-face "gray")
+  (setq highlight-indent-guides-suppress-auto-error t))
 
 ;;;;; rainbow-mode
 ;; - Colorize color names in buffers
@@ -3641,23 +3615,6 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; https://github.com/scottaj/mocha.el
 (use-package mocha
   :config (use-package mocha-snippets))
-
-;;;;; skewer-mode
-;; Live browser JavaScript, CSS, and HTML interaction
-;; M-x run-skewer to attach a browser to Emacs
-;; C-x C-e: Evaluate the form before the point and display the result in the
-;; minibuffer. If given a prefix argument, insert the result into the
-;; current buffer.
-;; C-M-x: Evaluate the top-level form around the point.
-;; C-c C-k: Load the current buffer.
-;; C-c C-z: Select the REPL buffer
-;; https://github.com/skeeto/skewer-mode
-(use-package skewer-mode
-  :blackout t
-  :hook ((js2-mode . skewer-mode)
-         (css-mode . skewer-css-mode)
-         (web-mode . skewer-html-mode)
-         (html-mode . skewer-html-mode)))
 
 ;;;;; web-beautify
 ;; Format HTML, CSS and JavaScript/JSON by js-beautify

@@ -41,7 +41,7 @@
 ;; Defer garbage collection further back in the startup process
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (defvar extended-gc-cons-threshold most-positive-fixnum)
-(defvar default-gc-cons-threshold (* 100 1024 1024))
+(defvar default-gc-cons-threshold (* 128 1024 1024))
 
 (setq file-name-handler-alist nil
       gc-cons-threshold extended-gc-cons-threshold)
@@ -67,11 +67,6 @@
               native-comp-deferred-compilation t
               native-comp-async-report-warnings-errors 'silent)
 
-;;;;; Prevents libgccjit error (may not still be needed)
-;; Solution found at: https://github.com/d12frosted/homebrew-emacs-plus/issues/323
-;; (if (eq system-type 'darwin)
-;; (setenv "LIBRARY_PATH" "/usr/local/opt/gcc@12/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc@12/lib/gcc/12/gcc/x86_64-apple-darwin21/12"))
-
 ;;;;; frame settings early to prevent clutter
 (modify-all-frames-parameters '((width . 80)
                                 (height . 50)
@@ -95,10 +90,14 @@
       frame-inhibit-implied-resize t
       use-dialog-box t
       use-file-dialog nil
+      use-short-answers t
       inhibit-splash-screen t
+      inhibit-x-resources t
       inhibit-startup-screen t
       inhibit-startup-echo-area-message user-login-name
       inhibit-startup-buffer-menu t)
+
+(tool-bar-mode -1)
 
 (provide 'early-init)
 ;;; early-init.el ends here
