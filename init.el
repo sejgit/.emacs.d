@@ -198,9 +198,9 @@
     (global-set-key (kbd "M-`") 'ns-next-frame)
     (global-set-key (kbd "M-h") 'ns-do-hide-emacs))
   (if (not (getenv "TERM_PROGRAM"))
-       (setenv "PATH"
-               (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-(setq exec-path (split-string (getenv "PATH") ":"))
+      (setenv "PATH"
+              (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
+  (setq exec-path (split-string (getenv "PATH") ":"))
   )
 
 ;;;;; Linux System specific environment setting
@@ -439,26 +439,26 @@
   (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name))
 
 ;;;;;; backups
-  ;; Put backup files neatly away
-  (let ((backup-dir (nl-var-expand "backups/"))
+;; Put backup files neatly away
+(let ((backup-dir (nl-var-expand "backups/"))
       (auto-saves-dir (nl-var-expand "auto-saves/")))
   (dolist (dir (list backup-dir auto-saves-dir))
     (when (not (file-directory-p dir))
       (make-directory dir t)))
   (setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
-        auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
-        auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
+                                 auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
+                                 auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
         tramp-backup-directory-alist `((".*" . ,backup-dir))
         tramp-auto-save-directory auto-saves-dir))
 
-  (setq backup-by-copying t    ; Don't delink hardlinks
-        delete-old-versions t  ; Clean up the backups
-        version-control t      ; Use version numbers on backups,
-        kept-new-versions 5    ; keep some new versions
-        kept-old-versions 2   ; and some old ones, too
-        vc-make-backup-files t
-        backup-by-copying t
-        version-control t)
+(setq backup-by-copying t    ; Don't delink hardlinks
+      delete-old-versions t  ; Clean up the backups
+      version-control t      ; Use version numbers on backups,
+      kept-new-versions 5    ; keep some new versions
+      kept-old-versions 2   ; and some old ones, too
+      vc-make-backup-files t
+      backup-by-copying t
+      version-control t)
 
 ;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
@@ -671,12 +671,12 @@
   :bind* (:prefix-map special-char-map
                       :prefix "C-x 8"
                       :prefix-docstring "special char map"
-		      ("l" . sej/insert-lambda)
-		      ("t" . sej/insert-tm)
-		      ("c" . sej/insert-copyright)
-		      (">" . sej/insert-rightarrow)
-		      ("8" . sej/insert-infinity)
-		      ("v" . sej/insert-check))
+		              ("l" . sej/insert-lambda)
+		              ("t" . sej/insert-tm)
+		              ("c" . sej/insert-copyright)
+		              (">" . sej/insert-rightarrow)
+		              ("8" . sej/insert-infinity)
+		              ("v" . sej/insert-check))
 
   ;; :bind (:map special-char-map
   ;; 	      ("l" ("λ" . sej/special-char-insert-lambda))
@@ -726,37 +726,37 @@
 (defconst org-file-electronics (concat sej-org-directory "/electronics.org"))
 
 (defun sej/open-code()
- "Open code snippets org file."
+  "Open code snippets org file."
   (interactive)
   (find-file org-file-code))
 
 (defun sej/open-electronics()
- "Open electronics org file."
+  "Open electronics org file."
   (interactive)
   (find-file org-electronics-code))
 
 (defun sej/open-index()
- "Open index org file."
+  "Open index org file."
   (interactive)
   (find-file org-file-inbox))
 
 (defun sej/open-gtd()
- "Open gtd org file."
+  "Open gtd org file."
   (interactive)
   (find-file org-file-gtd))
 
 (defun sej/open-journal()
- "Open journal org file."
+  "Open journal org file."
   (interactive)
   (find-file org-file-journal))
 
 (defun sej/open-notes()
- "Open notes org file."
+  "Open notes org file."
   (interactive)
   (find-file org-file-notes))
 
 (defun sej/open-someday()
- "Open someday org file."
+  "Open someday org file."
   (interactive)
   (find-file org-file-someday))
 
@@ -1406,21 +1406,21 @@ If FRAME is omitted or nil, use currently selected frame."
         window-sides-vertical nil))
 
 (defun sej/quit-other()
-"Quit other window."
+  "Quit other window."
   (interactive)
   (save-excursion
-  (other-window 1)
-  (quit-window)))
+    (other-window 1)
+    (quit-window)))
 
 (defun sej/scroll-up-one()
-"Scroll up one to avoid lambda."
-(interactive)
-(scroll-up 1))
+  "Scroll up one to avoid lambda."
+  (interactive)
+  (scroll-up 1))
 
 (defun sej/scroll-down-one()
-"Scroll down one to avoid lambda."
-(interactive)
-(scroll-down 1))
+  "Scroll down one to avoid lambda."
+  (interactive)
+  (scroll-down 1))
 
 ;;;;; ace-window
 ;; - quickly selecting a window to switch to
@@ -1475,7 +1475,7 @@ If FRAME is omitted or nil, use currently selected frame."
                                         ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
   (zoom-ignored-buffer-name-regexps '("^*calc" "^*makey-key" "^magit:")) ; ignore related windows
   (zoom-ignore-predicates nil)
-  ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
+                                        ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
   :config
   (defun size-callback () ; resize the buffer according to frame size
     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
@@ -1660,7 +1660,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand))
-:init
+  :init
   (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
         dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
         dabbrev-backward-only nil
@@ -1772,7 +1772,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   :config
   ;; (setq global-corfu-modes '((not markdown-mode) t))
- ;; TAB cycle if there are only few candidates
+  ;; TAB cycle if there are only few candidates
   ;; (setq completion-cycle-threshold 3)
 
   ;; Enable indentation+completion using the TAB key.
@@ -2065,26 +2065,26 @@ Useful if you want a more robust view into the recommend candidates."
                  args)))
 
   (defvar consult--xref-history nil
-  "History for the `consult-recent-xref' results.")
+    "History for the `consult-recent-xref' results.")
 
   (defun consult-recent-xref (&optional markers)
-  "Jump to a marker in MARKERS list (defaults to `xref--history'.
+    "Jump to a marker in MARKERS list (defaults to `xref--history'.
 
   The command supports preview of the currently selected marker position.
   The symbol at point is added to the future history."
-  (interactive)
-  (consult--read
-    (consult--global-mark-candidates
+    (interactive)
+    (consult--read
+     (consult--global-mark-candidates
       (or markers (flatten-list xref--history)))
-    :prompt "Go to Xref: "
-    :annotate (consult--line-prefix)
-    :category 'consult-location
-    :sort nil
-    :require-match t
-    :lookup #'consult--lookup-location
-    :history '(:input consult--xref-history)
-    :add-history (thing-at-point 'symbol)
-    :state (consult--jump-state))))
+     :prompt "Go to Xref: "
+     :annotate (consult--line-prefix)
+     :category 'consult-location
+     :sort nil
+     :require-match t
+     :lookup #'consult--lookup-location
+     :history '(:input consult--xref-history)
+     :add-history (thing-at-point 'symbol)
+     :state (consult--jump-state))))
 
 
 ;;;; indentation
@@ -2106,31 +2106,15 @@ Useful if you want a more robust view into the recommend candidates."
   (interactive)
   (indent-region (point-min) (point-max)))
 (bind-key* "C-q <tab>" 'sej/indent-buffer)
-
+ 
 
 ;;;; history packages
-;;;;; undo-fu
-;; - Simple, stable linear undo with redo for Emacs.
-;; - https://gitlab.com/ideasman42/emacs-undo-fu
-(use-package undo-fu
-  :blackout t
-  :bind* (("C-z" . undo-fu-only-undo)
-          ("C-S-z" . undo-fu-only-redo))
-  :config (setq undo-fu-allow-undo-in-region t))
-
-;;;;; undo-fu-session
-;; - Save & recover undo steps between Emacs sessions.
-;; - https://gitlab.com/ideasman42/emacs-undo-fu-session
-(use-package undo-fu-session
-  :after undo-fu
-  :hook (emacs-startup . global-undo-fu-session-mode))
-
 ;;;;; vundo
 ;; - visual undo displays the undo history as a tree
 ;; - [[https://github.com/casouri/vundo][vundo]]
 (use-package vundo
   :blackout t
-  :bind ("C-/" . vundo))
+  :bind ("C-z" . vundo))
 
 ;;;;; recentf
 ;; - recent file history list settings
@@ -2199,150 +2183,150 @@ Useful if you want a more robust view into the recommend candidates."
           :map isearch-mode-map
           ("H-s" . avy-isearch))
   :config
-;; Code used in the demos at https://karthinks.com/software/avy-can-do-anything
-;; Tweak as desired.
-(setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
-                    ?a ?s ?d ?f ?g ?h ?j
-                    ?k ?l ?' ?x ?c ?v ?b
-                    ?n ?, ?/))
+  ;; Code used in the demos at https://karthinks.com/software/avy-can-do-anything
+  ;; Tweak as desired.
+  (setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
+                      ?a ?s ?d ?f ?g ?h ?j
+                      ?k ?l ?' ?x ?c ?v ?b
+                      ?n ?, ?/))
 
-(defun avy-show-dispatch-help ()
-  "Display help for Avy dispatch."
-  (let* ((len (length "avy-action-"))
-         (fw (frame-width))
-         (raw-strings (mapcar
-                   (lambda (x)
-                     (format "%2s: %-19s"
-                             (propertize
-                              (char-to-string (car x))
-                              'face 'aw-key-face)
-                             (substring (symbol-name (cdr x)) len)))
-                   avy-dispatch-alist))
-         (max-len (1+ (apply #'max (mapcar #'length raw-strings))))
-         (strings-len (length raw-strings))
-         (per-row (floor fw max-len))
-         display-strings)
-    (cl-loop for string in raw-strings
-             for N from 1 to strings-len do
-             (push (concat string " ") display-strings)
-             (when (= (mod N per-row) 0) (push "\n" display-strings)))
-    (message "%s" (apply #'concat (nreverse display-strings)))))
+  (defun avy-show-dispatch-help ()
+     "Display help for Avy dispatch."
+     (let* ((len (length "avy-action-"))
+            (fw (frame-width))
+            (raw-strings (mapcar
+                          (lambda (x)
+                            (format "%2s: %-19s"
+                                    (propertize
+                                     (char-to-string (car x))
+                                     'face 'aw-key-face)
+                                    (substring (symbol-name (cdr x)) len)))
+                          avy-dispatch-alist))
+            (max-len (1+ (apply #'max (mapcar #'length raw-strings))))
+            (strings-len (length raw-strings))
+            (per-row (floor fw max-len))
+            display-strings)
+       (cl-loop for string in raw-strings
+                for N from 1 to strings-len do
+                (push (concat string " ") display-strings)
+                (when (= (mod N per-row) 0) (push "\n" display-strings)))
+       (message "%s" (apply #'concat (nreverse display-strings)))))
   
-;; Kill text
-(defun avy-action-kill-whole-line (pt)
-  "Avy kill whole line at PT selected."
-  (save-excursion
-    (goto-char pt)
-    (kill-whole-line))
-  (select-window
-   (cdr
-    (ring-ref avy-ring 0)))
-  t)
+  ;; Kill text
+  (defun avy-action-kill-whole-line (pt)
+    "Avy kill whole line at PT selected."
+    (save-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
 
-(setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
-      (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
+  (setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
+        (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
 
-;; Copy text
-(defun avy-action-copy-whole-line (pt)
-  "Avy copy whole line at PT selected."
-  (save-excursion
-    (goto-char pt)
-    (cl-destructuring-bind (start . end)
-        (bounds-of-thing-at-point 'line)
-      (copy-region-as-kill start end)))
-  (select-window
-   (cdr
-    (ring-ref avy-ring 0)))
-  t)
+  ;; Copy text
+  (defun avy-action-copy-whole-line (pt)
+    "Avy copy whole line at PT selected."
+    (save-excursion
+      (goto-char pt)
+      (cl-destructuring-bind (start . end)
+          (bounds-of-thing-at-point 'line)
+        (copy-region-as-kill start end)))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
 
-(setf (alist-get ?w avy-dispatch-alist) 'avy-action-copy
-      (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line)
+  (setf (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+        (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line)
 
-;; Yank text
-(defun avy-action-yank-whole-line (pt)
-  "Avy yank whole line at PT selected."
-  (avy-action-copy-whole-line pt)
-  (save-excursion (yank))
-  t)
+  ;; Yank text
+  (defun avy-action-yank-whole-line (pt)
+    "Avy yank whole line at PT selected."
+    (avy-action-copy-whole-line pt)
+    (save-excursion (yank))
+    t)
 
-(setf (alist-get ?y avy-dispatch-alist) 'avy-action-yank
-      (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line)
+  (setf (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+        (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line)
 
-;; Transpose/Move text
-(defun avy-action-teleport-whole-line (pt)
-  "Avy teleport whole line at PT selected."
-  (avy-action-kill-whole-line pt)
-  (save-excursion (yank)) t)
+  ;; Transpose/Move text
+  (defun avy-action-teleport-whole-line (pt)
+    "Avy teleport whole line at PT selected."
+    (avy-action-kill-whole-line pt)
+    (save-excursion (yank)) t)
 
-(setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
-      (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
+  (setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+        (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
 
-;; Mark text
-(defun avy-action-mark-to-char (pt)
-  "Avy mark to char at PT selected."
-  (activate-mark)
-  (goto-char pt))
+  ;; Mark text
+  (defun avy-action-mark-to-char (pt)
+    "Avy mark to char at PT selected."
+    (activate-mark)
+    (goto-char pt))
 
-(setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
+  (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
 
-;; Flyspell words
-(defun avy-action-flyspell (pt)
-  "Avy action auto correct at PT selected."
-  (save-excursion
-    (goto-char pt)
-    (when (require 'flyspell nil t)
-      (flyspell-auto-correct-word)))
-  (select-window
-   (cdr (ring-ref avy-ring 0)))
-  t)
+  ;; Flyspell words
+  (defun avy-action-flyspell (pt)
+    "Avy action auto correct at PT selected."
+    (save-excursion
+      (goto-char pt)
+      (when (require 'flyspell nil t)
+        (flyspell-auto-correct-word)))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
 
-;; Bind to semicolon (flyspell uses C-;)
-(setf (alist-get ?\; avy-dispatch-alist) 'avy-action-flyspell)
+  ;; Bind to semicolon (flyspell uses C-;)
+  (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-flyspell)
 
-;; Dictionary: define words
-;; Replace your package manager or preferred dict package
-(defun dictionary-search-dwim (&optional arg)
-  "Avy action search for definition of word at point depending on ARG.
+  ;; Dictionary: define words
+  ;; Replace your package manager or preferred dict package
+  (defun dictionary-search-dwim (&optional arg)
+    "Avy action search for definition of word at point depending on ARG.
 If region is active, search for contents of region instead.
 If called with a prefix argument, query for word to search."
-  (interactive "P")
-  (if arg
-      (dictionary-search nil)
-    (if (use-region-p)
-        (dictionary-search (buffer-substring-no-properties
-                            (region-beginning)
-                            (region-end)))
-      (if (thing-at-point 'word)
-          (dictionary-lookup-definition)
-        (dictionary-search-dwim '(4))))))
+    (interactive "P")
+    (if arg
+        (dictionary-search nil)
+      (if (use-region-p)
+          (dictionary-search (buffer-substring-no-properties
+                              (region-beginning)
+                              (region-end)))
+        (if (thing-at-point 'word)
+            (dictionary-lookup-definition)
+          (dictionary-search-dwim '(4))))))
 
-(defun avy-action-define (pt)
-  "Avy action Dictionary search at PT dwim."
-  (save-excursion
-    (goto-char pt)
-    (dictionary-search-dwim))
-  (select-window
-   (cdr (ring-ref avy-ring 0)))
-  t)
+  (defun avy-action-define (pt)
+         "Avy action Dictionary search at PT dwim."
+         (save-excursion
+           (goto-char pt)
+           (dictionary-search-dwim))
+         (select-window
+          (cdr (ring-ref avy-ring 0)))
+         t)
 
-(setf (alist-get ?= avy-dispatch-alist) 'dictionary-search-dwim)
+  (setf (alist-get ?= avy-dispatch-alist) 'dictionary-search-dwim)
 
-;; Get Elisp Help
-;; Replace with your package manager or help library of choice
-(defun avy-action-helpful (pt)
-  "Avy action Helpful at PT."
-  (save-excursion
-    (goto-char pt)
-    (helpful-at-point))
-  (select-window
-   (cdr (ring-ref avy-ring 0)))
-  t)
+  ;; Get Elisp Help
+  ;; Replace with your package manager or help library of choice
+  (defun avy-action-helpful (pt)
+    "Avy action Helpful at PT."
+    (save-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
 
-(setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
+  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
 
-;; Embark
-(defun avy-action-embark (pt)
-  "Avy action Embark on expression at PT."
+  ;; Embark
+  (defun avy-action-embark (pt)
+    "Avy action Embark on expression at PT."
     (unwind-protect
         (save-excursion
           (goto-char pt)
@@ -2351,28 +2335,28 @@ If called with a prefix argument, query for word to search."
        (cdr (ring-ref avy-ring 0))))
     t)
 
-(setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
+  (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
 
-;; Isearch in other windows
-(defun isearch-forward-other-window (prefix)
-  "Function to 'isearch-forward' in 'other-window', modified by PREFIX."
-  (interactive "P")
-  (unless (one-window-p)
-    (save-excursion
-      (let ((next (if prefix -1 1)))
-        (other-window next)
-        (isearch-forward)
-        (other-window (- next))))))
+  ;; Isearch in other windows
+  (defun isearch-forward-other-window (prefix)
+    "Function to 'isearch-forward' in 'other-window', modified by PREFIX."
+    (interactive "P")
+    (unless (one-window-p)
+      (save-excursion
+        (let ((next (if prefix -1 1)))
+          (other-window next)
+          (isearch-forward)
+          (other-window (- next))))))
 
-(defun isearch-backward-other-window (prefix)
-  "Function to 'isearch-backward' in 'other-window', modified by PREFIX."
-  (interactive "P")
-  (unless (one-window-p)
-    (save-excursion
-      (let ((next (if prefix 1 -1)))
-        (other-window next)
-        (isearch-backward)
-        (other-window (- next)))))))
+  (defun isearch-backward-other-window (prefix)
+         "Function to 'isearch-backward' in 'other-window', modified by PREFIX."
+         (interactive "P")
+         (unless (one-window-p)
+           (save-excursion
+             (let ((next (if prefix 1 -1)))
+               (other-window next)
+               (isearch-backward)
+               (other-window (- next)))))))
 
 ;;;;; goto-chg
 ;; - goto the last changes made in buffer
@@ -2391,7 +2375,7 @@ If called with a prefix argument, query for word to search."
   :blackout beginend-global-mode
   :config
   (dolist (mode (cons 'beginend-global-mode (mapcar #'cdr beginend-modes)))
-            (blackout mode))
+    (blackout mode))
   (beginend-global-mode))
 
 ;;;;; subword
@@ -2470,17 +2454,17 @@ If called with a prefix argument, query for word to search."
 ;;;;; sej/url-insert
 ;; - improved from jcs (Irreal) blog to copy url from safari and paste at point
 ;; - https://irreal.org/blog/?p=2895
-  (when sys/macp
+(when sys/macp
   (defun sej/url-insert (desc)
     "Retrieve URL from current Safari page and prompt for description.
       Insert an Org link at point."
     (interactive "sLink Description (None to display url): ")
     (let ((link (do-applescript "tell application \"Safari\" to return URL of document 1")))
       (if (> (length desc) 0)
-      (insert (format "[[%s][%s]]" (org-trim link) desc))
-      (insert (format "[[%s]]" (org-trim link)))) ))
+          (insert (format "[[%s][%s]]" (org-trim link) desc))
+        (insert (format "[[%s]]" (org-trim link)))) ))
 
-      (bind-key* "C-H-u" 'sej/url-insert))
+  (bind-key* "C-H-u" 'sej/url-insert))
 
 ;;;;; sej/url-git-clone-from-clipboard
 ;; - from Alvaro Ramirez function to git clone from url in clipboard mods by me
@@ -2541,8 +2525,8 @@ If called with a prefix argument, query for word to search."
   :hook (dashboard-mode . global-orglink-mode)
   ;; :config
   ;; (if sys/freebsdp (message "no orglink")
-    ;; (add-hook  'emacs-startup #'global-orglink-mode) )
-    ;; (add-hook  'emacs-startup #'global-orglink-mode)
+  ;; (add-hook  'emacs-startup #'global-orglink-mode) )
+  ;; (add-hook  'emacs-startup #'global-orglink-mode)
   )
 
 ;;;;; restclient
@@ -2592,21 +2576,25 @@ If called with a prefix argument, query for word to search."
 (use-package highlight-quoted
   :hook (emacs-lisp-mode . highlight-quoted-mode))
 
-;;;;; highlight-indent-guides
+;;;;; indent-bars
 ;; - Highlight indentations
-;; - https://github.com/DarthFennec/highlight-indent-guides
-(use-package highlight-indent-guides
-  :if window-system
-  :blackout t
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'bitmap)
-  (setq highlight-indent-guides-responsive 'stack)
-  (setq highlight-indent-guides-auto-enabled nil)
-  (set-face-background 'highlight-indent-guides-odd-face "slategray")
-  (set-face-background 'highlight-indent-guides-even-face "lightslategray")
-  (set-face-foreground 'highlight-indent-guides-character-face "gray")
-  (setq highlight-indent-guides-suppress-auto-error t))
+;; - [[https://github.com/jdtsmith/indent-bars]]
+(use-package indent-bars
+  :straight (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
+  :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
+  :custom
+  (indent-bars-prefer-character t)
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  ;; Add other languages as needed
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+  if_statement with_statement while_statement)))
+  ;; wrap may not be needed if no-descend-list is enough
+  (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+				      list list_comprehension
+				      dictionary dictionary_comprehension
+				      parenthesized_expression subscript)))  )
+
 
 ;;;;; rainbow-mode
 ;; - Colorize color names in buffers
@@ -2667,7 +2655,7 @@ If called with a prefix argument, query for word to search."
           ("HELP" . "#ff0000")
           ("LATER" . "#8c5353")
           ))
-   
+  
   (push 'org-mode hl-todo-include-modes))
 
 ;;;;; volatile-highlights
@@ -2877,8 +2865,8 @@ If called with a prefix argument, query for word to search."
 
   (add-to-list 'eglot-server-programs
                `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
-                           '(("ccls" )
-                             ("clangd")))))
+                                                         '(("ccls" )
+                                                           ("clangd")))))
   ;; (add-to-list 'eglot-server-programs
   ;;              `(python-ts-mode . ,(eglot-alternatives
   ;;                                   '(("pyright-langserver" "--stdio")
@@ -3202,12 +3190,12 @@ If called with a prefix argument, query for word to search."
         magit-diff-refine-hunk t
         magit-repository-directories '(("~/Projects" . 1)))
 
-  ; enter magit full frame
+                                        ; enter magit full frame
   (setq magit-display-buffer-function
         #'magit-display-buffer-fullframe-status-v1)
-  ; exit magit restoring frame config
+                                        ; exit magit restoring frame config
   (setq magit-bury-buffer-function
-      #'magit-restore-window-configuration)
+        #'magit-restore-window-configuration)
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
@@ -3473,7 +3461,7 @@ If the region is active and option `transient-mark-mode' is on, call
  (t
   (setq python-shell-interpreter "python")))
 (defun python-ts-mode-setup ()
- "Python TreeSit mode setup."
+  "Python TreeSit mode setup."
   (treesit-font-lock-recompute-features
    '(function variable) '(definition)))
 (add-hook 'python-ts-mode-hook #'python-ts-mode-setup)
@@ -3495,14 +3483,14 @@ If the region is active and option `transient-mark-mode' is on, call
   :hook (python-mode . pipenv-mode)
   :init
   (defun pipenv-activate-project ()
-  "Activate integration of Pipenv with Project."
-  ;; (add-hook
-  ;;  'project-
-  ;;  ile-after-switch-project-hook
-  ;;  (lambda () (funcall pipenv-projectile-after-switch-function))))
+    "Activate integration of Pipenv with Project."
+    ;; (add-hook
+    ;;  'project-
+    ;;  ile-after-switch-project-hook
+    ;;  (lambda () (funcall pipenv-projectile-after-switch-function))))
 
-  (setq pipenv-with-flycheck nil
-        pipenv-with-projectile nil)))
+    (setq pipenv-with-flycheck nil
+          pipenv-with-projectile nil)))
 
 ;;;;; pyenv-mode
 ;; integration with the pyenv tool
@@ -4059,9 +4047,9 @@ the children of class at point."
 
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
-  (interactive "P")
-  (let ((delete-by-moving-to-trash nil))
-    (dired-do-delete arg))))
+    (interactive "P")
+    (let ((delete-by-moving-to-trash nil))
+      (dired-do-delete arg))))
 
 ;;;;; dired-aux
 ;; auxiliary functionality of dired
@@ -4191,25 +4179,25 @@ the children of class at point."
   ;; Change "theme name" to the selected highlightjs theme.
   (setq markdown-soma-highlightjs-theme "github-dark")
 
-(setq sej/markdown-soma-mod-var 0)
+  (setq sej/markdown-soma-mod-var 0)
 
-(defun sej/markdown-soma-mod (x)
-  "Calibrate  markdown-soma display by X."
-  (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
-  (print x))
+  (defun sej/markdown-soma-mod (x)
+    "Calibrate  markdown-soma display by X."
+    (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
+    (print x))
 
-(defun sej/markdown-soma-mod-plus ()
-  "Add to display mod correction."
-  (interactive)
-  (setq sej/markdown-soma-mod-var (+ sej/markdown-soma-mod-var 5)))
+  (defun sej/markdown-soma-mod-plus ()
+    "Add to display mod correction."
+    (interactive)
+    (setq sej/markdown-soma-mod-var (+ sej/markdown-soma-mod-var 5)))
 
-(defun sej/markdown-soma-mod-minus ()
-  "Subtract from display mod correction."
-  (interactive)
-  (setq sej/markdown-soma-mod-var (- sej/markdown-soma-mod-var 5)))
+  (defun sej/markdown-soma-mod-minus ()
+    "Subtract from display mod correction."
+    (interactive)
+    (setq sej/markdown-soma-mod-var (- sej/markdown-soma-mod-var 5)))
 
-;; (advice-remove 'markdown-soma--window-point #'sej/markdown-soma-mod)
-(advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod))
+  ;; (advice-remove 'markdown-soma--window-point #'sej/markdown-soma-mod)
+  (advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod))
 
 ;;;;; textile-mode
 ;; - textile markup editing major mode
@@ -4318,36 +4306,36 @@ the children of class at point."
 ;; - spell checking
 ;; [[https://github.com/minad/jinx#][jinx.el - enchanted spell checker]]
 (when (eval 'sys/macp)
-(use-package jinx
-  :after vertico
-  :ensure-system-package ((enchant-2 . "brew install enchant")
-                          (pkg-config . "brew install pkg-config"))
-  :init
-  ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
-  :hook (emacs-startup . global-jinx-mode)
-  :bind (("C-;" . jinx-correct-nearest)
-         ("C-M-;" . jinx-languages)
-         ("C-," . jinx-next))
-  :config
-  (vertico-multiform-mode 1)
-  (add-to-list 'vertico-multiform-categories
-               '(jinx grid (vertico-grid-annotate . 20)))))
+  (use-package jinx
+    :after vertico
+    :ensure-system-package ((enchant-2 . "brew install enchant")
+                            (pkg-config . "brew install pkg-config"))
+    :init
+    ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
+    :hook (emacs-startup . global-jinx-mode)
+    :bind (("C-;" . jinx-correct-nearest)
+           ("C-M-;" . jinx-languages)
+           ("C-," . jinx-next))
+    :config
+    (vertico-multiform-mode 1)
+    (add-to-list 'vertico-multiform-categories
+                 '(jinx grid (vertico-grid-annotate . 20)))))
 
 (when (eval 'sys/freebsdp)
-(use-package jinx
-  :after vertico
-  :ensure-system-package ((enchant-2 . "pkg install enchant2")
-                          (pkg-config . "pkg install pkgconf"))
-  :init
-  ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
-  :hook (emacs-startup . global-jinx-mode)
-  :bind (("C-;" . jinx-correct-nearest)
-         ("C-M-;" . jinx-languages)
-         ("C-," . jinx-next))
-  :config
-  (vertico-multiform-mode 1)
-  (add-to-list 'vertico-multiform-categories
-             '(jinx grid (vertico-grid-annotate . 20)))))
+  (use-package jinx
+    :after vertico
+    :ensure-system-package ((enchant-2 . "pkg install enchant2")
+                            (pkg-config . "pkg install pkgconf"))
+    :init
+    ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
+    :hook (emacs-startup . global-jinx-mode)
+    :bind (("C-;" . jinx-correct-nearest)
+           ("C-M-;" . jinx-languages)
+           ("C-," . jinx-next))
+    :config
+    (vertico-multiform-mode 1)
+    (add-to-list 'vertico-multiform-categories
+                 '(jinx grid (vertico-grid-annotate . 20)))))
 
 ;;;;; dictionary lookup
 ;; - built in with Emacs 28
@@ -4728,22 +4716,22 @@ function with the \\[universal-argument]."
   (interactive)
   (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
     (let* ((expanded (expand-file-name file))
-              (try expanded)
-              (dir (directory-file-name (file-name-directory expanded)))
-              new)
-         (if (file-exists-p expanded)
-             (error "Cannot create file %s: file exists" expanded))
-         ;; Find the topmost nonexistent parent dir (variable `new')
-         (while (and try (not (file-exists-p try)) (not (equal new try)))
-           (setq new try
-                 try (directory-file-name (file-name-directory try))))
-         (when (not (file-exists-p dir))
-           (make-directory dir t))
-         (write-region "" nil expanded t)
-         (when new
-           (dired-add-file new)
-           (message new)
-           ))))
+           (try expanded)
+           (dir (directory-file-name (file-name-directory expanded)))
+           new)
+      (if (file-exists-p expanded)
+          (error "Cannot create file %s: file exists" expanded))
+      ;; Find the topmost nonexistent parent dir (variable `new')
+      (while (and try (not (file-exists-p try)) (not (equal new try)))
+        (setq new try
+              try (directory-file-name (file-name-directory try))))
+      (when (not (file-exists-p dir))
+        (make-directory dir t))
+      (write-region "" nil expanded t)
+      (when new
+        (dired-add-file new)
+        (message new)
+        ))))
 
 ;;;;; org-agenda
 ;; agenda for todo & calendar items
@@ -5644,68 +5632,68 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; completion for codeium
 ;; [[https://github.com/Exafunction/codeium.el][Codeium]]
 (use-package codeium
-    ;; if you use straight
-    :straight '(:type git :host github :repo "Exafunction/codeium.el")
-    ;; otherwise, make sure that the codeium.el file is on load-path
-    :bind (:map cape-prefix-map
-                ("c" . codeium-completion-at-point))
-    :init
-    ;; use globally
-    (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
-    ;; or on a hook
-    ;; (add-hook 'python-base-mode-hook
-    ;;     (lambda ()
-    ;;         (add-to-list 'completion-at-point-functions '(codeium-completion-at-point))))
+  ;; if you use straight
+  :straight '(:type git :host github :repo "Exafunction/codeium.el")
+  ;; otherwise, make sure that the codeium.el file is on load-path
+  :bind (:map cape-prefix-map
+              ("c" . codeium-completion-at-point))
+  :init
+  ;; use globally
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
+  ;; or on a hook
+  ;; (add-hook 'python-base-mode-hook
+  ;;     (lambda ()
+  ;;         (add-to-list 'completion-at-point-functions '(codeium-completion-at-point))))
 
-    ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
-    (add-hook 'python-mode-hook
-        (lambda ()
-            (setq-local completion-at-point-functions
-                (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
-    (add-hook 'emacs-lisp-mode-hook
-        (lambda ()
-            (setq-local completion-at-point-functions
-                (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
-    ;; codeium-completion-at-point is autoloaded, but you can
-    ;; optionally set a timer, which might speed up things as the
-    ;; codeium local language server takes ~0.2s to start up
-    (add-hook 'emacs-startup-hook
-     (lambda () (run-with-timer 0.1 nil #'codeium-init)))
+  ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (setq-local completion-at-point-functions
+                          (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              (setq-local completion-at-point-functions
+                          (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
+  ;; codeium-completion-at-point is autoloaded, but you can
+  ;; optionally set a timer, which might speed up things as the
+  ;; codeium local language server takes ~0.2s to start up
+  (add-hook 'emacs-startup-hook
+            (lambda () (run-with-timer 0.1 nil #'codeium-init)))
 
-    ;; :defer t ;; lazy loading, if you want
-    :config
-    (setq use-dialog-box t) ;; do not use popup boxes
+  ;; :defer t ;; lazy loading, if you want
+  :config
+  (setq use-dialog-box t) ;; do not use popup boxes
 
-    ;; if you don't want to use customize to save the api-key
-    ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+  ;; if you don't want to use customize to save the api-key
+  ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 
-    ;; get codeium status in the modeline
-    (setq codeium-mode-line-enable
+  ;; get codeium status in the modeline
+  (setq codeium-mode-line-enable
         (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
-    ;; alternatively for a more extensive mode-line
-    ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
+  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
+  ;; alternatively for a more extensive mode-line
+  ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
 
-    ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
-    (setq codeium-api-enabled
+  ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
+  (setq codeium-api-enabled
         (lambda (api)
-            (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
-    ;; you can also set a config for a single buffer like this:
-    ;; (add-hook 'python-mode-hook
-    ;;     (lambda ()
-    ;;         (setq-local codeium/editor_options/tab_size 4)))
+          (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
+  ;; you can also set a config for a single buffer like this:
+  ;; (add-hook 'python-mode-hook
+  ;;     (lambda ()
+  ;;         (setq-local codeium/editor_options/tab_size 4)))
 
-    ;; You can overwrite all the codeium configs!
-    ;; for example, we recommend limiting the string sent to codeium for better performance
-    (defun my-codeium/document/text ()
-        (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-    ;; if you change the text, you should also change the cursor_offset
-    ;; warning: this is measured by UTF-8 encoded bytes
-    (defun my-codeium/document/cursor_offset ()
-        (codeium-utf8-byte-length
-            (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-    (setq codeium/document/text 'my-codeium/document/text)
-    (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
+  ;; You can overwrite all the codeium configs!
+  ;; for example, we recommend limiting the string sent to codeium for better performance
+  (defun my-codeium/document/text ()
+    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
+  ;; if you change the text, you should also change the cursor_offset
+  ;; warning: this is measured by UTF-8 encoded bytes
+  (defun my-codeium/document/cursor_offset ()
+    (codeium-utf8-byte-length
+     (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
+  (setq codeium/document/text 'my-codeium/document/text)
+  (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
 
 ;;; init.el --- end
 (message "init.el ends here")
