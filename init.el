@@ -1743,7 +1743,6 @@ If FRAME is omitted or nil, use currently selected frame."
               ("<tab>" . corfu-complete)
               ("M-m" . corfu-move-to-minibuffer)
               ("<escape>". corfu-quit)
-              ("<return>" . corfu-insert)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
   :hook (emacs-startup . global-corfu-mode)
@@ -1753,12 +1752,12 @@ If FRAME is omitted or nil, use currently selected frame."
   (corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                    ;; Enable auto completion
   (corfu-separator ?\s)             ;; Orderless field separator
-  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  (corfu-quit-at-boundary t)        ;; Never quit at completion boundary
   (corfu-quit-no-match t)           ;; t, 'separator, nil Never quit
-  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
-  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  (corfu-preview-current nil)       ;; Disable current candidate preview
+  (corfu-preselect 'directory)      ;; Preselect the prompt
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-  (corfu-scroll-margin 5)        ;; Use scroll margin
+  (corfu-scroll-margin 5)           ;; Use scroll margin
   ;; (corfu-echo-documentation nil)
 
   ;; Enable Corfu only for certain modes.
@@ -1769,6 +1768,8 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
+  :init
+  (global-corfu-mode)
 
   :config
   ;; (setq global-corfu-modes '((not markdown-mode) t))
@@ -1777,7 +1778,16 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
-  (setq tab-always-indent 'complete)
+  ;; (setq tab-always-indent 'complete)
+  
+  ;; Free the RET key for less intrusive behavior.
+  ;; Option 1: Unbind RET completely
+  ;; (keymap-unset corfu-map "RET")
+  ;; Option 2: Use RET only in shell modes
+  (keymap-set corfu-map "RET" `( menu-item "" nil :filter
+                                 ,(lambda (&optional _)
+                                    (and (derived-mode-p 'eshell-mode 'comint-mode)
+                                         #'corfu-send))))
 
   ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
   ;; try `cape-dict'.
@@ -1875,6 +1885,7 @@ Useful if you want a more robust view into the recommend candidates."
   :ensure t
   :custom
   (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 ;;;;; prescient
@@ -5668,11 +5679,11 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 
   ;; get codeium status in the modeline
-  (setq codeium-mode-line-enable
-        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
+  ;; (setq codeium-mode-line-enable
+        ;; (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+  ;; (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
   ;; alternatively for a more extensive mode-line
-  ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
+  (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
 
   ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
   (setq codeium-api-enabled
