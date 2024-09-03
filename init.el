@@ -1467,30 +1467,6 @@ If FRAME is omitted or nil, use currently selected frame."
                                 "*Ibuffer*"
                                 "*esh command on file*")))
 
-;;;;; zoom
-;; - replacement for golden-ratio
-;; - for managing window sizes
-;; - [[https://github.com/cyrus-and/zoom][zoom]]
-(use-package zoom
-  :hook (emacs-startup . zoom-mode)
-  :bind* ("C-x +" . zoom) ; override the key binding of balance-windows
-  :blackout
-  :custom
-  (zoom-mode t)
-  (zoom-size '(0.6818 . 0.6818)) ; resize window using the golden ratio
-                                        ;(temp-buffer-resize-mode t) ; preserve completion buffer
-  (zoom-ignored-major-modes '(reb-mode )) ; ignore these major modes
-                                        ;(zoom-ignored-buffer-names '("zoom.el" "init.el")) ; ignore these buffer names
-  (zoom-ignored-buffer-name-regexps '("^*calc" "^*makey-key" "^magit:")) ; ignore related windows
-  (zoom-ignore-predicates nil)
-                                        ; '((lambda () (> (count-lines (point-min) (point-max)) 20)))) ; ignore any buffer less than x lines
-  :config
-  (defun size-callback () ; resize the buffer according to frame size
-    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-          (t '(0.5 . 0.5))))
-  )
-
-
 ;;;; tabs
 ;;;;; tab-bar
 ;; - built-in tabs for virtual desktops
@@ -1533,11 +1509,50 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq doom-modeline-minor-modes t)
   (minions-mode 1))
 
-;;;;; all-the-icons
-;; - NOTE: Must run `M-x all-the-icons-install-fonts' manually on Windows
-;; - https://github.com/domtronn/all-the-icons.el
-(use-package all-the-icons
-  :if (display-graphic-p))
+;;;;; nerd-icons
+;; [[https://github.com/rainstormstudio/nerd-icons.el]]
+(use-package nerd-icons
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "Symbols Nerd Font Mono")  )
+
+;;;;; nerd-icons-dired
+;; [[https://github.com/rainstormstudio/nerd-icons-dired]]
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+
+;;;;; nerd-icons-ibuffer
+;; [[https://github.com/seagle0128/nerd-icons-ibuffer]]
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+
+;;;;; nerd-icons-completion
+;; icons with completion
+;; [[https://github.com/rainstormstudio/nerd-icons-completion]]
+(use-package nerd-icons-completion
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
+  :config
+  (nerd-icons-completion-mode))
+
+;;;;; nerd-icons-corfu
+;;[[https://github.com/LuigiPiucco/nerd-icons-corfu]]
+(use-package nerd-icons-corfu
+  :after (corfu)
+  :init
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+
+  ;; Optionally:
+  (setq nerd-icons-corfu-mapping
+        '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+          (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+          ;; ...
+          (t :style "cod" :icon "code" :face font-lock-warning-face)))
+  ;; Remember to add an entry for `t', the library uses that as default.
+  
+  ;; The Custom interface is also supported for tuning the variable above.
+  )
 
 
 ;;; text manipulation
@@ -4112,12 +4127,6 @@ the children of class at point."
   (setq dired-omit-files
         (concat dired-omit-files
                 "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
-
-;;;;; all-the-icons-dired
-;; - Shows icons in dired buffer
-;; - https://github.com/jtbm37/all-the-icons-dired
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
 
 ;;;;; quick-preview
 ;; - Quick-preview provides a nice preview of the thing at point for files.
