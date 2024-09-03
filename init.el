@@ -1130,6 +1130,14 @@ Return its absolute path.  Otherwise, return nil."
               ("S" . casual-bookmarks-sortby-tmenu)
               ("J" . bookmark-jump)))
 
+(use-package casual-agenda
+  :after org-agenda
+  :bind (:map
+         org-agenda-mode-map
+         ("C-o" . casual-agenda-tmenu)
+         ("M-j" . org-agenda-clock-goto) ; optional
+         ("J" . bookmark-jump))) ; optional
+
 ;;; user interface
 ;;;; themes
 ;;;;; tron-legacy-theme
@@ -1741,7 +1749,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package corfu
   :bind (:map corfu-map
               ("<tab>" . corfu-complete)
-              ("M-m" . corfu-move-to-minibuffer)
               ("<escape>". corfu-quit)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
@@ -1799,11 +1806,15 @@ If FRAME is omitted or nil, use currently selected frame."
   (setq read-extended-command-predicate #'command-completion-default-include-p)
 
   (defun corfu-move-to-minibuffer ()
-    "Move \"popup\" completion candidates to minibuffer.
-Useful if you want a more robust view into the recommend candidates."
     (interactive)
-    (let (completion-cycle-threshold completion-cycling)
-      (apply #'consult-completion-in-region completion-in-region--data)))
+    (pcase completion-in-region--data
+      (`(,beg ,end ,table ,pred ,extras)
+       (let ((completion-extra-properties extras)
+             completion-cycle-threshold completion-cycling)
+         (consult-completion-in-region beg end table pred)))))
+  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
+  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
+
   (use-package corfu-history
     :straight nil
     :load-path "straight/build/corfu/extensions"
@@ -2682,8 +2693,8 @@ If called with a prefix argument, query for word to search."
 ;; additional to built-in pulse
 (use-package pulsar
   :bind* (:map sej-C-q-map
-               ("p p" . pulsar-pulse-line)
-               ("p h" . pulsar-highlight-line))
+               ("P p" . pulsar-pulse-line)
+               ("P h" . pulsar-highlight-line))
   :hook ((emacs-startup . pulsar-global-mode)
          ((consult-after-jump
            bookmark-after-jump
@@ -2736,6 +2747,7 @@ If called with a prefix argument, query for word to search."
          (outline-minor-mode . outshine-mode))
   :bind ("M-S-<return>" . outshine-insert-heading)
   :config
+  (setcdr outshine-mode-map nil)
   (blackout 'outline-minor-mode)
   (setq outline-minor-mode-use-buttons nil
         outline-minor-mode-use-margins nil)
