@@ -1679,8 +1679,7 @@ If FRAME is omitted or nil, use currently selected frame."
              dabbrev-completion)
   ;; Use Dabbrev with Corfu!
   ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
+  :bind ("C-M-/" . dabbrev-expand)
   :init
   (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
         dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
@@ -1726,8 +1725,6 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package vertico
   :demand t
   :hook (emacs-startup . vertico-mode)
-  :bind (:map vertico-map
-              ("H-RET" . vertico-exit-input))
   :config
   ;; Different scroll margin
   (setq vertico-scroll-margin 0)
