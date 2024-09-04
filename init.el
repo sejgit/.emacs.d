@@ -1496,10 +1496,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; - A fancy and fast mode-line inspired by minimalism design
 ;; - https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
-  :preface
-  (setq doom-modeline-hud t
-        doom-modeline-project-detection 'auto))
+  :hook (after-init . doom-modeline-mode))
 
 ;;;;; minions
 ;; implements a nested menu that gives access to all minor modes
@@ -1618,10 +1615,10 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package anzu
   :blackout t
   :bind*  (([remap query-replace] . anzu-query-replace-regexp)
-           ([remap query-replace-regexp] . anzu-query-replace))
-  :init
-  (defalias 'qr #'anzu-query-replace)
-  (defalias 'qrr #'anzu-query-replace-regexp)
+           ("C-H-r" . anzu-query-replace)
+           ("C-H-S-r" . anzu-replace-at-cursor)
+           :map isearch-mode-map
+           ("C-H-r" . anzu-isearch-query-replace))
   :config
   (global-anzu-mode))
 
@@ -1631,7 +1628,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package consult-ag
   :after consult
   :commands consult-ag
-  :bind (:map search-map
+  :bind (("C-S-s" . consult-ag)
+         :map search-map
               ("a" . consult-ag)))
 
 ;;;;; re-builder
@@ -2585,7 +2583,7 @@ If called with a prefix argument, query for word to search."
              symbol-overlay-assoc
              symbol-overlay-get-list
              symbol-overlay-jump-call)
-  :bind (("C-M-;" . iedit-mode) ;; define Iedit mode so as to remove default message
+  :bind (("C-;" . iedit-mode) ;; define Iedit mode so as to remove default message
          ("M-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -4345,8 +4343,8 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-;" . jinx-correct-nearest)
-           ("C-M-;" . jinx-languages)
+    :bind (("C-'" . jinx-correct-nearest)
+           ("C-M-'" . jinx-languages)
            ("C-," . jinx-next))
     :config
     (vertico-multiform-mode 1)
@@ -4361,8 +4359,8 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-;" . jinx-correct-nearest)
-           ("C-M-;" . jinx-languages)
+    :bind (("C-'" . jinx-correct-nearest)
+           ("C-M-'" . jinx-languages)
            ("C-," . jinx-next))
     :config
     (vertico-multiform-mode 1)
