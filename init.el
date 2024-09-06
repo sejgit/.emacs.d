@@ -169,6 +169,7 @@
   ;; spacebar acts as super key with other key
   ;; karabiner.json backup files in dotfiles under .config directory
   ;; - https://github.com/pqrs-org/Karabiner-Elements
+  ;; (add-to-list 'default-frame-alist '(font . "inconsolata-14"))
   (if (boundp 'mac-carbon-version-string) ;; using mac-port?
       ( progn
         (message "Mac-port")
@@ -705,10 +706,10 @@
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
 
-  :bind* (:map override-global-map
+  :bind* (("M-<return>" . sej/open-new-line)
+          :map override-global-map
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
-	           ("M-<return>" . sej/open-new-line)
                ("C-x j" . duplicate-dwim)))
 
 (defun sej/open-new-line()
@@ -2301,20 +2302,6 @@ If FRAME is omitted or nil, use currently selected frame."
 
   (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
 
-  ;; Flyspell words
-  (defun avy-action-flyspell (pt)
-    "Avy action auto correct at PT selected."
-    (save-excursion
-      (goto-char pt)
-      (when (require 'flyspell nil t)
-        (flyspell-auto-correct-word)))
-    (select-window
-     (cdr (ring-ref avy-ring 0)))
-    t)
-
-  ;; Bind to semicolon (flyspell uses C-;)
-  (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-flyspell)
-
   ;; Dictionary: define words
   ;; Replace your package manager or preferred dict package
   (defun dictionary-search-dwim (&optional arg)
@@ -2580,7 +2567,7 @@ If called with a prefix argument, query for word to search."
              symbol-overlay-assoc
              symbol-overlay-get-list
              symbol-overlay-jump-call)
-  :bind (("C-;" . iedit-mode) ;; define Iedit mode so as to remove default message
+  :bind (("C-:" . iedit-mode) ;; define Iedit mode so as to remove default message
          ("M-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -4282,52 +4269,52 @@ the children of class at point."
 ;;;;; flyspell
 ;; - main spelling package
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
-(use-package flyspell
-  :disabled t
-  :straight (:type built-in)
-  :blackout t
-  :bind* (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
-          :map ctl-x-x-map
-          ("s" . flyspell-mode)
-          ("w" . ispell-word))
-  :functions
-  flyspell-correct-word
-  flyspell-goto-next-error
-  :ensure-system-package aspell
-  :hook
-  (prog-mode . flyspell-prog-mode)
-  (text-mode . flyspell-mode)
-  :config
-  (setq flyspell-abbrev-p t
-        flyspell-use-global-abbrev-table-p t
-        flyspell-issue-message-flag nil
-        flyspell-issue-welcome-flag nil)
-  (cond
-   ((executable-find "aspell")
-    (setq-default ispell-program-name "aspell")
-    (push "--sug-mode=ultra" ispell-extra-args))
-   ((executable-find "enchant-2")
-    (setq-default ispell-program-name "enchant-2"))
-   ((executable-find "hunspell")
-    (progn (setq-default ispell-program-name "hunspell")
-           (setq ispell-really-hunspell t)))   )
-
-  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
-  (define-key flyspell-mouse-map [mouse-3] #'undefined)
-
-  (setq ispell-personal-dictionary "~/sej.ispell"
-        ispell-silently-savep t)
-
-  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
-  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
-
-  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
-                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
-                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
-
-  (setq ispell-dictionary "canadian"))
+;; (use-package flyspell
+;;   :disabled t
+;;   :straight (:type built-in)
+;;   :blackout t
+;;   :bind* (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
+;;           :map ctl-x-x-map
+;;           ("s" . flyspell-mode)
+;;           ("w" . ispell-word))
+;;   :functions
+;;   flyspell-correct-word
+;;   flyspell-goto-next-error
+;;   :ensure-system-package aspell
+;;   :hook
+;;   (prog-mode . flyspell-prog-mode)
+;;   (text-mode . flyspell-mode)
+;;   :config
+;;   (setq flyspell-abbrev-p t
+;;         flyspell-use-global-abbrev-table-p t
+;;         flyspell-issue-message-flag nil
+;;         flyspell-issue-welcome-flag nil)
+;;   (cond
+;;    ((executable-find "aspell")
+;;     (setq-default ispell-program-name "aspell")
+;;     (push "--sug-mode=ultra" ispell-extra-args))
+;;    ((executable-find "enchant-2")
+;;     (setq-default ispell-program-name "enchant-2"))
+;;    ((executable-find "hunspell")
+;;     (progn (setq-default ispell-program-name "hunspell")
+;;            (setq ispell-really-hunspell t)))   )
+;; 
+;;   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+;;   (define-key flyspell-mouse-map [mouse-3] #'undefined)
+;; 
+;;   (setq ispell-personal-dictionary "~/sej.ispell"
+;;         ispell-silently-savep t)
+;; 
+;;   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+;;   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+;; 
+;;   (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+;;                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+;;                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+;; 
+;;   (setq ispell-dictionary "canadian"))
 
 ;;;;; jinx
 ;; - spell checking
@@ -4340,9 +4327,9 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-'" . jinx-correct-nearest)
+    :bind (("C-;" . jinx-correct-nearest)
            ("C-M-'" . jinx-languages)
-           ("C-," . jinx-next))
+           ("C-M-;" . jinx-correct-all))
     :config
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
@@ -4356,9 +4343,9 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-'" . jinx-correct-nearest)
+    :bind (("C-;" . jinx-correct-nearest)
            ("C-M-'" . jinx-languages)
-           ("C-," . jinx-next))
+           ("C-M-;" . jinx-next))
     :config
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
@@ -4559,14 +4546,6 @@ function with the \\[universal-argument]."
 ;;;; org
 ;;;;; org
 ;; - org mode for keeping notes, maintaining lists, planning
-;; - https://orgmode.org/
-;; (straight-use-package
-;;  '(org-plus-contrib
-;;    :repo "https://code.orgmode.org/bzg/org-mode.git"
-;;    :local-repo "org"
-;;    :files (:defaults "contrib/lisp/*.el")
-;;    :includes (org)))
-
 (use-package org
   :straight nil
   :defines
@@ -4577,9 +4556,9 @@ function with the \\[universal-argument]."
   org-agenda-sorting-strategy
   org-agenda-skip-deadline-prewarning-if-scheduled
   :mode ("\\.org$" . org-mode)
-  :hook ( (org-mode . flyspell-mode)
-          (org-mode . visual-line-mode)
-          (org-mode . org-num-mode))
+  :hook ( (org-mode . visual-line-mode)
+          (org-mode . org-num-mode)
+          (org-mode . variable-pitch-mode))
   :bind* (( ("C-c l" . org-store-link)
             ("C-c c" . org-capture)
             ("C-c a" . org-agenda) )
@@ -4587,6 +4566,8 @@ function with the \\[universal-argument]."
                 ("C-M-\\" . org-indent-region)
                 ("S-<left>" . org-shiftleft)
                 ("S-<right>" . org-shiftright)
+                ("M-<return>" . org-insert-heading)
+                ("A-M-<return>" . org-insert-item)
                 ("C-c n" . outline-next-visible-heading)
                 ("C-c n" . outline-previous-visible-heading) ))
   :config
@@ -4604,14 +4585,15 @@ function with the \\[universal-argument]."
   ;; (defconst org-file-notes (concat org-directory "/notes.org"))
   ;; (defconst org-file-code (concat org-directory "/snippets.org"))
   (setq org-replace-disputed-keys t
+        org-hide-emphasis-markers t
         org-adapt-indentation nil
         org-special-ctrl-a/e nil
         org-special-ctrl-k nil
         org-M-RET-may-split-line '((default . nil))
-        org-hide-emphasis-markers nil
         org-fontify-done-headline t
         org-hide-leading-stars t
         org-pretty-entities t
+        org-use-sub-superscripts "{}"
         org-default-notes-file org-file-notes
         org-capture-bookmark t
         org-refile-use-outline-path 'file
@@ -4627,6 +4609,9 @@ function with the \\[universal-argument]."
                                  ("CANCELED" . (:foreground "grey" :weight bold :height 0.5)))
         org-confirm-babel-evaluate nil
         org-startup-folded nil
+        org-startup-indented t
+        org-startup-with-inline-images t
+        org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
 
 ;;;;;; tags
@@ -4645,44 +4630,6 @@ function with the \\[universal-argument]."
           ("projects")
           ("3d-printer")
           ("other")))
-
-  (let* ((variable-tuple
-          (if (display-graphic-p)
-              (cond ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-                    ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-                    ((x-list-fonts "Verdana")         '(:font "Verdana"))
-                    ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-                    (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro.")))
-            nil            )          )
-         (base-font-color     (face-foreground 'default nil 'default))
-         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
-
-    (custom-theme-set-faces
-     'user
-     `(org-level-8 ((t (,@headline ,@variable-tuple))))
-     `(org-level-7 ((t (,@headline ,@variable-tuple))))
-     `(org-level-6 ((t (,@headline ,@variable-tuple))))
-     `(org-level-5 ((t (,@headline ,@variable-tuple))))
-     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2))))
-     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3))))
-     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.5))))
-     `(org-document-title ((t (,@headline ,@variable-tuple :height 1.75 :underline nil))))))
-
-  (custom-theme-set-faces
-   'user
-   '(org-block ((t (:inherit fixed-pitch))))
-   '(org-code ((t (:inherit (shadow fixed-pitch)))))
-   '(org-document-info ((t (:foreground "dark orange"))))
-   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-   '(org-link ((t (:foreground "royal blue" :underline t))))
-   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   '(org-property-value ((t (:inherit fixed-pitch))) t)
-   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
   (setq sej-project-org-capture-list (list
                                       "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
@@ -4872,6 +4819,23 @@ function with the \\[universal-argument]."
 ;; - https://github.com/gregsexton/ob-ipython
 (use-package ob-ipython)
 
+;;;;; org-appear
+;; make invisible parts of org-mode visible
+;; https://github.com/awth13/org-appear
+(use-package org-appear
+    :hook
+    (org-mode . org-appear-mode))
+
+;;;;; org-modern
+;; https://github.com/minad/org-modern
+(use-package org-modern
+    :hook
+    (org-mode . org-modern-mode)
+    :custom
+    (org-modern-keyword nil)
+    (org-modern-checkbox nil)
+    (org-modern-table nil))
+
 ;;;;; org-rich-yank
 ;; - Rich text clipboard when yanking code into org buffer
 ;; consider demand t as lazy loading may not work
@@ -4879,20 +4843,6 @@ function with the \\[universal-argument]."
 (use-package org-rich-yank
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
-
-;;;;; org-superstar-mode
-;; - Show org-mode bullets as UTF-8 characters ( rewritten org-bullets )
-;; - [[https://github.com/integral-dw/org-superstar-mode][github org-superstar-mode]]
-;; - https://github.com/sabof/org-bullets
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode)
-  :config
-  (setq org-superstar-special-todo-items t
-        org-superstar-prettify-item-bullets t
-        org-superstar-remove-leading-stars t)
-  ;; :custom
-  ;; (org-superstar-headline--bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
-  )
 
 ;;;;; org-fancy-priorities
 ;; - displays org priorities as custom strings
