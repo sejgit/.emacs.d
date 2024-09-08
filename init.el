@@ -4357,15 +4357,7 @@ the children of class at point."
 (use-package dictionary
   :straight (:type built-in)
   :bind (("M-#" . dictionary-lookup-definition) ; use esc # in osx
-         ("C-#" . dictionary-search))
-  :config
-  ;; mandatory, as the dictionary misbehaves!
-  (setq switch-to-buffer-obey-display-actions t
-        dictionary-server "dict.org")
-  (add-to-list 'display-buffer-alist
-               '("^\\*Dictionary\\*" display-buffer-in-side-window
-                 (side . left)
-                 (width . 50))))
+         ("C-#" . dictionary-search)))
 
 ;;;;; sej/pdf-print-buffer-with-faces (ps-print)
 ;; - print file in the current buffer as pdf
@@ -4785,6 +4777,23 @@ function with the \\[universal-argument]."
         org-latex-prefer-user-labels t
         bibtex-dialect 'biblatex))
 
+;;;;; ox-odt
+;; Reading LibreOffice files
+;; [[https://github.com/kjambunathan/org-mode-ox-odt]]
+      (use-package ox-odt
+        :straight (org-mode-ox-odt
+                   :host github
+                   :repo "kjambunathan/org-mode-ox-odt"
+                   :files ("lisp/ox-odt.el"
+                           "lisp/odt.el"
+                           "etc"
+                           "docs"
+                           "contrib/odt/LibreOffice"))
+        :config
+        (add-to-list 'auto-mode-alist
+               '("\\.\\(?:OD[CFIGPST]\\|od[cfigpst]\\)\\'"
+                 . doc-view-mode-maybe)))
+
 ;;;;; ox-gfm
 ;; github flavoured markdown exporter for Org mode
 ;; [[https://github.com/larstvei/ox-gfm][ox-gfm]]
@@ -4826,15 +4835,39 @@ function with the \\[universal-argument]."
     :hook
     (org-mode . org-appear-mode))
 
+;;;;; org-fragtog
+;; LaTeX previews
+;; [[https://github.com/io12/org-fragtog]]
+(use-package org-fragtog
+  :after org
+  :hook
+  (org-mode . org-fragtog-mode)
+  :custom
+  (org-startup-with-latex-preview nil)
+  (org-format-latex-options
+   (plist-put org-format-latex-options :scale 2)
+   (plist-put org-format-latex-options :foreground 'auto)
+   (plist-put org-format-latex-options :background 'auto)))
+
 ;;;;; org-modern
 ;; https://github.com/minad/org-modern
 (use-package org-modern
     :hook
     (org-mode . org-modern-mode)
     :custom
+    (org-modern-table nil)
     (org-modern-keyword nil)
+    (org-modern-timestamp nil)
+    (org-modern-priority nil)
     (org-modern-checkbox nil)
-    (org-modern-table nil))
+    (org-modern-tag nil)
+    (org-modern-block-name nil)
+    (org-modern-keyword nil)
+    (org-modern-footnote nil)
+    (org-modern-internal-target nil)
+    (org-modern-radio-target nil)
+    (org-modern-statistics nil)
+    (org-modern-progress nil))
 
 ;;;;; org-rich-yank
 ;; - Rich text clipboard when yanking code into org buffer
