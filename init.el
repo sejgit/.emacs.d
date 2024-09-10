@@ -4585,6 +4585,7 @@ function with the \\[universal-argument]."
         org-special-ctrl-a/e nil
         org-special-ctrl-k nil
         org-M-RET-may-split-line '((default . nil))
+        org-return-follows-link t
         org-fontify-done-headline t
         org-hide-leading-stars t
         org-pretty-entities t
@@ -4721,6 +4722,7 @@ function with the \\[universal-argument]."
         org-agenda-start-with-log-mode nil
         org-agenda-tags-column -100
         org-agenda-use-time-grid t
+        org-agenda-include-diary t
         org-agenda-files (list org-directory)
         org-agenda-window-setup (quote current-window) ;open agenda in current window
         org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
