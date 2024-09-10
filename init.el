@@ -169,7 +169,10 @@
   ;; spacebar acts as super key with other key
   ;; karabiner.json backup files in dotfiles under .config directory
   ;; - https://github.com/pqrs-org/Karabiner-Elements
-  ;; (add-to-list 'default-frame-alist '(font . "inconsolata-14"))
+  ;; (use-package emacs
+  ;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
+  ;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
+
   (if (boundp 'mac-carbon-version-string) ;; using mac-port?
       ( progn
         (message "Mac-port")
