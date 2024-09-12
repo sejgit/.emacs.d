@@ -2560,6 +2560,23 @@ If called with a prefix argument, query for word to search."
 
 
 ;;;; highlighting faces fonts
+;;;;; buffer-face-modes
+;; Normal font faces in current buffer
+  (defun sej/my-buffer-face-mode-normal ()
+    "Set font to normal in current buffer"
+    (interactive)
+    (when sys/macp
+    (setq buffer-face-mode-face '(:family "Menlo" :height 120))
+    (buffer-face-mode))    )
+
+  ;; Org font faces in current buffer
+  (defun sej/my-buffer-face-mode-org ()
+    "Sets font for org mode in current buffer"
+    (interactive)
+    (when sys/macp
+    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :height 140))
+    (buffer-face-mode))    )
+
 ;;;;; symbol-overlay
 ;; - Highlight symbols and move between them
 ;; - https://github.com/wolray/symbol-overlay
@@ -4553,7 +4570,7 @@ function with the \\[universal-argument]."
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           (org-mode . org-num-mode)
-          (org-mode . variable-pitch-mode))
+          (org-mode . sej/my-buffer-face-mode-org))
   :bind* (( ("C-c l" . org-store-link)
             ("C-c c" . org-capture)
             ("C-c a" . org-agenda) )
@@ -4606,6 +4623,7 @@ function with the \\[universal-argument]."
         org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-startup-indented t
+        org-tags-column 5
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
@@ -4659,8 +4677,20 @@ function with the \\[universal-argument]."
                                  )
                                (list sej-project-org-capture-list)))
 
+(defun sej/get-open-org-file ()
+  (buffer-file-name
+   (get-buffer
+    (org-icompleting-read "Buffer: "
+                          (mapcar 'buffer-name
+                                  (org-buffer-list 'files))))))
+
   (setq org-refile-targets '((org-file-gtd :maxlevel . 3)
-                             (org-file-someday :maxlevel . 1))
+                             (org-file-someday :maxlevel . 3)
+                             (org-file-inbox :maxlevel . 3)
+                             (org-file-journal :maxlevel . 3)
+                             (org-file-notes :maxlevel . 3)
+                             (org-file-code :maxlevel . 3)
+                             (sej/get-open-org-file :maxlevel . 3))
         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
         org-confirm-babel-evaluate nil )
 
