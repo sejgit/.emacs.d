@@ -120,27 +120,11 @@
 (setq warning-suppress-log-types (quote ((cl) )))
 (setq byte-compile-warnings '(cl-functions))
 
-;;;;; Straight package manager set-up
-(setq-default straight-repository-branch "develop"
-              straight-fix-org t
-                                        ; straight-fix-flycheck t ;; not currently using flycheck
-              straight-use-package-by-default t ;; so dont have to use :straight all the time
-              straight-check-for-modifications '(check-on-save find-when-checking))
-(setq vc-follow-symlinks t)
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;;;;; Package manager
+;; add melpa to already encluded elpa
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
-;;;;; Use-Package set-up
+;; Use-Package set-up
 ;; - https://github.com/jwiegley/use-package
 ;; - https://github.com/emacsmirror/diminish
 ;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
@@ -152,7 +136,10 @@
               use-package-enable-imenu-support t)
 
 ;; part of Emacs built-in as of Emacs29
-(require 'use-package)
+(eval-when-compile
+  (require 'use-package))
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
 (use-package system-packages)
 (require 'use-package-ensure-system-package)
 
@@ -196,7 +183,10 @@
       (setq ns-command-modifier 'meta)
       ))
   (when sys/mac-x-p
-    (use-package exec-path-from-shell)
+    (use-package exec-path-from-shell
+      :vc (:url "https://github.com/purcell/exec-path-from-shell"
+                :rev :newest
+                :branch "master"))
     (setq exec-path-from-shell-arguments nil)
     (exec-path-from-shell-initialize)
     (global-set-key (kbd "M-`") 'ns-next-frame)
@@ -257,25 +247,16 @@
   ;; set exec-path for latex installation
   (setq exec-path (append (list sej-latex-directory
                                 "c:/msys64/mingw64/bin"
-                                "/mingw64/bin/") exec-path))
-
-;;;;;; AutoHotkey Mode xahk-mode
-  ;; - load AutoHotkey mode only used for Microsoft Windows
-  ;; - [[https://github.com/xahlee/xahk-mode.el][xahlee xahk-mode]]
-  (use-package xahk-mode
-    :if sys/win32p
-    :demand t
-    :straight (xahk-mode.el :type git
-                            :host github
-                            :repo "xahlee/xahk-mode.el") )  )
-
+                                "/mingw64/bin/") exec-path)))
 ;;;;; Blackout
 ;; Similar to packages like minions, diminish, or delight.
 ;; You can alter how your minor and major modes show up in the mode-line.
 ;; [[https://github.com/raxod502/blackout][Blackout]]
 (use-package blackout
   :demand t
-  :straight (:host github :repo "raxod502/blackout"))
+  :vc (:url "https://github.com/radian-software/blackout"
+            :rev :newest
+            :branch "main"))
 
 ;;;;; Alert
 ;; Alert is a Growl-workalike for Emacs
@@ -289,9 +270,8 @@
 ;; set-up Emacs server
 (use-package emacs
   :when (or sys/macp sys/linuxp sys/freebsdp)
-  :straight (:type built-in)
   :hook (emacs-startup . sej/server-mode)
-  :config
+  :init
   (defun sej/server-mode ()
     "Start server-mode without errors"
     (interactive)
@@ -304,12 +284,15 @@
 ;; The Garbage Collector Magic Hack
 ;; [[https://github.com/emacsmirror/gcmh][github gcmh]]
 (use-package gcmh
+  :vc (:url "https://github.com/emacsmirror/gcmh"
+            :rev :newest
+            :branch "master")
   :blackout t
-  :hook (after-init . gcmh-mode)
-  :init
-  (add-hook 'focus-out-hook #'gcmh-idle-garbage-collect)
-  (add-hook 'suspend-hook #'gcmh-idle-garbage-collect)
-  (setq gcmh-idle-delay 10))
+  :hook ((after-init . gcmh-mode)
+         (focus-out-hook . gcmh-idle-garbage-collect)
+         (suspend-hook . gcmh-idle-garbage-collect))
+  :custom
+  (gcmh-idle-delay 10))
 
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
@@ -391,56 +374,46 @@
     (if (file-exists-p file)
         (load file :noerror))) )
 
-;;;;; Compdef
-;; in buffer completion to set local completion backends
-;; [[https://gitlab.com/jjzmajic/compdef][Compdef]]
-(use-package compdef
-  :demand t
-  :straight (:host gitlab :repo "jjzmajic/compdef"))
-
 ;;;;; dash
 ;; A modern list API for Emacs. No 'cl required.
 ;; [[https://github.com/magnars/dash.el][dash.el]]
 (use-package dash
-  :demand t)
+  :vc(:url "https://github.com/magnars/dash.el"
+           :rev :recent
+           :branch "master"))
 
 ;;;;; f
 ;; modern API for working with files and directories in Emacs.
-;; [[https://github.com/rejeep/f.el][f.el]]
+;; [[https://github.com/rejeep/f.el]]
 (use-package f
-  :demand t)
+  :demand t
+  :vc(:url "https://github.com/rejeep/f.el"
+           :rev :recent
+           :branch "master"))
 
 ;;;;; s
 ;; The long lost Emacs string manipulation library.
 ;; [[https://github.com/magnars/s.el][s.el]]
 (use-package s
-  :demand t)
-
-;;;;; cl-lib
-;; These are extensions to Emacs Lisp that provide a degree of
-;; Common Lisp compatibility, beyond what is already built-in
-;; in Emacs Lisp.
-;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/cl-lib.el][cl-lib.el]]
-;; (use-package cl-lib
-;;   :demand t
-;;   :straight (:type built-in))
-
-;;;;; Org-Plus-Contrib
-;; We need to intercept the built-in org-version that ships with Emacs we have to do this early.
-(straight-use-package '(org :host github :repo "emacs-straight/org-mode" :local-repo "org"))
+  :vc(:url "https://github.com/magnars/s.el"
+           :rev :recent
+           :branch "master"))
 
 ;;;;; no-littering feature
 ;; set the default paths for configuration files & persistent data
 ;; [[https://github.com/emacscollective/no-littering][no-littering]]
 (use-package no-littering
   :demand t
+    :vc(:url "https://github.com/emacscollective/no-littering"
+           :rev :recent
+           :branch "main")
   :init
   (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
         no-littering-var-directory (expand-file-name "~/.cache/emacs/")
         temporary-file-directory (expand-file-name "~/.cache/emacs/tmp/"))
   (make-directory temporary-file-directory :parents)
   (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
-  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name))
+  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name)
 
 ;;;;;; backups
 ;; Put backup files neatly away
@@ -462,14 +435,12 @@
       kept-old-versions 2   ; and some old ones, too
       vc-make-backup-files t
       backup-by-copying t
-      version-control t)
+      version-control t))
 
 ;;;;; Emacs internal settings
 ;; - a use-package friendly place to put settings
 ;;   no real extra value to putting as setq but feels clean
 (use-package emacs
-  :demand t
-  :straight (:type built-in)
   :custom
 ;;;;;; general
   (default-directory (f-expand "$HOME") "Set startup directory.")
@@ -663,7 +634,7 @@
   (unbind-key "M-z")
   (unbind-key "C-h C-h")
 
-  :bind* (:prefix-map transpose-map
+  :bind (:prefix-map transpose-map
                       :prefix "M-t"
                       :prefix-docstring "transpose map"
                       ("l" . transpose-lines)
@@ -672,7 +643,7 @@
                       ("p" . transpose-params))
 
 ;;;;;; special character definitions λ
-  :bind* (:prefix-map special-char-map
+  :bind (:prefix-map special-char-map
                       :prefix "C-x 8"
                       :prefix-docstring "special char map"
 		              ("l" . sej/insert-lambda)
@@ -691,7 +662,7 @@
   ;;             ("v" ("✓" . sej/special-char-insert-check)))
 
 ;;;;;; sej-C-q bindings
-  :bind* (:prefix-map sej-C-q-map
+  :bind (:prefix-map sej-C-q-map
                       :prefix "C-q"
                       :prefix-docstring "SeJ Personal C-q key bindings"
                       ("v" . emacs-version)
@@ -709,17 +680,13 @@
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
 
-  :bind* (("M-<return>" . sej/open-new-line)
+  :bind (("M-<return>" . sej/open-new-line)
           :map override-global-map
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)))
 
-(defun sej/open-new-line()
-  "Open new line without breaking and place cursor there."
-  (interactive)
-  (move-end-of-line 1)
-  (newline-and-indent))
+;;;;; sej constants
 
 (defconst org-file-inbox (concat sej-org-directory "/inbox.org"))
 (defconst org-file-someday (concat sej-org-directory "/someday.org"))
@@ -764,6 +731,11 @@
   (interactive)
   (find-file org-file-someday))
 
+(defun sej/insert-lambda()
+  "Insert ™ for 'special-char-map'."
+  (interactive)
+  (insert "λ"))
+
 (defun sej/insert-tm()
   "Insert ™ for 'special-char-map'."
   (interactive)
@@ -790,12 +762,12 @@
   (insert "✓"))
 
 ;;;;; Simple
-;; built-in simple settings
+;; built-in: simple settings
 ;;
 (use-package simple
   :blackout ((visual-line-mode . "")
              (auto-fill-mode . ""))
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq blink-matching-paren 'jump-offscreen
         column-number-mode t
@@ -816,11 +788,10 @@
         backward-delete-char-untabify-method nil))
 
 ;;;;; minibuffer
-;; minibuffer settings
+;; built-in: minibuffer settings
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el][minibuffer.el]]
 (use-package minibuffer
-  :no-require t
-  :straight (:type built-in)
+  :ensure nil
   :preface
   ;; Set garbage collection threshold
   (defun sej/minibuffer-setup-hook ()
@@ -870,9 +841,9 @@
         resize-mini-windows t))
 
 ;;;;; uniquify
-;; built-in package to make buffer names unique but identifiable
+;; built-in: to make buffer names unique but identifiable
 (use-package uniquify
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq  uniquify-ignore-buffers-re "^\\*"
          uniquify-buffer-name-style 'post-forward-angle-brackets
@@ -881,8 +852,16 @@
          uniquify-separator "/"))
 
 ;;; general functions / packages
-;;;;; sej/save-macro
-;; - save last macro to init file
+
+;;;;; sej functions
+;; some basic functions
+
+(defun sej/open-new-line()
+  "Open new line without breaking and place cursor there."
+  (interactive)
+  (move-end-of-line 1)
+  (newline-and-indent))
+
 (defun sej/save-macro (name)
   "Save a macro with NAME as argument; save the macro at the end of your init file."
   (interactive "SName of the macro :")
@@ -894,9 +873,6 @@
   (newline)
   (switch-to-buffer nil))
 
-;;;;; sej/exec
-;; - executable functions from ohai and modified for my uses
-;; - not key defined
 (defun sej/exec (command)
   "Run a shell COMMAND and return its output as a string, whitespace trimmed."
   (interactive)
@@ -936,27 +912,26 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; esup
 ;; - Emacs startup profiler
 ;; - https://github.com/jschaf/esup
-;; (use-package esup
-;;   :ensure t)
+(use-package esup)
 
 ;;;;; Advice
-;; accept versus warn from the Advice system.
+;; built-in: accept versus warn from the Advice system.
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][Advising Emacs Lisp Functions]]
 (use-package advice
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq-default ad-redefinition-action 'accept))
 
 ;;;;; calc
-;; built-in calculator
+;; built-in: calculator
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/calc.html][GNU Emacs Calculator]]
 (use-package calc
-  :straight (:type built-in)
+  :ensure nil
   :bind (:map sej-C-q-map
               ("c" . calc)
               ("C-c" . calc))
   :commands (quick-calc calc)
-  :config
+  :init
   (setq math-additional-units
         '((GiB "1024 * MiB" "Giga Byte")
           (MiB "1024 * KiB" "Mega Byte")
@@ -968,101 +943,99 @@ Return its absolute path.  Otherwise, return nil."
           (b "B / 8" "Bit"))))
 
 ;;;;; checkdoc
-;; built-in checker of buffer for style issues
+;; built-in: checker of buffer for style issues
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/checkdoc.el][checkdoc.el]]
 (use-package checkdoc
-  :straight (:type built-in)
+  :ensure nil
   :config
   (put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp))
 
 ;;;;; face-remap
 ;; changes in the appearance of a face.
-;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html][face remapping]]
+;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html]]
 (use-package face-remap
   :blackout (buffer-face-mode . "")
-  :straight (:type built-in))
+  :ensure nil  )
 
 
 ;;;; Security
 ;;;;; Auth-Source
-;; built-in authentication source
+;; built-in: authentication source
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/auth.html][auth-source docs]]
 (use-package auth-source
-  :straight (:type built-in)
-  :defer t
-  :config
+  :ensure nil
+  :init
   (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
                        ,(f-expand "~/.ssh/.authinfo")
                        macos-keychain-generic
-                       macos-keychain-internet)
-        auth-source-do-cache t))
+                       macos-keychain-internet))
+  (setq auth-source-do-cache t))
 
 ;;;;; epa
-;; EasyPG assistant Emacs native support for GnuPG implementation of the OpenPGP standard
+;; built-in: EasyPG assistant for GnuPG implementation of the OpenPGP standard
 ;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
 (use-package epa
-  :ensure t
-  :straight (:type built-in)
-  :config
+  :ensure nil
+  :init
   (setq epa-replace-original-text 'ask)
   ;;(epa-file-enable)
   )
 
 ;;;;; epq
-;; EasyPG Emacs native support for GnuPG implementation of the OpenPGP standard
+;; built-in: EasyPG for GnuPG implementation of the OpenPGP standard
 ;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
 (use-package epg
-  :straight (:type built-in)
-  :config
+  :ensure nil
+  :init
   (setq epg-pinentry-mode 'loopback))
 
 ;;;;; Gnutls
-;; GnuTLS is a library that establishes encrypted SSL or TLS connections.
+;; built-in: GnuTLS is a library that establishes encrypted SSL or TLS connections.
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/emacs-gnutls.html][Emacs GnuTLS]]
 (use-package gnutls
-  :straight (:type built-in)
-  :config
+  :ensure nil
+  :init
   (setq gnutls-verify-error t
         gnutls-min-prime-bits 2048
         tls-checktrust gnutls-verify-error)
   (gnutls-available-p))
 
 ;;;;; keychain-environment
-;; - set up any SSH or GPG keychains that the Keychain tool has set up for us
-;; - https://github.com/tarsius/keychain-environment
+;; set up any SSH or GPG keychains that the Keychain tool has set up for us
+;; https://github.com/tarsius/keychain-environment
 (use-package keychain-environment
   :ensure-system-package keychain
   :hook (emacs-startup . keychain-refresh-environment))
 
 ;;;;; Emacs-lock
-;; built-in package to lock buffer from kill and/or Emacs from exiting
+;; built-in: lock buffer from kill and/or Emacs from exiting
 ;; [[https://www.emacswiki.org/emacs/ProtectingBuffers][Emacs-Lock Wiki]]
 (use-package emacs-lock
   :blackout ""
-  :straight (:type built-in))
+  :ensure nil)
 
 
 ;;;; help
 ;;;;; help
-;; help mode settings
+;; built-in: help mode settings
 ;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/help-mode.el][help-mode.el]]
 (use-package help
-  :straight (:type built-in)
+  :ensure nil
   :init
   (add-hook 'help-mode-hook #'visual-line-mode)
   (setq help-window-select 'always)
   (advice-add 'help-window-display-message :override #'ignore))
 
 ;;;;; which-key
-;; - minibuffer keybinding prompts
-;; - https://github.com/justbur/emacs-which-key
+;; built-in: minibuffer keybinding prompts
+;; https://github.com/justbur/emacs-which-key
 (use-package which-key
-  :straight (:type built-in)
+  :ensure nil
   :hook (emacs-startup . which-key-mode)
-  :bind* (("C-h h" . which-key-show-top-level)
+  :bind (("C-h h" . which-key-show-top-level)
           ("C-h M-m" . which-key-show-major-mode))
   :commands which-key-mode
-  :config
+  :init
   (setq which-key-use-C-h-commands t
         which-key-separator " "
         which-key-prefix-prefix "+"))
@@ -1071,8 +1044,10 @@ Return its absolute path.  Otherwise, return nil."
 ;; helpful is an improved help-fns & help-fns+
 ;; https://github.com/Wilfred/helpful
 (use-package helpful
-  :straight (helpful :type git :host github :repo "Wilfred/helpful")
-  :bind* (("C-c C-d" . helpful-at-point)
+  :vc (:url "https://github.com/Wilfred/helpful"
+            :rev :newest
+            :branch "master")
+  :bind (("C-h ." . helpful-at-point)
           ("C-h x" . helpful-command)
           ("C-h k" . helpful-key) ; C-h k
           ("C-h v" . helpful-variable) ; C-h v
@@ -1088,18 +1063,11 @@ Return its absolute path.  Otherwise, return nil."
 
 (use-package casual-calc
   :after calc
-  :bind* (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
-
-(use-package casual-info
-  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
+  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
 
 (use-package casual-dired
   :after dired
   :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
-
-(use-package casual-avy
-  :after avy
-  :bind ("H-/" . casual-avy-tmenu))
 
 (use-package casual-isearch
   :after isearch
@@ -1120,12 +1088,13 @@ Return its absolute path.  Otherwise, return nil."
          ("]" . ibuffer-forward-filter-group)  ; optional
          ("$" . ibuffer-toggle-filter-group))) ; optional
 
+(use-package casual-info
+  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
+
 (use-package casual-re-builder
   :after re-builder
-  :bind (:map
-         reb-mode-map ("C-o" . casual-re-builder-tmenu)
-         :map
-         reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
+  :bind (:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
 
 (use-package casual-bookmarks
   :after bookmark
@@ -1136,48 +1105,54 @@ Return its absolute path.  Otherwise, return nil."
 
 (use-package casual-agenda
   :after org-agenda
-  :bind (:map
-         org-agenda-mode-map
+  :bind (:map org-agenda-mode-map
          ("C-o" . casual-agenda-tmenu)
          ("M-j" . org-agenda-clock-goto) ; optional
          ("J" . bookmark-jump))) ; optional
+
+(use-package casual-avy
+  :after avy
+  :bind ("H-/" . casual-avy-tmenu))
+
+(use-package casual-symbol-overlay
+  :after symbol-overlay
+  :bind ("C-o" . casual-symbold-overlay-tmenu))
 
 ;;; user interface
 ;;;; themes
 ;;;;; tron-legacy-theme
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
 (use-package tron-legacy-theme
-  :demand t
-  :preface
+  :init
   (setq tron-legacy-theme-vivid-cursor t)
   (setq tron-legacy-theme-dark-fg-bright-comments nil)
   (setq tron-legacy-theme-softer-bg nil)
-  ;; :config
+  ;; :init
   ;; (load-theme 'tron-legacy :no-confirm))
   )
 
 ;;;;; modus-themes
-;; current preferred theme
+;; built-in: theme
 ;; [[https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111][modus-theme-manual]]
-(use-package tron-legacy-theme
-  :straight (:type built-in)
+;; current preferred theme
+(use-package modus-themes
+  :ensure nil
   :bind ("C-c C-t" . modus-themes-toggle)
   :custom
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs nil)
   (modus-themes-mixed-fonts t)
-  (modus-themes-to-toggle
-   '(modus-operandi-tinted modus-vivendi))
+  (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi))
   :init
   (load-theme 'modus-vivendi :no-confirm))
 
 
 ;;;; frames
 ;;;;; frame
-;; built-in frame package
+;; built-in: frame package
 (use-package frame
-  :straight (:type built-in)
-  :bind* (; super combo
+  :ensure nil
+  :bind (; super combo
           ("s-4" . dired-other-frame)
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
@@ -1198,8 +1173,7 @@ Return its absolute path.  Otherwise, return nil."
         window-divider-default-right-width 1
         frame-title-format '("Emacs - %b")
         icon-title-format frame-title-format
-        undelete-frame-mode t
-        )
+        undelete-frame-mode t    )
 
   (unless (display-graphic-p)
     (menu-bar-mode -1))
@@ -1216,36 +1190,66 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size (selected-frame)  (- (display-pixel-width) (if sys/macp (eval 13) (eval 25)))
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1))
+    (set-frame-size (selected-frame)
+                    (- (display-pixel-width)
+                       (if sys/macp (eval 13)
+                         (eval 25)))
+                    (- (display-pixel-height)
+                       (- (frame-outer-height)
+                          (frame-inner-height)
+                          sej/menu-height))
+                    1))
 
   (defun sej/frame-resize-l ()
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1))
+    (set-frame-size
+     (selected-frame)
+     (- (truncate (/ (display-pixel-width) 2)) 14)
+     (- (display-pixel-height)
+        (- (frame-outer-height)
+           (frame-inner-height) sej/menu-height))
+     1))
 
   (defun sej/frame-resize-l2 ()
     "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1)  )
+    (set-frame-size
+     (selected-frame)
+     (- (truncate (/ (display-pixel-width) 4)) 0)
+     (- (display-pixel-height)
+        (- (frame-outer-height)
+           (frame-inner-height) sej/menu-height))
+     1)  )
 
   (defun sej/frame-resize-r ()
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
-    (set-frame-position (selected-frame) (- (truncate (/ (display-pixel-width) 2)) 0) 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 2)) 14)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height) sej/menu-height)) 1)  )
+    (set-frame-position (selected-frame)
+                        (- (truncate (/ (display-pixel-width) 2)) 0) 0)
+    (set-frame-size
+     (selected-frame)
+     (- (truncate (/ (display-pixel-width) 2)) 14)
+     (- (display-pixel-height)
+        (- (frame-outer-height)
+           (frame-inner-height) sej/menu-height))
+     1)  )
 
   (defun sej/frame-resize-r2 ()
     "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
-    (set-frame-position (selected-frame) (- (/ (display-pixel-width) 2) (frame-pixel-width)) 0)
-    (set-frame-size (selected-frame)  (- (truncate (/ (display-pixel-width) 4)) 0)
-                    (- (display-pixel-height) (- (frame-outer-height) (frame-inner-height)) sej/menu-height) 1)  )
+    (set-frame-position (selected-frame)
+                        (- (/ (display-pixel-width) 2)
+                           (frame-pixel-width)) 0)
+    (set-frame-size
+     (selected-frame)
+     (- (truncate (/ (display-pixel-width) 4)) 0)
+     (- (display-pixel-height)
+        (- (frame-outer-height)
+           (frame-inner-height)) sej/menu-height)
+     1)  )
 
   (when sys/mac-x-p
     (setq ns-use-native-fullscreen nil))
@@ -1269,11 +1273,11 @@ If FRAME is omitted or nil, use currently selected frame."
         (apply 'set-frame-position (flatten-list (list frame center)))))))
 
 ;;;;; fringe
-;; fringe-mode
+;; built-in: fringe-mode
 ;; [[https://www.emacswiki.org/emacs/TheFringe][The Fringe wiki]]
 ;; [[https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/][Customizing the Fringes]]
 (use-package fringe
-  :straight (:type built-in)
+  :ensure nil
   :if window-system
   :init
   (fringe-mode '(4 . 4)))
@@ -1294,23 +1298,23 @@ If FRAME is omitted or nil, use currently selected frame."
 (setq-default bs-default-configuration "all-intern-last")
 
 ;;;;; sej/dos2unix
-;; - convert the current buffer to UNIX file format
-;; - not bound
+;; convert the current buffer to UNIX file format
+;; not bound
 (defun sej/dos2unix ()
   "Convert the current buffer to UNIX file format."
   (interactive)
   (set-buffer-file-coding-system 'undecided-unix nil))
 
 ;;;;; sej/unix2dos
-;; - convert the current buffer to DOS file format
-;; - not bound
+;; convert the current buffer to DOS file format
+;; not bound
 (defun sej/unix2dos ()
   "Convert the current buffer to DOS file format."
   (interactive)
   (set-buffer-file-coding-system 'undecided-dos nil))
 
 ;;;;; sej/save-buffer-as-utf8
-;; - revert a buffer with coding-system and save as utf-8
+;; revert a buffer with coding-system and save as utf-8
 (defun sej/save-buffer-as-utf8 (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
@@ -1336,8 +1340,8 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; scratch buffer
 ;;;;; scratch buffer set-up
-;; - initial message
-;; - bury don't kill scratch
+;; initial message
+;; bury don't kill scratch
 (setq initial-scratch-message "")
 (defun kill-buffer-around-advice (kill-current-buffer &rest args)
   "Bury the *scratch* buffer, but never kill it when using KILL-CURRENT-BUFFER ARGS."
@@ -1348,8 +1352,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (advice-add 'kill-current-buffer :around #'kill-buffer-around-advice)
 
 ;;;;; sej/create-scratch-buffer
-;; - as name suggests
-;; - defined as C-c b
+;; as name suggests
 (defun sej/create-scratch-buffer nil
   "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
   (interactive)
@@ -1369,10 +1372,9 @@ If FRAME is omitted or nil, use currently selected frame."
 (bind-key* "C-q C-s" 'scratch-buffer)
 
 ;;;;; persistent-scratch
-;; - keep the scratch buffer from session to session
-;; - https://github.com/Fanael/persistent-scratch
+;; keep the scratch buffer from session to session
+;; https://github.com/Fanael/persistent-scratch
 (use-package persistent-scratch
-  :straight (persistent-scratch :type git :host github :repo "Fanael/persistent-scratch")
   :preface
   (defun my-save-buffer ()
     "Save scratch and other buffer."
@@ -1391,14 +1393,14 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; windows
 ;;;;; window key-bindings
-;; super versions of C-x window bindings
+;; built-in: super versions of C-x window bindings
 (use-package window
-  :straight (:type built-in)
-  :bind* (("s-0" . delete-window)
-          ("s-1" . delete-other-windows)
-          ("s-2" . split-window-vertically)
-          ("s-3" . split-window-right)
-          ("s-7" . sej/quit-other)
+  :ensure nil
+  :bind (("H-0" . delete-window)
+          ("H-1" . delete-other-windows)
+          ("H-2" . split-window-vertically)
+          ("H-3" . split-window-right)
+          ("C-x K" . sej/quit-other)
 
           ;; wind move to multifram window
           ("M-'" . next-multiframe-window)
@@ -1415,49 +1417,43 @@ If FRAME is omitted or nil, use currently selected frame."
   :init
   (setq window-combination-resize t
         even-window-sizes 'height-only
-        window-sides-vertical nil))
+        window-sides-vertical nil)
 
-(defun sej/quit-other()
-  "Quit other window."
-  (interactive)
-  (save-excursion
-    (other-window 1)
-    (quit-window)))
+  (defun sej/quit-other()
+    "Quit other window."
+    (interactive)
+    (save-excursion
+      (other-window 1)
+      (quit-window)))
 
-(defun sej/scroll-up-one()
-  "Scroll up one to avoid lambda."
-  (interactive)
-  (scroll-up 1))
+  (defun sej/scroll-up-one()
+    "Scroll up one to avoid lambda."
+    (interactive)
+    (scroll-up 1))
 
-(defun sej/scroll-down-one()
-  "Scroll down one to avoid lambda."
-  (interactive)
-  (scroll-down 1))
+  (defun sej/scroll-down-one()
+    "Scroll down one to avoid lambda."
+    (interactive)
+    (scroll-down 1)))
 
 ;;;;; ace-window
-;; - quickly selecting a window to switch to
-;; - C-u prefex to move window
-;; - C-u C-u prefex to delete window
-;; - https://github.com/abo-abo/ace-window
+;; quickly selecting a window to switch to
+;; C-u prefex to move window
+;; C-u C-u prefex to delete window
+;; https://github.com/abo-abo/ace-window
 (use-package ace-window
-  :straight (ace-window :type git :host github :repo "abo-abo/ace-window")
-  :bind* (("C-x o" . ace-window)
+  :bind (("C-x o" . ace-window)
           ("M-o" . ace-window))
-  :custom-face
-  (aw-leading-char-face ((t (:inherit error :bold t :height 1.1))))
-  (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
-  :hook (emacs-startup . ace-window-display-mode)
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+  :hook (emacs-startup . ace-window-display-mode))
 
 ;;;;; winner
-;; - Restore old window configurations
-;; - [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
+;; built-in: Restore old window configurations
+;; [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
 (use-package winner
-  :straight (:type built-in)
+  :ensure nil
   :hook (emacs-startup . winner-mode)
   :commands (winner-undo winner-redo)
-  :bind* (("C-c <left>" . winner-undo)
+  :bind (("C-c <left>" . winner-undo)
           ("C-c <right>" . winner-redo))
   :config
   (setq winner-boring-buffers '("*Completions*"
@@ -1473,11 +1469,11 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; tabs
 ;;;;; tab-bar
-;; - built-in tabs for virtual desktops
-;; - C-x t prefix
-;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][tab bars Emacs manual]]
+;; built-in: tabs for virtual desktops
+;; C-x t prefix
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][tab bars Emacs manual]]
 (use-package tab-bar
-  :straight (:type built-in)
+  :ensure nil
   :bind (("M-["  . tab-bar-history-back)
          ("M-]" . tab-bar-history-forward))
   :config
@@ -1497,8 +1493,8 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; mode-line
 ;;;;; doom-modeline
-;; - A fancy and fast mode-line inspired by minimalism design
-;; - https://github.com/seagle0128/doom-modeline
+;; A fancy and fast mode-line inspired by minimalism design
+;; https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode))
 
@@ -1559,10 +1555,10 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;; text manipulation
 ;;;; text manipulation settings
 ;;;;; saveplace
-;; automatically save place in files so return to same place in next session
+;; built-in: automatically save place in files so return to same place in next session
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el
 (use-package saveplace
-  :straight (:type built-in)
+  :ensure nil
   :hook (emacs-startup . save-place-mode)
   :custom
   (save-place-forget-unreadable-files t))
@@ -1570,8 +1566,8 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; multi-edit
 ;;;;; multiple cursors
-;; - Multiple cursors
-;; - https://github.com/magnars/multiple-cursors.el
+;; Multiple cursors
+;; https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
   :bind (( ("C-S-c C-S-c"   . mc/edit-lines)
            ("C->"           . mc/mark-next-like-this)
@@ -1586,10 +1582,10 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; search
 ;;;;; isearch
-;; built-in search function
+;; built-in: search function
 ;; [[https://github.com/VernonGrant/discovering-emacs/blob/main/show-notes/3-making-incremental-search-work-for-you.md][good tutorial]]
 (use-package isearch
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq search-highlight t
         search-whitespace-regexp ".*?"
@@ -1617,8 +1613,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; good query replace search
 ;; [[https://github.com/emacsorphanage/anzu][anzu.el]]
 (use-package anzu
-  :blackout t
-  :bind*  (([remap query-replace] . anzu-query-replace-regexp)
+  :bind  (([remap query-replace] . anzu-query-replace-regexp)
            ("C-H-r" . anzu-query-replace)
            ("C-H-S-r" . anzu-replace-at-cursor)
            :map isearch-mode-map
@@ -1627,8 +1622,8 @@ If FRAME is omitted or nil, use currently selected frame."
   (global-anzu-mode))
 
 ;;;;; consult-ag
-;; - searching with the silver searcher, consult style
-;; - [[https://github.com/yadex205/consult-ag][consult-ag.el]]
+;; searching with the silver searcher, consult style
+;; [[https://github.com/yadex205/consult-ag][consult-ag.el]]
 (use-package consult-ag
   :after consult
   :commands consult-ag
@@ -1637,16 +1632,19 @@ If FRAME is omitted or nil, use currently selected frame."
               ("a" . consult-ag)))
 
 ;;;;; re-builder
-;; - set built in regex helper to string format
-;; - https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
+;; built-in: regex helper to string format
+;; https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
 (use-package re-builder
-  :straight (re-builder :type built-in)
+  :ensure nil
   :config (setq reb-re-syntax 'read))
 
 ;;;;; bookmark+
-;; - enhancements to the built-in bookmark package
-;; - [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1][bookmarks+]]
+;; enhancements to the built-in bookmark package
+;; [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1]
 (use-package bookmark+
+  :vc (:url "https://github.com/fnoon/BookmarkPlus"
+            :rev :newest
+            :branch "master")
   :init
   (setq bookmark-use-annotations nil)
   (setq bookmark-automatically-show-annotations t)
@@ -1658,12 +1656,11 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; completion
 ;;;;; abbrev
-;; - for inserting abbreviations
-;; - https://www.emacswiki.org/emacs/AbbrevMode
+;; built-in: for inserting abbreviations
+;; https://www.emacswiki.org/emacs/AbbrevMode
 (use-package abbrev
-  :straight (abbrev :type built-in)
+  :ensure nil
   :hook ((emacs-startup org-mode) . abbrev-mode)
-  :blackout
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
         (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
@@ -1675,10 +1672,10 @@ If FRAME is omitted or nil, use currently selected frame."
       ("orgs" "" sej/org-wrap-source 0))))
 
 ;;;;; dabbrev
-;; built-in package to let you write just a few characters of words you've written
+;; built-in: to let you write just a few characters of words you've written
 ;; earlier to be able to expand them.
 (use-package dabbrev
-  :straight (:type built-in)
+  :ensure nil
   :commands (dabbrev-expand
              dabbrev-completion)
   ;; Use Dabbrev with Corfu!
@@ -1702,12 +1699,12 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 ;;;;; hippie-expand
-;; - built-in package to expand at point in various ways
-;; - https://www.emacswiki.org/emacs/HippieExpand
+;; built-in: expand at point in various ways
+;; https://www.emacswiki.org/emacs/HippieExpand
 
 (use-package hippie-expand
-  :straight (hippie-expand :type built-in)
-  :bind* ("M-/" . hippie-expand)
+  :ensure nil
+  :bind ("M-/" . hippie-expand)
   :init
   (setq hippie-expand-try-functions-list
         '(try-expand-dabbrev-visible
@@ -1724,10 +1721,9 @@ If FRAME is omitted or nil, use currently selected frame."
           try-expand-line-all-buffers)))
 
 ;;;;; vertico
-;; - alternative to ivy, ido, helm
-;; - [[https://github.com/minad/vertico][vertico]]
+;; alternative to ivy, ido, helm
+;; [[https://github.com/minad/vertico][vertico]]
 (use-package vertico
-  :demand t
   :hook (emacs-startup . vertico-mode)
   :config
   ;; Different scroll margin
@@ -1745,10 +1741,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; vertico-directory
 ;; Configure directory extension.
 (use-package vertico-directory
-  :straight nil
   :after vertico
-  :demand t
-  :load-path "straight/build/vertico/extensions/"
+  :ensure nil
   ;; More convenient directory navigation commands
   :bind (:map vertico-map
               ("RET" . vertico-directory-enter)
@@ -1791,6 +1785,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; See also `corfu-excluded-modes'.
   :init
   (global-corfu-mode)
+  (setq corfu-auto-delay 1)
 
   :config
   ;; (setq global-corfu-modes '((not markdown-mode) t))
@@ -1830,8 +1825,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
 
   (use-package corfu-history
-    :straight nil
-    :load-path "straight/build/corfu/extensions"
+    :ensure nil
     :demand t
     :init
     (savehist-mode 1)
@@ -1839,26 +1833,25 @@ If FRAME is omitted or nil, use currently selected frame."
     :config
     (corfu-history-mode t))
   (use-package corfu-indexed
-    :straight nil
-    :load-path "straight/build/corfu/extensions"
+    :ensure nil
     :demand t
-    :config
+    :init
     (corfu-indexed-mode t))
   (use-package corfu-popupinfo
-    ;; :disabled t
-    :straight nil
-    :load-path "straight/build/corfu/extensions"
+    :ensure nil
     :demand t
-    :config
+    :init
     (corfu-popupinfo-mode t))
   
   (use-package corfu-terminal
     :unless (display-graphic-p)
     :init
     (corfu-terminal-mode +1)  )
+  
   (use-package corfu-doc-terminal
-    :straight (corfu-doc-terminal :type git
-                                  :repo "https://codeberg.org/akib/emacs-corfu-doc-terminal.git")
+    :vc (:url "https://codeberg.org/akib/emacs-corfu-doc-terminal"
+              :rev :newest
+              :branch "master")
     :unless (display-graphic-p)
     :init
     (corfu-doc-terminal-mode +1) ) )
@@ -1869,11 +1862,10 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
 (use-package cape
-  :demand t
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind* ("s-/" . completion-at-point) ;; capf
-  :bind ("A-/" . cape-prefix-map)
+  :bind ("s-/" . completion-at-point) ;; capf
+  :bind-keymap ("A-/" . cape-prefix-map)
   :init
   ;; completion functions takes precedence over the global list.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1894,9 +1886,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Enable richer annotations using the Marginalia package
 ;; [[https://github.com/minad/marginalia][marginalia]]
 (use-package marginalia
-  :ensure t
   :hook (emacs-startup . marginalia-mode)
-  :bind (;; ("M-A" . marginalia-cycle)
+  :bind (:map completion-list-mode-map
+              ("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
   :init
@@ -1907,7 +1899,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; and matches candidates that match all of the components in any order.
 ;; [[https://github.com/oantolin/orderless][orderless]]
 (use-package orderless
-  :ensure t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
@@ -1917,25 +1908,24 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; sorts and filters lists of candidates
 ;; [[https://github.com/radian-software/prescient.el][prescient]]
 (use-package prescient
-  :straight (:type git :host github :repo "radian-software/prescient.el" :files ("*.el"))
-  :demand t
   :hook (emacs-startup . prescient-persist-mode)
   :init
-  (add-to-list 'completion-styles 'prescient)
-  :config
-  (use-package vertico-prescient
-    :load-path "straight/build/prescient"
-    :hook (vertico-mode . vertico-prescient-mode))
-  (use-package corfu-prescient
-    :load-path "straight/build/prescient"
-    :hook (corfu-mode . corfu-prescient-mode)))
+  (add-to-list 'completion-styles 'prescient))
+
+(use-package vertico-prescient
+  :after prescient
+  :hook (vertico-mode . vertico-prescient-mode))
+
+(use-package corfu-prescient
+  :after prescient
+  :hook (corfu-mode . corfu-prescient-mode))
 
 ;;;;; embark
 ;; acting on targets
 ;; [[https://github.com/oantolin/embark/][embark]]
 (use-package embark
   :ensure t
-  :bind*  (("C-." . embark-act)        ;; pick some comfortable binding
+  :bind  (("C-." . embark-act)        ;; pick some comfortable binding
            ("M-." . embark-dwim)        ;; good alternative: M-.
            ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
            ("C-s-e" . embark-export)
@@ -1958,17 +1948,15 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :ensure t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;;;; consult
-;; - completing read
-;; - [[https://github.com/minad/consult][consult]]
+;; completing read
+;; [[https://github.com/minad/consult][consult]]
 (use-package consult
-  :demand t
   ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind* (("H-M-," . consult-recent-xref)
+  :bind (("H-M-," . consult-recent-xref)
           ;; C-c bindings (mode-specific-map)
           ("C-c k" . consult-kmacro)
           ("C-c h" . consult-history)
@@ -2129,8 +2117,8 @@ If FRAME is omitted or nil, use currently selected frame."
               fill-column 160)
 
 ;;;;; dtrt-indent
-;; - automatically set the right indent for other people's files
-;; - https://github.com/jscheid/dtrt-indent
+;; automatically set the right indent for other people's files
+;; https://github.com/jscheid/dtrt-indent
 (use-package dtrt-indent
   :hook (emacs-startup . dtrt-indent-mode)
   :blackout)
@@ -2146,17 +2134,16 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; history packages
 ;;;;; vundo
-;; - visual undo displays the undo history as a tree
-;; - [[https://github.com/casouri/vundo][vundo]]
+;; visual undo displays the undo history as a tree
+;; [[https://github.com/casouri/vundo]]
 (use-package vundo
   :blackout t
   :bind ("C-z" . vundo))
 
 ;;;;; recentf
-;; - recent file history list settings
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
+;; built-in: recent file history list settings
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
 (use-package recentf
-  :straight (recentf :type built-in)
   :hook (emacs-startup . recentf-mode)
   :init
   (setq recentf-max-saved-items 2000
@@ -2175,10 +2162,10 @@ If FRAME is omitted or nil, use currently selected frame."
                           "COMMIT_EDITMSG\\'"))  )
 
 ;;;;; savehist
-;; - recent buffer history settings
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
+;; built-in: recent buffer history settings
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
 (use-package savehist
-  :straight (savehist :type built-in)
+  :ensure nil
   :hook (emacs-startup . savehist-mode)
   :custom
   (history-delete-duplicates t)
@@ -2196,18 +2183,18 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;; movement
 ;;;;; mwim
-;; - better than crux for C-e mwim-end
-;; - will cycle between end of code and end-of-code plus comments
-;; - https://github.com/alezost/mwim.el
+;; better than crux for C-e mwim-end
+;; will cycle between end of code and end-of-code plus comments
+;; https://github.com/alezost/mwim.el
 (use-package mwim
-  :bind* (("C-a" . mwim-beginning) ; C-a Cycles between Absolute and Logical line beginning
+  :bind (("C-a" . mwim-beginning) ; C-a Cycles between Absolute and Logical line beginning
           ("C-e" . mwim-end))) ; C-e better than crux
 
 ;;;;; avy
-;; - Jump to things in Emacs tree-style
-;; - https://github.com/abo-abo/avy
+;; Jump to things in Emacs tree-style
+;; https://github.com/abo-abo/avy
 (use-package avy
-  :bind* (("H-'" . avy-goto-char-timer)
+  :bind (("H-'" . avy-goto-char-timer)
           ("M-g l" . avy-goto-line)
           ("C-H-." . avy-pop-mark)
           ("H-l" . avy-goto-line)
@@ -2381,30 +2368,27 @@ If called with a prefix argument, query for word to search."
                (other-window (- next)))))))
 
 ;;;;; goto-chg
-;; - goto the last changes made in buffer
-;; - https://github.com/emacs-evil/goto-chg
+;; goto the last changes made in buffer
+;; https://github.com/emacs-evil/goto-chg
 (use-package goto-chg
-  :bind* (("H-." . goto-last-change)
+  :bind (("H-." . goto-last-change)
           ("H-," . goto-last-change-reverse)) )
 
 ;;;;; beginend
-;; - smart moves redefining M-< and M-> for some modes
-;; - [[https://github.com/DamienCassou/beginend]]
+;; smart moves redefining M-< and M-> for some modes
+;; [[https://github.com/DamienCassou/beginend]]
 (use-package beginend               ; smart M-< & M->
-  :straight t
-  :ensure t
-  :demand t
-  :blackout beginend-global-mode
+  :bind (("M-<" . beginning-of-buffer)
+         ("M->" . end-of-buffer))
   :config
   (dolist (mode (cons 'beginend-global-mode (mapcar #'cdr beginend-modes)))
     (blackout mode))
   (beginend-global-mode))
 
 ;;;;; subword
-;; - Handling capitalized subwords in a nomenclature
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
+;; built-in: Handling capitalized subwords in a nomenclature
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/subword.el
 (use-package subword
-  :straight (subword :type built-in)
   :blackout t
   :hook (emacs-startup . subword-mode)
   :config
@@ -2416,17 +2400,17 @@ If called with a prefix argument, query for word to search."
 ;; - underscore -> UPCASE -> Camelcase conversion
 ;; - https://github.com/akicho8/string-inflection
 (use-package string-inflection
-  :bind* (("M-u" . string-inflection-all-cycle)))
+  :bind (("M-u" . string-inflection-all-cycle)))
 
 
 ;;;; regions
 ;;;;; easy-kill-extras
-;; - This package contains extra functions for easy-kill/easy-mark.
-;; - Kill & Mark things easily
-;; - https://github.com/leoliu/easy-kill
-;; - https://github.com/knu/easy-kill-extras.el
+;; This package contains extra functions for easy-kill/easy-mark.
+;; Kill & Mark things easily
+;; https://github.com/leoliu/easy-kill
+;; https://github.com/knu/easy-kill-extras.el
 (use-package easy-kill-extras
-  :bind* (("M-w" . easy-kill) ; M-w
+  :bind (("M-w" . easy-kill) ; M-w
           ([remap mark-sexp] . easy-mark-sexp) ; C-M-<SPC>
           ("M-@" . easy-mark-word) ; M-@
           ("H-<SPC>" . easy-mark) ; H-<SPC>
@@ -2449,35 +2433,35 @@ If called with a prefix argument, query for word to search."
                           (?T string-up-to-char-backward ""))))
 
 ;;;;; delsel
-;; - Do not delete selection if you insert
-;; - https://github.com/typester/emacs/blob/master/lisp/delsel.el
+;; built-in: Do not delete selection if you insert
+;; https://github.com/typester/emacs/blob/master/lisp/delsel.el
 (use-package delsel
-  :straight (:type built-in)
+  :ensure nil
   :hook (emacs-startup . delete-selection-mode))
 
 ;;;;; rect
-;; - Rectangle
+;; built-in: Rectangle
 ;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el
 (use-package rect
-  :straight (:type built-in))
+  :ensure nil)
 
 ;;;;; drag-stuff
-;; - Drag stuff (lines, words, region, etc...) around
-;; - https://github.com/rejeep/drag-stuff.el
+;; Drag stuff (lines, words, region, etc...) around
+;; https://github.com/rejeep/drag-stuff.el
 (use-package drag-stuff
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
-  :bind* (("M-<down>" . drag-stuff-down)
+  :bind (("M-<down>" . drag-stuff-down)
           ("M-<up>" . drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode))
 
 ;;;; url actions
 ;;;;; sej/url-insert
-;; - improved from jcs (Irreal) blog to copy url from safari and paste at point
-;; - https://irreal.org/blog/?p=2895
+;; improved from jcs (Irreal) blog to copy url from safari and paste at point
+;; https://irreal.org/blog/?p=2895
 (when sys/macp
-  (defun sej/url-insert (desc)
+  (defun sej/url-insert-safari (desc)
     "Retrieve URL from current Safari page and prompt for description.
       Insert an Org link at point."
     (interactive "sLink Description (None to display url): ")
@@ -2486,11 +2470,23 @@ If called with a prefix argument, query for word to search."
           (insert (format "[[%s][%s]]" (org-trim link) desc))
         (insert (format "[[%s]]" (org-trim link)))) ))
 
-  (bind-key* "C-H-u" 'sej/url-insert))
+  (bind-key* "C-H-u" 'sej/url-insert-safari))
+
+(when sys/macp
+  (defun sej/url-insert-edge (desc)
+    "Retrieve URL from current Safari page and prompt for description.
+      Insert an Org link at point."
+    (interactive "sLink Description (None to display url): ")
+    (let ((link (do-applescript "tell application \"Microsoft Edge\" to return URL of active tab of front window")))
+      (if (> (length desc) 0)
+          (insert (format "[[%s][%s]]" (org-trim link) desc))
+        (insert (format "[[%s]]" (org-trim link)))) ))
+
+  (bind-key* "C-H-i" 'sej/url-insert-edge))
 
 ;;;;; sej/url-git-clone-from-clipboard
-;; - from Alvaro Ramirez function to git clone from url in clipboard mods by me
-;; - [[http://xenodium.com/emacs-clone-git-repo-from-clipboard/][git-clone-from-clipboard-url]]
+;; from Alvaro Ramirez function to git clone from url in clipboard mods by me
+;; [[http://xenodium.com/emacs-clone-git-repo-from-clipboard/][git-clone-from-clipboard-url]]
 (when sys/macp
   (defun sej/url-git-clone-from-clipboard ()
     "Clone git URL in clipboard asynchronously and open in Dired when finished."
@@ -2530,8 +2526,8 @@ If called with a prefix argument, query for word to search."
   (bind-key "C-H-c" 'sej/url-git-clone-from-clipboard))
 
 ;;;;; ace-link
-;; - Quickly follow links
-;; - [[https://github.com/abo-abo/ace-link]]
+;; Quickly follow links
+;; [[https://github.com/abo-abo/ace-link]]
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
          :map org-mode-map
@@ -2543,19 +2539,13 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/tarsius/orglink][orglink]]
 (use-package orglink
   :blackout t
-  :straight (:type git :host github :repo "tarsius/orglink")
-  :hook (dashboard-mode . global-orglink-mode)
-  ;; :config
-  ;; (if sys/freebsdp (message "no orglink")
-  ;; (add-hook  'emacs-startup #'global-orglink-mode) )
-  ;; (add-hook  'emacs-startup #'global-orglink-mode)
-  )
+  :hook (dashboard-mode . global-orglink-mode))
 
 ;;;;; restclient
-;; - Allows query of a restclient with the results left into the buffer
-;; - use GET or POST plus http:10.0.1.1/rest/
+;; Allows query of a restclient with the results left into the buffer
+;; use GET or POST plus http:10.0.1.1/rest/
 ;; then use C-c to execute (check examples directory for more)
-;; - https://github.com/pashky/restclient.el
+;; https://github.com/pashky/restclient.el
 (use-package restclient)
 
 
@@ -2578,8 +2568,8 @@ If called with a prefix argument, query for word to search."
     (buffer-face-mode))    )
 
 ;;;;; symbol-overlay
-;; - Highlight symbols and move between them
-;; - https://github.com/wolray/symbol-overlay
+;; Highlight symbols and move between them
+;; https://github.com/wolray/symbol-overlay
 (use-package symbol-overlay
   :blackout t
   :defines iedit-mode
@@ -2605,8 +2595,8 @@ If called with a prefix argument, query for word to search."
   (symbol-overlay-mode -1))
 
 ;;;;; highlight-numbers
-;; - hightlight-numbers in a special way
-;; - https://github.com/Fanael/highlight-numbers
+;; hightlight-numbers in a special way
+;; https://github.com/Fanael/highlight-numbers
 (use-package highlight-numbers
   :hook (prog-mode . highlight-numbers-mode))
 
@@ -2616,10 +2606,12 @@ If called with a prefix argument, query for word to search."
   :hook (emacs-lisp-mode . highlight-quoted-mode))
 
 ;;;;; indent-bars
-;; - Highlight indentations
-;; - [[https://github.com/jdtsmith/indent-bars]]
+;; Highlight indentations
+;; [[https://github.com/jdtsmith/indent-bars]]
 (use-package indent-bars
-  :straight (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
+  :vc (:url "https://github.com/jdtsmith/indent-bars"
+            :rev :newest
+            :branch "main")
   :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
   :custom
   (indent-bars-prefer-character t)
@@ -2636,8 +2628,8 @@ If called with a prefix argument, query for word to search."
 
 
 ;;;;; rainbow-mode
-;; - Colorize color names in buffers
-;; - https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
+;; Colorize color names in buffers
+;; https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
 (use-package rainbow-mode
   :blackout t
   :hook (prog-mode . rainbow-mode)
@@ -2655,8 +2647,8 @@ If called with a prefix argument, query for word to search."
   (define-key ctl-x-x-map "c" #'rainbow-mode)) ; C-x x c
 
 ;;;;; hl-todo
-;; - Highlight TODO and similar keywords in comments and strings
-;; - https://github.com/tarsius/hl-todo
+;; Highlight TODO and similar keywords in comments and strings
+;; https://github.com/tarsius/hl-todo
 (use-package hl-todo
   :custom-face
   (hl-todo ((t (:box t :inherit))))
@@ -2668,6 +2660,7 @@ If called with a prefix argument, query for word to search."
               ("C-c t n" . hl-todo-next)
               ("H-P" . hl-todo-previous)
               ("H-N" . hl-todo-next) )
+  :bind-keymap ("C-q T" . hl-todo-mode-map)
   :hook ((emacs-startup . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
@@ -2698,18 +2691,18 @@ If called with a prefix argument, query for word to search."
   (push 'org-mode hl-todo-include-modes))
 
 ;;;;; volatile-highlights
-;; - Highlight some buffer region operations
-;; - https://github.com/k-talo/volatile-highlights.el
+;; Highlight some buffer region operations
+;; https://github.com/k-talo/volatile-highlights.el
 (use-package volatile-highlights
   :blackout t
   :hook (emacs-startup . volatile-highlights-mode))
 
 ;;;;; Pulsar
-;; [[https://protesilaos.com/emacs/pulsar][pulsar]]
 ;; small package that temporarily highlights the current line after a given function is invoked
 ;; additional to built-in pulse
+;; [[https://protesilaos.com/emacs/pulsar][pulsar]]
 (use-package pulsar
-  :bind* (:map sej-C-q-map
+  :bind (:map sej-C-q-map
                ("P p" . pulsar-pulse-line)
                ("P h" . pulsar-highlight-line))
   :hook ((emacs-startup . pulsar-global-mode)
@@ -2734,10 +2727,10 @@ If called with a prefix argument, query for word to search."
   (setq pulsar-highlight-face 'pulsar-yellow))
 
 ;;;;; paren
-;; - show paren mode
-;; - [[https://www.emacswiki.org/emacs/ShowParenMode][paren wiki]]
+;; built-in: show paren mode
+;; [[https://www.emacswiki.org/emacs/ShowParenMode][paren wiki]]
 (use-package paren
-  :straight (:type built-in)
+  :ensure nil
   :hook (emacs-startup . show-paren-mode)
   :config
   (setq show-paren-delay 0
@@ -2747,17 +2740,17 @@ If called with a prefix argument, query for word to search."
         show-paren-context-when-offscreen 'child-frame))
 
 ;;;;; hideshow
-;; built-in mode to hideshow blocks
+;; built-in: to hideshow blocks
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Hideshow.html][hideshow minor mode]]
 (use-package hideshow
   :blackout (hs-minor-mode . "")
-  :straight (:type built-in)
+  :ensure nil
   :hook (prog-mode . hs-minor-mode))
 
 ;;;;; outline outshine pretty-outlines
-;; - program modes outline much like org-mode "C-c @"" prefix
-;; - [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
-;; - [[https://github.com/alphapapa/outshine][outshine]]
+;; program modes outline much like org-mode "C-c @"" prefix
+;; [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
+;; [[https://github.com/alphapapa/outshine][outshine]]
 (use-package outshine
   :blackout t
   :hook ((prog-mode          . outline-minor-mode)
@@ -2776,8 +2769,9 @@ If called with a prefix argument, query for word to search."
    `(outline-4 ((t (:height 1.05 :foreground "#818e96" :weight bold)))))  )
 
 (use-package pretty-outlines
-  :straight (pretty-outlines :type git :host github :repo "sejgit/pretty-outlines"
-                             :files ("*.el"))
+  :vc (:url "https://github.com/sejgit/pretty-outlines"
+            :rev :newest
+            :branch "master")
   :after (outshine)
   :hook ((outline-mode . pretty-outlines-set-display-table)
          (outline-minor-mode . pretty-outlines-set-display-table)
@@ -2794,12 +2788,12 @@ If called with a prefix argument, query for word to search."
 
 ;;; programming
 ;;;;; prog-mode
-;; - generalized program mode
-;; - Prettify Symbols
-;; - e.g. display “lambda” as “λ”
+;; built-in: generalized program mode
+;; Prettify Symbols
+;; e.g. display “lambda” as “λ”
 (use-package prog-mode
   :no-require t
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq-default prettify-symbols-alist '(("lambda" . ?λ)
                                          ("->" . ?→)
@@ -2833,62 +2827,110 @@ If called with a prefix argument, query for word to search."
   (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
 
 ;;;;; tree-sitter
-;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
+;; built-in: Emacs Lisp binding for tree-sitter, an incremental parsing library.
 ;; Important this is using the built-in Emacs version tree-sit.el
 ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
+;; `M-x combobulate' (default: `C-c o o') to start using Combobulate
 (use-package treesit
-  ;; Emacs Lisp binding for tree-sitter, an incremental parsing library.
-  ;; Important this is using the built-in Emacs version tree-sit.el
-  ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
-  :straight (:type built-in)
+  :ensure nil
+  :mode (("\\.tsx\\'" . tsx-ts-mode))
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+              '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+                (toml "https://github.com/tree-sitter/tree-sitter-toml")
+                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+                (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional, but recommended. Tree-sitter enabled major modes are
+  ;; distinct from their ordinary counterparts.
+  ;;
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+         '((python-mode . python-ts-mode)
+           (css-mode . css-ts-mode)
+           (typescript-mode . typescript-ts-mode)
+           (js2-mode . js-ts-mode)
+           (bash-mode . bash-ts-mode)
+           (css-mode . css-ts-mode)
+           (json-mode . json-ts-mode)
+           (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
   :config
-  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter_intel" "~/.emacs.d/tree-sitter_m1"))  )
+  (mp-setup-install-grammars)
+  ;; Do not forget to customize Combobulate to your liking:
+  ;;
+  ;;  M-x customize-group RET combobulate RET
+  ;;
+  (use-package combobulate
+    ;; standard movement using treesitter
+    ;; [[https://github.com/mickeynp/combobulate][combobulate]]
+    ;; use C-c o o for menu
+    ;; You can manually enable Combobulate with `M-x
+    ;; combobulate-mode'.
+
+    :vc (:url "https://github.com/mickeynp/combobulate"
+              :rev :newest
+              :branch "master")
+    :preface
+    ;; You can customize Combobulate's key prefix here.
+    ;; Note that you may have to restart Emacs for this to take effect!
+    (setq combobulate-key-prefix "C-c o")
+
+    ;; Optional, but recommended.
+    ;;
+    ;; You can manually enable Combobulate with `M-x
+    ;; combobulate-mode'.
+    :hook
+      ((python-ts-mode . combobulate-mode)
+       (js-ts-mode . combobulate-mode)
+       (html-ts-mode . combobulate-mode)
+       (css-ts-mode . combobulate-mode)
+       (yaml-ts-mode . combobulate-mode)
+       (typescript-ts-mode . combobulate-mode)
+       (json-ts-mode . combobulate-mode)
+       (tsx-ts-mode . combobulate-mode))
+    ;; Amend this to the directory where you keep Combobulate's source
+    ;; code.
+      ))
 
 (use-package treesit-auto
   ;; some auto features for tree-sit
-  ;; [[https://github.com/renzmann/treesit-auto][treesit-auto]]
-  :demand t
+  ;; [[https://github.com/renzmann/treesit-auto]]
   :custom
   (treesit-auto-install 'prompt)
   :config
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
-(use-package combobulate
-  ;; standard movement using treesitter
-  ;; [[https://github.com/mickeynp/combobulate][combobulate]]
-  ;; use C-c o o for menu
-  :straight (:type git :host github :repo "mickeynp/combobulate")
-  ;; You can manually enable Combobulate with `M-x
-  ;; combobulate-mode'.
-  :hook ((                              ;c-ts-mode
-                                        ;c++-ts-mode
-                                        ;c-or-c++-ts-mode
-                                        ;toml-ts-mode
-                                        ;csharp-ts-mode
-          css-ts-mode
-                                        ;java-ts-mode
-          js-ts-mode
-                                        ;json-ts-mode
-          python-ts-mode
-                                        ;ruby-ts-mode
-                                        ;bash-ts-mode
-          yaml-ts-mode
-          typescript-ts-mode
-          tsx-ts-mode) . combobulate-mode))
-
 ;;;;; eglot
-;; - simple client for Language Server Protocol servers
-;; - https://github.com/joaotavora/eglot
-;; - [[https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers][good how to use post]]
+;; built-in: simple client for Language Server Protocol servers
+;; https://github.com/joaotavora/eglot
+;; [[https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers][good how to use post]]
 (use-package eglot
-  :straight (:type built-in)
+  :ensure nil
   :preface
   (defun mp-eglot-eldoc ()
     (setq eldoc-documentation-strategy
           'eldoc-documentation-compose-eagerly))
   :hook ((eglot-managed-mode . mp-eglot-eldoc)
-         (prog-mode . sej/eglot-ensure-prg))
+         (python-base-mode . eglot-ensure)
+         ((c-or-c++-mode objc-mode cuda-mode) . eglot-ensure) )
 
   :bind (:map eglot-mode-map
               ("C-c r" . eglot-rename)
@@ -2907,73 +2949,44 @@ If called with a prefix argument, query for word to search."
                `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
                                                          '(("ccls" )
                                                            ("clangd")))))
-  ;; (add-to-list 'eglot-server-programs
-  ;;              `(python-ts-mode . ,(eglot-alternatives
-  ;;                                   '(("pyright-langserver" "--stdio")
-  ;;                                     ("jedi-language-server")
-  ;;                                     ("pylsp") ))))
-  ;; (setq-default eglot-workspace-configuration
-  ;;               '((:pylsp . (:configurationSources ["flake8"]
-  ;;                            :plugins (
-  ;;                                      :pycodestyle (:enabled :json-false)
-  ;;                                      :mccabe (:enabled :json-false)
-  ;;                                      :pyflakes (:enabled :json-false)
-  ;;                                      :flake8 (:enabled :json-false
-  ;;                                               :maxLineLength 88)
-  ;;                                      :ruff (:enabled t
-  ;;                                             :lineLength 88)
-  ;;                                      :pydocstyle (:enabled t
-  ;;                                                   :convention "numpy")
-  ;;                                      :yapf (:enabled :json-false)
-  ;;                                      :autopep8 (:enabled :json-false)
-  ;;                                      :black (:enabled t
-  ;;                                              :line_length 88
-  ;;                                              :cache_config t))))))
   (setq help-at-pt-display-when-idle t)
   (setq completion-category-defaults nil)
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
 ;;;;; flymake-ruff
-;; - ruff linter
-;; - [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
-;;("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
+;; ruff linter
+;; [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
+;; ("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
 (use-package flymake-ruff
-  :ensure t
-  :straight (flymake-ruff
-             :type git
-             :host github
-             :repo "erickgnavar/flymake-ruff")
   :hook (python-base-mode . flymake-ruff-load)
   ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
   )
 
 ;;;;; reformatter
-;; - base reformatter
-;; - [[https://github.com/purcell/emacs-reformatter][reformatter]]
-(use-package reformatter
-  :straight t)
+;; base reformatter
+;; [[https://github.com/purcell/emacs-reformatter][reformatter]]
+(use-package reformatter)
 
 ;;;;; ruff-format
-;; - ruff format using reformatter
-;; - [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
+;; ruff format using reformatter
+;; [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
 (use-package ruff-format
-  :straight t
   :after reformatter)
 
 ;;;;; format-all
-;; - auto-format source code in many languages using the same command for all languages
-;; - You will need to install external programs to do the formatting
-;; - https://github.com/lassik/emacs-format-all-the-code
+;; auto-format source code in many languages using the same command for all languages
+;; You will need to install external programs to do the formatting
+;; https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
-  :bind* (("C-q f" . format-all-buffer)
+  :bind (("C-q f" . format-all-buffer)
           ("A-f" . format-all-buffer)))
 
 ;;;;; sh-script
-;; shell script mode built-in
+;; built-in: shell script mode
 ;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
 (use-package sh-script
-  :straight (:type built-in)
+  :ensure nil
   :preface
   (defun sej/sh-prettify-mode-line ()
     (setq mode-line-process nil)
@@ -3015,10 +3028,10 @@ If called with a prefix argument, query for word to search."
   (setq-default sh-basic-offset 2))
 
 ;;;;; tramp
-;; - remote editing
-;; - https://www.gnu.org/software/tramp/
+;; built-in: remote editing
+;; https://www.gnu.org/software/tramp/
 (use-package tramp
-  :straight (tramp :type built-in)
+  :ensure nil
   :init
   (setq tramp-default-method "ssh" ; or scp
         tramp-terminal-type "dumb"
@@ -3044,7 +3057,7 @@ If called with a prefix argument, query for word to search."
   (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su")))
 
 (use-package tramp-sh
-  :straight (tramp-sh :type built-in)
+  :ensure nil
   :config
   (add-to-list 'tramp-remote-path "/usr/local/sbin")
   (add-to-list 'tramp-remote-path "/opt/java/current/bin")
@@ -3058,11 +3071,11 @@ If called with a prefix argument, query for word to search."
 (use-package ssh-config-mode)
 
 ;;;;; New-Comment
-;; built-in library contains functions and variables for commenting and
+;; built-in: library contains functions and variables for commenting and
 ;; uncommenting source code.
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Comment-Commands.html][comment commands]]
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Comment-Commands.html]]
 (use-package newcomment
-  :straight (:type built-in)
+  :ensure nil
   :init
   (setq comment-empty-lines t
         comment-fill-column 0
@@ -3070,8 +3083,8 @@ If called with a prefix argument, query for word to search."
         comment-style 'multi-line))
 
 ;;;;; comment-dwim
-;; - replacement for the Emacs built-in command comment-dwim
-;; - [[https://www.emacs.dyerdwelling.family/emacs/20230215204855-emacs--commenting-uncommenting/][comment-dwim replacement]]
+;; replacement for the Emacs built-in command comment-dwim
+;; [[https://www.emacs.dyerdwelling.family/emacs/20230215204855-emacs--commenting-uncommenting/]]
 (defun sej/comment-or-uncomment ()
   "Comments or uncomments the current line or region."
   (interactive)
@@ -3084,10 +3097,10 @@ If called with a prefix argument, query for word to search."
             ("H-;" . comment-box))
 
 ;;;;; ediff
-;; - A saner diff
-;; - https://www.gnu.org/software/emacs/manual/html_mono/ediff.html
+;; built-in: A saner diff
+;; https://www.gnu.org/software/emacs/manual/html_mono/ediff.html
 (use-package ediff
-  :straight (ediff :type built-in)
+  :ensure nil
   :hook(;; show org ediffs unfolded
         (ediff-prepare-buffer . outline-show-all)
         ;; restore window layout when done
@@ -3099,9 +3112,9 @@ If called with a prefix argument, query for word to search."
   (setq ediff-shell (getenv "$SHELL")))
 
 ;;;;; electric
-;; electric indent mode
+;; built-in: electric indent mode
 (use-package electric
-  :straight (:type built-in)
+  :ensure nil
   :hook ('prog-mode . electric-indent-mode)
   :init
   (setq-default electric-indent-chars '(?\n ?\^?))
@@ -3117,19 +3130,19 @@ If called with a prefix argument, query for word to search."
         electric-quote-replace-double t))
 
 ;;;;; elec-pair
-;; - Automatic parenthesis pairing
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
+;; built-in: Automatic parenthesis pairing
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el
 (use-package elec-pair
   :disabled ;; using smartparens for now
-  :straight (elec-pair :type built-in)
+  :ensure nil
   :hook (prog-mode . electric-pair-mode)
   :config
   (electric-layout-mode t)
   (electric-indent-mode t))
 
 ;;;;; smartparens
-;; - minor mode for dealing with pairs in Emacs
-;; - [[https://github.com/Fuco1/smartparens][smartparens]]
+;; minor mode for dealing with pairs in Emacs
+;; [[https://github.com/Fuco1/smartparens][smartparens]]
 (use-package smartparens
   :blackout t
   :bind-keymap* ("C-q (" . smartparens-mode-map)
@@ -3139,10 +3152,10 @@ If called with a prefix argument, query for word to search."
   (sp-use-smartparens-bindings))
 
 ;;;;; compile
-;; - Compilation Mode
-;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
+;; built-in: Compilation Mode
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
 (use-package compile
-  :straight (compile :type built-in)
+  :ensure nil
   :preface
   ;; ANSI Coloring
   ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
@@ -3158,22 +3171,22 @@ If called with a prefix argument, query for word to search."
         compilation-scroll-output 'first-error))
 
 ;;;;; make-mode
-;; Major mode for editing standard Makefiles
-;; [[http://doc.endlessparentheses.com/Fun/makefile-mode.html][makefile docs]]
+;; built-in: Major mode for editing standard Makefiles
+;; [[http://doc.endlessparentheses.com/Fun/makefile-mode.html]]
 (use-package make-mode
+  :ensure nil
   :blackout ((makefile-automake-mode . "Makefile")
              (makefile-gmake-mode . "Makefile")
              (makefile-makepp-mode . "Makefile")
              (makefile-bsdmake-mode . "Makefile")
              (makefile-imake-mode . "Makefile"))
-  :straight (:type built-in)
   :config (setq-local indent-tabs-mode t))
 
 ;;;;; flymake
-;; - built-in emacs syntax checker
-;; - https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
+;; built-in: Emacs syntax checker
+;; https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html#Top
 (use-package flymake
-  :straight (flymake :type built-in)
+  :ensure nil
   :hook (emacs-startup . flymake-mode)
   :bind (:map flymake-mode-map
               ("C-c ! s" . flymake-start)
@@ -3201,16 +3214,16 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/emacsmirror/emr
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
-  :bind* ( ("C-q r" . emr-show-refactor-menu)
+  :bind ( ("C-q r" . emr-show-refactor-menu)
            ("H-r" . emr-show-refactor-menu) ))
 
 
 ;;;; vcs
 ;;;;; Project
-;; built-in project management
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html][Working with projects]]
+;; built-in: project management
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html]]
 (use-package project
-  :straight (:type built-in)
+  :ensure nil
   :config
   (setq project-file-history-behavior 'relativize))
 
@@ -3242,7 +3255,6 @@ If called with a prefix argument, query for word to search."
         "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
 (use-package magit-file-icons
-  :ensure t
   :init
   (magit-file-icons-mode 1)
   :custom
@@ -3293,10 +3305,10 @@ If called with a prefix argument, query for word to search."
               ("t" . git-timemachine)))
 
 ;;;;; smerge-mode
-;; - Resolve diff3 conflicts
-;; - http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
+;; built-in: Resolve diff3 conflicts
+;; http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
 (use-package smerge-mode
-  :straight (:type built-in)
+  :ensure nil
   :blackout
   :commands (smerge-mode
              smerge-auto-leave
@@ -3318,34 +3330,30 @@ If called with a prefix argument, query for word to search."
              smerge-kill-current)  )
 
 ;;;;; browse-at-remote
-;; - Open github/gitlab/bitbucket page
-;; - https://github.com/rmuslimov/browse-at-remote
+;; Open github/gitlab/bitbucket page
+;; https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind* ((("C-q B" . browse-at-remote)
+  :bind ((("C-q B" . browse-at-remote)
            ("C-x v B" . browse-at-remote))
           :map vc-prefix-map
           ("B" . browse-at-remote)))
 
 ;;;;; gist
-;; - gist client
-;; - built-in self help
-;; [[https://github.com/KarimAziev/igist][igist github]]
+;; gist client
+;; built-in self help
+;; [[https://github.com/KarimAziev/igist]]
 (use-package igist
   :bind (:map sej-C-q-map
-              ("G" . igist-dispatch))
-  :straight (igist
-             :repo "KarimAziev/igist"
-             :type git
-             :host github))
+              ("G" . igist-dispatch)))
 
 ;;;;; git-modes
-;; - Emacs major modes for various Git configuration files.
-;; - gitattributes-mode , gitconfig-mode , gitignore-mode
-;; - https://github.com/magit/git-modes
+;; Emacs major modes for various Git configuration files.
+;; gitattributes-mode , gitconfig-mode , gitignore-mode
+;; https://github.com/magit/git-modes
 (use-package git-modes)
 
 ;;;;; sej/git-blame-line
-;; - Runs `git blame` on the current line and adds the commit id to the kill ring
+;; Runs `git blame` on the current line and adds the commit id to the kill ring
 (defun sej/git-blame-line ()
   "Run `git blame` on the current line and add the commit id to the kill ring."
   (interactive)
@@ -3398,12 +3406,12 @@ If the region is active and option `transient-mark-mode' is on, call
 (eval-after-load "dash" '(dash-enable-font-lock))
 
 ;;;;; eldoc
-;; we don't want this minor mode to be shown in the minibuffer, however
+;; built-in: we don't want this minor mode to be shown in the minibuffer, however
 ;; we use eldoc to show the signature of the function at point in the minibuffer
 ;; https://www.emacswiki.org/emacs/ElDoc
 (use-package eldoc
   :blackout t
-  :straight (:type built-in)
+  :ensure nil
   :preface
   (add-to-list 'display-buffer-alist
                '("^\\*eldoc for" display-buffer-at-bottom
@@ -3434,19 +3442,21 @@ If the region is active and option `transient-mark-mode' is on, call
         sly-mrepl-history-file-name (nl-var-expand "sly-mrepl-history")))
 
 ;;;;; eros
-;; - eros-mode will show you the result of evaluating an elisp command
+;; eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
-;; - https://github.com/xiongtx/eros
+;; https://github.com/xiongtx/eros
 (use-package eros
   :commands eros-mode
   :hook (emacs-lisp-mode . eros-mode))
 
 ;;;;; ielm
-;; - add a nice popup for ielm
-;; - https://www.emacswiki.org/emacs/InferiorEmacsLispMode
+;; built-in: add a nice popup for ielm
+;; https://www.emacswiki.org/emacs/InferiorEmacsLispMode
 (use-package ielm
-  :straight (:type built-in)
-  :bind (("s-i" . sej/ielm-other-window))
+  :ensure nil
+  :bind (("s-i" . sej/ielm-other-window)
+         :map sej-C-q-map
+         ("i" . sej/ielm-other-window))
   :config
   (add-hook 'inferior-emacs-lisp-mode-hook #'hs-minor-mode)
 
@@ -3474,11 +3484,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; Emacs for guile
 ;; [[https://www.nongnu.org/geiser/geiser_2.html#Installation][geiser]]
 ;; [[https://jeko.frama.io/en/emacs.html][guile hacking manual]]
-(use-package geiser
-  :straight (geiser
-             :type git
-             :host gitlab
-             :repo "jaor/geiser"))
+(use-package geiser)
 
 ;;;; python
 ;;;;; python
@@ -3512,10 +3518,10 @@ If the region is active and option `transient-mark-mode' is on, call
   "\"\"\"" - "\n\n    \"\"\"")
 
 ;;;;; inferior-python-mode
-;; runs a python interpreter as a subprocess of Emacs
+;; built-in: runs a python interpreter as a subprocess of Emacs
 ;; [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 (use-package inferior-pyton-mode
-  :straight (:type built-in))
+:ensure nil  )
 
 ;;;;; pipenv
 ;; a [[https://github.com/pwalsh/pipenv.el][pipenv]] integration
@@ -3541,9 +3547,8 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; pyenv-mode-auto
 ;; pyenv automatically based on .python-mode
-;; 
-(use-package pyenv-mode-auto
-  :ensure t)
+;;  
+(use-package pyenv-mode-auto)
 
 ;;;;; envrc
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
@@ -3690,23 +3695,22 @@ If the region is active and option `transient-mark-mode' is on, call
    ("\\.yaml$" . yaml-mode)))
 
 ;;;;; nxml-mode
-;; major mode for editing XML
+;; built-in: major mode for editing XML
 ;; https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
 (use-package nxml-mode
-  :straight (nxml-mode :type built-in)
+  :ensure nil
   :mode (("\\.xaml$" . xml-mode)))
 
 
 ;;;; c program modes
 ;;;;; c-mode
-;; C/C++ Mode
+;; built-in: C/C++ Mode
 ;; https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
 (use-package cc-mode
-  :straight (cc-mode :type built-in)
+  :ensure nil
   :bind (:map c-mode-base-map
               ("C-c c" . compile))
-  :hook (
-         (c-mode-common . (lambda ()
+  :hook ((c-mode-common . (lambda ()
                             (c-set-style "bsd")
                             (setq c-basic-offset 4) )))
   :init
@@ -3716,7 +3720,7 @@ If the region is active and option `transient-mark-mode' is on, call
           (other . "java"))))
 
 (use-package c-ts-mode
-  :straight (c-ts-mode :type built-in)
+  :ensure nil
   :bind (:map c-ts-base-mode-map
               ("C-c c" . compile))
   :init
@@ -3783,10 +3787,9 @@ the children of class at point."
       (eglot--error "Hierarchy unavailable"))))
 
 (use-package eglot-ccls
-  :straight (emacs-eglot-ccls
-             :type git
-             :host codeberg
-             :repo "akib/emacs-eglot-ccls")
+  :vc (:url "https://codeberg.org/akib/emacs-eglot-ccls"
+            :rev :newest
+            :branch "master")
   :hook (((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                   c-ts-mode c++-ts-mode c-or-c++-ts-mode) . eglot-ccls-semhl-mode))
   :init
@@ -3797,7 +3800,7 @@ the children of class at point."
 
 ;;;;; clang-format
 ;; Clang-format emacs integration for use with C/Objective-C/C++.
-;; [[https://github.com/sonatard/clang-format][clang-format]]
+;; [[https://github.com/sonatard/clang-format]]
 (use-package clang-format
   :bind (:map c-mode-base-map
               ("C-c v" . clang-format-region)
@@ -3807,32 +3810,19 @@ the children of class at point."
 
 ;;;;; modern-cpp-font-lock
 ;; Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
-;; [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
+;; [[https://github.com/ludwigpacifici/modern-cpp-font-lock]]
 (use-package modern-cpp-font-lock
-  :straight (modern-cpp-font-lock
-             :type git
-             :host github
-             :repo "ludwigpacifici/modern-cpp-font-lock")
   :hook (c++-mode . modern-c++-font-lock-mode))
 
 ;;;;; csharp-mode
 ;; mode for editing C# in emacs. It’s based on cc-mode
 ;; https://github.com/josteink/csharp-mode
-(use-package csharp-mode
-  :straight (csharp-mode
-             :type git
-             :host github
-             :repo "josteink/csharp-mode"))
+(use-package csharp-mode)
 
 ;;;;; arduino-mode
 ;; mode for .ino files only
-;; [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
+;; [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288]]
 (use-package arduino-mode
-  :disabled
-  :straight (arduino-mode
-             :type git
-             :host github
-             :repo "sejgit/arduino-mode")
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
   :config
@@ -3843,12 +3833,8 @@ the children of class at point."
 
 ;;;;; arduino-cli-mode
 ;; minor mode for using the excellent new arduino command line interface
-;; [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
+;; [[https://github.com/motform/arduino-cli-mode]]
 (use-package arduino-cli-mode
-  :straight (arduino-cli-mode
-             :type git
-             :host github
-             :repo "motform/arduino-cli-mode")
   :hook (c++-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
   :config
@@ -3858,18 +3844,14 @@ the children of class at point."
         arduino-cli-default-port "/dev/cu.wchusbserial1430"))
 
 ;;;;; platformio-mode
-;; - minor mode which allows quick building and uploading of PlatformIO projects
+;; minor mode which allows quick building and uploading of PlatformIO projects
 ;;   with a few short key sequences.
-;; - Code completion can be provided by installing any package compatible with .clang_complete files,
+;; Code completion can be provided by installing any package compatible with .clang_complete files,
 ;;   such as irony-mode.
-;; - To keep the index up to date, run platformio-init-update-workspace (C-c i i)
+;; To keep the index up to date, run platformio-init-update-workspace (C-c i i)
 ;;   after installing any libraries.
-;; - [[https://github.com/ZachMassia/platformio-mode][PlatformIO Mode]]
+;; [[https://github.com/ZachMassia/platformio-mode]]
 (use-package platformio-mode
-  :straight (platformio-mode
-             :type git
-             :host github
-             :repo "ZachMassia/PlatformIO-Mode")
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
 
@@ -3921,16 +3903,16 @@ the children of class at point."
 
 ;;; files
 ;;;;; ibuffer
-;; operate on buffers much in the same manner as Dired.
+;; built-in: operate on buffers much in the same manner as Dired.
 ;; https://www.emacswiki.org/emacs/IbufferMode
 (use-package ibuffer
-  :straight (ibuffer :type built-in)
+  :ensure nil
   :functions (all-the-icons-icon-for-file
               all-the-icons-icon-for-mode
               all-the-icons-auto-mode-match?
               all-the-icons-faicon)
   :commands ibuffer-find-file
-  :bind* ( ("C-x C-b" . ibuffer))
+  :bind ( ("C-x C-b" . ibuffer))
   :config
   (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
 
@@ -3957,7 +3939,7 @@ the children of class at point."
                               (mark " " (name 16 -1) " " filename)))))  )
 
 ;;;;; registers
-;; Registers allow you to jump to a file or other location quickly.
+;; :built-in: Registers allow you to jump to a file or other location quickly.
 ;; (i for init.el, r for this file) to jump to it.
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
 (set-register ?c '(file . "~/.ssh/custom-post.el"))
@@ -3970,14 +3952,10 @@ the children of class at point."
 ;; https://github.com/emacs-dashboard/emacs-dashboard
 (use-package dashboard
   :if (eq sej-dashboard t)
-  :straight (dashboard :type git
-                       :flavor melpa
-                       :files (:defaults "banners" "dashboard-pkg.el")
-                       :host github :repo "emacs-dashboard/emacs-dashboard")
   :blackout (dashboard-mode)
   :commands sej/open-dashboard
   :hook (emacs-startup . sej/open-dashboard)
-  :bind* (("<f6>" . sej/open-dashboard)
+  :bind (("<f6>" . sej/open-dashboard)
           ("C-q d" . sej/open-dashboard))
   :config
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -4013,11 +3991,10 @@ the children of class at point."
           emacs-news-view-mode) . page-break-lines-mode))
 
 ;;;;; autoinsert
-;; mode that comes with Emacs that automagically inserts text into new buffers
+;; automagically inserts text into new buffers
 ;;   based on file extension or the major mode
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/autoinsert.el
 (use-package autoinsert
-  :straight (:type built-in)
   :commands (auto-insert)
   :hook (emacs-startup . auto-insert-mode)
   :preface
@@ -4031,10 +4008,9 @@ the children of class at point."
         auto-insert-directory (nl-etc-expand "autoinsert/")))
 
 ;;;;; autorevert
-;; watch for changes in files on disk
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Revert.html][autorevert man]]
+;; built-in: watch for changes in files on disk
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Revert.html]]
 (use-package autorevert
-  :straight (:type built-in)
   :hook (emacs-startup . global-auto-revert-mode)
   :init
   (setq auto-revert-use-notify t
@@ -4064,10 +4040,10 @@ the children of class at point."
 
 ;;; dired
 ;;;;; dired
-;; Directory operations
+;; built-in: Directory operations
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
 (use-package dired
-  :straight (dired :type built-in)
+  :ensure nil
   :hook (dired-mode . hl-line-mode)
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
@@ -4092,20 +4068,20 @@ the children of class at point."
       (dired-do-delete arg))))
 
 ;;;;; dired-aux
-;; auxiliary functionality of dired
+;; built-in: auxiliary functionality of dired
 ;; https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
 (use-package dired-aux
-  :straight (dired-aux :type built-in)
+  :ensure nil
   :config
   (setq dired-isearch-filenames 'dwim)
   (setq dired-create-destination-dirs 'ask)
   (setq dired-vc-rename-file t)  )
 
 ;;;;; dired-x
-;; Extra Dired functionality
+;; built-in: Extra Dired functionality
 ;; https://www.gnu.org/software/emacs/manual/html_node/dired-x/
 (use-package dired-x
-  :straight (:type built-in)
+  :ensure nil
   :demand t
   :config
   (let ((cmd (cond
@@ -4131,31 +4107,31 @@ the children of class at point."
                 "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
 
 ;;;;; quick-preview
-;; - Quick-preview provides a nice preview of the thing at point for files.
-;; - https://github.com/myuhe/quick-preview.el
+;; Quick-preview provides a nice preview of the thing at point for files.
+;; https://github.com/myuhe/quick-preview.el
 (use-package quick-preview
-  :bind* ( ("C-q q" . quick-preview-at-point)
+  :bind ( ("C-q q" . quick-preview-at-point)
            :map dired-mode-map
            ("Q" . quick-preview-at-point)))
 
 ;;;;; browse-at-remote
-;; - browse file at remote source
-;; - https://github.com/rmuslimov/browse-at-remote
+;; browse file at remote source
+;; https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind* ("C-q b" . browse-at-remote))
+  :bind ("C-q b" . browse-at-remote))
 
 ;;;;; diredfl
-;; - Extra font-lock rules for a more Colourful dired
-;; - https://github.com/purcell/diredfl
+;; Extra font-lock rules for a more Colourful dired
+;; https://github.com/purcell/diredfl
 (use-package diredfl
   :init (diredfl-global-mode 1))
 
 
 ;;; writing & reading
 ;;;;; markdown-mode
-;; - markdown-mode used a lot on Github
-;; - https://jblevins.org/projects/markdown-mode/
-;; - https://leanpub.com/markdown-mode
+;; markdown-mode used a lot on Github
+;; https://jblevins.org/projects/markdown-mode/
+;; https://leanpub.com/markdown-mode
 (use-package markdown-mode
   :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . visual-line-mode)
@@ -4178,25 +4154,25 @@ the children of class at point."
   (setq markdown-command "pandoc -f markdown -t html")
 
 ;;;;; markdown-toc
-  ;; - Table of contents
-  ;; - Inside a markdown file, the first time,
+  ;; Table of contents
+  ;; Inside a markdown file, the first time,
   ;; place yourself where you want to insert the TOC:
   ;; M-x markdown-toc-generate-toc
-  ;; - https://github.com/ardumont/markdown-toc
+  ;; https://github.com/ardumont/markdown-toc
   (use-package markdown-toc))
 
 ;;;;; markdown-soma
 ;; realtime preview by eww
 ;; install soma first in the .cargo directory (my dotfiles has path for this)
-;; - used for live updates for markdown
-;; - requires install of `rustup` which can happen from `brew` in osx or best is direct in others
-;; - curl https://sh.rustup.rs -sSf | sh
-;; - then you will need to cd to `.emacs.d/straight/repos/markdown-soma`
-;; - cargo install --path . # note the . after path
-;; - this should compile `soma` and install it in the `~/.cargo/bin/` directory
-;; - my dotfiles in the `.zshenv` file handles adding this directory to the path
-;; - markdownlint-cli is used for the linting of markdown-mode files
-;; - [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
+;; used for live updates for markdown
+;; requires install of `rustup` which can happen from `brew` in osx or best is direct in others
+;; curl https://sh.rustup.rs -sSf | sh
+;; then you will need to cd to elpa/markdown-soma`
+;; cargo install --path . # note the . after path
+;; this should compile `soma` and install it in the `~/.cargo/bin/` directory
+;; my dotfiles in the `.zshenv` file handles adding this directory to the path
+;; markdownlint-cli is used for the linting of markdown-mode files
+;; [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
   ;; :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
@@ -4204,8 +4180,7 @@ the children of class at point."
               ("r" . markdown-soma-restart)
               ("+" . sej/markdown-soma-mod-plus)
               ("=" . sej/markdown-soma-mod-plus)
-              ("-" . sej/markdown-soma-mod-minus)
-              )
+              ("-" . sej/markdown-soma-mod-minus) )
   :config
   ;; select css theme
   (setq markdown-soma-custom-css
@@ -4234,13 +4209,13 @@ the children of class at point."
   (advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod))
 
 ;;;;; textile-mode
-;; - textile markup editing major mode
-;; - https://github.com/juba/textile-mode
+;; textile markup editing major mode
+;; https://github.com/juba/textile-mode
 (use-package textile-mode
   :mode "\\.textile\\'")
 
 ;;;;; adoc-mode
-;; - adoc-mode is an Emacs major mode for editing AsciiDoc files.
+;; adoc-mode is an Emacs major mode for editing AsciiDoc files.
 ;; It emphasizes on the idea that the document is highlighted
 
 ;; so it pretty much looks like the final output.
@@ -4249,7 +4224,7 @@ the children of class at point."
   :mode "\\.txt\\'")
 
 ;;;;; sej/number-rectangle
-;; - Let's say you have a list like:
+;; Let's say you have a list like:
 ;; First Item
 ;; Second Item
 ;; Third Item
@@ -4291,9 +4266,9 @@ the children of class at point."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 ;; (use-package flyspell
 ;;   :disabled t
-;;   :straight (:type built-in)
+;;   
 ;;   :blackout t
-;;   :bind* (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
+;;   :bind (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
 ;;           :map ctl-x-x-map
 ;;           ("s" . flyspell-mode)
 ;;           ("w" . ispell-word))
@@ -4337,8 +4312,8 @@ the children of class at point."
 ;;   (setq ispell-dictionary "canadian"))
 
 ;;;;; jinx
-;; - spell checking
-;; [[https://github.com/minad/jinx#][jinx.el - enchanted spell checker]]
+;; spell checking using enchanted spell checker
+;; [[https://github.com/minad/jinx#]]
 (when (eval 'sys/macp)
   (use-package jinx
     :after vertico
@@ -4372,16 +4347,15 @@ the children of class at point."
                  '(jinx grid (vertico-grid-annotate . 20)))))
 
 ;;;;; dictionary lookup
-;; - built in with Emacs 28
-;; - [[https://www.masteringemacs.org/article/wordsmithing-in-emacs?utm_source=newsletter&utm_medium=email&utm_campaign=rss&utm_source=Mastering+Emacs+Newsletter&utm_campaign=3a391dbdb1-MASTERING_EMACS_NEW_POSTS&utm_medium=email&utm_term=0_777fab9be9-3a391dbdb1-355707361][mastering Emacs]]
+;; built-in: with Emacs 28
+;; [[https://www.masteringemacs.org/article/wordsmithing-in-emacs?utm_source=newsletter&utm_medium=email&utm_campaign=rss&utm_source=Mastering+Emacs+Newsletter&utm_campaign=3a391dbdb1-MASTERING_EMACS_NEW_POSTS&utm_medium=email&utm_term=0_777fab9be9-3a391dbdb1-355707361][mastering Emacs]]
 (use-package dictionary
-  :straight (:type built-in)
   :bind (("M-#" . dictionary-lookup-definition) ; use esc # in osx
          ("C-#" . dictionary-search)))
 
 ;;;;; sej/pdf-print-buffer-with-faces (ps-print)
-;; - print file in the current buffer as pdf
-;; - https://www.emacswiki.org/emacs/PsPrint
+;; print file in the current buffer as pdf
+;; https://www.emacswiki.org/emacs/PsPrint
 (when (executable-find "ps2pdf")
   (use-package ps-print
     :ensure nil
@@ -4405,8 +4379,8 @@ the children of class at point."
       (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))    ))
 
 ;;;;; pdf-tools
-;; - PDF reader
-;; - https://github.com/politza/pdf-tools
+;; PDF reader
+;; https://github.com/politza/pdf-tools
 (when (display-graphic-p)
   (use-package pdf-tools
     :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
@@ -4433,8 +4407,8 @@ the children of class at point."
                   (locate-user-emacs-file ".pdf-view-restore")))))
 
 ;;;;; nov
-;; - Epub reader
-;; - https://github.com/wasamasa/nov.el
+;; Epub reader
+;; https://github.com/wasamasa/nov.el
 (use-package nov
   :mode ("\\.epub\\'" . nov-mode)
   :preface
@@ -4445,12 +4419,9 @@ the children of class at point."
   :hook (nov-mode . my-nov-setup))
 
 ;;;;; annotate
-;; - add annotations to arbitrary files without changing the files themselves.
-;; - [[https://github.com/bastibe/annotate.el][annotate]]
+;; add annotations to arbitrary files without changing the files themselves.
+;; [[https://github.com/bastibe/annotate.el]]
 (use-package annotate
-  :straight (annotate :type git
-                      :host github
-                      :repo "bastibe/annotate.el")
   :commands (annotate-annotate
              sej/annotate-annotate
              annotate-goto-next-annotation
@@ -4458,7 +4429,7 @@ the children of class at point."
              annotate-export-annotations
              annotate-integrate-annotations
              annotate-show-annotation-summary)
-  :bind* ((("C-q C-a" . sej/annotate-annotate-dwim)
+  :bind ((("C-q C-a" . sej/annotate-annotate-dwim)
            ("C-q C-S-a" . annotate-show-annotation-summary)
            ("C-q ]" . annotate-goto-next-annotation)
            ("C-q [" . annotate-goto-previous-annotation))
@@ -4506,10 +4477,9 @@ function with the \\[universal-argument]."
 
 ;;;; LaTex
 ;;;;; AuCTeX
-;; GNU TeX in Emacs
-;; [[https://www.gnu.org/software/auctex/download-for-macosx.html][AUCTeX ]]
-(use-package tex
-  :straight auctex
+;; GNU TeX in Emacs Auctex
+;; [[https://www.gnu.org/software/auctex/download-for-macosx.html]]
+(use-package auctex
   :hook ((LaTeX-mode . TeX-fold-mode)
          (LaTeX-mode . flymake-mode)
          (LaTeX-mode . reftex-mode)))
@@ -4530,10 +4500,10 @@ function with the \\[universal-argument]."
   (auctex-latexmk-setup))
 
 ;;;;; bibtex
-;; bibliography editing
+;; built-in: bibliography editing
 ;; [[https://lucidmanager.org/productivity/emacs-bibtex-mode/][bibtex]]
 (use-package bibtex
-  :straight nil
+  :ensure nil
   :init
   (setq-default bibtex-dialect 'biblatex))
 
@@ -4557,9 +4527,9 @@ function with the \\[universal-argument]."
 
 ;;;; org
 ;;;;; org
-;; - org mode for keeping notes, maintaining lists, planning
+;; built-in: mode for keeping notes, maintaining lists, planning
 (use-package org
-  :straight nil
+  :ensure nil
   :defines
   org-agenda-span
   org-agenda-skip-scheduled-if-deadline-is-shown
@@ -4571,7 +4541,7 @@ function with the \\[universal-argument]."
   :hook ( (org-mode . visual-line-mode)
           (org-mode . org-num-mode)
           (org-mode . sej/my-buffer-face-mode-org))
-  :bind* (( ("C-c l" . org-store-link)
+  :bind (( ("C-c l" . org-store-link)
             ("C-c c" . org-capture)
             ("C-c a" . org-agenda) )
           (:map org-mode-map
@@ -4579,9 +4549,12 @@ function with the \\[universal-argument]."
                 ("S-<left>" . org-shiftleft)
                 ("S-<right>" . org-shiftright)
                 ("M-<return>" . org-insert-heading)
+                ("C-M-<return>" . org-insert-subheading)
                 ("A-M-<return>" . org-insert-item)
+                ("M-S-<return>" . org-insert-todo-heading)
                 ("C-c n" . outline-next-visible-heading)
-                ("C-c n" . outline-previous-visible-heading) ))
+                ("C-c n" . outline-previous-visible-heading)
+                ("M-s H" . consult-org-heading)))
   :config
   (require 'org)
   (require 'org-capture)
@@ -4613,13 +4586,13 @@ function with the \\[universal-argument]."
         org-log-done 'note
         org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "CANCELED(c@)" "DONE(d!)")
                             (sequence "DELIGATE(D)" "CHECK(C)" "|" "CANCELED(x)" "VERIFIED(V)"))
-        org-todo-keyword-faces '(("TODO" . (:foreground "pink" :weight bold :height 0.5))
-                                 ("MAYBE" . (:foreground "blue" :weight bold :height 0.5))
-                                 ("WAITING" . (:foreground "blue" :weight bold :height 0.5))
-                                 ("DONE" . (:foreground "green" :weight bold :height 0.5))
-                                 ("DELIGATE" . (:foreground "blue" :weight bold :height 0.5))
-                                 ("VERIFIED" . (:foreground "green" :weight bold :height 0.5))
-                                 ("CANCELED" . (:foreground "grey" :weight bold :height 0.5)))
+        org-todo-keyword-faces '(("TODO" . (:foreground "pink"))
+                                 ("MAYBE" . (:foreground "blue"))
+                                 ("WAITING" . (:foreground "blue"))
+                                 ("DONE" . (:foreground "green"))
+                                 ("DELIGATE" . (:foreground "blue"))
+                                 ("VERIFIED" . (:foreground "green"))
+                                 ("CANCELED" . (:foreground "grey")))
         org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-startup-indented t
@@ -4734,10 +4707,10 @@ function with the \\[universal-argument]."
         ))))
 
 ;;;;; org-agenda
-;; agenda for todo & calendar items
+;; built-in: agenda for todo & calendar items
 ;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
 (use-package org-agenda
-  :straight nil
+  :ensure nil
   :bind (("C-c a" . org-agenda)
          ("C-c c" . org-capture))
   :config
@@ -4767,10 +4740,10 @@ function with the \\[universal-argument]."
           (search category-keep)))) )
 
 ;;;;; org-src
-;; org src block settings
+;; built-in: org src block settings
 ;; [[https://orgmode.org/manual/Working-with-Source-Code.html][working with source code]]
 (use-package org-src
-  :straight nil
+  :ensure nil
   :config
   (setq org-src-window-setup 'current-window
         org-src-fontify-natively t
@@ -4779,10 +4752,10 @@ function with the \\[universal-argument]."
         org-edit-src-content-indentation 0))
 
 ;;;;; org-Ox
-;; org mode exporter framework
+;; built-in: org mode exporter framework
 ;; [[https://orgmode.org/worg/exporters/ox-overview.html][org-exporter manual]]
 (use-package ox
-  :straight nil
+  :ensure nil
   :config
   (setq org-export-with-toc nil
         org-export-headline-levels 8
@@ -4801,10 +4774,10 @@ function with the \\[universal-argument]."
         org-html-postamble nil))
 
 ;;;;; ox-latex
-;; latex exporter
+;; built-in: latex exporter
 ;; [[https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export][LaTeX Export from the Org Mode manual]]
 (use-package ox-latex
-  :straight nil
+  :ensure nil
   :config
   ;; LaTeX Settings
   (setq org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f")
@@ -4812,55 +4785,38 @@ function with the \\[universal-argument]."
         org-latex-prefer-user-labels t
         bibtex-dialect 'biblatex))
 
-;;;;; ox-odt
-;; Reading LibreOffice files
-;; [[https://github.com/kjambunathan/org-mode-ox-odt]]
-      (use-package ox-odt
-        :straight (org-mode-ox-odt
-                   :host github
-                   :repo "kjambunathan/org-mode-ox-odt"
-                   :files ("lisp/ox-odt.el"
-                           "lisp/odt.el"
-                           "etc"
-                           "docs"
-                           "contrib/odt/LibreOffice"))
-        :config
-        (add-to-list 'auto-mode-alist
-               '("\\.\\(?:OD[CFIGPST]\\|od[cfigpst]\\)\\'"
-                 . doc-view-mode-maybe)))
-
 ;;;;; ox-gfm
 ;; github flavoured markdown exporter for Org mode
 ;; [[https://github.com/larstvei/ox-gfm][ox-gfm]]
-(use-package ox-gfm
-  :straight (:host github :repo "larstvei/ox-gfm"))
+(use-package ox-gfm)
 
 ;;;;; ox-jdf-report
 ;; exporter for the jdf style report
 ;; [[https://githubhelp.com/dylanjm/ox-jdf][ox-jdf style report]]
 (use-package ox-jdf-report
-  :straight (:host github :repo "dylanjm/ox-jdf"))
+  :vc (:url "https://github.com/dylanjm/ox-jdf"
+            :rev :newest
+            :branch "master"))
 
 ;;;;; ox-report
 ;; meeting report exporter
 ;; [[https://github.com/DarkBuffalo/ox-report][ox-report]]
-(use-package ox-report
-  :straight (:host github :repo "DarkBuffalo/ox-report"))
+(use-package ox-report)
 
 ;;;;; ob-go
-;; - org-bable functions for go evaluations
-;; - https://github.com/pope/ob-go
+;; org-bable functions for go evaluations
+;; https://github.com/pope/ob-go
 (use-package ob-go)
 
 ;;;;; ob-rust
-;; - org-babel functions for rust evaluation
-;; - https://github.com/zweifisch/ob-rust
+;; org-babel functions for rust evaluation
+;; https://github.com/zweifisch/ob-rust
 (use-package ob-rust)
 
 ;;;;; ob-ipython
-;; - library that allows Org mode to evaluate code blocks using a Jupyter kernel
+;; library that allows Org mode to evaluate code blocks using a Jupyter kernel
 ;; (Python by default)
-;; - https://github.com/gregsexton/ob-ipython
+;; https://github.com/gregsexton/ob-ipython
 (use-package ob-ipython)
 
 ;;;;; org-appear
@@ -4905,16 +4861,16 @@ function with the \\[universal-argument]."
     (org-modern-progress nil))
 
 ;;;;; org-rich-yank
-;; - Rich text clipboard when yanking code into org buffer
+;; Rich text clipboard when yanking code into org buffer
 ;; consider demand t as lazy loading may not work
-;; - https://github.com/unhammer/org-rich-yank
+;; https://github.com/unhammer/org-rich-yank
 (use-package org-rich-yank
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
 
 ;;;;; org-fancy-priorities
-;; - displays org priorities as custom strings
-;; - https://github.com/harrybournis/org-fancy-priorities
+;; displays org priorities as custom strings
+;; https://github.com/harrybournis/org-fancy-priorities
 (use-package org-fancy-priorities
   :blackout t
   :defines org-fancy-priorities-list
@@ -4924,8 +4880,8 @@ function with the \\[universal-argument]."
     (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
 
 ;;;;; toc-org
-;; - Table of contents updated at save to header with TOC tag
-;; - https://github.com/snosov1/toc-org
+;; Table of contents updated at save to header with TOC tag
+;; https://github.com/snosov1/toc-org
 (use-package toc-org
   :blackout t
   :hook ((org-mode . toc-org-mode)
@@ -4934,8 +4890,8 @@ function with the \\[universal-argument]."
               ("C-c C-o" . toc-org-mardown-follow-thing-at-point)))
 
 ;;;;; org-pretty-tags
-;; - Display text or image surrogates for Org mode tags.
-;; - https://gitlab.com/marcowahl/org-pretty-tags
+;; Display text or image surrogates for Org mode tags.
+;; https://gitlab.com/marcowahl/org-pretty-tags
 (use-package org-pretty-tags
   :hook (org-mode . org-pretty-tags-global-mode)
   :config
@@ -4950,7 +4906,7 @@ function with the \\[universal-argument]."
   (org-pretty-tags-global-mode))
 
 ;;;;; org-skeleton
-;; - skeleton template for new org file
+;; skeleton template for new org file
 (define-skeleton org-skeleton
   "Header info for a emacs-org file."
   "Title: "
@@ -4964,8 +4920,8 @@ function with the \\[universal-argument]."
 (global-set-key [C-S-f4] 'org-skeleton)
 
 ;;;;; sej/org-wrap-elisp skeleton
-;; - skeletons are a kind of yasnippet but they don't mess with keybindings
-;; - skeleton to wrap elisp babel source
+;; skeletons are a kind of yasnippet but they don't mess with keybindings
+;; skeleton to wrap elisp babel source
 
 (define-skeleton sej/org-wrap-elisp
   "Wrap text with #+BEGIN_SRC / #+END_SRC for the emacs-lisp code."
@@ -4975,8 +4931,8 @@ function with the \\[universal-argument]."
   > "#+END_SRC" \n)
 
 ;;;;; sej/org-wrap-source skeleton
-;; - skeletons are a kind of yasnippet but they don't mess with keybindings
-;; - skeleton to wrap generic babel source
+;; skeletons are a kind of yasnippet but they don't mess with keybindings
+;; skeleton to wrap generic babel source
 (define-skeleton sej/org-wrap-source
   "Wrap text with #+BEGIN_SRC / #+END_SRC for a code type."
   "Language: "
@@ -4988,11 +4944,11 @@ function with the \\[universal-argument]."
 ;;; eshell & shell
 ;;;; eshell
 ;;;;; eshell
-;; - Emacs command shell ; much better than shell
-;; - https://www.gnu.org/software/emacs/manual/html_mono/eshell.html
-;; - https://www.masteringemacs.org/article/complete-guide-mastering-eshell
+;; built-in: Emacs command shell ; much better than shell
+;; https://www.gnu.org/software/emacs/manual/html_mono/eshell.html
+;; https://www.masteringemacs.org/article/complete-guide-mastering-eshell
 (use-package eshell
-  :straight (:type built-in)
+  :ensure nil
   :defines (compilation-last-buffer
             eshell-prompt-function)
   :commands (eshell/alias
@@ -5023,7 +4979,7 @@ function with the \\[universal-argument]."
                                        ("M-R" . eshell-previous-matching-input)
                                        ("C-l" . eshell/clear) ))))
 
-  :bind* (("C-q S e" . eshell) )
+  :bind (("C-q S e" . eshell) )
 
   :init
   (defvar eshell-visual-commands '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail"))
@@ -5116,7 +5072,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (advice-add 'eshell-ls-decorated-name :filter-return #'contrib/electrify-ls))
 
 (use-package esh-module
-  :straight (:type built-in)
+  :ensure nil
   :config
   (setq eshell-modules-list             ; Needs review
         '(eshell-smart
@@ -5135,28 +5091,28 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
           eshell-unix)))
 
 (use-package em-dirs
-  :straight (:type built-in)
+  :ensure nil
   :after esh-mode
   :config
   (setq eshell-cd-on-directory t))
 
 (use-package em-tramp
-  :straight (:type built-in)
+  :ensure nil
   :after esh-mode
   :config
   (setq password-cache t)
   (setq password-cache-expiry 600))
 
 (use-package em-hist
-  :straight (:type built-in)
+  :ensure nil
   :after esh-mode
   :config
   (setq eshell-hist-ignoredups t)
   (setq eshell-save-history-on-exit t))
 
 ;;;;; eshell-prompt-extras
-;; - Display extra information for prompt
-;; - See: https://github.com/kaihaosw/eshell-prompt-extras
+;; Display extra information for prompt
+;; https://github.com/kaihaosw/eshell-prompt-extras
 (use-package eshell-prompt-extras
   :after esh-opt
   :defines eshell-highlight-prompt
@@ -5172,7 +5128,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   )
 
 ;;;;; eshell/truncate-eshell-buffers
-;; - truncates all eshell buffers after t time (5s)
+;; truncates all eshell buffers after t time (5s)
 (defun eshell/truncate-eshell-buffers ()
   "Truncates all eshell buffers."
   (interactive)
@@ -5189,7 +5145,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
       (run-with-idle-timer 50 t #'eshell/truncate-eshell-buffers))
 
 ;;;;; eshell/cls
-;; - clear the eshell buffer / screen
+;; clear the eshell buffer / screen
 (defun eshell/cls ()
   "Clear the eshell buffer."
   (interactive)
@@ -5200,7 +5156,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
       (eshell-send-input))))
 
 ;;;;; eshell/emacs
-;; - edit a file in eshell without re-rerunning Emacs
+;; edit a file in eshell without re-rerunning Emacs
 (defun eshell/emacs (&rest args)
   "Open a file (ARGS) in Emacs.  Some habits die hard."
   (if (null args)
@@ -5216,7 +5172,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (defalias 'eshell/e 'eshell/emacs)
 
 ;;;;; eshell/ec
-;; - Compile a file (ARGS) in Emacs.  Use `compile' to do background make.
+;; Compile a file (ARGS) in Emacs.  Use `compile' to do background make.
 (defun eshell/ec (&rest args)
   "Compile a file (ARGS) in Emacs.  Use `compile' to do background make."
   (if (eshell-interactive-output-p)
@@ -5232,7 +5188,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (put 'eshell/ec 'eshell-no-numeric-conversions t)
 
 ;;;;; eshell-view-file
-;; - A version of `view-file' which properly rets the eshell prompt.
+;; A version of `view-file' which properly rets the eshell prompt.
 (defun eshell-view-file (file)
   "View FILE.  A version of `view-file' which properly rets the eshell prompt."
   (interactive "fView file: ")
@@ -5251,7 +5207,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
                          'kill-buffer)))))
 
 ;;;;; eshell/less
-;; - Invoke `view-file' on a file.  \"less +42 foo\" will go to line 42 in the buffer
+;; Invoke `view-file' on a file.  \"less +42 foo\" will go to line 42 in the buffer
 (defun eshell/less (&rest args)
   "Invoke (view-file) on a file (ARGS).  \"less +42 foo\" will go to line 42 for foo."
   (while args
@@ -5264,19 +5220,19 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (defalias 'eshell/more 'eshell/less)
 
 ;;;;; eshell/cds
-;; - change directory to the project's root
+;; change directory to the project's root
 (defun eshell/cds ()
   "Change directory to the project's root."
   (eshell/cd (locate-dominating-file default-directory ".git")))
 
 ;;;;; eshell/d
-;; - shortcut for Dired in eshell
+;; shortcut for Dired in eshell
 (defun eshell/d (&rest args)
   "Shortcut of d for Dired in eshell with ARGS."
   (dired (pop args) "."))
 
 ;;;;; eshell/magit
-;; - function to open magit-status for the current directory
+;; function to open magit-status for the current directory
 (defun eshell/magit ()
   "Function to open <magit-status> for the current directory."
   (interactive)
@@ -5286,15 +5242,16 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
 ;;;; shell
 ;;;;; shell
-;; - basic emacs shell ; eshell is much better
-;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html
+;; built-in: basic emacs shell ; eshell is much better
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html
 (use-package shell
+  :ensure nil
   :commands shell-command
   :hook ((shell-mode . n-shell-mode-hook)
          (shell-mode . ansi-color-for-comint-mode-on)
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
-  :bind*  ( ("C-q S s" . shell))
+  :bind  ( ("C-q S s" . shell))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -5338,8 +5295,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
         comint-prompt-read-only nil))
 
 ;;;;; shell-pop
-;; - pop-up shell
-;; - https://github.com/kyagi/shell-pop-el
+;; pop-up shell
+;; https://github.com/kyagi/shell-pop-el
 (use-package shell-pop
   :bind (:map sej-C-q-map
               ("p" . shell-pop))
@@ -5351,14 +5308,14 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
           (setq shell-pop-shell-type val)))
 
 ;;;;; sej/shell-kill-buffers
-;; - kill shell buffer upon exit
+;; kill shell buffer upon exit
 (defun sej/shell-kill-buffer-sentinel (process event)
   "Function to kill shell buffer upon (PROCESS EVENT)."
   (when (memq (process-status process) '(exit signal))
     (kill-buffer)))
 
 ;;;;; sej/kill-process-buffer-on-exit
-;; - make sure processes get killed on Emacs-exit
+;; make sure processes get killed on Emacs-exit
 (defun sej/kill-process-buffer-on-exit ()
   "Function to kill buffer on exit."
   (set-process-sentinel (get-buffer-process (current-buffer))
@@ -5368,25 +5325,16 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (add-hook hook 'sej/kill-process-buffer-on-exit))
 
 ;;;;; with-editor
-;; - things that invoke $EDITOR will use the current Emacs
-;; - https://github.com/magit/with-editor
+;; things that invoke $EDITOR will use the current Emacs
+;; https://github.com/magit/with-editor
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
 
 ;;;;; eat
-;; - faster shell integration
-;; - [[https://codeberg.org/akib/emacs-eat][eat]]
+;; faster shell integration
+;; [[https://codeberg.org/akib/emacs-eat][eat]]
 (use-package eat
-  :straight (eat
-             :type git
-             :host codeberg
-             :repo "akib/emacs-eat"
-             :files ("*.el" ("term" "term/*.el") "*.texi"
-                     "*.ti" ("terminfo/e" "terminfo/e/*")
-                     ("terminfo/65" "terminfo/65/*")
-                     ("integration" "integration/*")
-                     (:exclude ".dir-locals.el" "*-tests.el")))
   :config
   ;; Close the terminal buffer when the shell terminates.
   (setq eat-kill-buffer-on-exit t)
@@ -5402,12 +5350,12 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;;;; Other Services
 ;; a place to put set-ups for Emacs outside services
 ;;;;; term ansi-term serial-term
-;; - built-in basic terminal
-;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Terminal-emulator.html#Terminal-emulator][Emacs manual]]
+;; built-in: basic terminal
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Terminal-emulator.html#Terminal-emulator][Emacs manual]]
 (use-package term
-  :straight (:type built-in)
+  :ensure nil
   :commands (term ansi-term serial-term)
-  :bind* ( ("C-q S a" . ansi-term)
+  :bind ( ("C-q S a" . ansi-term)
            ("C-q S S" . serial-term)
            ("C-q S t" . term))
   :config
@@ -5417,8 +5365,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (setq term-scroll-to-bottom-on-output nil))
 
 ;;;;; vterm
-;; - fully-fledged terminal emulator inside GNU Emacs
-;; - [[https://github.com/akermu/emacs-libvterm][vterm github]]
+;; fully-fledged terminal emulator inside GNU Emacs
+;; [[https://github.com/akermu/emacs-libvterm]]
 (use-package vterm
   :commands vterm
   :bind (:map sej-C-q-map
@@ -5437,11 +5385,11 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
         vterm-term-environment-variable "xterm-256color"))
 
 ;;;;; ERC IRC client
-;; - set-up of built-in irc client
-;; - [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top][ERC]]
+;; built-in: irc client
+;; [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top]]
 (use-package erc
-  :straight (:type built-in)
-  :bind* ("C-q I" . sej/erc-dwim)
+  :ensure nil
+  :bind ("C-q I" . sej/erc-dwim)
   :config
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
   ;; erc hack for gnutls for client cert.
@@ -5542,10 +5490,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   )
 
 ;;;;; shr
-;; Emacs simple html renderer used by a few tools
-;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/net/shr.el][shr]]
+;; built-in: Emacs simple html renderer used by a few tools
+;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/net/shr.el]]
 (use-package shr
-  :straight (:type built-in)
+  :ensure nil
   :commands (eww eww-browse-url)
   :config
   (setq shr-use-fonts t)
@@ -5556,7 +5504,6 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
 ;; Support the HTML pre tag with proper syntax highlighting.
 (use-package shr-tag-pre-highlight
-  :straight (:type built-in)
   :disabled t
   :after shr
   :config
@@ -5564,11 +5511,11 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
                '(pre . shr-tag-pre-highlight)))
 
 ;;;;; eww Emacs-web-wowser
-;; - Emacs internal web browser
+;; built-in: Emacs internal web browser
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/eww.html][EWW]]
 (use-package eww
-  :straight (:type built-in)
-  :bind* ( ("C-q W"))
+  :ensure nil
+  :bind ( ("C-q W"))
   :config
   (setq eww-restore-desktop nil)
   (setq eww-desktop-remove-duplicates t)
@@ -5624,17 +5571,15 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; add shortcut for above
 ;; click "Add Shortcut" and key a shortcut. (I use control-option-command-space)
 ;; [[https://github.com/tecosaur/emacs-everywhere][emacs-everywhere]]
-(use-package emacs-everywhere
-  :straight t)
-
+(use-package emacs-everywhere)
 
 ;;; calendar
 ;;;;; calendar
-;; - the built-in calendar
-;; - [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html][calendar]]
+;; built-in: calendar
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html]]
 (use-package calendar
-  :straight (:type built-in)
-  :bind* ( ("C-q C"))
+  :ensure nil
+  :bind ( ("C-q C"))
   :config
   (setq calendar-mark-diary-entries-flag t)
   (setq calendar-time-display-form
@@ -5651,9 +5596,9 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 
 ;;;;; TMR (timer)
 ;; facilities for setting timers using a convenient notation
-;; [[https://protesilaos.com/emacs/tmr][tmr manual]]
+;; [[https://protesilaos.com/emacs/tmr]]
 (use-package tmr
-  :bind* (("C-q t" . tmr-prefix-map))
+  :bind (("C-q t" . tmr-prefix-map))
   :config
   ;; Read the `tmr-descriptions-list' doc string
   (setq tmr-descriptions-list 'tmr-description-history)
@@ -5677,8 +5622,9 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; completion for codeium
 ;; [[https://github.com/Exafunction/codeium.el][Codeium]]
 (use-package codeium
-  ;; if you use straight
-  :straight '(:type git :host github :repo "Exafunction/codeium.el")
+  :vc (:url "https://github.com/Exafunction/codeium.el"
+            :rev :newest
+            :branch "main")
   ;; otherwise, make sure that the codeium.el file is on load-path
   :bind (:map cape-prefix-map
               ("c" . codeium-completion-at-point))
@@ -5744,8 +5690,3 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
-
-;; Local Variables:
-;; jinx-local-words: "reformatter"
-;; End:
-(put 'set-goal-column 'disabled nil)
