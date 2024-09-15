@@ -3547,8 +3547,11 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; pyenv-mode-auto
 ;; pyenv automatically based on .python-mode
-;;  
-(use-package pyenv-mode-auto)
+;; [[https://github.com/emacsattic/pyenv-mode-auto]]  
+(use-package pyenv-mode-auto
+  :vc (:url "https://github.com/emacsattic/pyenv-mode-auto"
+            :rev :newest
+            :branch "master"))
 
 ;;;;; envrc
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
@@ -5690,3 +5693,21 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-vc-selected-packages
+   '((gcmh :url "https://github.com/emacsmirror/gcmh" :branch "master")
+     (blackout :url "https://github.com/radian-software/blackout"
+	       :branch "main")
+     (exec-path-from-shell :url
+			   "https://github.com/purcell/exec-path-from-shell"
+			   :branch "master"))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
