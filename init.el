@@ -4599,7 +4599,7 @@ function with the \\[universal-argument]."
         org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-startup-indented t
-        org-tags-column 5
+        org-tags-column -120
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
