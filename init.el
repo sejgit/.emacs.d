@@ -184,6 +184,7 @@
       ))
   (when sys/mac-x-p
     (use-package exec-path-from-shell
+      :demand t
       :vc (:url "https://github.com/purcell/exec-path-from-shell"
                 :rev :newest
                 :branch "master")
@@ -264,7 +265,6 @@
 ;; uses a common notification interface and multiple, selectable "styles"
 ;; [[https://github.com/jwiegley/alert][Alert]]
 (use-package alert
-  :after f
   :config
   (if sys/macp (setq alert-default-style #'osx-notifier))  )
 
