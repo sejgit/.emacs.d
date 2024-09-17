@@ -42,8 +42,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error nil)
-(setq debug-on-event nil)
+(setq debug-on-error t)
+(setq debug-on-event t)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -122,7 +122,9 @@
 
 ;;;;; Package manager
 ;; add melpa to already encluded elpa
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
 
 ;; Use-Package set-up
 ;; - https://github.com/jwiegley/use-package
