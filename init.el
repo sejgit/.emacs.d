@@ -36,6 +36,7 @@
 ;; on macos installing emacs-plus@30
 ;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-poll
 
+
 ;;; Code:
 (message "Emacs start")
 
