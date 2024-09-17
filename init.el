@@ -264,6 +264,7 @@
 ;; uses a common notification interface and multiple, selectable "styles"
 ;; [[https://github.com/jwiegley/alert][Alert]]
 (use-package alert
+  :after f
   :config
   (if sys/macp (setq alert-default-style #'osx-notifier))  )
 
