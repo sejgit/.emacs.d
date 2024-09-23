@@ -1855,6 +1855,7 @@ If FRAME is omitted or nil, use currently selected frame."
   
   (use-package corfu-terminal
     :unless (display-graphic-p)
+    :demand t
     :init
     (corfu-terminal-mode +1)  )
   
@@ -1863,6 +1864,7 @@ If FRAME is omitted or nil, use currently selected frame."
               :rev :newest
               :branch "master")
     :unless (display-graphic-p)
+    :demand t
     :init
     (corfu-doc-terminal-mode +1) ) )
 
