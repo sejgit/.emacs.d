@@ -43,8 +43,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error t)
-(setq debug-on-event t)
+(setq debug-on-error nil)
+(setq debug-on-event nil)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -3559,7 +3559,7 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; pyenv-mode-auto
 ;; pyenv automatically based on .python-mode
-;; [[https://github.com/emacsattic/pyenv-mode-auto]]  
+;; [[https://github.com/emacsattic/pyenv-mode-auto]]
 (use-package pyenv-mode-auto
   :vc (:url "https://github.com/emacsattic/pyenv-mode-auto"
             :rev :newest
@@ -3969,7 +3969,7 @@ the children of class at point."
   :if (eq sej-dashboard t)
   :blackout (dashboard-mode)
   :commands sej/open-dashboard
-  :hook (emacs-startup . sej/open-dashboard)
+  :hook (emacs-startup . sej/open-dashboard-only)
   :bind (("<f6>" . sej/open-dashboard)
           ("C-q d" . sej/open-dashboard))
   :config
@@ -3985,6 +3985,13 @@ the children of class at point."
   (setq dashboard-set-file-icons t)
   (dashboard-setup-startup-hook)
   (dashboard-insert-startupify-lists)
+
+(defun sej/open-dashboard-only ()
+    "Move to the dashboard package buffer and make only window in frame."
+    (interactive)
+    (switch-to-buffer "*dashboard*")
+    (hl-line-mode t)
+    (delete-other-windows))
 
   (defun sej/open-dashboard ()
     "Move to the dashboard package buffer."
@@ -4402,16 +4409,8 @@ the children of class at point."
     :defines pdf-annot-activate-created-annotations
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
-    :preface
-    ;; WORKAROUND: Fix compilation errors on macOS.
-    ;; @see https://github.com/politza/pdf-tools/issues/480
-    (when sys/macp
-      (setenv "PKG_CONFIG_PATH"
-              (mapconcat 'identity '( "/usr/local/lib/pkgconfig"
-                                      "/usr/local/Cellar/libffi/3.4.2/lib/pkgconfig"
-                                      "/usr/local/Cellar/zlib/1.2.11/lib/pkgconfig") ":")))
-    :config
-    (pdf-tools-install t nil t t)
+    :init
+    (pdf-loader-install)
     (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
     (setq pdf-annot-activate-created-annotations t)
 
@@ -4419,7 +4418,8 @@ the children of class at point."
     (use-package pdf-view-restore
       :hook (pdf-view-mode . pdf-view-restore-mode)
       :init (setq pdf-view-restore-filename
-                  (locate-user-emacs-file ".pdf-view-restore")))))
+                  (locate-user-emacs-file ".pdf-view-restore")))
+    ))
 
 ;;;;; nov
 ;; Epub reader
@@ -4665,12 +4665,13 @@ function with the \\[universal-argument]."
                                  )
                                (list sej-project-org-capture-list)))
 
-(defun sej/get-open-org-file ()
-  (buffer-file-name
-   (get-buffer
-    (org-icompleting-read "Buffer: "
-                          (mapcar 'buffer-name
-                                  (org-buffer-list 'files))))))
+  (defun sej/get-open-org-file ()
+     "Pull list of .org files which are open in buffers."
+     (buffer-file-name
+      (get-buffer
+       (org-icompleting-read "Buffer: "
+                             (mapcar 'buffer-name
+                                     (org-buffer-list 'files))))))
 
   (setq org-refile-targets '((org-file-gtd :maxlevel . 3)
                              (org-file-someday :maxlevel . 3)
