@@ -1847,6 +1847,11 @@ If FRAME is omitted or nil, use currently selected frame."
     :demand t
     :init
     (corfu-popupinfo-mode t))
+
+  (use-package corfu-doc
+        :vc (:url "https://github.com/galeo/corfu-doc"
+              :rev :newest
+              :branch "main"))
   
   (use-package corfu-terminal
     :unless (display-graphic-p)
