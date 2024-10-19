@@ -685,8 +685,7 @@
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
 
-  :bind (("M-<return>" . sej/open-new-line)
-          :map override-global-map
+  :bind (:map override-global-map
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)))
@@ -1761,7 +1760,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
   :bind (:map corfu-map
-              ("<tab>" . corfu-complete)
+              ("M-RET" . corfu-complete)
               ("<escape>". corfu-quit)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
@@ -2466,7 +2465,22 @@ If called with a prefix argument, query for word to search."
   :bind (("M-<down>" . drag-stuff-down)
           ("M-<up>" . drag-stuff-up))
   :config
-  (add-to-list 'drag-stuff-except-modes 'org-mode))
+  (add-to-list 'drag-stuff-except-modes 'org-mode)
+  (define-key org-mode-map (kbd "M-<up>")
+  (lambda ()
+    (interactive)
+    (call-interactively
+     (if (org-at-heading-p)
+         'org-metaup
+       'drag-stuff-up))))
+
+(define-key org-mode-map (kbd "M-<down>")
+  (lambda ()
+    (interactive)
+    (call-interactively
+     (if (org-at-heading-p)
+         'org-metadown
+       'drag-stuff-down)))))
 
 ;;;; url actions
 ;;;;; sej/url-insert
@@ -3128,6 +3142,7 @@ If called with a prefix argument, query for word to search."
 (use-package electric
   :ensure nil
   :hook ('prog-mode . electric-indent-mode)
+  :bind ("C-j". sej/open-new-line)
   :init
   (setq-default electric-indent-chars '(?\n ?\^?))
   (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit
@@ -3222,7 +3237,6 @@ If called with a prefix argument, query for word to search."
 ;;;;; emr
 ;; a framework for providing language-specific refactoring in Emacs.
 ;; It includes refactoring commands for a variety of languages
-;; Just hit M-RET to access your refactoring tools in any supported mode.
 ;; https://github.com/emacsmirror/emr
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
@@ -4150,6 +4164,113 @@ the children of class at point."
 
 
 ;;; writing & reading
+;;;;; denote
+;; note organization tooles
+;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
+;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
+(use-package denote
+  ;; Denote DOES NOT define any key bindings
+  :bind (:map global-map
+              ("C-q n n" . denote)
+              ("C-q n c" . denote-region) ; "contents" mnemonic
+              ("C-q n N" . denote-type)
+              ("C-q n d" . denote-date)
+              ("C-q n z" . denote-signature) ; "zettelkasten" mnemonic
+              ("C-q n s" . denote-subdirectory)
+              ("C-q n t" . denote-template)
+              ;; If you intend to use Denote with a variety of file types, it is
+              ;; easier to bind the link-related commands to the `global-map', as
+              ;; shown here.  Otherwise follow the same pattern for `org-mode-map',
+              ;; `markdown-mode-map', and/or `text-mode-map'.
+              ("C-q n b" . denote-backlinks)
+              ("C-q n i" . denote-link) ; "insert" mnemonic
+              ("C-q n I" . denote-add-links)
+              ("C-q n j" . denote-journal-extras-link-or-create-entry)
+              ("C-q n f f" . denote-find-link)
+              ("C-q n f b" . denote-find-backlink)
+              ;; Note that `denote-rename-file' can work from any context, not just
+              ;; Dired bufffers.  That is why we bind it here to the `global-map'.
+              ("C-c n r" . denote-rename-file)
+              ("C-c n R" . denote-rename-file-using-front-matter)
+
+         ;; Key bindings specifically for Dired.
+         :map dired-mode-map
+              ("C-q C-d C-i" . denote-link-dired-marked-notes)
+              ("C-q C-d C-r" . denote-dired-rename-files)
+              ("C-q C-d C-k" . denote-dired-rename-marked-files-with-keywords)
+              ("C-q C-d C-R" . denote-dired-rename-marked-files-using-front-matter)
+         :map org-map
+              ("C-q n o" . denote-org-extras-extract-org-subtree))
+
+  :hook
+  ;; Generic (great if you rename files Denote-style in lots of places):
+  ;; (add-hook 'dired-mode-hook #'denote-dired-mode)
+  ;;
+  ;; OR if only want it in `denote-dired-directories':
+  (dired-mode-hook . denote-dired-mode-in-directories)
+
+  ;; If you use Markdown or plain text files (Org renders links as buttons
+  ;; right away)
+  (text-mode-hook . denote-fontify-links-mode-maybe)
+
+  ;; If you want to have Denote commands available via a right click
+  ;; context menu, use the following and then enable
+  ;; `context-menu-mode'.
+  (context-menu-functions . denote-context-menu)
+
+  :custom-face
+    (denote-faces-link ((t (:slant italic))))
+
+  :config
+  ;; Remember to check the doc strings of those variables.
+  (setq denote-directory sej-org-directory)
+  (setq denote-save-buffers nil)
+  (setq denote-known-keywords '("HR" "1:1" "finance"))
+  (setq denote-infer-keywords t)
+  (setq denote-sort-keywords t)
+  (setq denote-file-type nil) ; Org is the default, set others here
+  (setq denote-prompts '(title keywords))
+  (setq denote-excluded-directories-regexp nil)
+  (setq denote-excluded-keywords-regexp nil)
+  (setq denote-rename-confirmations '(rewrite-front-matter modify-file-name))
+
+  ;; Pick dates, where relevant, with Org's advanced interface:
+  (setq denote-date-prompt-use-org-read-date t)
+
+
+  ;; Read this manual for how to specify `denote-templates'.  We do not
+  ;; include an example here to avoid potential confusion.
+
+
+  (setq denote-date-format nil) ; read doc string
+
+  ;; By default, we do not show the context of links.  We just display
+  ;; file names.  This provides a more informative view.
+  (setq denote-backlinks-show-context t)
+
+  ;; Also see `denote-backlinks-display-buffer-action' which is a bit
+  ;; advanced.
+
+  ;; We use different ways to specify a path for demo purposes.
+  (setq denote-dired-directories
+        (list denote-directory
+              (thread-last denote-directory (expand-file-name "personal"))
+              (expand-file-name "~/Documents/knowledge")))
+
+  ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
+  (denote-rename-buffer-mode 1)
+
+  (with-eval-after-load 'org-capture
+    (setq denote-org-capture-specifiers "%l\n%i\n%?")
+    (add-to-list 'org-capture-templates
+                 '("d" "New note (with denote.el)" plain
+                   (file denote-last-path)
+                   #'denote-org-capture
+                   :no-save t
+                   :immediate-finish nil
+                   :kill-buffer t
+                   :jump-to-captured t))))
+
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
 ;; https://jblevins.org/projects/markdown-mode/
@@ -5661,25 +5782,15 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
             (lambda ()
               (setq-local completion-at-point-functions
                           (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
-  ;; codeium-completion-at-point is autoloaded, but you can
-  ;; optionally set a timer, which might speed up things as the
-  ;; codeium local language server takes ~0.2s to start up
-  (add-hook 'emacs-startup-hook
-            (lambda () (run-with-timer 0.1 nil #'codeium-init)))
-
-  ;; :defer t ;; lazy loading, if you want
   :config
-  (setq use-dialog-box t) ;; do not use popup boxes
-
-  ;; if you don't want to use customize to save the api-key
-  ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+  (setq use-dialog-box nil) ;; do not use popup boxes
 
   ;; get codeium status in the modeline
-  ;; (setq codeium-mode-line-enable
-        ;; (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-  ;; (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
+  (setq codeium-mode-line-enable
+        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
   ;; alternatively for a more extensive mode-line
-  (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
+  ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
 
   ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
   (setq codeium-api-enabled
@@ -5706,21 +5817,4 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-vc-selected-packages
-   '((gcmh :url "https://github.com/emacsmirror/gcmh" :branch "master")
-     (blackout :url "https://github.com/radian-software/blackout"
-	       :branch "main")
-     (exec-path-from-shell :url
-			   "https://github.com/purcell/exec-path-from-shell"
-			   :branch "master"))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
