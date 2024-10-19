@@ -196,6 +196,7 @@
       (exec-path-from-shell-initialize))
       (global-set-key (kbd "M-`") 'ns-next-frame)
       (global-set-key (kbd "M-h") 'ns-do-hide-emacs))
+  (setq insert-directory-program "/usr/local/bin/gls")
   (if (not (getenv "TERM_PROGRAM"))
       (setenv "PATH"
               (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
