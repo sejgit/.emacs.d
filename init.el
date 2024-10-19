@@ -2586,11 +2586,25 @@ If called with a prefix argument, query for word to search."
     (buffer-face-mode))    )
 
   ;; Org font faces in current buffer
-  (defun sej/my-buffer-face-mode-org ()
+  (defun sej/my-buffer-face-mode-IsosevkaFixed ()
     "Sets font for org mode in current buffer"
     (interactive)
     (when sys/macp
-    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :height 140))
+    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "regular" :height 140))
+    (buffer-face-mode))    )
+
+(defun sej/my-buffer-face-mode-IsosevkaThin ()
+    "Sets font for org mode in current buffer"
+    (interactive)
+    (when sys/macp
+    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "thin" :height 140))
+    (buffer-face-mode))    )
+
+(defun sej/my-buffer-face-mode-Atkinson ()
+    "Sets font for org mode in current buffer"
+    (interactive)
+    (when sys/macp
+    (setq buffer-face-mode-face '(:family "Atkinson-Hyperlegible" :height 140))
     (buffer-face-mode))    )
 
 ;;;;; symbol-overlay
