@@ -4213,7 +4213,7 @@ the children of class at point."
               ("C-q C-d C-r" . denote-dired-rename-files)
               ("C-q C-d C-k" . denote-dired-rename-marked-files-with-keywords)
               ("C-q C-d C-R" . denote-dired-rename-marked-files-using-front-matter)
-         :map org-map
+         :map org-mode-map
               ("C-q n o" . denote-org-extras-extract-org-subtree))
 
   :hook
