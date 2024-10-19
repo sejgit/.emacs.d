@@ -4199,7 +4199,7 @@ the children of class at point."
               ("C-q C-d C-r" . denote-dired-rename-files)
               ("C-q C-d C-k" . denote-dired-rename-marked-files-with-keywords)
               ("C-q C-d C-R" . denote-dired-rename-marked-files-using-front-matter)
-         :map org-map
+         :map org-mode-map
               ("C-q n o" . denote-org-extras-extract-org-subtree))
 
   :hook
@@ -4263,13 +4263,30 @@ the children of class at point."
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (add-to-list 'org-capture-templates
-                 '("d" "New note (with denote.el)" plain
+                 '(
+                   ("d" "New note (with denote.el)" plain
                    (file denote-last-path)
                    #'denote-org-capture
                    :no-save t
                    :immediate-finish nil
                    :kill-buffer t
-                   :jump-to-captured t))))
+                   :jump-to-captured t)
+                   ("j" "Journal note (with denote.el)" plain
+                   (file denote-last-path)
+                   #'denote-journal-extras-link-or-create-entry
+                   :no-save t
+                   :immediate-finish nil
+                   :kill-buffer t
+                   :jump-to-captured t)
+                   ("t" "TODO entry" entry
+                   (file+headline org-file-gtd "Todo")
+                   "* TODO %?\n %i\n %a"
+                   :no-save t
+                   :immediate-finish nil
+                   :kill-buffer t
+                   :jump-to-captured t)
+                   )
+                 )))
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
@@ -4664,6 +4681,7 @@ function with the \\[universal-argument]."
 ;;;; org
 ;;;;; org
 ;; built-in: mode for keeping notes, maintaining lists, planning
+;; <2024-10-19 Sat> mods to mix with denote system
 (use-package org
   :ensure nil
   :defines
@@ -4754,9 +4772,9 @@ function with the \\[universal-argument]."
           ("3d-printer")
           ("other")))
 
-  (setq sej-project-org-capture-list (list
-                                      "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
-                                      "* %U\n %l\n %i%?\n"))
+  ;; (setq sej-project-org-capture-list (list
+  ;;                                     "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
+  ;;                                     "* %U\n %l\n %i%?\n"))
   ;; Bookmarks in Safari
   ;;
   ;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
@@ -4767,24 +4785,25 @@ function with the \\[universal-argument]."
   ;;                               +'url='+encodeURIComponent(location.href)
   ;;                               +'&title='+encodeURIComponent(document.title) ;
 
-  (setq org-capture-templates (append
-                               '(
-                                 ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-                                  "* #code %?\n %i\n %a")
-                                 ("i" "NewFile" plain (file sej/new-org-capture-file)
-                                  "* %U\n %i%?\n")
-                                 ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
-                                  "* %U\n %l\n %i%?\n")
-                                 ("n" "Notes" entry (file+headline org-file-notes  "Notes")
-                                  "* %U\n %i%?\n")
-                                 ("s" "Someday" entry (file+headline org-file-someday  "Someday")
-                                  "* %?\n %i\n %a")
-                                 ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
-                                  "* TODO %?\n %i\n %a")
-                                 ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
-                                  "* %U\n %:annotation\n i=%i%?\n")
-                                 )
-                               (list sej-project-org-capture-list)))
+  ;; see denote for new versions
+  ;; (setq org-capture-templates (append
+  ;;                              '(
+  ;;                                ("c" "code snippet" entry (file+headline org-file-code "code snippets")
+  ;;                                 "* #code %?\n %i\n %a")
+  ;;                                ("i" "NewFile" plain (file sej/new-org-capture-file)
+  ;;                                 "* %U\n %i%?\n")
+  ;;                                ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
+  ;;                                 "* %U\n %l\n %i%?\n")
+  ;;                                ("n" "Notes" entry (file+headline org-file-notes  "Notes")
+  ;;                                 "* %U\n %i%?\n")
+  ;;                                ("s" "Someday" entry (file+headline org-file-someday  "Someday")
+  ;;                                 "* %?\n %i\n %a")
+  ;;                                ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
+  ;;                                 "* TODO %?\n %i\n %a")
+  ;;                                ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
+  ;;                                 "* %U\n %:annotation\n i=%i%?\n")
+  ;;                                )
+  ;;                              (list sej-project-org-capture-list)))
 
   (defun sej/get-open-org-file ()
      "Pull list of .org files which are open in buffers."
