@@ -4708,7 +4708,7 @@ function with the \\[universal-argument]."
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           (org-mode . org-num-mode)
-          (org-mode . sej/my-buffer-face-mode-org))
+          (org-mode . sej/my-buffer-face-mode-Atkinson))
   :bind (( ("C-c l" . org-store-link)
             ("C-c c" . org-capture)
             ("C-c a" . org-agenda) )
