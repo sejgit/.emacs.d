@@ -185,18 +185,17 @@
       (setq ns-option-modifier 'alt)
       (setq ns-command-modifier 'meta)
       ))
-  (when sys/mac-x-p
-    (use-package exec-path-from-shell
-      :demand t
-      :vc (:url "https://github.com/purcell/exec-path-from-shell"
-                :rev :newest
-                :branch "master")
-      :config
-      (setq exec-path-from-shell-arguments nil)
-      (exec-path-from-shell-initialize))
-      (global-set-key (kbd "M-`") 'ns-next-frame)
-      (global-set-key (kbd "M-h") 'ns-do-hide-emacs))
-  (setq insert-directory-program "/usr/local/bin/gls")
+  (use-package exec-path-from-shell
+    :demand t
+    :vc (:url "https://github.com/purcell/exec-path-from-shell"
+              :rev :newest
+              :branch "master")
+    :config
+    (setq exec-path-from-shell-arguments nil)
+    (exec-path-from-shell-initialize))
+  (global-set-key (kbd "M-`") 'ns-next-frame)
+  (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+  (setq insert-directory-program "gls")
   (if (not (getenv "TERM_PROGRAM"))
       (setenv "PATH"
               (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
