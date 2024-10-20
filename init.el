@@ -405,6 +405,20 @@
            :rev :recent
            :branch "master"))
 
+;;;;; cl-lib
+;; Forward cl-lib compatibility library for Emacs<24.3
+;; [[https://elpa.gnu.org/packages/cl-lib.html]]
+(require 'cl-lib)
+
+;;;;; noflet
+;; noflet is dynamic, local, advice for Emacs-Lisp code.
+;; [[https://github.com/nicferrier/emacs-noflet/tree/master]]
+(use-package noflet
+  :vc(:url "https://github.com/nicferrier/emacs-noflet"
+           :rev :recent
+           :branch "master")
+  :commands (noflet flet))
+
 ;;;;; no-littering feature
 ;; set the default paths for configuration files & persistent data
 ;; [[https://github.com/emacscollective/no-littering][no-littering]]
@@ -2552,6 +2566,12 @@ If called with a prefix argument, query for word to search."
 
   (bind-key "C-H-c" 'sej/url-git-clone-from-clipboard))
 
+;;;;; org-mac-link
+(use-package org-mac-link
+  ;; pull link from many osx apps
+  ;; [[https://gitlab.com/aimebertrand/org-mac-link]]
+  :bind ("C-H-o" . org-mac-link-get-link))
+
 ;;;;; ace-link
 ;; Quickly follow links
 ;; [[https://github.com/abo-abo/ace-link]]
@@ -4184,10 +4204,11 @@ the children of class at point."
 ;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
 ;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
 (use-package denote
-  ;; Denote DOES NOT define any key bindings
+  :after org
   :bind (:map global-map
               ("C-q n n" . denote)
-              ("C-q n c" . denote-region) ; "contents" mnemonic
+              ("C-q n N" . denote-open-or-create) 
+              ("C-q n r" . denote-region) ; "contents" mnemonic
               ("C-q n N" . denote-type)
               ("C-q n d" . denote-date)
               ("C-q n z" . denote-signature) ; "zettelkasten" mnemonic
@@ -4198,9 +4219,9 @@ the children of class at point."
               ;; shown here.  Otherwise follow the same pattern for `org-mode-map',
               ;; `markdown-mode-map', and/or `text-mode-map'.
               ("C-q n b" . denote-backlinks)
-              ("C-q n i" . denote-link) ; "insert" mnemonic
-              ("C-q n I" . denote-add-links)
-              ("C-q n j" . denote-journal-extras-link-or-create-entry)
+              ("C-q n l" . denote-link) ; "insert" mnemonic
+              ("C-q n L" . denote-add-links)
+              ("C-q n j" . denote-journal-extras-new-or-existing-entry)
               ("C-q n f f" . denote-find-link)
               ("C-q n f b" . denote-find-backlink)
               ;; Note that `denote-rename-file' can work from any context, not just
@@ -4210,12 +4231,13 @@ the children of class at point."
 
          ;; Key bindings specifically for Dired.
          :map dired-mode-map
-              ("C-q C-d C-i" . denote-link-dired-marked-notes)
-              ("C-q C-d C-r" . denote-dired-rename-files)
-              ("C-q C-d C-k" . denote-dired-rename-marked-files-with-keywords)
-              ("C-q C-d C-R" . denote-dired-rename-marked-files-using-front-matter)
+              ("C-q C-i" . denote-link-dired-marked-notes)
+              ("C-q C-r" . denote-dired-rename-files)
+              ("C-q C-k" . denote-dired-rename-marked-files-with-keywords)
+              ("C-q C-R" . denote-dired-rename-marked-files-using-front-matter)
          :map org-mode-map
-              ("C-q n o" . denote-org-extras-extract-org-subtree))
+              ("C-q n o" . denote-org-extras-extract-org-subtree)
+              ("C-q n j" . denote-journal-extras-link-or-create-entry))
 
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
@@ -4240,7 +4262,7 @@ the children of class at point."
   ;; Remember to check the doc strings of those variables.
   (setq denote-directory sej-org-directory)
   (setq denote-save-buffers nil)
-  (setq denote-known-keywords '("HR" "1:1" "finance"))
+  (setq denote-known-keywords '("HR" "1:1" "finance" "emacs" "org" "knowledge" "homeautomation" "isy" "plugin"))
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
   (setq denote-file-type nil) ; Org is the default, set others here
@@ -4277,22 +4299,32 @@ the children of class at point."
 
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
-    (add-to-list 'org-capture-templates
-                 '(
-                   ("d" "New note (with denote.el)" plain
-                   (file denote-last-path)
-                   #'denote-org-capture
-                   :no-save t
-                   :immediate-finish nil
-                   :kill-buffer t
-                   :jump-to-captured t)
+    (setq org-capture-templates
+                 '(("d" "New note (with denote.el)" plain
+                    (file denote-last-path)
+                    #'denote-org-capture
+                    :no-save t
+                    :immediate-finish nil
+                    :kill-buffer t
+                    :jump-to-captured t)
                    ("j" "Journal note (with denote.el)" plain
-                   (file denote-last-path)
-                   #'denote-journal-extras-link-or-create-entry
-                   :no-save t
-                   :immediate-finish nil
+                    (file denote-last-path)
+                    (function
+                    (lambda ()
+                    ;; The "journal" subdirectory of the `denote-directory'---this must exist!
+                    (let* ((denote-use-directory (expand-file-name "journal" (denote-directory)))
+                           ;; Use the existing `denote-prompts' as well as the one for a date.
+                           (denote-prompts (denote-add-prompts '(date))))
+                      (denote-org-capture))))
+                    :no-save t
+                    :immediate-finish nil
+                    :kill-buffer t
+                    :jump-to-captured t)
+                   ("J" "Journal note (>= 3.2 denote.el)" entry
+                    (file denote-journal-extras-path-to-new-or-existing-entry)
+                    "* %U %?\n%i\n %a"
                    :kill-buffer t
-                   :jump-to-captured t)
+                   :empty-lines 1)
                    ("t" "TODO entry" entry
                    (file+headline org-file-gtd "Todo")
                    "* TODO %?\n %i\n %a"
@@ -4300,8 +4332,51 @@ the children of class at point."
                    :immediate-finish nil
                    :kill-buffer t
                    :jump-to-captured t)
-                   )
-                 )))
+                   ) ) )
+
+(defun timu-func-make-capture-frame ()
+  "Create a new frame and run `org-capture'."
+  (interactive)
+  (make-frame '((name . "capture")
+                (top . 300)
+                (left . 700)
+                (width . 80)
+                (height . 25)))
+  (select-frame-by-name "capture")
+  (delete-other-windows)
+  (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+    (org-capture)))
+
+(defun sej/org-capture-delete-frame-abnormal (orig-fun &rest args)
+  "Advise org-capture-select-template to close the frame on abort"
+  (let ((res
+         (ignore-errors
+             (apply orig-fun args))) )
+  (if (or (equal "q" res) (equal nil res))
+      (sej/org-capture-delete-frame-normal))
+  res))
+
+(advice-add 'org-capture-select-template :around #'sej/org-capture-delete-frame-abnormal)
+
+(defun sej/org-capture-delete-frame-normal ()
+  "Advise capture-finalize to close the frame."
+  (interactive)
+  (if (equal "capture" (frame-parameter nil 'name))
+      (delete-frame)))
+
+(advice-add 'org-capture-finalize :after #'sej/org-capture-delete-frame-normal)
+)
+
+(use-package consult-denote
+  ;; integrate denote with consult
+  ;; [[https://github.com/protesilaos/consult-denote][Personal — GitHub - protesilaos/consult-denote: Use Consult in tandem with Denote]]
+    :ensure t
+    :bind
+    (("C-q C-d f" . consult-denote-find)
+     ("C-q C-d g" . consult-denote-grep))
+    :config
+    (setq consult-denote-grep-command #'consult-ripgrep)
+    (consult-denote-mode 1))
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
