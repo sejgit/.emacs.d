@@ -1774,7 +1774,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/minad/corfu][corfu]]
 (use-package corfu
   :bind (:map corfu-map
-              ("M-RET" . corfu-complete)
+              ("A-<return>" . corfu-complete)
               ("<escape>". corfu-quit)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
@@ -4236,7 +4236,8 @@ the children of class at point."
               ("C-q C-R" . denote-dired-rename-marked-files-using-front-matter)
          :map org-mode-map
               ("C-q n o" . denote-org-extras-extract-org-subtree)
-              ("C-q n j" . denote-journal-extras-link-or-create-entry))
+              ("C-q n j" . denote-journal-extras-link-or-create-entry)
+              ("C-q n L" . denote-org-extras-link-to-heading))
 
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
