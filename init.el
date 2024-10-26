@@ -4378,6 +4378,21 @@ the children of class at point."
     (setq consult-denote-grep-command #'consult-ripgrep)
     (consult-denote-mode 1))
 
+(use-package denote-refs
+  :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
+            :rev :newest
+            :branch "master")
+  :hook (org-mode . denote-refs-mode)       )
+
+(use-package denote-menu
+  :bind (("C-q n m" . list-denotes)
+         :map denote-menu-mode-map
+         ("c" . denote-menu-clear-filters)
+         ("/ r" . denote-menu-filter)
+         ("/ k" . denote-menu-filter-by-keyword)
+         ("/ o" . denote-menu-filter-out-keyword)
+         ("e" . denote-menu-export-to-dired)))
+
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
 ;; https://jblevins.org/projects/markdown-mode/
