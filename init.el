@@ -5930,14 +5930,14 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   ;;         (add-to-list 'completion-at-point-functions '(codeium-completion-at-point))))
 
   ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
-  (add-hook 'python-mode-hook
-            (lambda ()
-              (setq-local completion-at-point-functions
-                          (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
-  (add-hook 'emacs-lisp-mode-hook
-            (lambda ()
-              (setq-local completion-at-point-functions
-                          (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
+  ;; (add-hook 'python-mode-hook
+  ;;           (lambda ()
+  ;;             (setq-local completion-at-point-functions
+  ;;                         (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
+  ;; (add-hook 'emacs-lisp-mode-hook
+  ;;           (lambda ()
+  ;;             (setq-local completion-at-point-functions
+  ;;                         (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
   :config
   (setq use-dialog-box nil) ;; do not use popup boxes
 
