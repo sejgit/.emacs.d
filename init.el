@@ -927,11 +927,6 @@ Return its absolute path.  Otherwise, return nil."
 (use-package list-environment
   :commands list-environment)
 
-;;;;; esup
-;; - Emacs startup profiler
-;; - https://github.com/jschaf/esup
-(use-package esup)
-
 ;;;;; Advice
 ;; built-in: accept versus warn from the Advice system.
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][Advising Emacs Lisp Functions]]
