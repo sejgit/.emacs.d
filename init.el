@@ -1889,6 +1889,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :demand
   :bind ("s-/" . completion-at-point) ;; capf
   :bind-keymap ("A-/" . cape-prefix-map)
   :init
@@ -5915,6 +5916,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; completion for codeium
 ;; [[https://github.com/Exafunction/codeium.el][Codeium]]
 (use-package codeium
+  :ensure cape
+  :ensure corfu
   :vc (:url "https://github.com/Exafunction/codeium.el"
             :rev :newest
             :branch "main")
