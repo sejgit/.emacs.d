@@ -2136,26 +2136,6 @@ If FRAME is omitted or nil, use currently selected frame."
      :state (consult--jump-state))))
 
 
-;;;; indentation
-;;;;; indentation settings
-(setq-default indent-tabs-mode nil
-              fill-column 160)
-
-;;;;; dtrt-indent
-;; automatically set the right indent for other people's files
-;; https://github.com/jscheid/dtrt-indent
-(use-package dtrt-indent
-  :hook (emacs-startup . dtrt-indent-mode)
-  :blackout)
-
-;;;;; sej/indent-buffer
-;; - bound to C-c <tab>
-(defun sej/indent-buffer ()
-  "Indent the whole buffer."
-  (interactive)
-  (indent-region (point-min) (point-max)))
-(bind-key* "C-q <tab>" 'sej/indent-buffer)
- 
 
 ;;;; history packages
 ;;;;; vundo
@@ -2665,28 +2645,6 @@ If called with a prefix argument, query for word to search."
 (use-package highlight-quoted
   :hook (emacs-lisp-mode . highlight-quoted-mode))
 
-;;;;; indent-bars
-;; Highlight indentations
-;; [[https://github.com/jdtsmith/indent-bars]]
-(use-package indent-bars
-  :vc (:url "https://github.com/jdtsmith/indent-bars"
-            :rev :newest
-            :branch "main")
-  :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
-  :custom
-  (indent-bars-prefer-character t)
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("module"))
-  ;; Add other languages as needed
-  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
-  if_statement with_statement while_statement)))
-  ;; wrap may not be needed if no-descend-list is enough
-  (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
-				      list list_comprehension
-				      dictionary dictionary_comprehension
-				      parenthesized_expression subscript)))  )
-
-
 ;;;;; rainbow-mode
 ;; Colorize color names in buffers
 ;; https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
@@ -2799,15 +2757,74 @@ If called with a prefix argument, query for word to search."
         show-paren-when-point-inside-paren t
         show-paren-context-when-offscreen 'child-frame))
 
-;;;;; hideshow
-;; built-in: to hideshow blocks
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Hideshow.html][hideshow minor mode]]
-(use-package hideshow
-  :disabled
-  :blackout (hs-minor-mode . "")
-  :ensure nil
-  :hook (prog-mode . hs-minor-mode))
+;;;; indentation
+;;;;; outline-indent
+;; outline and fold text using indentation levels
+;; [[https://github.com/emacsmirror/outline-indent]]
+(use-package outline-indent
+  :ensure t
+  :vc (:url "https://github.com/jamescherti/outline-indent.el"
+            :rev :newest
+            :branch "main")
+  :hook ((python-mode python-ts-mode yaml-mode yaml-ts-mode) . outline-indent-minor-mode)
+  :bind (:map outline-minor-mode-map
+              ("M-S-<right>" . outline-indent-demote)
+              ("M-S-<left>" . outline-indent-promote))
+  :custom
+  (outline-indent-ellipsis " ▼ ")
+  :init
+  ;; Python
+(dolist (hook '(python-mode python-ts-mode-hook))
+  (add-hook hook #'(lambda()
+                     (setq-local outline-indent-default-offset 4)
+                     (setq-local outline-indent-shift-width 4))))
 
+;; YAML
+(dolist (hook '(yaml-mode yaml-ts-mode-hook))
+  (add-hook hook #'(lambda()
+                     (setq-local outline-indent-default-offset 2)
+                     (setq-local outline-indent-shift-width 2)))))
+
+;;;;; indent-bars
+;; Highlight indentations
+;; [[https://github.com/jdtsmith/indent-bars]]
+(use-package indent-bars
+  :vc (:url "https://github.com/jdtsmith/indent-bars"
+            :rev :newest
+            :branch "main")
+  :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
+  :custom
+  (indent-bars-prefer-character t)
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  ;; Add other languages as needed
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+  if_statement with_statement while_statement)))
+  ;; wrap may not be needed if no-descend-list is enough
+  (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+				      list list_comprehension
+				      dictionary dictionary_comprehension
+				      parenthesized_expression subscript)))  )
+
+;;;;; indentation settings
+(setq-default indent-tabs-mode nil
+              fill-column 160)
+
+;;;;; dtrt-indent
+;; automatically set the right indent for other people's files
+;; https://github.com/jscheid/dtrt-indent
+(use-package dtrt-indent
+  :hook (emacs-startup . dtrt-indent-mode)
+  :blackout)
+
+;;;;; sej/indent-buffer
+;; - bound to C-q <tab>
+(defun sej/indent-buffer ()
+  "Indent the whole buffer."
+  (interactive)
+  (indent-region (point-min) (point-max)))
+(bind-key* "C-q <tab>" 'sej/indent-buffer)
+ 
 ;;;;; outli
 ;; outlining with comments, simpler/updated than outshine
 ;; [[https://github.com/jdtsmith/outli]]
