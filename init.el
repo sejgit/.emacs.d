@@ -2803,15 +2803,28 @@ If called with a prefix argument, query for word to search."
 ;; built-in: to hideshow blocks
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Hideshow.html][hideshow minor mode]]
 (use-package hideshow
+  :disabled
   :blackout (hs-minor-mode . "")
   :ensure nil
   :hook (prog-mode . hs-minor-mode))
 
-;;;;; outline outshine pretty-outlines
+;;;;; outli
+;; outlining with comments, simpler/updated than outshine
+;; [[https://github.com/jdtsmith/outli]]
+(use-package outli
+  :vc (:url "https://github.com/jdtsmith/outli"
+            :rev :newest
+            :branch "main")
+  :bind (:map outli-mode-map ; convenience key to get back to containing heading
+	      ("C-c C-p" . (lambda () (interactive) (outline-back-to-heading))))
+  :hook ((prog-mode text-mode) . outli-mode)) ; or whichever modes you prefer
+
+;;;;; outline outshine
 ;; program modes outline much like org-mode "C-c @"" prefix
 ;; [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
 ;; [[https://github.com/alphapapa/outshine][outshine]]
 (use-package outshine
+  :disabled ;; trying out outli instead
   :blackout t
   :hook ((prog-mode          . outline-minor-mode)
          (outline-minor-mode . outshine-mode))
@@ -2828,7 +2841,9 @@ If called with a prefix argument, query for word to search."
    `(outline-3 ((t (:height 1.2 :foreground "#2aa198" :weight bold))))
    `(outline-4 ((t (:height 1.05 :foreground "#818e96" :weight bold)))))  )
 
+;;;;; pretty-outlines
 (use-package pretty-outlines
+  :disabled ;; turning off while trying out outli
   :vc (:url "https://github.com/sejgit/pretty-outlines"
             :rev :newest
             :branch "master")
