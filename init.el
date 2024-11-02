@@ -1051,7 +1051,10 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq which-key-use-C-h-commands t
         which-key-separator " "
-        which-key-prefix-prefix "+"))
+        which-key-prefix-prefix "+")
+  :config
+  (which-key-add-keymap-based-replacements sej-C-q-map
+    "o" "open"))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
@@ -1173,13 +1176,14 @@ Return its absolute path.  Otherwise, return nil."
           ;; C-x combo
           ("C-x w" . delete-frame)
           ;; C-q combo
-          ("C-q m" . sej/frame-recentre)
-          ("C-q F" . toggle-frame-fullscreen)
-          ("C-q <up>" . sej/frame-resize-full)
-          ("C-q <left>" . sej/frame-resize-l)
-          ("C-q <right>" . sej/frame-resize-r)
-          ("C-q <S-left>" . sej/frame-resize-l2)
-          ("C-q <S-right>" . sej/frame-resize-r2))
+          :map sej-C-q-map
+          ("m" . sej/frame-recentre)
+          ("F" . toggle-frame-fullscreen)
+          ("<up>" . sej/frame-resize-full)
+          ("<left>" . sej/frame-resize-l)
+          ("<right>" . sej/frame-resize-r)
+          ("<S-left>" . sej/frame-resize-l2)
+          ("<S-right>" . sej/frame-resize-r2))
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
@@ -2726,6 +2730,9 @@ If called with a prefix argument, query for word to search."
          ((consult-after-jump
            imenu-after-jump) . pulsar-reveal-entry)
          (next-error . pulsar-pulse-line-red))
+  :init
+  (which-key-add-keymap-based-replacements sej-C-q-map
+    "P" "Pulsar")  
   :config
   ;; Check the default value of `pulsar-pulse-functions'.  That is where
   ;; you add more commands that should cause a pulse after they are
@@ -3067,8 +3074,8 @@ If called with a prefix argument, query for word to search."
 ;; You will need to install external programs to do the formatting
 ;; https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
-  :bind (("C-q f" . format-all-buffer)
-          ("A-f" . format-all-buffer)))
+  :bind (:map sej-C-q-map
+              ("f" . format-all-buffer)))
 
 ;;;;; sh-script
 ;; built-in: shell script mode
@@ -3302,9 +3309,8 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/emacsmirror/emr
 (use-package emr
   ;; Just hit H-r to access your refactoring tools in any supported mode.
-  :bind ( ("C-q r" . emr-show-refactor-menu)
-           ("H-r" . emr-show-refactor-menu) ))
-
+  :bind (:map sej-C-q-map
+              ("r" . emr-show-refactor-menu)))
 
 ;;;; vcs
 ;;;;; Project
@@ -3421,8 +3427,8 @@ If called with a prefix argument, query for word to search."
 ;; Open github/gitlab/bitbucket page
 ;; https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind ((("C-q B" . browse-at-remote)
-           ("C-x v B" . browse-at-remote))
+  :bind (:map sej-C-q-map
+          ("B" . browse-at-remote)
           :map vc-prefix-map
           ("B" . browse-at-remote)))
 
@@ -3465,7 +3471,6 @@ If called with a prefix argument, query for word to search."
 
 (bind-keys* ("C-q b" . sej/git-blame-line)
             ("H-b" . sej/git-blame-line))
-
 
 ;;;; lisp
 ;;;;; lisp settings
@@ -4047,7 +4052,8 @@ the children of class at point."
   :commands sej/open-dashboard
   :hook (emacs-startup . sej/open-dashboard-only)
   :bind (("<f6>" . sej/open-dashboard)
-          ("C-q d" . sej/open-dashboard))
+         :map sej-C-q-map
+          ("d" . sej/open-dashboard))
   :config
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
@@ -4208,7 +4214,8 @@ the children of class at point."
 ;; Quick-preview provides a nice preview of the thing at point for files.
 ;; https://github.com/myuhe/quick-preview.el
 (use-package quick-preview
-  :bind ( ("C-q q" . quick-preview-at-point)
+  :bind ( :map sej-C-q-map
+          ("q" . quick-preview-at-point)
            :map dired-mode-map
            ("Q" . quick-preview-at-point)))
 
@@ -4216,7 +4223,8 @@ the children of class at point."
 ;; browse file at remote source
 ;; https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
-  :bind ("C-q b" . browse-at-remote))
+  :bind (:map sej-C-q-map
+              ("b" . browse-at-remote)))
 
 ;;;;; diredfl
 ;; Extra font-lock rules for a more Colourful dired
@@ -4232,29 +4240,27 @@ the children of class at point."
 ;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
 (use-package denote
   :after org
-  :bind (:map global-map
-              ("C-q n n" . denote)
-              ("C-q n N" . denote-open-or-create) 
-              ("C-q n r" . denote-region) ; "contents" mnemonic
-              ("C-q n N" . denote-type)
-              ("C-q n d" . denote-date)
-              ("C-q n z" . denote-signature) ; "zettelkasten" mnemonic
-              ("C-q n s" . denote-subdirectory)
-              ("C-q n t" . denote-template)
-              ;; If you intend to use Denote with a variety of file types, it is
-              ;; easier to bind the link-related commands to the `global-map', as
-              ;; shown here.  Otherwise follow the same pattern for `org-mode-map',
-              ;; `markdown-mode-map', and/or `text-mode-map'.
-              ("C-q n b" . denote-backlinks)
-              ("C-q n l" . denote-link) ; "insert" mnemonic
-              ("C-q n L" . denote-add-links)
-              ("C-q n j" . denote-journal-extras-new-or-existing-entry)
-              ("C-q n f f" . denote-find-link)
-              ("C-q n f b" . denote-find-backlink)
-              ;; Note that `denote-rename-file' can work from any context, not just
-              ;; Dired bufffers.  That is why we bind it here to the `global-map'.
-              ("C-c n r" . denote-rename-file)
-              ("C-c n R" . denote-rename-file-using-front-matter)
+  :init
+  (which-key-add-keymap-based-replacements sej-C-q-map
+    "n" "Denote"
+    "n l" "Denote-link")
+  :bind (:map sej-C-q-map
+              ("n n" . denote)
+              ("n N" . denote-open-or-create) 
+              ("n r" . denote-region) ; "contents" mnemonic
+              ("n N" . denote-type)
+              ("n d" . denote-date)
+              ("n z" . denote-signature) ; "zettelkasten" mnemonic
+              ("n s" . denote-subdirectory)
+              ("n t" . denote-template)
+              ("n b" . denote-backlinks)
+              ("n l l" . denote-link) ; "insert" mnemonic
+              ("n l f" . denote-find-link)
+              ("n l b" . denote-find-backlink)
+              ("n L" . denote-add-links)
+              ("n j" . denote-journal-extras-new-or-existing-entry)
+              ("n r" . denote-rename-file)
+              ("n R" . denote-rename-file-using-front-matter)
 
          ;; Key bindings specifically for Dired.
          :map dired-mode-map
@@ -4399,9 +4405,9 @@ the children of class at point."
   ;; integrate denote with consult
   ;; [[https://github.com/protesilaos/consult-denote][Personal — GitHub - protesilaos/consult-denote: Use Consult in tandem with Denote]]
     :ensure t
-    :bind
-    (("C-q C-d f" . consult-denote-find)
-     ("C-q C-d g" . consult-denote-grep))
+    :bind (:map sej-C-q-map
+                ("n f" . consult-denote-find)
+                ("n g" . consult-denote-grep))
     :config
     (setq consult-denote-grep-command #'consult-ripgrep)
     (consult-denote-mode 1))
@@ -4413,7 +4419,8 @@ the children of class at point."
   :hook (org-mode . denote-refs-mode)       )
 
 (use-package denote-menu
-  :bind (("C-q n m" . list-denotes)
+  :bind (:map sej-C-q-map
+         ("n m" . list-denotes)
          :map denote-menu-mode-map
          ("c" . denote-menu-clear-filters)
          ("/ r" . denote-menu-filter)
@@ -4715,15 +4722,16 @@ the children of class at point."
              annotate-export-annotations
              annotate-integrate-annotations
              annotate-show-annotation-summary)
-  :bind ((("C-q C-a" . sej/annotate-annotate-dwim)
-           ("C-q C-S-a" . annotate-show-annotation-summary)
-           ("C-q ]" . annotate-goto-next-annotation)
-           ("C-q [" . annotate-goto-previous-annotation))
-          (:map annotate-mode-map
-                ("C-q C-a" . sej/annotate-annotate-dwim)
-                ("C-q C-S-a" . annotate-show-annotation-summary)
-                ("C-q ]" . annotate-goto-next-annotation)
-                ("C-q [" . annotate-goto-previous-annotation)) )
+  :bind ((:map sej-C-q-map
+               ("C-a" . sej/annotate-annotate-dwim)
+               ("C-S-a" . annotate-show-annotation-summary)
+               ("]" . annotate-goto-next-annotation)
+               ("[" . annotate-goto-previous-annotation))
+         (:map annotate-mode-map
+               ("C-q C-a" . sej/annotate-annotate-dwim)
+               ("C-q C-S-a" . annotate-show-annotation-summary)
+               ("C-q ]" . annotate-goto-next-annotation)
+               ("C-q [" . annotate-goto-previous-annotation)) )
   :config
   (setq annotate-file (expand-file-name "annotations" user-emacs-directory))
   (setq annotate-annotation-column 73)
@@ -5268,7 +5276,8 @@ function with the \\[universal-argument]."
                                        ("M-R" . eshell-previous-matching-input)
                                        ("C-l" . eshell/clear) ))))
 
-  :bind (("C-q S e" . eshell) )
+  :bind (:map sej-C-q-map
+              ("S e" . eshell) )
 
   :init
   (defvar eshell-visual-commands '("screen" "htop" "ncftp" "elm" "el" "nano" "ssh" "nethack" "dstat" "tail"))
@@ -5540,7 +5549,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
          (shell-mode . ansi-color-for-comint-mode-on)
          (comint-output-filter-functions . comint-strip-ctrl-m)
          (comint-output-filter-functions . comint-truncate-buffer))
-  :bind  ( ("C-q S s" . shell))
+  :bind  (:map sej-C-q-map
+               ("S s" . shell))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -5644,9 +5654,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package term
   :ensure nil
   :commands (term ansi-term serial-term)
-  :bind ( ("C-q S a" . ansi-term)
-           ("C-q S S" . serial-term)
-           ("C-q S t" . term))
+  :bind (:map sej-C-q-map
+              ("S a" . ansi-term)
+              ("S S" . serial-term)
+              ("S t" . term))
   :config
   (setq term-buffer-maximum-size 9999)
   (setq term-completion-autolist t)
@@ -5678,7 +5689,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; [[https://www.gnu.org/software/emacs/manual/html_mono/erc.html#Top]]
 (use-package erc
   :ensure nil
-  :bind ("C-q I" . sej/erc-dwim)
+  :bind (:map sej-C-q-map
+              ("I" . sej/erc-dwim))
   :config
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
   ;; erc hack for gnutls for client cert.
@@ -5804,7 +5816,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; - [[https://www.gnu.org/software/emacs/manual/html_mono/eww.html][EWW]]
 (use-package eww
   :ensure nil
-  :bind ( ("C-q W"))
+  :bind (:map sej-C-q-map
+              ("W" . eww))
   :config
   (setq eww-restore-desktop nil)
   (setq eww-desktop-remove-duplicates t)
@@ -5868,7 +5881,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html]]
 (use-package calendar
   :ensure nil
-  :bind ( ("C-q C"))
+  :bind (:map sej-C-q-map
+              ("C" . calendar))
   :config
   (setq calendar-mark-diary-entries-flag t)
   (setq calendar-time-display-form
@@ -5887,7 +5901,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; facilities for setting timers using a convenient notation
 ;; [[https://protesilaos.com/emacs/tmr]]
 (use-package tmr
-  :bind (("C-q t" . tmr-prefix-map))
+  :bind (:map sej-C-q-map
+              ("t" . tmr-prefix-map))
   :config
   ;; Read the `tmr-descriptions-list' doc string
   (setq tmr-descriptions-list 'tmr-description-history)
