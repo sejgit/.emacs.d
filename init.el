@@ -117,9 +117,9 @@
 ;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
 (require 'warnings)
 ;; remove warnings for cl depreciated and server already running
-(setq warning-suppress-types (quote ((cl server iedit))))
-(setq warning-suppress-log-types (quote ((cl) )))
-(setq byte-compile-warnings '(cl-functions))
+(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
+(setq warning-suppress-log-types (quote ((cl) (org-element))))
+(setq byte-compile-warnings (quote ((cl-functions))))
 
 ;;;;; Package manager
 ;; add melpa to already encluded elpa
