@@ -2837,7 +2837,9 @@ If called with a prefix argument, query for word to search."
             :branch "main")
   :bind (:map outli-mode-map ; convenience key to get back to containing heading
 	      ("C-c C-p" . (lambda () (interactive) (outline-back-to-heading))))
-  :hook ((prog-mode text-mode) . outli-mode)) ; or whichever modes you prefer
+  :hook ((prog-mode text-mode) . outli-mode) ; or whichever modes you prefer
+  :config
+  (setq outli-speed-commands nil))
 
 ;;;;; outline outshine
 ;; program modes outline much like org-mode "C-c @"" prefix
