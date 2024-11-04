@@ -2761,32 +2761,16 @@ If called with a prefix argument, query for word to search."
         show-paren-context-when-offscreen 'child-frame))
 
 ;;;; indentation
-;;;;; outline-indent
-;; outline and fold text using indentation levels
-;; [[https://github.com/emacsmirror/outline-indent]]
-(use-package outline-indent
-  :ensure t
-  :vc (:url "https://github.com/jamescherti/outline-indent.el"
+;;;;; outli
+;; outlining with comments, simpler/updated than outshine
+;; [[https://github.com/jdtsmith/outli]]
+(use-package outli
+  :vc (:url "https://github.com/jdtsmith/outli"
             :rev :newest
             :branch "main")
-  :hook ((python-mode python-ts-mode yaml-mode yaml-ts-mode) . outline-indent-minor-mode)
-  :bind (:map outline-minor-mode-map
-              ("M-S-<right>" . outline-indent-demote)
-              ("M-S-<left>" . outline-indent-promote))
-  :custom
-  (outline-indent-ellipsis " ▼ ")
-  :init
-  ;; Python
-(dolist (hook '(python-mode python-ts-mode-hook))
-  (add-hook hook #'(lambda()
-                     (setq-local outline-indent-default-offset 4)
-                     (setq-local outline-indent-shift-width 4))))
-
-;; YAML
-(dolist (hook '(yaml-mode yaml-ts-mode-hook))
-  (add-hook hook #'(lambda()
-                     (setq-local outline-indent-default-offset 2)
-                     (setq-local outline-indent-shift-width 2)))))
+  :hook ((prog-mode text-mode) . outli-mode) ; or whichever modes you prefer
+  :config
+  (setq outli-speed-commands nil))
 
 ;;;;; indent-bars
 ;; Highlight indentations
@@ -2809,9 +2793,15 @@ If called with a prefix argument, query for word to search."
 				      dictionary dictionary_comprehension
 				      parenthesized_expression subscript)))  )
 
-;;;;; indentation settings
+;;;;; indentation & outline settings
 (setq-default indent-tabs-mode nil
               fill-column 160)
+(setq outline-minor-mode-prefix (kbd "C-'"))
+(bind-keys* ("C-S-n" . outline-next-visible-heading)
+            ("C-S-p" . outline-previous-visible-heading)
+            ("C-n" . next-line)
+            ("C-P" . previous-line))
+
 
 ;;;;; dtrt-indent
 ;; automatically set the right indent for other people's files
@@ -2827,61 +2817,6 @@ If called with a prefix argument, query for word to search."
   (interactive)
   (indent-region (point-min) (point-max)))
 (bind-key* "C-q <tab>" 'sej/indent-buffer)
- 
-;;;;; outli
-;; outlining with comments, simpler/updated than outshine
-;; [[https://github.com/jdtsmith/outli]]
-(use-package outli
-  :vc (:url "https://github.com/jdtsmith/outli"
-            :rev :newest
-            :branch "main")
-  :bind (:map outli-mode-map ; convenience key to get back to containing heading
-	      ("C-c C-p" . (lambda () (interactive) (outline-back-to-heading))))
-  :hook ((prog-mode text-mode) . outli-mode) ; or whichever modes you prefer
-  :config
-  (setq outli-speed-commands nil))
-
-;;;;; outline outshine
-;; program modes outline much like org-mode "C-c @"" prefix
-;; [[https://www.emacswiki.org/emacs/OutlineMinorMode][outline-minor-mode wiki]]
-;; [[https://github.com/alphapapa/outshine][outshine]]
-(use-package outshine
-  :disabled ;; trying out outli instead
-  :blackout t
-  :hook ((prog-mode          . outline-minor-mode)
-         (outline-minor-mode . outshine-mode))
-  :bind ("M-S-<return>" . outshine-insert-heading)
-  :config
-  (setcdr outshine-mode-map nil)
-  (blackout 'outline-minor-mode)
-  (setq outline-minor-mode-use-buttons nil
-        outline-minor-mode-use-margins nil)
-  (custom-theme-set-faces
-   'user
-   `(outline-1 ((t (:height 1.8 :foreground "#c8d8e3" :weight bold))))
-   `(outline-2 ((t (:height 1.5 :foreground "#268bd2" :weight bold))))
-   `(outline-3 ((t (:height 1.2 :foreground "#2aa198" :weight bold))))
-   `(outline-4 ((t (:height 1.05 :foreground "#818e96" :weight bold)))))  )
-
-;;;;; pretty-outlines
-(use-package pretty-outlines
-  :disabled ;; turning off while trying out outli
-  :vc (:url "https://github.com/sejgit/pretty-outlines"
-            :rev :newest
-            :branch "master")
-  :after (outshine)
-  :hook ((outline-mode . pretty-outlines-set-display-table)
-         (outline-minor-mode . pretty-outlines-set-display-table)
-         (emacs-lisp-mode . pretty-outlines-add-bullets)
-         (python-mode . pretty-outlines-add-bullets))
-  :init
-  (if (fboundp 'package-installed-p)
-      t
-    (defun package-installed-p (dummy) t))
-  :config
-  (setq pretty-outlines-ellipsis "~")
-  (setq pretty-outlines-bullets-bullet-list '(#x2022 ))  )
-
 
 ;;; programming
 ;;;;; prog-mode
