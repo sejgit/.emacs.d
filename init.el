@@ -4145,33 +4145,36 @@ the children of class at point."
     "n" "Denote"
     "n l" "Denote-link")
   :bind (:map sej-C-q-map
+              ("n a" . denote-add-links)
+              ("n b" . denote-backlinks)
+              ("n l" . denote-link) ; "insert" mnemonic
+              ("n d" . denote-date)
+              ("n f b" . denote-find-backlink)
+              ("n f l" . denote-find-link)
+              ("n j" . denote-journal-extras-new-or-existing-entry)
               ("n n" . denote)
               ("n N" . denote-open-or-create) 
-              ("n r" . denote-region) ; "contents" mnemonic
-              ("n N" . denote-type)
-              ("n d" . denote-date)
-              ("n z" . denote-signature) ; "zettelkasten" mnemonic
-              ("n s" . denote-subdirectory)
-              ("n t" . denote-template)
-              ("n b" . denote-backlinks)
-              ("n l l" . denote-link) ; "insert" mnemonic
-              ("n l f" . denote-find-link)
-              ("n l b" . denote-find-backlink)
-              ("n L" . denote-add-links)
-              ("n j" . denote-journal-extras-new-or-existing-entry)
               ("n r" . denote-rename-file)
+              ("n r" . denote-region) ; "contents" mnemonic
               ("n R" . denote-rename-file-using-front-matter)
-
-         ;; Key bindings specifically for Dired.
-         :map dired-mode-map
-              ("C-q C-i" . denote-link-dired-marked-notes)
+              ("n s" . denote-subdirectory)
+              ("n t" . denote-type)
+              ("n T" . denote-template)
+              ("n z" . denote-signature) ; "zettelkasten" mnemonic
+              ;; defined in consult-denote
+                  ;; ("n f f" . consult-denote-find)
+                  ;; ("n g" . consult-denote-grep)
+                  ;; ("n f g" . consult-denote-grep)
+              ;; defined in denote menu
+                  ;; ("n m" . list-denotes)
+         :map org-mode-map
+              ("C-q n o" . denote-org-extras-extract-org-subtree)
+              ("C-q n h" . denote-org-extras-link-to-heading)
+              ("C-q n L" . denote-journal-extras-link-or-create-entry)
               ("C-q C-r" . denote-dired-rename-files)
               ("C-q C-k" . denote-dired-rename-marked-files-with-keywords)
               ("C-q C-R" . denote-dired-rename-marked-files-using-front-matter)
-         :map org-mode-map
-              ("C-q n o" . denote-org-extras-extract-org-subtree)
-              ("C-q n j" . denote-journal-extras-link-or-create-entry)
-              ("C-q n L" . denote-org-extras-link-to-heading))
+              )
 
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
@@ -4304,10 +4307,13 @@ the children of class at point."
 (use-package consult-denote
   ;; integrate denote with consult
   ;; [[https://github.com/protesilaos/consult-denote][Personal — GitHub - protesilaos/consult-denote: Use Consult in tandem with Denote]]
-    :ensure t
+  :ensure t
+  :after consult
+  :after denote
     :bind (:map sej-C-q-map
-                ("n f" . consult-denote-find)
-                ("n g" . consult-denote-grep))
+                ("n f f" . consult-denote-find)
+                ("n g" . consult-denote-grep)
+                ("n f g" . consult-denote-grep) )
     :config
     (setq consult-denote-grep-command #'consult-ripgrep)
     (consult-denote-mode 1))
@@ -4319,6 +4325,7 @@ the children of class at point."
   :hook (org-mode . denote-refs-mode)       )
 
 (use-package denote-menu
+  :after denote
   :bind (:map sej-C-q-map
          ("n m" . list-denotes)
          :map denote-menu-mode-map
