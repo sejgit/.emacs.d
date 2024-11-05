@@ -2819,6 +2819,8 @@ If called with a prefix argument, query for word to search."
 (bind-key* "C-q <tab>" 'sej/indent-buffer)
 
 ;;; programming
+
+;;;; debug & formatting tools
 ;;;;; prog-mode
 ;; built-in: generalized program mode
 ;; Prettify Symbols
@@ -2858,6 +2860,45 @@ If called with a prefix argument, query for word to search."
   (add-hook 'prog-mode-hook #'prettify-symbols-mode)
   (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
 
+
+;;;;; emr
+;; a framework for providing language-specific refactoring in Emacs.
+;; It includes refactoring commands for a variety of languages
+;; https://github.com/emacsmirror/emr
+(use-package emr
+  ;; Just hit H-r to access your refactoring tools in any supported mode.
+  :bind (:map sej-C-q-map
+              ("r" . emr-show-refactor-menu)))
+
+;;;;; flymake-ruff
+;; ruff linter
+;; [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
+;; ("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
+(use-package flymake-ruff
+  :hook (python-base-mode . flymake-ruff-load)
+  ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
+  )
+
+;;;;; reformatter
+;; base reformatter
+;; [[https://github.com/purcell/emacs-reformatter][reformatter]]
+(use-package reformatter)
+
+;;;;; ruff-format
+;; ruff format using reformatter
+;; [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
+(use-package ruff-format
+  :after reformatter)
+
+;;;;; format-all
+;; auto-format source code in many languages using the same command for all languages
+;; You will need to install external programs to do the formatting
+;; https://github.com/lassik/emacs-format-all-the-code
+(use-package format-all
+  :bind (:map sej-C-q-map
+              ("f" . format-all-buffer)))
+
+;;;; server tools
 ;;;;; tree-sitter
 ;; built-in: Emacs Lisp binding for tree-sitter, an incremental parsing library.
 ;; Important this is using the built-in Emacs version tree-sit.el
@@ -2986,79 +3027,7 @@ If called with a prefix argument, query for word to search."
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
-;;;;; flymake-ruff
-;; ruff linter
-;; [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
-;; ("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
-(use-package flymake-ruff
-  :hook (python-base-mode . flymake-ruff-load)
-  ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
-  )
-
-;;;;; reformatter
-;; base reformatter
-;; [[https://github.com/purcell/emacs-reformatter][reformatter]]
-(use-package reformatter)
-
-;;;;; ruff-format
-;; ruff format using reformatter
-;; [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
-(use-package ruff-format
-  :after reformatter)
-
-;;;;; format-all
-;; auto-format source code in many languages using the same command for all languages
-;; You will need to install external programs to do the formatting
-;; https://github.com/lassik/emacs-format-all-the-code
-(use-package format-all
-  :bind (:map sej-C-q-map
-              ("f" . format-all-buffer)))
-
-;;;;; sh-script
-;; built-in: shell script mode
-;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
-(use-package sh-script
-  :ensure nil
-  :preface
-  (defun sej/sh-prettify-mode-line ()
-    (setq mode-line-process nil)
-    (when (eq major-mode 'sh-mode)
-      (setq mode-name (capitalize (symbol-name sh-shell)))))
-
-  (defun sh-script-extra-font-lock-is-in-double-quoted-string ()
-    "Non-nil if point in inside a double-quoted string."
-    (let ((state (syntax-ppss)))
-      (eq (nth 3 state) ?\")))
-
-  (defun sh-script-extra-font-lock-match-var-in-double-quoted-string (limit)
-    "Search for variables in double-quoted strings."
-    (let (res)
-      (while
-          (and (setq res
-                     (re-search-forward
-                      "\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)"
-                      limit t))
-               (not (sh-script-extra-font-lock-is-in-double-quoted-string))))
-      res))
-
-  (defvar sh-script-extra-font-lock-keywords
-    '((sh-script-extra-font-lock-match-var-in-double-quoted-string
-       (2 font-lock-variable-name-face prepend))))
-
-  (defun sh-script-extra-font-lock-activate ()
-    (interactive)
-    (font-lock-add-keywords nil sh-script-extra-font-lock-keywords)
-    (if (fboundp 'font-lock-flush)
-        (font-lock-flush)
-      (when font-lock-mode
-        (with-no-warnings
-          (font-lock-fontify-buffer)))))
-  :init
-  (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
-  (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
-  :config
-  (setq-default sh-basic-offset 2))
-
+;;;; ssh tools
 ;;;;; tramp
 ;; built-in: remote editing
 ;; https://www.gnu.org/software/tramp/
@@ -3102,6 +3071,7 @@ If called with a prefix argument, query for word to search."
 ;; add this to file for automatic usage: # -*- mode: ssh-config -*-
 (use-package ssh-config-mode)
 
+;;;; commenting tools
 ;;;;; New-Comment
 ;; built-in: library contains functions and variables for commenting and
 ;; uncommenting source code.
@@ -3143,6 +3113,7 @@ If called with a prefix argument, query for word to search."
   (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-shell (getenv "$SHELL")))
 
+;;;; paren management
 ;;;;; electric
 ;; built-in: electric indent mode
 (use-package electric
@@ -3184,6 +3155,7 @@ If called with a prefix argument, query for word to search."
   (require 'smartparens-config)
   (sp-use-smartparens-bindings))
 
+;;;; compile and make tools
 ;;;;; compile
 ;; built-in: Compilation Mode
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html
@@ -3239,15 +3211,6 @@ If called with a prefix argument, query for word to search."
   (setq flymake-start-on-save-buffer t)
   (setq flymake-proc-compilation-prevents-syntax-check t)
   (setq flymake-wrap-around nil)  )
-
-;;;;; emr
-;; a framework for providing language-specific refactoring in Emacs.
-;; It includes refactoring commands for a variety of languages
-;; https://github.com/emacsmirror/emr
-(use-package emr
-  ;; Just hit H-r to access your refactoring tools in any supported mode.
-  :bind (:map sej-C-q-map
-              ("r" . emr-show-refactor-menu)))
 
 ;;;; vcs
 ;;;;; Project
@@ -5175,7 +5138,52 @@ function with the \\[universal-argument]."
   > "#+END_SRC" \n)
 
 
-;;; eshell & shell
+;;; shell tools
+;;;;; sh-script
+;; built-in: shell script mode
+;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
+(use-package sh-script
+  :ensure nil
+  :preface
+  (defun sej/sh-prettify-mode-line ()
+    (setq mode-line-process nil)
+    (when (eq major-mode 'sh-mode)
+      (setq mode-name (capitalize (symbol-name sh-shell)))))
+
+  (defun sh-script-extra-font-lock-is-in-double-quoted-string ()
+    "Non-nil if point in inside a double-quoted string."
+    (let ((state (syntax-ppss)))
+      (eq (nth 3 state) ?\")))
+
+  (defun sh-script-extra-font-lock-match-var-in-double-quoted-string (limit)
+    "Search for variables in double-quoted strings."
+    (let (res)
+      (while
+          (and (setq res
+                     (re-search-forward
+                      "\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)"
+                      limit t))
+               (not (sh-script-extra-font-lock-is-in-double-quoted-string))))
+      res))
+
+  (defvar sh-script-extra-font-lock-keywords
+    '((sh-script-extra-font-lock-match-var-in-double-quoted-string
+       (2 font-lock-variable-name-face prepend))))
+
+  (defun sh-script-extra-font-lock-activate ()
+    (interactive)
+    (font-lock-add-keywords nil sh-script-extra-font-lock-keywords)
+    (if (fboundp 'font-lock-flush)
+        (font-lock-flush)
+      (when font-lock-mode
+        (with-no-warnings
+          (font-lock-fontify-buffer)))))
+  :init
+  (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
+  (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
+  :config
+  (setq-default sh-basic-offset 2))
+
 ;;;; eshell
 ;;;;; eshell
 ;; built-in: Emacs command shell ; much better than shell
