@@ -2587,21 +2587,21 @@ If called with a prefix argument, query for word to search."
 
   ;; Org font faces in current buffer
   (defun sej/my-buffer-face-mode-IsosevkaFixed ()
-    "Sets font for org mode in current buffer"
+    "Sets font for org mode in current buffer."
     (interactive)
     (when sys/macp
     (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "regular" :height 140))
     (buffer-face-mode))    )
 
 (defun sej/my-buffer-face-mode-IsosevkaThin ()
-    "Sets font for org mode in current buffer"
+    "Set font for org mode in current buffer."
     (interactive)
     (when sys/macp
     (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "thin" :height 140))
     (buffer-face-mode))    )
 
 (defun sej/my-buffer-face-mode-Atkinson ()
-    "Sets font for org mode in current buffer"
+    "Set font for org mode in current buffer."
     (interactive)
     (when sys/macp
     (setq buffer-face-mode-face '(:family "Atkinson-Hyperlegible" :height 140))
@@ -2731,8 +2731,7 @@ If called with a prefix argument, query for word to search."
            imenu-after-jump) . pulsar-reveal-entry)
          (next-error . pulsar-pulse-line-red))
   :init
-  (which-key-add-keymap-based-replacements sej-C-q-map
-    "P" "Pulsar")  
+  (which-key-add-keymap-based-replacements sej-C-q-map "P" "Pulsar")
   :config
   ;; Check the default value of `pulsar-pulse-functions'.  That is where
   ;; you add more commands that should cause a pulse after they are
@@ -4153,7 +4152,7 @@ the children of class at point."
               ("n f l" . denote-find-link)
               ("n j" . denote-journal-extras-new-or-existing-entry)
               ("n n" . denote)
-              ("n N" . denote-open-or-create) 
+              ("n N" . denote-open-or-create)
               ("n r" . denote-rename-file)
               ("n r" . denote-region) ; "contents" mnemonic
               ("n R" . denote-rename-file-using-front-matter)
@@ -4285,7 +4284,7 @@ the children of class at point."
     (org-capture)))
 
 (defun sej/org-capture-delete-frame-abnormal (orig-fun &rest args)
-  "Advise org-capture-select-template to close the frame on abort"
+  "Advise 'org-capture-select-template' with ORIG-FUN to close the frame on abort, passing ARGS."
   (let ((res
          (ignore-errors
              (apply orig-fun args))) )
