@@ -4169,7 +4169,7 @@ the children of class at point."
          :map org-mode-map
               ("C-q n o" . denote-org-extras-extract-org-subtree)
               ("C-q n h" . denote-org-extras-link-to-heading)
-              ("C-q n L" . denote-journal-extras-link-or-create-entry)
+              ("C-q n J" . denote-journal-extras-link-or-create-entry)
               ("C-q C-r" . denote-dired-rename-files)
               ("C-q C-k" . denote-dired-rename-marked-files-with-keywords)
               ("C-q C-R" . denote-dired-rename-marked-files-using-front-matter)
@@ -4797,7 +4797,7 @@ function with the \\[universal-argument]."
         org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-startup-indented t
-        org-tags-column -120
+        org-tags-column -80
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
