@@ -44,8 +44,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error t)
-(setq debug-on-event t)
+(setq debug-on-error nil)
+(setq debug-on-event nil)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -4819,7 +4819,7 @@ function with the \\[universal-argument]."
                ("A-M-<return>" . org-insert-item)
                ("M-S-<return>" . org-insert-todo-heading)
                ("C-c n" . outline-next-visible-heading)
-               ("C-c n" . outline-previous-visible-heading)
+               ("C-c p" . outline-previous-visible-heading)
                ("M-s H" . consult-org-heading)))
   :config
   ;; reading man pages in org-mode
@@ -4834,6 +4834,7 @@ function with the \\[universal-argument]."
         ;; (defconst org-file-journal (concat org-directory "/journal.org"))
         ;; (defconst org-file-notes (concat org-directory "/notes.org"))
         ;; (defconst org-file-code (concat org-directory "/snippets.org"))
+        org-insert-heading-respect-content t
         org-replace-disputed-keys t
         org-hide-emphasis-markers t
         org-adapt-indentation nil
@@ -4864,6 +4865,7 @@ function with the \\[universal-argument]."
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
+  (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
 ;;;;;; tags
   (setq org-tag-alist ; I don't really use those, but whatever
