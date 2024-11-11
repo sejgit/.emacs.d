@@ -1,3 +1,4 @@
+
 ;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t; no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
@@ -43,8 +44,8 @@
 ;;; initialize environment
 ;;;;; debug
 ;; only turned on when needed
-(setq debug-on-error nil)
-(setq debug-on-event nil)
+(setq debug-on-error t)
+(setq debug-on-event t)
 
 ;;;;; system custom constants
 ;; - section for global constants
@@ -525,7 +526,7 @@
 ;;;;;; global so-long mode
   ;; set-up global so long mode to protect us
   (global-so-long-mode)
-  
+
 ;;;;;; whitespace
   ;; Define the whitespace style.
   (setq-default whitespace-style
@@ -1139,29 +1140,28 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; tron-legacy-theme
 ;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
 (use-package tron-legacy-theme
+  :disabled t
   :init
   (setq tron-legacy-theme-vivid-cursor t)
   (setq tron-legacy-theme-dark-fg-bright-comments nil)
   (setq tron-legacy-theme-softer-bg nil)
-  ;; :init
-  ;; (load-theme 'tron-legacy :no-confirm))
-  )
+  :init
+  (load-theme 'tron-legacy :no-confirm))
 
 ;;;;; modus-themes
 ;; built-in: theme
 ;; [[https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111][modus-theme-manual]]
 ;; current preferred theme
-(use-package modus-themes
-  :ensure nil
+(use-package emacs ; built-in package
   :bind ("C-c C-t" . modus-themes-toggle)
   :custom
+  (require-theme 'modus-themes)
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs nil)
   (modus-themes-mixed-fonts t)
   (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi))
-  :init
+  :config
   (load-theme 'modus-vivendi :no-confirm))
-
 
 ;;;; frames
 ;;;;; frame
@@ -1354,6 +1354,17 @@ If FRAME is omitted or nil, use currently selected frame."
 (add-hook 'special-mode 'sej/quit-and-kill-auxiliary-windows)
 (add-hook 'compilation-mode-hook 'sej/quit-and-kill-auxiliary-windows)
 
+;;;;; sej/delete-buffer-contents-no-matter-properties
+(defun sej/delete-buffer-contents-no-matter-properties ()
+  "Delete the buffer contents no matter the properties."
+  (interactive)
+  (let ((inhibit-read-only t)) (erase-buffer)))
+
+;;;;; sej/remove-all-buffer-properties
+(defun sej/remove-all-buffer-properties ()
+  "Remove text properties like read-only in the buffer contents."
+  (interactive)
+(let ((inhibit-read-only t)) (set-text-properties (point-min) (point-max) ())))
 
 ;;;; scratch buffer
 ;;;;; scratch buffer set-up
@@ -1564,7 +1575,7 @@ If FRAME is omitted or nil, use currently selected frame."
           ;; ...
           (t :style "cod" :icon "code" :face font-lock-warning-face)))
   ;; Remember to add an entry for `t', the library uses that as default.
-  
+
   ;; The Custom interface is also supported for tuning the variable above.
   )
 
@@ -1812,7 +1823,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   ;; (setq tab-always-indent 'complete)
-  
+
   ;; Free the RET key for less intrusive behavior.
   ;; Option 1: Unbind RET completely
   ;; (keymap-unset corfu-map "RET")
@@ -1864,13 +1875,13 @@ If FRAME is omitted or nil, use currently selected frame."
         :vc (:url "https://github.com/galeo/corfu-doc"
               :rev :newest
               :branch "main"))
-  
+
   (use-package corfu-terminal
     :unless (display-graphic-p)
     :demand t
     :init
     (corfu-terminal-mode +1)  )
-  
+
   (use-package corfu-doc-terminal
     :vc (:url "https://codeberg.org/akib/emacs-corfu-doc-terminal"
               :rev :newest
@@ -2239,7 +2250,7 @@ If FRAME is omitted or nil, use currently selected frame."
                 (push (concat string " ") display-strings)
                 (when (= (mod N per-row) 0) (push "\n" display-strings)))
        (message "%s" (apply #'concat (nreverse display-strings)))))
-  
+
   ;; Kill text
   (defun avy-action-kill-whole-line (pt)
     "Avy kill whole line at PT selected."
@@ -2563,9 +2574,9 @@ If called with a prefix argument, query for word to search."
 ;;;;; orglink
 ;; use Org mode links in other modes
 ;; [[https://github.com/tarsius/orglink][orglink]]
-(use-package orglink
-  :blackout t
-  :hook (dashboard-mode . global-orglink-mode))
+;; (use-package orglink
+;;   :blackout t
+;;   :hook (dashboard-mode . global-orglink-mode))
 
 ;;;;; restclient
 ;; Allows query of a restclient with the results left into the buffer
@@ -2576,36 +2587,99 @@ If called with a prefix argument, query for word to search."
 
 
 ;;;; highlighting faces fonts
-;;;;; buffer-face-modes
-;; Normal font faces in current buffer
-  (defun sej/my-buffer-face-mode-normal ()
-    "Set font to normal in current buffer"
-    (interactive)
-    (when sys/macp
-    (setq buffer-face-mode-face '(:family "Menlo" :height 120))
-    (buffer-face-mode))    )
+;;;;; fontaine
+;; font management
+;; [[https://protesilaos.com/emacs/fontaine]]
+(use-package fontaine
+  :bind ("C-c f" . fontaine-set-preset)
+  :hook (emacs-startup . fontaine-mode)
+  :config
+(let* ((variable-tuple
+        (cond ((x-list-fonts "Atkinson Hyperlegible") "Atkinson Hyperlegible")
+              ((x-list-fonts "Iosevka")  "Iosevka")
+              ((x-list-fonts "ETBembo")  "ETBembo")
+              ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
+              ((x-list-fonts "Lucida Grande")  "Lucida Grande")
+              ((x-list-fonts "Verdana")  "Verdana")
+              ((x-family-fonts "Sans Serif")  "Sans Serif")
+              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+       (fixed-tuple
+        (cond    ((x-list-fonts "Iosevka Fixed")   "Iosevka Fixed")
+              ((x-list-fonts "Iosevka")   "Iosevka")
+              ((x-list-fonts "ETBembo")  "ETBembo")
+              ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
+              ((x-list-fonts "Lucida Grande")  "Lucida Grande")
+              ((x-list-fonts "Verdana")  "Verdana")
+              ((x-family-fonts "Sans Serif")  "Sans Serif")
+              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+       (sej-t-text  `(t
+                ;; I keep all properties for didactic purposes, but most can be
+                ;; omitted.  See the fontaine manual for the technicalities:
+                ;; <https://protesilaos.com/emacs/fontaine>.
+                :default-family ,fixed-tuple
+                :default-weight semilight
+                :default-height 140
 
-  ;; Org font faces in current buffer
-  (defun sej/my-buffer-face-mode-IsosevkaFixed ()
-    "Sets font for org mode in current buffer."
-    (interactive)
-    (when sys/macp
-    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "regular" :height 140))
-    (buffer-face-mode))    )
+                :fixed-pitch-family nil ; falls back to :default-family
+                :fixed-pitch-weight nil ; falls back to :default-weight
+                :fixed-pitch-height 1.0
 
-(defun sej/my-buffer-face-mode-IsosevkaThin ()
-    "Set font for org mode in current buffer."
-    (interactive)
-    (when sys/macp
-    (setq buffer-face-mode-face '(:family "Isosevka Fixed" :style "thin" :height 140))
-    (buffer-face-mode))    )
+                :fixed-pitch-serif-family nil ; falls back to :default-family
+                :fixed-pitch-serif-weight nil ; falls back to :default-weight
+                :fixed-pitch-serif-height 1.0
 
-(defun sej/my-buffer-face-mode-Atkinson ()
-    "Set font for org mode in current buffer."
-    (interactive)
-    (when sys/macp
-    (setq buffer-face-mode-face '(:family "Atkinson-Hyperlegible" :height 140))
-    (buffer-face-mode))    )
+                :variable-pitch-family ,variable-tuple
+                :variable-pitch-weight nil
+                :variable-pitch-height 1.0
+
+                :mode-line-active-family ,variable-tuple
+                :mode-line-active-weight regular
+                :mode-line-active-height 1.0
+
+                :mode-line-inactive-family ,variable-tuple
+                :mode-line-inactive-weight regular
+                :mode-line-inactive-height 1.0
+
+                :header-line-family nil ; falls back to :default-family
+                :header-line-weight nil ; falls back to :default-weight
+                :header-line-height 1.0
+
+                :line-number-family nil ; falls back to :default-family
+                :line-number-weight nil ; falls back to :default-weight
+                :line-number-height 1.0
+
+                :tab-bar-family nil ; falls back to :default-family
+                :tab-bar-weight nil ; falls back to :default-weight
+                :tab-bar-height 1.0
+
+                :tab-line-family nil ; falls back to :default-family
+                :tab-line-weight nil ; falls back to :default-weight
+                :tab-line-height 1.0
+
+                :bold-family nil ; use whatever the underlying face has
+                :bold-weight bold
+
+                :italic-family nil
+                :italic-slant italic
+
+                :line-spacing nil))
+                    
+       (sej-font-text `((regular) ; like this it uses all the fallback values and is named `regular'
+               (small
+                :default-height 100)
+               (medium
+                :default-height 160)
+               (large
+                :inherit medium
+                :default-height 180)
+               (presentation
+                :default-height 200)
+               ,sej-t-text ) ) )
+  (setq fontaine-presets sej-font-text) )
+
+;; Set the last preset or fall back to desired style from `fontaine-presets'
+;; (the `regular' in this case).
+(fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))  )
 
 ;;;;; symbol-overlay
 ;; Highlight symbols and move between them
@@ -2705,7 +2779,7 @@ If called with a prefix argument, query for word to search."
           ("HELP" . "#ff0000")
           ("LATER" . "#8c5353")
           ))
-  
+
   (push 'org-mode hl-todo-include-modes))
 
 ;;;;; volatile-highlights
@@ -4138,7 +4212,6 @@ the children of class at point."
 ;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
 ;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
 (use-package denote
-  :after org
   :init
   (which-key-add-keymap-based-replacements sej-C-q-map
     "n" "Denote"
@@ -4472,7 +4545,7 @@ the children of class at point."
 ;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 ;; (use-package flyspell
 ;;   :disabled t
-;;   
+;;
 ;;   :blackout t
 ;;   :bind (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
 ;;           :map ctl-x-x-map
@@ -4499,22 +4572,22 @@ the children of class at point."
 ;;    ((executable-find "hunspell")
 ;;     (progn (setq-default ispell-program-name "hunspell")
 ;;            (setq ispell-really-hunspell t)))   )
-;; 
+;;
 ;;   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
 ;;   (define-key flyspell-mouse-map [mouse-3] #'undefined)
-;; 
+;;
 ;;   (setq ispell-personal-dictionary "~/sej.ispell"
 ;;         ispell-silently-savep t)
-;; 
+;;
 ;;   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
 ;;   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
 ;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
 ;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
-;; 
+;;
 ;;   (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
 ;;                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
 ;;                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
-;; 
+;;
 ;;   (setq ispell-dictionary "canadian"))
 
 ;;;;; jinx
@@ -4724,57 +4797,48 @@ function with the \\[universal-argument]."
 ;; [[https://github.com/cdominik/cdlatex][cdlatex]]
 (use-package cdlatex)
 
-
 ;;;; org
 ;;;;; org
 ;; built-in: mode for keeping notes, maintaining lists, planning
 ;; <2024-10-19 Sat> mods to mix with denote system
 (use-package org
   :ensure nil
-  :defines
-  org-agenda-span
-  org-agenda-skip-scheduled-if-deadline-is-shown
-  org-agenda-todo-ignore-deadlines
-  org-agenda-todo-ignore-scheduled
-  org-agenda-sorting-strategy
-  org-agenda-skip-deadline-prewarning-if-scheduled
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           (org-mode . org-num-mode)
-          (org-mode . sej/my-buffer-face-mode-Atkinson))
+          (org-mode . variable-pitch-mode))
   :bind (( ("C-c l" . org-store-link)
-            ("C-c c" . org-capture)
-            ("C-c a" . org-agenda) )
-          (:map org-mode-map
-                ("C-M-\\" . org-indent-region)
-                ("S-<left>" . org-shiftleft)
-                ("S-<right>" . org-shiftright)
-                ("M-<return>" . org-insert-heading)
-                ("C-M-<return>" . org-insert-subheading)
-                ("A-M-<return>" . org-insert-item)
-                ("M-S-<return>" . org-insert-todo-heading)
-                ("C-c n" . outline-next-visible-heading)
-                ("C-c n" . outline-previous-visible-heading)
-                ("M-s H" . consult-org-heading)))
+           ("C-c c" . org-capture)
+           ("C-c a" . org-agenda) )
+         (:map org-mode-map
+               ("C-M-\\" . org-indent-region)
+               ("S-<left>" . org-shiftleft)
+               ("S-<right>" . org-shiftright)
+               ("M-<return>" . org-insert-heading)
+               ("C-M-<return>" . org-insert-subheading)
+               ("A-M-<return>" . org-insert-item)
+               ("M-S-<return>" . org-insert-todo-heading)
+               ("C-c n" . outline-next-visible-heading)
+               ("C-c n" . outline-previous-visible-heading)
+               ("M-s H" . consult-org-heading)))
   :config
-  (require 'org)
-  (require 'org-capture)
-  (setq org-ellipsis "⤵")
-  (require 'org-protocol)
+  ;; reading man pages in org-mode
   (require 'ol-man)
-  (setq org-directory sej-org-directory)
-  ;; below are defined above
-  ;; (defconst org-file-inbox (concat org-directory "/inbox.org"))
-  ;; (defconst org-file-someday (concat org-directory "/someday.org"))
-  ;; (defconst org-file-gtd (concat org-directory "/gtd.org"))
-  ;; (defconst org-file-journal (concat org-directory "/journal.org"))
-  ;; (defconst org-file-notes (concat org-directory "/notes.org"))
-  ;; (defconst org-file-code (concat org-directory "/snippets.org"))
-  (setq org-replace-disputed-keys t
+
+  (setq org-ellipsis "⤵"
+        org-directory sej-org-directory
+        ;; below are defined above but not currently used because of denote usages
+        ;; (defconst org-file-inbox (concat org-directory "/inbox.org"))
+        ;; (defconst org-file-someday (concat org-directory "/someday.org"))
+        ;; (defconst org-file-gtd (concat org-directory "/gtd.org"))
+        ;; (defconst org-file-journal (concat org-directory "/journal.org"))
+        ;; (defconst org-file-notes (concat org-directory "/notes.org"))
+        ;; (defconst org-file-code (concat org-directory "/snippets.org"))
+        org-replace-disputed-keys t
         org-hide-emphasis-markers t
         org-adapt-indentation nil
         org-special-ctrl-a/e nil
-        org-special-ctrl-k nil
+        org-special-ctrl-k t
         org-M-RET-may-split-line '((default . nil))
         org-return-follows-link t
         org-fontify-done-headline t
@@ -4794,7 +4858,6 @@ function with the \\[universal-argument]."
                                  ("DELIGATE" . (:foreground "blue"))
                                  ("VERIFIED" . (:foreground "green"))
                                  ("CANCELED" . (:foreground "grey")))
-        org-confirm-babel-evaluate nil
         org-startup-folded nil
         org-startup-indented t
         org-tags-column -80
@@ -4819,57 +4882,125 @@ function with the \\[universal-argument]."
           ("3d-printer")
           ("other")))
 
-  ;; (setq sej-project-org-capture-list (list
-  ;;                                     "p" sej-project-org-capture-text 'entry (list 'file+olp+datetree sej-project-org-capture-file "Journal" )
-  ;;                                     "* %U\n %l\n %i%?\n"))
-  ;; Bookmarks in Safari
-  ;;
-  ;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
-  ;;                               +'&url='+encodeURIComponent(window.location.href)
-  ;;                               +'&title='+encodeURIComponent(document.title)
-  ;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
-  ;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
-  ;;                               +'url='+encodeURIComponent(location.href)
-  ;;                               +'&title='+encodeURIComponent(document.title) ;
+;;;;;; buffer-face-modes
+(let* ((variable-tuple
+        (cond ((x-list-fonts "Atkinson Hyperlegible") '(:family "Atkinson Hyperlegible"))
+              ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+              ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+              ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+              ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+              ((x-list-fonts "Verdana")         '(:font "Verdana"))
+              ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+       (fixed-tuple
+        (cond    ((x-list-fonts "Iosevka Fixed")   '(:family "Iosevka Fixed"))
+              ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+              ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+              ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+              ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+              ((x-list-fonts "Verdana")         '(:font "Verdana"))
+              ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+       (base-font-color     (face-foreground 'default nil 'default))
+       (headline           `(:inherit default :weight regular :foreground ,base-font-color))
+       )
 
-  ;; see denote for new versions
-  ;; (setq org-capture-templates (append
-  ;;                              '(
-  ;;                                ("c" "code snippet" entry (file+headline org-file-code "code snippets")
-  ;;                                 "* #code %?\n %i\n %a")
-  ;;                                ("i" "NewFile" plain (file sej/new-org-capture-file)
-  ;;                                 "* %U\n %i%?\n")
-  ;;                                ("j" "Journal" entry (file+olp+datetree  org-file-journal "Journal")
-  ;;                                 "* %U\n %l\n %i%?\n")
-  ;;                                ("n" "Notes" entry (file+headline org-file-notes  "Notes")
-  ;;                                 "* %U\n %i%?\n")
-  ;;                                ("s" "Someday" entry (file+headline org-file-someday  "Someday")
-  ;;                                 "* %?\n %i\n %a")
-  ;;                                ("t" "Todo" entry (file+headline org-file-gtd  "Todo")
-  ;;                                 "* TODO %?\n %i\n %a")
-  ;;                                ("x" "WebJournal" entry (file+olp+datetree  org-file-journal "Journal")
-  ;;                                 "* %U\n %:annotation\n i=%i%?\n")
-  ;;                                )
-  ;;                              (list sej-project-org-capture-list)))
+  (custom-theme-set-faces
+   'user
+   `(variable-pitch ((t (,@variable-tuple :weight normal))))
+   `(fixed-pitch ((t (,@fixed-tuple))))
 
+   `(org-level-8 ((t (,@headline ,@variable-tuple))))
+   `(org-level-7 ((t (,@headline ,@variable-tuple))))
+   `(org-level-6 ((t (,@headline ,@variable-tuple))))
+   `(org-level-5 ((t (,@headline ,@variable-tuple :height 1.0 :foreground "#ff9580"))))
+   `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1 :foreground "#caa6df"))))
+   `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2 :foreground "#82b0ec"))))
+   `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
+   `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
+
+   `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "cyan-intense"))))
+   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through t :foreground "bg-active"))))
+
+   `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
+   `(org-block ((t (:inherit fixed-pitch))))
+   `(org-code ((t (:inherit (shadow fixed-pitch)))))
+   `(org-document-info ((t (:foreground "dark orange"))))
+   `(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   `(org-indent ((t (:inherit (org-hide variable-pitch)))))
+   `(org-link ((t (:foreground "royal blue" :underline t))))
+   `(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   `(org-property-value ((t (:inherit fixed-pitch))) t)
+   `(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
+   `(org-done ((t (:foreground "PaleGreen" :strike-through t))))
+   ) )
+
+;;;;;; prettify org checkboxes with unicode characters
+  (font-lock-add-keywords
+   'org-mode
+   '(("^ *\\([-]\\) "
+      (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([+]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
+
+  (add-hook 'org-mode-hook '(lambda ()
+                              "Beautify Org Checkbox Symbol"
+                              (push '("[ ]" . "☐" ) prettify-symbols-alist)
+                              (push '("[X]" . "☑" ) prettify-symbols-alist)
+                              (push '("[-]" . "⊡" ) prettify-symbols-alist)
+                              (prettify-symbols-mode)))
+
+  (defface org-checkbox-done-text
+    '((t (:foreground "#71696A" :strike-through t)))
+    "Face for the text part of a checked org-mode checkbox.")
+
+  (font-lock-add-keywords
+   'org-mode
+   `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
+      1 'org-checkbox-done-text prepend))
+   'append)
+
+;;;;;; personal sej functions
   (defun sej/get-open-org-file ()
-     "Pull list of .org files which are open in buffers."
-     (buffer-file-name
-      (get-buffer
-       (org-icompleting-read "Buffer: "
-                             (mapcar 'buffer-name
-                                     (org-buffer-list 'files))))))
+    "Pull list of .org files which are open in buffers."
+    (buffer-file-name
+     (get-buffer
+      (org-icompleting-read "Buffer: "
+                            (mapcar 'buffer-name
+                                    (org-buffer-list 'files))))))
 
-  (setq org-refile-targets '((org-file-gtd :maxlevel . 3)
-                             (org-file-someday :maxlevel . 3)
-                             (org-file-inbox :maxlevel . 3)
-                             (org-file-journal :maxlevel . 3)
-                             (org-file-notes :maxlevel . 3)
-                             (org-file-code :maxlevel . 3)
-                             (sej/get-open-org-file :maxlevel . 3))
-        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-        org-confirm-babel-evaluate nil )
+  (defun sej/org-reformat-buffer ()
+    "Format the current org buffer, which often fixes and updates org interpreted data."
+  (interactive)
+  (when (y-or-n-p "Really format current buffer? ")
+    (let ((document (org-element-interpret-data (org-element-parse-buffer))))
+      (erase-buffer)
+      (insert document)
+      (goto-char (point-min)))))
 
+(defun sej/org-remove-link ()
+  "Replace an org link by its description or if empty its address"
+  (interactive)
+  (if (org-in-regexp org-bracket-link-regexp 1)
+      (let ((remove (list (match-beginning 0) (match-end 0)))
+            (description (if (match-end 3)
+                             (org-match-string-no-properties 3)
+                           (org-match-string-no-properties 1))))
+        (apply 'delete-region remove)
+        (insert description))))
+(bind-key "C-c C-H-u" 'sej/org-remove-link)
+
+  ) ; end of use-pacakge for org
+
+;;;;; org-protocol
+(use-package org-protocol
+  :ensure nil
+  :after org
+  :init
   (defvar load-language-list '((emacs-lisp . t)
                                (ein . t)
                                (perl . t)
@@ -4885,37 +5016,59 @@ function with the \\[universal-argument]."
                                ))
 
   (org-babel-do-load-languages 'org-babel-load-languages
-                               load-language-list))
+                               load-language-list)
+  (setq org-confirm-babel-evaluate nil))
 
-(defun sej/new-org-capture-file()
-  "Function to allow new FILE in 'org-capture'."
-  (interactive)
-  (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
-    (let* ((expanded (expand-file-name file))
-           (try expanded)
-           (dir (directory-file-name (file-name-directory expanded)))
-           new)
-      (if (file-exists-p expanded)
-          (error "Cannot create file %s: file exists" expanded))
-      ;; Find the topmost nonexistent parent dir (variable `new')
-      (while (and try (not (file-exists-p try)) (not (equal new try)))
-        (setq new try
-              try (directory-file-name (file-name-directory try))))
-      (when (not (file-exists-p dir))
-        (make-directory dir t))
-      (write-region "" nil expanded t)
-      (when new
-        (dired-add-file new)
-        (message new)
-        ))))
+;;;;; org-capture
+;; Bookmarks in Safari
+;;
+;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
+;;                               +'&url='+encodeURIComponent(window.location.href)
+;;                               +'&title='+encodeURIComponent(document.title)
+;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
+;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
+;;                               +'url='+encodeURIComponent(location.href)
+;;                               +'&title='+encodeURIComponent(document.title) ;
+(use-package org-capture
+  :ensure nil
+  :after org
+  :bind ("C-c c" . org-capture)
+  :config
+  (defun sej/new-org-capture-file()
+    "Function to allow new FILE in 'org-capture'."
+    (interactive)
+    (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
+      (let* ((expanded (expand-file-name file))
+             (try expanded)
+             (dir (directory-file-name (file-name-directory expanded)))
+             new)
+        (if (file-exists-p expanded)
+            (error "Cannot create file %s: file exists" expanded))
+        ;; Find the topmost nonexistent parent dir (variable `new')
+        (while (and try (not (file-exists-p try)) (not (equal new try)))
+          (setq new try
+                try (directory-file-name (file-name-directory try))))
+        (when (not (file-exists-p dir))
+          (make-directory dir t))
+        (write-region "" nil expanded t)
+        (when new
+          (dired-add-file new)
+          (message new)
+          )))))
 
 ;;;;; org-agenda
 ;; built-in: agenda for todo & calendar items
 ;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
 (use-package org-agenda
   :ensure nil
-  :bind (("C-c a" . org-agenda)
-         ("C-c c" . org-capture))
+  :bind (("C-c a" . org-agenda))
+  :defines
+  (org-agenda-span
+  org-agenda-skip-scheduled-if-deadline-is-shown
+  org-agenda-todo-ignore-deadlines
+  org-agenda-todo-ignore-scheduled
+  org-agenda-sorting-strategy
+  org-agenda-skip-deadline-prewarning-if-scheduled)
   :config
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
@@ -4936,11 +5089,20 @@ function with the \\[universal-argument]."
                                         ; if they are already shown as a deadline
         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
         org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
+        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
         (quote
          ((agenda deadline-up priority-down)
           (todo priority-down category-keep)
           (tags priority-down category-keep)
-          (search category-keep)))) )
+          (search category-keep)))
+        org-refile-targets '((org-file-gtd :maxlevel . 3)
+                             (org-file-someday :maxlevel . 3)
+                             (org-file-inbox :maxlevel . 3)
+                             (org-file-journal :maxlevel . 3)
+                             (org-file-notes :maxlevel . 3)
+                             (org-file-code :maxlevel . 3)
+                             (sej/get-open-org-file :maxlevel . 3))  ))
+
 
 ;;;;; org-src
 ;; built-in: org src block settings
@@ -5937,4 +6099,3 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (message "init.el ends here")
 (provide 'init)
 ;;; init.el ends here
-

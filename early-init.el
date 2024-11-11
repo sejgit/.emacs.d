@@ -84,7 +84,7 @@
                                 (undecorated-round . t)
                                 ))
 (unless (display-graphic-p)
-  (add-to-list 'default-frame-alist '(menu-bar-mode . 0)))
+  (add-to-list 'default-frame-alist '(menu-bar-mode . 0) ))
 
 (setq frame-resize-pixelwise t
       frame-inhibit-implied-resize t
