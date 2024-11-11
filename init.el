@@ -78,6 +78,8 @@
   "Are we running Apple Silicon Mac system?")
 
 ;; specific vars for different systems
+(defvar sej/menu-height -25
+  "Menu-height used to calculate frame adjustments.")
 (cond (sys/mac-x86-p
        (setq sej/menu-height -25)) ;; x86 Intel mac
       (sys/mac-AA64-p
@@ -191,9 +193,11 @@
     :vc (:url "https://github.com/purcell/exec-path-from-shell"
               :rev :newest
               :branch "master")
+    :custom
+    (exec-path-from-shell-arguments nil)
     :config
-    (setq exec-path-from-shell-arguments nil)
     (exec-path-from-shell-initialize))
+
   (global-set-key (kbd "M-`") 'ns-next-frame)
   (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
   (setq insert-directory-program "gls")
@@ -207,7 +211,7 @@
 (when sys/linuxp
   (message "Linux")
 ;;;;;; Linux keyboard
-  ;; - nothing set at this moment
+  ;; nothing set at this moment
   ;; load-dir init.d
   (setq exec-path (append exec-path '("/usr/local/bin")))  )
 
@@ -4865,6 +4869,8 @@ function with the \\[universal-argument]."
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex))
+
+;;;;;; org-attach
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
 ;;;;;; tags
