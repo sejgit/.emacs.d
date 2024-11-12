@@ -1805,7 +1805,15 @@ If FRAME is omitted or nil, use currently selected frame."
   (corfu-preselect 'directory)      ;; Preselect the prompt
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
   (corfu-scroll-margin 5)           ;; Use scroll margin
-  ;; (corfu-echo-documentation nil)
+  (corfu-auto-delay 2)
+  (corfu-auto-prefix 2)
+  (corfu-count 10)
+  (corfu-echo-documentation nil)
+  (corfu-quit-at-boundary nil)
+  (corfu-separator ?\s)            ; Use space
+  (corfu-quit-no-match 'separator) ; Don't quit if there is `corfu-separator' inserted
+  (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
+  (corfu-preselect-first t)        ; Preselect first candidate?
 
   ;; Enable Corfu only for certain modes.
   ;; :hook ((prog-mode . corfu-mode)
@@ -1815,10 +1823,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
-  :init
-  (global-corfu-mode)
-  (setq corfu-auto-delay 1)
-
+  
   :config
   ;; (setq global-corfu-modes '((not markdown-mode) t))
   ;; TAB cycle if there are only few candidates
@@ -1903,14 +1908,22 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :demand
+  :demand t
   :bind ("s-/" . completion-at-point) ;; capf
   :bind-keymap ("A-/" . cape-prefix-map)
+  :hook ((emacs-lisp-mode .  sej/cape-capf-setup-elisp)
+         (org-mode . sej/cape-capf-setup-org)
+         (eshell-mode . sej/cape-capf-setup-eshell)
+         (git-commit-mode . sej/cape-capf-setup-git-commit)
+         (sh-mode . sej/cape-capf-setup-sh)
+         )
+
+  :custom (cape-dabbrev-min-length 3)
   :init
   ;; completion functions takes precedence over the global list.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+  ;; (add-to-list 'completion-at-point-functions #'cape-elisp-block)
   (add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
@@ -1918,9 +1931,66 @@ If FRAME is omitted or nil, use currently selected frame."
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
   (add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+  ;; (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
   ;; (add-to-list 'completion-at-point-functions #'cape-line)
-  )
+
+  ;; Elisp
+  (defun sej/cape-capf-ignore-keywords-elisp (cand)
+    "Ignore keywords with forms that begin with \":\" (e.g.:history)."
+    (or (not (keywordp cand))
+        (eq (char-after (car completion-in-region--data)) ?:)))
+  (defun sej/cape-capf-setup-elisp ()
+    "Replace the default `elisp-completion-at-point'
+completion-at-point-function. Doing it this way will prevent
+disrupting the addition of other capfs (e.g. merely setting the
+variable entirely, or adding to list).
+
+Additionally, add `cape-file' as early as possible to the list."
+    (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
+          #'elisp-completion-at-point)
+    (add-to-list 'completion-at-point-functions #'cape-symbol)
+    ;; I prefer this being early/first in the list
+    (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+    (add-to-list 'completion-at-point-functions #'cape-file))
+
+ ;; Org
+  (defun sej/cape-capf-setup-org ()
+      (let ((result))
+        (dolist (element (list
+                          #'cape-dict
+                          #'cape-dabbrev
+                          #'cape-history
+                          #'cape-abbrev)
+                         result)
+          (add-to-list 'completion-at-point-functions element))) )
+
+;;git-commit
+  (defun sej/cape-capf-setup-git-commit ()
+  (let ((result))
+    (dolist (element '(cape-symbol cape-dabbrev) result)
+      (add-to-list 'completion-at-point-functions element))))
+
+  ;; Eshell
+  (defun sej/cape-capf-setup-eshell ()
+    (let ((result))
+      (dolist (element '(pcomplete-completions-at-point cape-file) result)
+        (add-to-list 'completion-at-point-functions element))      ))
+
+  ;; Sh
+  (defun sej/cape-capf-setup-sh ()
+    (require 'company-shell)
+    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
+
+  :config
+  ;; For pcomplete. For now these two advices are strongly recommended to
+  ;; achieve a sane Eshell experience. See
+  ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
+
+  ;; Silence the pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
+  ;; `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
 ;;;;; marginalia
 ;; Enable richer annotations using the Marginalia package
@@ -6047,6 +6117,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; completion for codeium
 ;; [[https://github.com/Exafunction/codeium.el][Codeium]]
 (use-package codeium
+  :disabled t
   :ensure cape
   :ensure corfu
   :vc (:url "https://github.com/Exafunction/codeium.el"
