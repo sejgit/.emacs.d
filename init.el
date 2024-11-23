@@ -4355,7 +4355,7 @@ the children of class at point."
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
   (setq denote-file-type nil) ; Org is the default, set others here
-  (setq denote-prompts '(title keywords))
+  (setq denote-prompts '(title keywords template))
   (setq denote-excluded-directories-regexp nil)
   (setq denote-excluded-keywords-regexp nil)
   (setq denote-rename-confirmations '(rewrite-front-matter modify-file-name))
@@ -4363,10 +4363,11 @@ the children of class at point."
   ;; Pick dates, where relevant, with Org's advanced interface:
   (setq denote-date-prompt-use-org-read-date t)
 
-
   ;; Read this manual for how to specify `denote-templates'.  We do not
   ;; include an example here to avoid potential confusion.
-
+  (setq denote-templates
+        `((standard . ,(concat "\n\n"
+                               "* "))))
 
   (setq denote-date-format nil) ; read doc string
 
@@ -4386,6 +4387,7 @@ the children of class at point."
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
 
+;;;;;; denote keyword functions  
   ;; define keywords in text file in denote-directory
   (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
   (defun sej/denote-keywords-update ()
@@ -4411,6 +4413,7 @@ the children of class at point."
       (setq sej/value (delete-dups (apply #'append value)))
       (insert (mapconcat 'identity sej/value "\n"))))
 
+;;;;;; org-capture setups 
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (setq org-capture-templates
@@ -4480,6 +4483,7 @@ the children of class at point."
 
 (advice-add 'org-capture-finalize :after #'sej/org-capture-delete-frame-normal)
 
+;;;;;; create denote files in any directory
 (defun denote-create-any-dir ()
   "Create new Denote note in any directory.
 Prompt for the directory using minibuffer completion."
@@ -4488,6 +4492,7 @@ Prompt for the directory using minibuffer completion."
   (let ((denote-directory (read-directory-name "New note in: " nil nil :must-match)))
     (call-interactively 'denote)))
 
+;;;;;; rename based on front matter at every save
 (defun sej/denote-always-rename-on-save-based-on-front-matter ()
   "Rename the current Denote file, if needed, upon saving the file.
 Rename the file based on its front matter, checking for changes in the
@@ -4502,6 +4507,8 @@ Add this function to the `after-save-hook'."
 
 (add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
 
+;;;;;; denote colleagues
+;; easy way to launch topic specific files either colleagues or topics
 (defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
 
 (defvar sej/denote-colleagues nil
@@ -4562,9 +4569,10 @@ one among them and operate therein."
       ;; asterisk for the heading.  Adapt accordingly.
       (insert (format "* [%s]\n\n" time))))))
 
+;;;;;; consult-denote
+;; integrate denote with consult
+;; [[https://github.com/protesilaos/consult-denote]]
 (use-package consult-denote
-  ;; integrate denote with consult
-  ;; [[https://github.com/protesilaos/consult-denote][Personal — GitHub - protesilaos/consult-denote: Use Consult in tandem with Denote]]
   :bind (:map sej-C-q-map
                 ("n f f" . consult-denote-find)
                 ("n g" . consult-denote-grep)
@@ -4573,12 +4581,19 @@ one among them and operate therein."
     (setq consult-denote-grep-command #'consult-ripgrep)
     (consult-denote-mode 1))
 
+;;;;;; denote-refs
+;; puts links and back-links after header in denote files
+;; put below in .dir-locals.el in denote-directory
+;; ((org-mode . ((eval . (denote-refs-mode)))))
 (use-package denote-refs
   :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
             :rev :newest
             :branch "master")
-  :hook (org-mode . denote-refs-mode)       )
+  :hook (denote-mode . denote-refs-mode)       )
 
+;;;;;; denote-menu
+;; tabed list of denote notes
+;; [[https://github.com/namilus/denote-menu]]
 (use-package denote-menu
   :bind (:map sej-C-q-map
          ("n m" . list-denotes)
