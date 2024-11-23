@@ -4289,10 +4289,16 @@ the children of class at point."
   :init
   (which-key-add-keymap-based-replacements sej-C-q-map
     "n" "Denote"
-    "n l" "Denote-link")
+    "n l" "Denote-link"
+    "n f" "Denote-find")
   :bind (:map sej-C-q-map
               ("n a" . denote-add-links)
               ("n b" . denote-backlinks)
+              ("n c" . sej/denote-colleagues-new-meeting)
+              ("n C" . sej/denote-colleagues-edit)
+              ("n d" . denote-create-any-dir)
+              ("n k" . sej/denote-keywords-edit)
+              ("n K" . sej/denote-keywords-dump)
               ("n l" . denote-link) ; "insert" mnemonic
               ("n d" . denote-date)
               ("n f b" . denote-find-backlink)
@@ -4345,7 +4351,7 @@ the children of class at point."
   ;; Remember to check the doc strings of those variables.
   (setq denote-directory sej-org-directory)
   (setq denote-save-buffers nil)
-  (setq denote-known-keywords '("HR" "1:1" "finance" "emacs" "org" "knowledge" "homeautomation" "isy" "plugin"))
+  (setq denote-known-keywords nil)
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
   (setq denote-file-type nil) ; Org is the default, set others here
@@ -4379,6 +4385,31 @@ the children of class at point."
 
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
+
+  ;; define keywords in text file in denote-directory
+  (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
+  (defun sej/denote-keywords-update ()
+    "Update keywords from file."
+    (interactive)
+    (if (f-exists-p sej/denote-keywords-p)
+        (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
+      (setq denote-known-keywords  "defined-in-denote-keywords.txt")))
+  (sej/denote-keywords-update)
+
+  (defun sej/denote-keywords-edit ()
+  "Edit the keywords list."
+  (interactive)
+  (sej/denote-keywords-update)
+  (switch-to-buffer (find-file-noselect sej/denote-keywords-p)))
+
+  (defun sej/denote-keywords-dump ()
+    "Dump the current used keywords in denote-directory for refactor purposes."
+    (interactive)
+    (let (value)
+      (dolist (element (denote-directory-files) value)
+        (setq value (cons (denote-extract-keywords-from-path element) value)))
+      (setq sej/value (delete-dups (apply #'append value)))
+      (insert (mapconcat 'identity sej/value "\n"))))
 
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
@@ -4448,15 +4479,93 @@ the children of class at point."
       (delete-frame)))
 
 (advice-add 'org-capture-finalize :after #'sej/org-capture-delete-frame-normal)
-)
+
+(defun denote-create-any-dir ()
+  "Create new Denote note in any directory.
+Prompt for the directory using minibuffer completion."
+  (declare (interactive-only t))
+  (interactive)
+  (let ((denote-directory (read-directory-name "New note in: " nil nil :must-match)))
+    (call-interactively 'denote)))
+
+(defun sej/denote-always-rename-on-save-based-on-front-matter ()
+  "Rename the current Denote file, if needed, upon saving the file.
+Rename the file based on its front matter, checking for changes in the
+title or keywords fields.
+
+Add this function to the `after-save-hook'."
+  (let ((denote-rename-confirmations nil)
+        (denote-save-buffers t)) ; to save again post-rename
+    (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
+      (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
+      (message "Buffer saved; Denote file renamed"))))
+
+(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
+
+(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+
+(defvar sej/denote-colleagues nil
+  "List of names I collaborate with.
+There is at least one file in the variable `denote-directory' that has
+the name of this person.")
+
+(defvar sej/denote-colleagues-prompt-history nil
+  "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
+
+(defun sej/denote-colleagues-edit ()
+  "Edit the coleague list."
+  (interactive)
+  (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
+
+(defun sej/denote-colleagues-prompt ()
+  "Prompt with completion for a name among `sej/denote-colleagues'.
+Use the last input as the default value."
+  (if (f-exists-p sej/denote-colleagues-p)
+    (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
+    (setq sej/denote-colleagues  "put colleagues or topics in denote-colleagues.txt"))
+  (let ((default-value (car sej/denote-colleagues-prompt-history)))
+    (completing-read
+     (format-prompt "New meeting with COLLEAGUE" default-value)
+     sej/denote-colleagues
+     nil :require-match nil
+     'sej/denote-colleagues-prompt-history
+     default-value)))
+
+(defun sej/denote-colleagues-get-file (name)
+  "Find file in variable `denote-directory' for NAME colleague.
+If there are more than one files, prompt with completion for one among
+them.
+
+NAME is one among `sej/denote-colleagues'."
+  (if-let* ((files (denote-directory-files name))
+            (length-of-files (length files)))
+      (cond
+       ((= length-of-files 1)
+        (car files))
+       ((> length-of-files 1)
+        (completing-read "Select a file: " files nil :require-match)))
+    (user-error "No files for colleague with name `%s'" name)))
+
+(defun sej/denote-colleagues-new-meeting ()
+  "Prompt for the name of a colleague and insert a timestamped heading therein.
+The name of a colleague corresponds to at least one file in the variable
+`denote-directory'.  In case there are multiple files, prompt to choose
+one among them and operate therein."
+  (declare (interactive-only t))
+  (interactive)
+  (let* ((name (sej/denote-colleagues-prompt))
+         (file (sej/denote-colleagues-get-file name))
+         (time (format-time-string "%F %a")))  ; add %R if you want the time
+    (with-current-buffer (find-file file)
+      (goto-char (point-max))
+      ;; Here I am assuming we are in `org-mode', hence the leading
+      ;; asterisk for the heading.  Adapt accordingly.
+      (insert (format "* [%s]\n\n" time))))))
 
 (use-package consult-denote
   ;; integrate denote with consult
   ;; [[https://github.com/protesilaos/consult-denote][Personal — GitHub - protesilaos/consult-denote: Use Consult in tandem with Denote]]
-  :ensure t
-  :after consult
-  :after denote
-    :bind (:map sej-C-q-map
+  :bind (:map sej-C-q-map
                 ("n f f" . consult-denote-find)
                 ("n g" . consult-denote-grep)
                 ("n f g" . consult-denote-grep) )
@@ -4471,7 +4580,6 @@ the children of class at point."
   :hook (org-mode . denote-refs-mode)       )
 
 (use-package denote-menu
-  :after denote
   :bind (:map sej-C-q-map
          ("n m" . list-denotes)
          :map denote-menu-mode-map
