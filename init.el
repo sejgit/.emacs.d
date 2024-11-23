@@ -1949,6 +1949,8 @@ Additionally, add `cape-file' as early as possible to the list."
     (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
           #'elisp-completion-at-point)
     ;; I prefer this being early/first in the list
+    (add-to-list 'completion-at-point-functions #'cape-history)
+    (add-to-list 'completion-at-point-functions #'cape-keyword)
     (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
     (add-to-list 'completion-at-point-functions #'cape-file))
 
