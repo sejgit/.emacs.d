@@ -384,6 +384,15 @@
     (if (file-exists-p file)
         (load file :noerror))) )
 
+;;;;; async
+;; A module for doing asynchronous processing in Emacs
+;; [[https://github.com/jwiegley/emacs-async]]
+(use-package async
+  :init
+  (autoload 'dired-async-mode "dired-async.el" nil t)
+  (dired-async-mode 1)
+  (async-bytecomp-package-mode 1))
+
 ;;;;; dash
 ;; A modern list API for Emacs. No 'cl required.
 ;; [[https://github.com/magnars/dash.el][dash.el]]
@@ -422,6 +431,13 @@
            :rev :recent
            :branch "master")
   :commands (noflet flet))
+
+;;;;; pcre2el
+;; RegeXp translator or RegeXp Tools
+;; [[https://github.com/joddie/pcre2el]]
+;; start with rxt-explain
+(use-package pcre2el
+  :hook (emacs-lisp-mode . rxt-mode))
 
 ;;;;; no-littering feature
 ;; set the default paths for configuration files & persistent data
