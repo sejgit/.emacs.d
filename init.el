@@ -1881,7 +1881,6 @@ If FRAME is omitted or nil, use currently selected frame."
     :ensure nil
     :demand t
     :init
-    (savehist-mode 1)
     (add-to-list 'savehist-additional-variables 'corfu-history)
     :config
     (corfu-history-mode t))
@@ -2278,14 +2277,15 @@ Additionally, add `cape-file' as early as possible to the list."
   (history-delete-duplicates t)
   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
   (history-length 10000)
-  (savehist-additional-variables '(mark-ring
-                                   global-mark-ring
-                                   search-ring
-                                   regexp-search-ring
-                                   extended-command-history)
-                                 "each variable is persisted across Emacs sessions.")
+  (savehist-save-minibuffer-history t)
   (savehist-autosave-interval 300)
-  (savehist-save-minibuffer-history t))
+  :config
+  (setq savehist-additional-variables (-union savehist-additional-variables
+                                              '(mark-ring
+                                                global-mark-ring
+                                                search-ring
+                                                regexp-search-ring
+                                                extended-command-history))) )
 
 
 ;;;; movement
@@ -4313,9 +4313,10 @@ the children of class at point."
               ("n b" . denote-backlinks)
               ("n c" . sej/denote-colleagues-new-meeting)
               ("n C" . sej/denote-colleagues-edit)
+              ("n C-c" . sej/denote-colleagues-dump)
               ("n d" . denote-create-any-dir)
               ("n k" . sej/denote-keywords-edit)
-              ("n K" . sej/denote-keywords-dump)
+              ("n C-k" . sej/denote-keywords-dump)
               ("n l" . denote-link) ; "insert" mnemonic
               ("n d" . denote-date)
               ("n f b" . denote-find-backlink)
@@ -4403,6 +4404,12 @@ the children of class at point."
 
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
+
+  (setq savehist-additional-variables (-union savehist-additional-variables
+                                              '(denote-file-history
+                                                denote-title-history
+                                                denote-keyword-history
+                                                denote-component-history )))
 
 ;;;;;; denote keyword functions  
   ;; define keywords in text file in denote-directory
@@ -4585,6 +4592,17 @@ one among them and operate therein."
       ;; Here I am assuming we are in `org-mode', hence the leading
       ;; asterisk for the heading.  Adapt accordingly.
       (insert (format "* [%s]\n\n" time))))))
+
+(defun sej/denote-colleagues-dump ()
+  "Dump the current used colleagues in denote-directory for refactor purposes."
+  (interactive)
+  (let ((value nil) (element1 nil) (element2 nil))
+    (setq value (denote-directory-files "__[^journal]"))
+    (dolist (element value)
+      (save-match-data
+        (and (string-match "\\(--\\)\\([a-z,A-Z,0-9,-]*\\)\\(__\\)" element)
+             (setq  element2 (match-string 2 element))))
+      (insert (concat element2 "\n")) ) ))
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
