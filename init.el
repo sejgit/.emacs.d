@@ -1983,7 +1983,7 @@ Additionally, add `cape-file' as early as possible to the list."
 ;;git-commit
   (defun sej/cape-capf-setup-git-commit ()
   (let ((result))
-    (dolist (element '(cape-symbol cape-dabbrev) result)
+    (dolist (element '(cape-dict cape-dabbrev cape-abbrev) result)
       (add-to-list 'completion-at-point-functions element))))
 
   ;; Eshell
