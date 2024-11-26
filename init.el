@@ -4429,7 +4429,7 @@ the children of class at point."
                                                 denote-keyword-history
                                                 denote-component-history )))
 
-;;;;;; denote keyword functions  
+;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
   (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
   (defun sej/denote-keywords-update ()
@@ -4456,7 +4456,7 @@ the children of class at point."
       (setq sej/value (sort (delete-dups (apply #'append value))))
       (insert (mapconcat 'identity sej/value "\n"))))
 
-;;;;;; org-capture setups 
+;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (setq org-capture-templates
@@ -4610,10 +4610,14 @@ one among them and operate therein."
       (goto-char (point-max))
       ;; Here I am assuming we are in `org-mode', hence the leading
       ;; asterisk for the heading.  Adapt accordingly.
-      (insert (format "* [%s]\n\n" time))))))
+      (insert "*  \n- ")
+      (end-of-line 0)
+      (denote-journal-extras-link-or-create-entry)
+      (org-move-to-column 2)
+      )))
 
 (defun sej/denote-colleagues-dump ()
-  "Dump the current used colleagues in denote-directory for refactor purposes."
+  "Dump the current used colleagues in denote directory for refactor purposes."
   (interactive)
   (let ((value nil) (element1 nil) (element2 nil))
     (setq value (denote-directory-files "__[^journal]"))
@@ -4621,7 +4625,7 @@ one among them and operate therein."
       (save-match-data
         (and (string-match "\\(--\\)\\([a-z,A-Z,0-9,-]*\\)\\(__\\)" element)
              (setq  element2 (match-string 2 element))))
-      (insert (concat element2 "\n")) ) ))
+      (insert (concat element2 "\n")) ) )))
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
@@ -5240,7 +5244,7 @@ function with the \\[universal-argument]."
       (goto-char (point-min)))))
 
 (defun sej/org-remove-link ()
-  "Replace an org link by its description or if empty its address"
+  "Replace an org link by its description or if empty its address."
   (interactive)
   (if (org-in-regexp org-bracket-link-regexp 1)
       (let ((remove (list (match-beginning 0) (match-end 0)))
