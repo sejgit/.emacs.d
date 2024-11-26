@@ -4323,7 +4323,7 @@ the children of class at point."
               ("n D" . denote-create-any-dir)
               ("n e" . denote-org-extras-extract-org-subtree)
               ("n h" . denote-org-extras-link-to-heading)
-              ("n k" . sej/denote-keywords-edit)
+              ("n K" . sej/denote-keywords-edit)
               ("n C-k" . sej/denote-keywords-dump)
               ("n l" . denote-link) ; "insert" mnemonic
               ("n L" . denote-find-link)
@@ -4436,8 +4436,9 @@ the children of class at point."
     "Update keywords from file."
     (interactive)
     (if (f-exists-p sej/denote-keywords-p)
-        (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
-      (setq denote-known-keywords  "defined-in-denote-keywords.txt")))
+        (progn (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
+               (setq org-tag-persistent-alist (-map #'list denote-known-keywords)))
+      (setq denote-known-keywords  "defined-in-denote-keywords.txt")) )
   (sej/denote-keywords-update)
 
   (defun sej/denote-keywords-edit ()
@@ -4452,7 +4453,7 @@ the children of class at point."
     (let (value)
       (dolist (element (denote-directory-files) value)
         (setq value (cons (denote-extract-keywords-from-path element) value)))
-      (setq sej/value (delete-dups (apply #'append value)))
+      (setq sej/value (sort (delete-dups (apply #'append value))))
       (insert (mapconcat 'identity sej/value "\n"))))
 
 ;;;;;; org-capture setups 
@@ -4628,7 +4629,6 @@ one among them and operate therein."
 (use-package consult-denote
   :bind (:map sej-C-q-map
                 ("n f f" . consult-denote-find)
-                ("n g" . consult-denote-grep)
                 ("n f g" . consult-denote-grep) )
     :config
     (setq consult-denote-grep-command #'consult-ripgrep)
@@ -4643,7 +4643,7 @@ one among them and operate therein."
             :rev :newest
             :branch "master")
   :custom
-  (denote-refs-update-delay '(2 1 60)))
+  (denote-refs-update-delay '(2 1 60))) ; needed to allow time for buffer set-up
 
 ;;;;;; denote-menu
 ;; tabed list of denote notes
@@ -5121,7 +5121,9 @@ function with the \\[universal-argument]."
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
 ;;;;;; tags
-  (setq org-tag-alist ; I don't really use those, but whatever
+  ;; defined here for regular topics
+  ;; `org-tag-persistent-alist' defined in denote section from current note list
+  (setq org-tag-alist
         '(("meeting")
           ("admin")
           ("emacs")
