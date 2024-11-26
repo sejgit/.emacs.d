@@ -2790,6 +2790,9 @@ If called with a prefix argument, query for word to search."
          ("M-P" . symbol-overlay-switch-backward)
          ("M-C" . symbol-overlay-remove-all))
   :bind-keymap ("C-q s" . symbol-overlay-map)
+  :init
+  (which-key-add-key-based-replacements
+    "C-q s" "Symbol Overlay")
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . sej/symbol-overlay-mode-off)
          (iedit-mode-end . symbol-overlay-mode)))
@@ -2847,6 +2850,9 @@ If called with a prefix argument, query for word to search."
   :hook ((emacs-startup . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
+  :init
+  (which-key-add-key-based-replacements
+    "C-q T" "hl-todo")
   :config
   (setq hl-todo-keyword-faces
         '(("HOLD" . "#d0bf8f")
@@ -3312,8 +3318,11 @@ If called with a prefix argument, query for word to search."
 ;; minor mode for dealing with pairs in Emacs
 ;; [[https://github.com/Fuco1/smartparens][smartparens]]
 (use-package smartparens
+  :init
+  (which-key-add-key-based-replacements
+    "C-q C-q" "Smartparens")
   :blackout t
-  :bind-keymap* ("C-q (" . smartparens-mode-map)
+  :bind-keymap ("C-q C-q" . smartparens-mode-map)
   :hook (prog-mode . smartparens-mode)
   :config
   (require 'smartparens-config)
@@ -4303,49 +4312,58 @@ the children of class at point."
 ;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
 ;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
 (use-package denote
-  :init
-  (which-key-add-keymap-based-replacements sej-C-q-map
-    "n" "Denote"
-    "n l" "Denote-link"
-    "n f" "Denote-find")
   :bind (:map sej-C-q-map
               ("n a" . denote-add-links)
               ("n b" . denote-backlinks)
+              ("n B" . denote-find-backlink)
               ("n c" . sej/denote-colleagues-new-meeting)
               ("n C" . sej/denote-colleagues-edit)
               ("n C-c" . sej/denote-colleagues-dump)
-              ("n d" . denote-create-any-dir)
+              ("n d" . denote-date)
+              ("n D" . denote-create-any-dir)
+              ("n e" . denote-org-extras-extract-org-subtree)
+              ("n h" . denote-org-extras-link-to-heading)
               ("n k" . sej/denote-keywords-edit)
               ("n C-k" . sej/denote-keywords-dump)
               ("n l" . denote-link) ; "insert" mnemonic
-              ("n d" . denote-date)
-              ("n f b" . denote-find-backlink)
-              ("n f l" . denote-find-link)
+              ("n L" . denote-find-link)
               ("n j" . denote-journal-extras-new-or-existing-entry)
+              ("n J" . denote-journal-extras-link-or-create-entry)
               ("n n" . denote)
               ("n N" . denote-open-or-create)
               ("n r" . denote-rename-file)
-              ("n r" . denote-region) ; "contents" mnemonic
               ("n R" . denote-rename-file-using-front-matter)
-              ("n s" . denote-subdirectory)
+              ("n C-R" . denote-region)
+              ("n s" . denote-signature)
+              ("n S" . denote-subdirectory)
               ("n t" . denote-type)
               ("n T" . denote-template)
-              ("n z" . denote-signature) ; "zettelkasten" mnemonic
               ;; defined in consult-denote
                   ;; ("n f f" . consult-denote-find)
                   ;; ("n g" . consult-denote-grep)
                   ;; ("n f g" . consult-denote-grep)
               ;; defined in denote menu
                   ;; ("n m" . list-denotes)
-         :map org-mode-map
-              ("C-q n o" . denote-org-extras-extract-org-subtree)
-              ("C-q n h" . denote-org-extras-link-to-heading)
-              ("C-q n J" . denote-journal-extras-link-or-create-entry)
-              ("C-q C-r" . denote-dired-rename-files)
-              ("C-q C-k" . denote-dired-rename-marked-files-with-keywords)
-              ("C-q C-R" . denote-dired-rename-marked-files-using-front-matter)
-              )
-
+              ("n C-d r" . denote-dired-rename-files)
+              ("n C-d k" . denote-dired-rename-marked-files-with-keywords)
+              ("n C-d f" . denote-dired-rename-marked-files-using-front-matter) )
+  :init
+  (which-key-add-keymap-based-replacements sej-C-q-map
+    "n"       "Denote"
+    "n f"     "Denote-find"
+    "n C-d"   "Denote dired")
+  (which-key-add-key-based-replacements
+    "C-q n j"     "Denote journal entry"
+    "C-q n J"     "Denote journal link"
+    "C-q n R"     "Denote ren w/front-matter"
+    "C-q n e"     "Denote extract org-tree"
+    "C-q n h"     "Denote link to heading"
+    "C-q n c"      "denote-colleagues-meet"
+    "C-q n C"     "denote-colleagues-edit"
+    "C-q n C-c"   "denote-colleagues-dump"
+    "C-q n C-k"   "denote-keywords-dump"
+    "C-q n C-d k" "Denote dired ren w/keywords"
+    "C-q n C-d f" "Denote dired ren w/front" )
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
   ;; (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -4624,7 +4642,8 @@ one among them and operate therein."
   :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
             :rev :newest
             :branch "master")
-  :hook (denote-mode . denote-refs-mode)       )
+  :custom
+  (denote-refs-update-delay '(2 1 60)))
 
 ;;;;;; denote-menu
 ;; tabed list of denote notes
