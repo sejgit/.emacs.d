@@ -99,5 +99,6 @@
 
 (tool-bar-mode -1)
 
+(message "early-init done")
 (provide 'early-init)
 ;;; early-init.el ends here

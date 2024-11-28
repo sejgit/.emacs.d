@@ -35,7 +35,7 @@
 ;;
 ;; using Emacs 30
 ;; on macos installing emacs-plus@30
-;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-poll
+;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-imagemagick --with-dbus
 
 
 ;;; Code:
@@ -123,6 +123,13 @@
 (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
 (setq warning-suppress-log-types (quote ((cl) (org-element))))
 (setq byte-compile-warnings (quote ((cl-functions))))
+
+;; prevent warnings buffer from poping up during package compile
+;; still available in the buffer list
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
 
 ;;;;; Package manager
 ;; add melpa to already encluded elpa
@@ -368,8 +375,7 @@
            (not (file-exists-p custom-file)))
       (copy-file custom-template-file custom-file)))
 
-(if (file-exists-p custom-file)
-    (load custom-file :noerror))
+(load custom-file :noerror-if-file-is-missing)
 
 ;;;;; Load `custom-post.el'
 ;; Put personal configurations to override defaults here.
@@ -377,12 +383,10 @@
 (progn
   (let ((file
          (expand-file-name "custom-post.el" user-emacs-directory)))
-    (if (file-exists-p file)
-        (load file :noerror)))
+    (load file :noerror-if-file-is-missing) )
   (let ((file
          (expand-file-name "custom-post.el" "~/.ssh/")))
-    (if (file-exists-p file)
-        (load file :noerror))) )
+    (load file :noerror-if-file-is-missing) ) )
 
 ;;;;; async
 ;; A module for doing asynchronous processing in Emacs
@@ -1096,22 +1100,27 @@ Return its absolute path.  Otherwise, return nil."
 ;; triansient based jump screens
 ;; [[https://github.com/kickingvegas?tab=repositories][casual-parent-github]]
 
-(use-package casual-suite)
+(use-package casual-suite
 
-(use-package casual-calc
-  :after calc
-  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
+ ;; casual-agenda
+  :bind (:map org-agenda-mode-map
+         ("C-o" . casual-agenda-tmenu)
+         ("M-j" . org-agenda-clock-goto) ; optional
+         ("J" . bookmark-jump)) ; optional
 
-(use-package casual-dired
-  :after dired
-  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
+;; casual-calc
+  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu))
 
-(use-package casual-isearch
-  :after isearch
-  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
+;; casual-calendar
+  :bind (:map calendar-mode-map ("C-o" . 'casual-calendar))
 
-(use-package casual-ibuffer
-  :after ibuffer
+;; casual-dired
+  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu))
+
+ ;; casual-isearch
+  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu))
+
+ ;; casual-ibuffer
   :bind (:map
          ibuffer-mode-map
          ("C-o" . casual-ibuffer-tmenu)
@@ -1123,30 +1132,22 @@ Return its absolute path.  Otherwise, return nil."
          ("}" . ibuffer-forward-next-marked)   ; optional
          ("[" . ibuffer-backward-filter-group) ; optional
          ("]" . ibuffer-forward-filter-group)  ; optional
-         ("$" . ibuffer-toggle-filter-group))) ; optional
+         ("$" . ibuffer-toggle-filter-group)) ; optional
 
-(use-package casual-info
-  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
+ ;; casual-info
+  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu))
 
-(use-package casual-re-builder
-  :after re-builder
+ ;; casual-re-builder
   :bind (:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
+         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu))
 
-(use-package casual-bookmarks
-  :after bookmark
+ ;; casual-bookmarks
   :bind (:map bookmark-bmenu-mode-map
               ("C-o" . casual-bookmarks-tmenu)
               ("S" . casual-bookmarks-sortby-tmenu)
-              ("J" . bookmark-jump)))
+              ("J" . bookmark-jump)) )
 
-(use-package casual-agenda
-  :after org-agenda
-  :bind (:map org-agenda-mode-map
-         ("C-o" . casual-agenda-tmenu)
-         ("M-j" . org-agenda-clock-goto) ; optional
-         ("J" . bookmark-jump))) ; optional
-
+;; avy, symbol-overlay are separate packages
 (use-package casual-avy
   :after avy
   :bind ("H-/" . casual-avy-tmenu))
@@ -1557,6 +1558,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; nerd-icons
 ;; [[https://github.com/rainstormstudio/nerd-icons.el]]
 (use-package nerd-icons
+  :ensure t
   :custom
   ;; The Nerd Font you want to use in GUI
   ;; "Symbols Nerd Font Mono" is the default and is recommended
@@ -1577,6 +1579,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; icons with completion
 ;; [[https://github.com/rainstormstudio/nerd-icons-completion]]
 (use-package nerd-icons-completion
+  :ensure t
+  :after marginalia
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
   (nerd-icons-completion-mode))
@@ -1584,8 +1588,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; nerd-icons-corfu
 ;;[[https://github.com/LuigiPiucco/nerd-icons-corfu]]
 (use-package nerd-icons-corfu
-  :after (corfu)
-  :init
+  :ensure t
+  :after corfu
+  :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
 
   ;; Optionally:
@@ -1596,7 +1601,7 @@ If FRAME is omitted or nil, use currently selected frame."
           (t :style "cod" :icon "code" :face font-lock-warning-face)))
   ;; Remember to add an entry for `t', the library uses that as default.
 
-  ;; The Custom interface is also supported for tuning the variable above.
+
   )
 
 
@@ -1634,6 +1639,11 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; [[https://github.com/VernonGrant/discovering-emacs/blob/main/show-notes/3-making-incremental-search-work-for-you.md][good tutorial]]
 (use-package isearch
   :ensure nil
+  :bind ( :map minibuffer-local-isearch-map
+          ("M-/" . isearch-complete-edit)
+          :map isearch-mode-map
+          ("C-g" . isearch-cancel) ;instead of `isearch-abort'
+          ("M-/" . isearch-complete))
   :init
   (setq search-highlight t
         search-whitespace-regexp ".*?"
@@ -1651,11 +1661,7 @@ If FRAME is omitted or nil, use currently selected frame."
         lazy-highlight-no-delay-length 3
         search-ring-max 30
         regexp-search-ring-max 30
-        isearch-wrap-pause t)
-  (define-key minibuffer-local-isearch-map (kbd "M-/") #'isearch-complete-edit)
-  (let ((map isearch-mode-map))
-    (define-key map (kbd "C-g") #'isearch-cancel) ; instead of `isearch-abort'
-    (define-key map (kbd "M-/") #'isearch-complete)))
+        isearch-wrap-pause t))
 
 ;;;;; Anzu
 ;; good query replace search
@@ -4221,7 +4227,8 @@ the children of class at point."
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired
 (use-package dired
   :ensure nil
-  :hook (dired-mode . hl-line-mode)
+  :hook ((dired-mode . hl-line-mode)
+         (dired-mode . dired-hide-details-mode))
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
               ("C-u D" . sej/dired-do-delete-skip-trash))
@@ -4283,6 +4290,26 @@ the children of class at point."
         (concat dired-omit-files
                 "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
 
+;;;;; diredfl
+;; Extra font-lock rules for a more Colourful dired
+;; https://github.com/purcell/diredfl
+(use-package diredfl
+  :init (diredfl-global-mode 1))
+
+;;;;; dired-subtree
+;; The dired-subtree package provides commands to quickly view the contents of a folder with the TAB key.
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("<tab>" . dired-subtree-toggle)
+    ("TAB" . dired-subtree-toggle)
+    ("<backtab>" . dired-subtree-remove)
+    ("S-TAB" . dired-subtree-remove))
+  :config
+  (setq dired-subtree-use-backgrounds nil))
+
 ;;;;; quick-preview
 ;; Quick-preview provides a nice preview of the thing at point for files.
 ;; https://github.com/myuhe/quick-preview.el
@@ -4298,13 +4325,6 @@ the children of class at point."
 (use-package browse-at-remote
   :bind (:map sej-C-q-map
               ("b" . browse-at-remote)))
-
-;;;;; diredfl
-;; Extra font-lock rules for a more Colourful dired
-;; https://github.com/purcell/diredfl
-(use-package diredfl
-  :init (diredfl-global-mode 1))
-
 
 ;;; writing & reading
 ;;;;; denote
