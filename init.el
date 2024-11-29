@@ -24,8 +24,6 @@
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ;; Floor, Boston, MA 02110-1301, USA.
-;;
-
 
 ;;; Commentary:
 ;;
@@ -36,7 +34,6 @@
 ;; using Emacs 30
 ;; on macos installing emacs-plus@30
 ;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-imagemagick --with-dbus
-
 
 ;;; Code:
 (message "Emacs start")
@@ -154,7 +151,7 @@
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
 (use-package system-packages)
-(require 'use-package-ensure-system-package)
+(use-package use-package-ensure-system-package)
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -409,7 +406,7 @@
 ;; modern API for working with files and directories in Emacs.
 ;; [[https://github.com/rejeep/f.el]]
 (use-package f
-  :demand t
+  :commands (f-expand f-executable? f-join f-exists-p f-read)
   :vc(:url "https://github.com/rejeep/f.el"
            :rev :recent
            :branch "master"))
@@ -951,6 +948,7 @@ Return its absolute path.  Otherwise, return nil."
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
 
 (defun sej/toggle-relative-ln ()
+  "Toggle line numbers relative to current, which displays absolute line number."
         (interactive)
              (if (and (boundp 'display-line-numbers-mode) display-line-numbers-mode)
               (display-line-numbers-mode -1)
@@ -1579,7 +1577,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; nerd-icons
 ;; [[https://github.com/rainstormstudio/nerd-icons.el]]
 (use-package nerd-icons
-  :ensure t
   :custom
   ;; The Nerd Font you want to use in GUI
   ;; "Symbols Nerd Font Mono" is the default and is recommended
@@ -1600,7 +1597,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; icons with completion
 ;; [[https://github.com/rainstormstudio/nerd-icons-completion]]
 (use-package nerd-icons-completion
-  :ensure t
   :after marginalia
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
@@ -1609,7 +1605,6 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; nerd-icons-corfu
 ;;[[https://github.com/LuigiPiucco/nerd-icons-corfu]]
 (use-package nerd-icons-corfu
-  :ensure t
   :after corfu
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
@@ -2077,7 +2072,6 @@ Additionally, add `cape-file' as early as possible to the list."
 ;; acting on targets
 ;; [[https://github.com/oantolin/embark/][embark]]
 (use-package embark
-  :ensure t
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
            ("M-." . embark-dwim)        ;; good alternative: M-.
            ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
@@ -2623,7 +2617,7 @@ If called with a prefix argument, query for word to search."
 
 (when sys/macp
   (defun sej/url-insert-edge (desc)
-    "Retrieve URL from current Safari page and prompt for description.
+    "Retrieve URL from current Edge page and prompt for description.
       Insert an Org link at point."
     (interactive "sLink Description (None to display url): ")
     (let ((link (do-applescript "tell application \"Microsoft Edge\" to return URL of active tab of front window")))
@@ -4332,7 +4326,6 @@ the children of class at point."
 ;;;;; dired-subtree
 ;; The dired-subtree package provides commands to quickly view the contents of a folder with the TAB key.
 (use-package dired-subtree
-  :ensure t
   :after dired
   :bind
   ( :map dired-mode-map
@@ -4347,7 +4340,6 @@ the children of class at point."
 ;; define functions that apply command-line utilities to current buffer or dired files
 ;; [[https://github.com/xenodium/dwim-shell-command#my-toolbox]]
 (use-package dwim-shell-command
-  :ensure t
   :if sys/macp
     :ensure-system-package (macosrec . "brew tap xenodium/macosrec && brew install macosrec")
   :bind (([remap shell-command] . dwim-shell-command)
@@ -5559,6 +5551,7 @@ function with the \\[universal-argument]."
 ;; consider demand t as lazy loading may not work
 ;; https://github.com/unhammer/org-rich-yank
 (use-package org-rich-yank
+  :demand t
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
 
@@ -6345,6 +6338,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package tmr
   :bind (:map sej-C-q-map
               ("t" . tmr-prefix-map))
+  :ensure-system-package ffmpeg
   :config
   ;; Read the `tmr-descriptions-list' doc string
   (setq tmr-descriptions-list 'tmr-description-history)
@@ -6359,10 +6353,12 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
            :title "TMR"
            :severity 'urgent
            :id 'test-alert
-           :style 'osx-notifier) )
-
+           :style 'osx-notifier
+		   :persistent 'persistent) )
+		(setq tmr-sound-file "/System/Library/Sounds/Hero.aiff")
         (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
-        (delete 'tmr-notification-notify tmr-timer-finished-functions))))
+        ;; (delete 'tmr-notification-notify tmr-timer-finished-functions)
+		)))
 
 ;;;; Codeium
 ;; completion for codeium
