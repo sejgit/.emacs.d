@@ -515,7 +515,9 @@
   (tab-always-indent 'complete)
   (tab-first-completion 'word-or-paren-or-punct)
   (tab-width 4)
-  (indent-tabs-mode nil)
+  (indent-tabs-mode t)
+  (fill-column 160)
+  (x-stretch-cursor 1)
 
 ;;;;;; long line settings
   (truncate-lines 1)
@@ -618,8 +620,10 @@
         #'command-completion-default-include-p)
 
   (setq sentence-end-double-space nil) ; Sentences do not need double spaces to end. Period.
-  (global-visual-line-mode t) ; Add proper word wrapping
   (global-font-lock-mode t) ; turn on syntax highlighting for all buffers
+  (global-visual-line-mode t) ; Add proper word wrapping
+  ;; Display fringe indicators in `visual-line-mode`.
+  (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 ;;;;;; color codes
   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
@@ -709,10 +713,10 @@
   :bind (:prefix-map sej-C-q-map
                       :prefix "C-q"
                       :prefix-docstring "SeJ Personal C-q key bindings"
-                      ("v" . emacs-version)
-                      ("\\" . align-regexp) ;Align your code in a pretty way.
-                      ("." . org-time-stamp)
-                      ("D" . describe-personal-keybindings)
+                      ("v"   . emacs-version)
+                      ("\\"  . align-regexp) ;Align your code in a pretty way.
+                      ("."   . org-time-stamp)
+                      ("D"   . describe-personal-keybindings)
                       ("o c" . sej/open-code)
                       ("o e" . sej/open-electronics)
                       ("o i" . sej/open-index)
@@ -720,6 +724,7 @@
                       ("o n" . sej/open-notes)
                       ("o s" . sej/open-someday)
                       ("o t" . sej/open-gtd)
+					  ("l"   . sej/toggle-relative-ln)
                       :prefix-map term-map
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
@@ -944,6 +949,14 @@ Return its absolute path.  Otherwise, return nil."
   "If COMMAND `sej/is-exec' run it with ARGS, return per `sej/exec' or nil."
   (interactive)
   (when (sej/is-exec command) (sej/exec (s-concat command " " args))))
+
+(defun sej/toggle-relative-ln ()
+        (interactive)
+             (if (and (boundp 'display-line-numbers-mode) display-line-numbers-mode)
+              (display-line-numbers-mode -1)
+                 (progn
+                   (setq display-line-numbers-type 'relative)
+                   (display-line-numbers-mode 1))))
 
 ;;;;; list-environment
 ;; - environment variables tabulated
@@ -1209,7 +1222,7 @@ Return its absolute path.  Otherwise, return nil."
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
         window-divider-default-right-width 1
-        frame-title-format '("Emacs - %b")
+        frame-title-format "%F--%b-[%f]--%Z"
         icon-title-format frame-title-format
         undelete-frame-mode t    )
 
@@ -1492,8 +1505,16 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; https://github.com/abo-abo/ace-window
 (use-package ace-window
   :bind (("C-x o" . ace-window)
-          ("M-o" . ace-window))
-  :hook (emacs-startup . ace-window-display-mode))
+         ("M-o" . ace-window))
+  :hook (emacs-startup . ace-window-display-mode)
+  :custom ((aw-dispatch-always t)
+		   (aw-frame-offset '(100 . 0)))
+  :config
+  (defun sej/aw-lower-frame (window)
+	"Lower frame containing window."
+	(lower-frame (window-frame window)))
+
+  (add-to-list 'aw-dispatch-alist '(?l sej/aw-lower-frame "Lower Frame")))
 
 ;;;;; winner
 ;; built-in: Restore old window configurations
@@ -1669,7 +1690,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package anzu
   :bind  (([remap query-replace] . anzu-query-replace-regexp)
            ("C-H-r" . anzu-query-replace)
-           ("C-H-S-r" . anzu-replace-at-cursor)
+           ("C-H-S-r" . anzu-query-replace-at-cursor)
            :map isearch-mode-map
            ("C-H-r" . anzu-isearch-query-replace))
   :config
@@ -2970,14 +2991,11 @@ If called with a prefix argument, query for word to search."
 				      parenthesized_expression subscript)))  )
 
 ;;;;; indentation & outline settings
-(setq-default indent-tabs-mode nil
-              fill-column 160)
 (setq outline-minor-mode-prefix (kbd "C-'"))
 (bind-keys* ("C-S-n" . outline-next-visible-heading)
             ("C-S-p" . outline-previous-visible-heading)
             ("C-n" . next-line)
             ("C-P" . previous-line))
-
 
 ;;;;; dtrt-indent
 ;; automatically set the right indent for other people's files
@@ -3034,8 +3052,9 @@ If called with a prefix argument, query for word to search."
   ;;(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
   (add-hook 'prog-mode-hook #'show-paren-mode)
   (add-hook 'prog-mode-hook #'prettify-symbols-mode)
-  (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
-
+  (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p)
+  ;; Make URLs in comments/strings clickable, (Emacs > v22).
+  (add-hook 'find-file-hooks 'goto-address-prog-mode))
 
 ;;;;; emr
 ;; a framework for providing language-specific refactoring in Emacs.
@@ -3363,8 +3382,7 @@ If called with a prefix argument, query for word to search."
              (makefile-gmake-mode . "Makefile")
              (makefile-makepp-mode . "Makefile")
              (makefile-bsdmake-mode . "Makefile")
-             (makefile-imake-mode . "Makefile"))
-  :config (setq-local indent-tabs-mode t))
+             (makefile-imake-mode . "Makefile")))
 
 ;;;;; flymake
 ;; built-in: Emacs syntax checker
@@ -3399,6 +3417,17 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :config
   (setq project-file-history-behavior 'relativize))
+
+;;;;; disproject
+;; integration with project.el and allows for dispatching via transient menus
+;; [[https://github.com/aurtzy/disproject]]
+(use-package disproject
+  ;; Replace `project-prefix-map' with `disproject-dispatch'.
+  :bind ( :map ctl-x-map
+          ("p" . disproject-dispatch))
+  :config
+  (require 'magit nil 'noerror)
+  (require 'magit-todos nil 'noerror))
 
 ;;;;; magit
 ;; interface to the version control system Git
@@ -3458,8 +3487,11 @@ If called with a prefix argument, query for word to search."
 ;; Show tasks from commit files
 ;; https://github.com/alphapapa/magit-todos
 (use-package magit-todos
-  :commands(magit-todos-mode)
+  :after magit
+  :commands (disproject-dispatch magit-status-mode)
+  :hook (magit-status-mode . magit-todos-mode)
   :config
+  (magit-todos-mode 1)
   (setq magit-todos-recursive t
         magit-todos-depth 100)
   (custom-set-variables
@@ -4194,7 +4226,8 @@ the children of class at point."
 ;; built-in: watch for changes in files on disk
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Revert.html]]
 (use-package autorevert
-  :hook (emacs-startup . global-auto-revert-mode)
+  :hook ((emacs-startup . global-auto-revert-mode)
+		 (dired-mode . auto-revert-mode))
   :init
   (setq auto-revert-use-notify t
         auto-revert-avoid-polling t
@@ -4309,6 +4342,21 @@ the children of class at point."
     ("S-TAB" . dired-subtree-remove))
   :config
   (setq dired-subtree-use-backgrounds nil))
+
+;;;;; dwim-shell-command
+;; define functions that apply command-line utilities to current buffer or dired files
+;; [[https://github.com/xenodium/dwim-shell-command#my-toolbox]]
+(use-package dwim-shell-command
+  :ensure t
+  :if sys/macp
+    :ensure-system-package (macosrec . "brew tap xenodium/macosrec && brew install macosrec")
+  :bind (([remap shell-command] . dwim-shell-command)
+         :map dired-mode-map
+         ([remap dired-do-async-shell-command] . dwim-shell-command)
+         ([remap dired-do-shell-command] . dwim-shell-command)
+         ([remap dired-smart-shell-command] . dwim-shell-command))
+  :config
+  (require 'dwim-shell-commands))
 
 ;;;;; quick-preview
 ;; Quick-preview provides a nice preview of the thing at point for files.
