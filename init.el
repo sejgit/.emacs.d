@@ -151,7 +151,9 @@
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
 (use-package system-packages)
-(use-package use-package-ensure-system-package)
+(use-package use-package-ensure-system-package
+  :ensure nil
+  :after use-package)
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -1564,7 +1566,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; A fancy and fast mode-line inspired by minimalism design
 ;; https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode))
+  :hook ((after-init . doom-modeline-mode)
+		 (doom-modeline-before-github-fetch-notification . auth-source-pass-enable)))
 
 ;;;;; minions
 ;; implements a nested menu that gives access to all minor modes
@@ -2257,8 +2260,6 @@ Additionally, add `cape-file' as early as possible to the list."
      :add-history (thing-at-point 'symbol)
      :state (consult--jump-state))))
 
-
-
 ;;;; history packages
 ;;;;; vundo
 ;; visual undo displays the undo history as a tree
@@ -2860,14 +2861,10 @@ If called with a prefix argument, query for word to search."
   :custom-face
   (hl-todo ((t (:box t :inherit))))
   :bind (:map hl-todo-mode-map
-              ([C-f3] . hl-todo-occur)
-              ("C-c t o" . hl-todo-occur)
-              ("H-t" . hl-todo-occur)
-              ("C-c t p" . hl-todo-previous)
-              ("C-c t n" . hl-todo-next)
-              ("H-P" . hl-todo-previous)
-              ("H-N" . hl-todo-next) )
-  :bind-keymap ("C-q T" . hl-todo-mode-map)
+			  ("H-P" . hl-todo-previous)
+			  ("H-N" . hl-todo-next)
+			  ("C-q T o" . hl-todo-occur)
+			  ("C-q T r" . hl-todo-ripgrep) )
   :hook ((emacs-startup . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
@@ -2876,29 +2873,46 @@ If called with a prefix argument, query for word to search."
     "C-q T" "hl-todo")
   :config
   (setq hl-todo-keyword-faces
-        '(("HOLD" . "#d0bf8f")
-          ("TODO" . "#cc9393")
-          ("NEXT" . "#dca3a3")
-          ("THEM" . "#dc8cc3")
-          ("PROG" . "#7cb8bb")
-          ("OKAY" . "#7cb8bb")
-          ("DONT" . "#5f7f5f")
-          ("FAIL" . "#8c5353")
-          ("DONE" . "#afd8af")
-          ("NOTE" . "#d0bf8f")
-          ("MAYBE" . "#d0bf8f")
-          ("KLUDGE" . "#d0bf8f")
-          ("HACK" . "#d0bf8f")
-          ("TEMP" . "#d0bf8f")
-          ("FIXME" . "#cc9393")
-          ("FIX" . "#cc9393")
+        '(
           ("DEBUG" . "#7cb8bb")
-          ("STARTED" . "#5f7f5f")
+          ("FIX" . "#ff9393")
           ("HELP" . "#ff0000")
-          ("LATER" . "#8c5353")
+          ("KLUDGE" . "#cc9999")
+          ("LATER" . "#2c5353")
+          ("MAYBE" . "#d1bf8f")
+          ("NOTE" . "#5f6000")
+          ("OKAY" . "#5f9000")
+          ("STARTED" . "#5f7f5f")
+          ("TODO" . "#cc9393")
           ))
 
   (push 'org-mode hl-todo-include-modes))
+
+;;;;; consult-todo
+;; search and jump hl-todo keywords in buffers with consult
+;; [[https://github.com/liuyinz/consult-todo]]
+(use-package consult-todo
+  :bind (:map sej-C-q-map
+			  ("T c" . consult-todo)
+			  ("T C" . sej/consult-todo-toggle-comment)
+			  ("T d" . consult-todo-dir)
+			  ("T p" . consult-todo-project)
+			  ("T a" . consult-todo-all))
+  :config
+  (setq consult-todo-narrow
+		(let (value)
+		  (dolist (element (sort hl-todo-keyword-faces :reverse t) value)
+			(setq value (cons
+						 (cons
+						  (string-to-char (downcase (substring (car element) 0 1)))
+						  (car element))
+						 value)))))
+  (defun sej/consult-todo-toggle-comment ()
+	"Function to toggle `consult-todo-only-comment'."
+	(interactive)
+	(unless (boundp 'consult-todo-only-comment)
+	   (setq consult-todo-only-comment nil))
+	 (embark-toggle-variable 'consult-todo-only-comment)) )
 
 ;;;;; volatile-highlights
 ;; Highlight some buffer region operations
