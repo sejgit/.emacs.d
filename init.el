@@ -906,8 +906,23 @@
 (defun sej/open-new-line()
   "Open new line without breaking and place cursor there."
   (interactive)
-  (move-end-of-line 1)
+  (move-end-of-line nil)
   (newline-and-indent))
+
+(defun sej/kill-whole-word ()
+  "Kill the current word at point."
+  (interactive)
+  (backward-word)
+  (kill-word 1))
+
+(defun sej/open-line-above-and-indent ()
+  "Insert a new line above the current one maintaining the indentation."
+  (interactive)
+  (let ((current-indentation (current-indentation)))
+    (beginning-of-line)
+    (open-line 1)
+    (when (> current-indentation 0)
+      (indent-to current-indentation))))
 
 (defun sej/save-macro (name)
   "Save a macro with NAME as argument; save the macro at the end of your init file."
@@ -3281,25 +3296,12 @@ If called with a prefix argument, query for word to search."
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Comment-Commands.html]]
 (use-package newcomment
   :ensure nil
-  :init
-  (setq comment-empty-lines t
-        comment-fill-column 0
-        comment-multi-line t
-        comment-style 'multi-line))
-
-;;;;; comment-dwim
-;; replacement for the Emacs built-in command comment-dwim
-;; [[https://www.emacs.dyerdwelling.family/emacs/20230215204855-emacs--commenting-uncommenting/]]
-(defun sej/comment-or-uncomment ()
-  "Comments or uncomments the current line or region."
-  (interactive)
-  (if (region-active-p)
-      (comment-or-uncomment-region
-       (region-beginning)(region-end))
-    (comment-or-uncomment-region
-     (line-beginning-position)(line-end-position))))
-(bind-keys* ("M-;" . sej/comment-or-uncomment)
-            ("H-;" . comment-box))
+  :bind (("H-;" . comment-box)
+		 ("M-;" . comment-dwim))
+  :custom (comment-empty-lines t
+							   comment-fill-column 0
+							   comment-multi-line t
+							   comment-style 'multi-line))
 
 ;;;;; ediff
 ;; built-in: A saner diff
@@ -3322,7 +3324,8 @@ If called with a prefix argument, query for word to search."
 (use-package electric
   :ensure nil
   :hook ('prog-mode . electric-indent-mode)
-  :bind ("C-j". sej/open-new-line)
+  :bind (("C-j". sej/open-new-line)
+		 ("C-S-J" . sej/open-line-above-and-indent))
   :init
   (setq-default electric-indent-chars '(?\n ?\^?))
   (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit
@@ -4272,7 +4275,8 @@ the children of class at point."
          (dired-mode . dired-hide-details-mode))
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
-              ("C-u D" . sej/dired-do-delete-skip-trash))
+              ("C-u D" . sej/dired-do-delete-skip-trash)
+			  ("z" . sej/dired-get-size))
   :config
   ;; Always delete and copy recursively
   (setq dired-recursive-deletes 'always)
@@ -4290,7 +4294,19 @@ the children of class at point."
     ""Only needed for pre-version 30.1""
     (interactive "P")
     (let ((delete-by-moving-to-trash nil))
-      (dired-do-delete arg))))
+      (dired-do-delete arg)))
+
+  (defun sej/dired-get-size ()
+  "Display file size in dired."
+  (interactive)
+  (let ((files (dired-get-marked-files)))
+    (with-temp-buffer
+      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+      (message
+       "Size of all marked files: %s"
+       (progn
+         (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]+\\).*total$")
+         (match-string 1)))))))
 
 ;;;;; dired-aux
 ;; built-in: auxiliary functionality of dired
@@ -5145,11 +5161,12 @@ function with the \\[universal-argument]."
                ("S-<right>" . org-shiftright)
                ("M-<return>" . org-insert-heading)
                ("C-M-<return>" . org-insert-subheading)
-               ("A-M-<return>" . org-insert-item)
                ("M-S-<return>" . org-insert-todo-heading)
+               ("C-\\" . org-insert-item)
                ("C-c n" . outline-next-visible-heading)
                ("C-c p" . outline-previous-visible-heading)
-               ("M-s H" . consult-org-heading)))
+               ("M-s H" . consult-org-heading)
+			   ("<M-DEL>" . sej/kill-whole-word)))
   :config
   ;; reading man pages in org-mode
   (require 'ol-man)
