@@ -3123,91 +3123,47 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
 ;; `M-x combobulate' (default: `C-c o o') to start using Combobulate
 (use-package treesit
-  :ensure nil
-  :mode (("\\.tsx\\'" . tsx-ts-mode))
-  :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-              '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-                (toml "https://github.com/tree-sitter/tree-sitter-toml")
-                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-                (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional, but recommended. Tree-sitter enabled major modes are
-  ;; distinct from their ordinary counterparts.
-  ;;
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  (dolist (mapping
-         '((python-mode . python-ts-mode)
-           (css-mode . css-ts-mode)
-           (typescript-mode . typescript-ts-mode)
-           (js2-mode . js-ts-mode)
-           (bash-mode . bash-ts-mode)
-           (css-mode . css-ts-mode)
-           (json-mode . json-ts-mode)
-           (js-json-mode . json-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars)
-  ;; Do not forget to customize Combobulate to your liking:
-  ;;
-  ;;  M-x customize-group RET combobulate RET
-  ;;
-  (use-package combobulate
-    ;; standard movement using treesitter
-    ;; [[https://github.com/mickeynp/combobulate][combobulate]]
-    ;; use C-c o o for menu
-    ;; You can manually enable Combobulate with `M-x
-    ;; combobulate-mode'.
-
-    :vc (:url "https://github.com/mickeynp/combobulate"
-              :rev :newest
-              :branch "master")
-    :preface
-    ;; You can customize Combobulate's key prefix here.
-    ;; Note that you may have to restart Emacs for this to take effect!
-    (setq combobulate-key-prefix "C-c o")
-
-    ;; Optional, but recommended.
-    ;;
-    ;; You can manually enable Combobulate with `M-x
-    ;; combobulate-mode'.
-    :hook
-      ((python-ts-mode . combobulate-mode)
-       (js-ts-mode . combobulate-mode)
-       (html-ts-mode . combobulate-mode)
-       (css-ts-mode . combobulate-mode)
-       (yaml-ts-mode . combobulate-mode)
-       (typescript-ts-mode . combobulate-mode)
-       (json-ts-mode . combobulate-mode)
-       (tsx-ts-mode . combobulate-mode))
-    ;; Amend this to the directory where you keep Combobulate's source
-    ;; code.
-      ))
+  :ensure nil)
 
 (use-package treesit-auto
   ;; some auto features for tree-sit
   ;; [[https://github.com/renzmann/treesit-auto]]
+  :demand t
   :custom
   (treesit-auto-install 'prompt)
   :config
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
+
+(use-package combobulate
+  ;; standard movement using treesitter
+  ;; [[https://github.com/mickeynp/combobulate][combobulate]]
+  ;; use C-c o o for menu
+  ;; You can manually enable Combobulate with `M-x
+  ;; combobulate-mode'.
+  
+  :vc (:url "https://github.com/mickeynp/combobulate"
+            :rev :newest
+            :branch "master")
+  :preface
+  ;; You can customize Combobulate's key prefix here.
+  ;; Note that you may have to restart Emacs for this to take effect!
+  (setq combobulate-key-prefix "C-c o")
+  
+  ;; Optional, but recommended.
+  ;;
+  ;; You can manually enable Combobulate with `M-x
+  ;; combobulate-mode'.
+  :hook
+  ((python-ts-mode . combobulate-mode)
+   (js-ts-mode . combobulate-mode)
+   (html-ts-mode . combobulate-mode)
+   (css-ts-mode . combobulate-mode)
+   (c++-ts-mode . combobulate-mode)
+   (yaml-ts-mode . combobulate-mode)
+   (typescript-ts-mode . combobulate-mode)
+   (json-ts-mode . combobulate-mode)
+   (tsx-ts-mode . combobulate-mode)))
 
 ;;;;; eglot
 ;; built-in: simple client for Language Server Protocol servers
@@ -3708,7 +3664,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; brew install pyright
 ;; YAPF or Black
 ;; http://wikemacs.org/wiki/Python
-(require 'python)
+;; (require 'python)
 (setq python-indent-guess-ident-offset-verbose nil
       python-indent-offset 4
       comment-inline-offset 2)
@@ -3741,7 +3697,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;;;;; pipenv
 ;; a [[https://github.com/pwalsh/pipenv.el][pipenv]] integration
 (use-package pipenv
-  :hook (python-mode . pipenv-mode)
+  :hook (python-base-mode . pipenv-mode)
   :init
   (defun pipenv-activate-project ()
     "Activate integration of Pipenv with Project."
@@ -3757,8 +3713,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; integration with the pyenv tool
 ;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
 (use-package pyenv-mode
-  :hook ((python-mode . pyenv-mode)
-         (python-ts-mode . pyenv-mode)))
+  :hook (python-base-mode . pyenv-mode))
 
 ;;;;; pyenv-mode-auto
 ;; pyenv automatically based on .python-mode
@@ -6390,67 +6345,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
         (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
         ;; (delete 'tmr-notification-notify tmr-timer-finished-functions)
 		)))
-
-;;;; Codeium
-;; completion for codeium
-;; [[https://github.com/Exafunction/codeium.el][Codeium]]
-(use-package codeium
-  :disabled t
-  :ensure cape
-  :ensure corfu
-  :vc (:url "https://github.com/Exafunction/codeium.el"
-            :rev :newest
-            :branch "main")
-  ;; otherwise, make sure that the codeium.el file is on load-path
-  :bind (:map cape-prefix-map
-              ("c" . codeium-completion-at-point))
-  :init
-  ;; use globally
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
-  ;; or on a hook
-  ;; (add-hook 'python-base-mode-hook
-  ;;     (lambda ()
-  ;;         (add-to-list 'completion-at-point-functions '(codeium-completion-at-point))))
-
-  ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
-  ;; (add-hook 'python-mode-hook
-  ;;           (lambda ()
-  ;;             (setq-local completion-at-point-functions
-  ;;                         (list (cape-capf-super #'codeium-completion-at-point #'lsp-completion-at-point)))))
-  ;; (add-hook 'emacs-lisp-mode-hook
-  ;;           (lambda ()
-  ;;             (setq-local completion-at-point-functions
-  ;;                         (list (cape-capf-super #'codeium-completion-at-point #'cape-elisp-block #'cape-elisp-symbol)))))
-  :config
-  (setq use-dialog-box nil) ;; do not use popup boxes
-
-  ;; get codeium status in the modeline
-  (setq codeium-mode-line-enable
-        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
-  ;; alternatively for a more extensive mode-line
-  ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
-
-  ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
-  (setq codeium-api-enabled
-        (lambda (api)
-          (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
-  ;; you can also set a config for a single buffer like this:
-  ;; (add-hook 'python-mode-hook
-  ;;     (lambda ()
-  ;;         (setq-local codeium/editor_options/tab_size 4)))
-
-  ;; You can overwrite all the codeium configs!
-  ;; for example, we recommend limiting the string sent to codeium for better performance
-  (defun my-codeium/document/text ()
-    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-  ;; if you change the text, you should also change the cursor_offset
-  ;; warning: this is measured by UTF-8 encoded bytes
-  (defun my-codeium/document/cursor_offset ()
-    (codeium-utf8-byte-length
-     (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-  (setq codeium/document/text 'my-codeium/document/text)
-  (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
 
 ;;; init.el --- end
 (message "init.el ends here")
