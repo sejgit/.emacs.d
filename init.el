@@ -408,7 +408,7 @@
 ;; modern API for working with files and directories in Emacs.
 ;; [[https://github.com/rejeep/f.el]]
 (use-package f
-  :commands (f-expand f-executable? f-join f-exists-p f-read)
+  :demand t
   :vc(:url "https://github.com/rejeep/f.el"
            :rev :recent
            :branch "master"))
