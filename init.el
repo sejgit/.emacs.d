@@ -4698,6 +4698,7 @@ one among them and operate therein."
 ;; tabed list of denote notes
 ;; [[https://github.com/namilus/denote-menu]]
 (use-package denote-menu
+  :hook (denote-menu-mode . (lambda () (visual-line-mode -1)))
   :bind (:map sej-C-q-map
          ("n m" . list-denotes)
          :map denote-menu-mode-map
@@ -4705,7 +4706,9 @@ one among them and operate therein."
          ("/ r" . denote-menu-filter)
          ("/ k" . denote-menu-filter-by-keyword)
          ("/ o" . denote-menu-filter-out-keyword)
-         ("e" . denote-menu-export-to-dired)))
+         ("e" . denote-menu-export-to-dired))
+  :config (setq denote-menu-title-column-width 45
+				denote-menu-keywords-column-width 35))
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
