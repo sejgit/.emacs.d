@@ -1089,7 +1089,8 @@ Return its absolute path.  Otherwise, return nil."
   :ensure nil
   :init
   (add-hook 'help-mode-hook #'visual-line-mode)
-  (setq help-window-select 'always)
+  (setq help-window-select 'always
+		find-function-C-source-directory "~/src/emacs/src/") ; where I typically have source
   (advice-add 'help-window-display-message :override #'ignore))
 
 ;;;;; which-key
