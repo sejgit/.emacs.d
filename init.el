@@ -1635,8 +1635,6 @@ If FRAME is omitted or nil, use currently selected frame."
           ;; ...
           (t :style "cod" :icon "code" :face font-lock-warning-face)))
   ;; Remember to add an entry for `t', the library uses that as default.
-
-
   )
 
 
@@ -1797,12 +1795,12 @@ If FRAME is omitted or nil, use currently selected frame."
   :init
   (setq hippie-expand-try-functions-list
         '(try-expand-dabbrev-visible
+          try-complete-file-name
+          try-complete-file-name-partially
+          try-expand-all-abbrevs
           try-expand-dabbrev
           try-expand-dabbrev-all-buffers
           try-expand-dabbrev-from-kill
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
           try-expand-list
           try-expand-line
           cape-elisp-symbol
@@ -2512,10 +2510,10 @@ If called with a prefix argument, query for word to search."
                (isearch-backward)
                (other-window (- next)))))))
 
-;;;;; goto-chg
+;;;;; goto-last-change
 ;; goto the last changes made in buffer
-;; https://github.com/emacs-evil/goto-chg
-(use-package goto-chg
+;; https://github.com/camdez/goto-last-change.el
+(use-package goto-last-change
   :bind (("H-." . goto-last-change)
           ("H-," . goto-last-change-reverse)) )
 

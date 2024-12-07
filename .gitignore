@@ -99,3 +99,4 @@ url/
 var/
 workspace/
 /codeium/
+/.chatgpt-shell.el
