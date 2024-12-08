@@ -402,7 +402,8 @@
 (use-package dash
   :vc(:url "https://github.com/magnars/dash.el"
            :rev :recent
-           :branch "master"))
+           :branch "master")
+  :commands -map -union)
 
 ;;;;; f
 ;; modern API for working with files and directories in Emacs.
@@ -411,7 +412,8 @@
   :demand t
   :vc(:url "https://github.com/rejeep/f.el"
            :rev :recent
-           :branch "master"))
+           :branch "master")
+  :commands f-read f-join f-exists-p)
 
 ;;;;; s
 ;; The long lost Emacs string manipulation library.
@@ -419,7 +421,8 @@
 (use-package s
   :vc(:url "https://github.com/magnars/s.el"
            :rev :recent
-           :branch "master"))
+           :branch "master")
+  :commands s-split)
 
 ;;;;; cl-lib
 ;; Forward cl-lib compatibility library for Emacs<24.3
@@ -897,6 +900,54 @@
          uniquify-strip-common-suffix t
          uniquify-after-kill-buffer-p t
          uniquify-separator "/"))
+
+;;;; history packages
+;;;;; savehist
+;; built-in: recent buffer history settings
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
+(use-package savehist
+  :ensure nil
+  :demand t
+  :hook (emacs-startup . savehist-mode)
+  :custom
+  (history-delete-duplicates t)
+  (enable-recursive-minibuffers t "Allow commands in minibuffers.")
+  (history-length 10000)
+  (savehist-save-minibuffer-history t)
+  (savehist-autosave-interval 300)
+  (savehist-additional-variables '(mark-ring
+                                   global-mark-ring
+                                   search-ring
+                                   regexp-search-ring
+                                   extended-command-history)))
+
+;;;;; recentf
+;; built-in: recent file history list settings
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
+(use-package recentf
+  :hook (emacs-startup . recentf-mode)
+  :init
+  (setq recentf-max-saved-items 2000
+        recentf-max-menu-items 100
+        recentf-auto-cleanup 'never
+        recentf-exclude '((expand-file-name package-user-dir)
+                          ".cache"
+                          ".cask"
+                          ".elfeed"
+                          "bookmarks"
+                          "cache"
+                          "persp-confs"
+                          "recentf"
+                          "undo-tree-hist"
+                          "url"
+                          "COMMIT_EDITMSG\\'"))  )
+
+;;;;; vundo
+;; visual undo displays the undo history as a tree
+;; [[https://github.com/casouri/vundo]]
+(use-package vundo
+  :blackout t
+  :bind ("C-z" . vundo))
 
 ;;; general functions / packages
 
@@ -1919,19 +1970,18 @@ If FRAME is omitted or nil, use currently selected frame."
   (use-package corfu-history
     :ensure nil
     :demand t
-    :init
-    (add-to-list 'savehist-additional-variables 'corfu-history)
     :config
+    (add-to-list 'savehist-additional-variables 'corfu-history)
     (corfu-history-mode t))
   (use-package corfu-indexed
     :ensure nil
     :demand t
-    :init
+    :config
     (corfu-indexed-mode t))
   (use-package corfu-popupinfo
     :ensure nil
     :demand t
-    :init
+    :config
     (corfu-popupinfo-mode t))
 
   (use-package corfu-doc
@@ -2160,7 +2210,6 @@ Additionally, add `cape-file' as early as possible to the list."
           ("G" . consult-git-grep)
           ("r" . consult-ripgrep)
           ("l" . consult-line)
-          ("m" . consult-multi-occur)
           ("k" . consult-keep-lines)
           ("u" . consult-focus-lines)
           ;; isearch integration
@@ -2252,6 +2301,8 @@ Additionally, add `cape-file' as early as possible to the list."
                    #'completion--in-region)
                  args)))
 
+  (add-to-list 'consult-mode-histories '(org-mode)) 
+
   (defvar consult--xref-history nil
     "History for the `consult-recent-xref' results.")
 
@@ -2273,56 +2324,6 @@ Additionally, add `cape-file' as early as possible to the list."
      :history '(:input consult--xref-history)
      :add-history (thing-at-point 'symbol)
      :state (consult--jump-state))))
-
-;;;; history packages
-;;;;; vundo
-;; visual undo displays the undo history as a tree
-;; [[https://github.com/casouri/vundo]]
-(use-package vundo
-  :blackout t
-  :bind ("C-z" . vundo))
-
-;;;;; recentf
-;; built-in: recent file history list settings
-;; https://github.com/emacs-mirror/emacs/blob/master/lisp/recentf.el
-(use-package recentf
-  :hook (emacs-startup . recentf-mode)
-  :init
-  (setq recentf-max-saved-items 2000
-        recentf-max-menu-items 100
-        recentf-auto-cleanup 'never
-        recentf-exclude '((expand-file-name package-user-dir)
-                          ".cache"
-                          ".cask"
-                          ".elfeed"
-                          "bookmarks"
-                          "cache"
-                          "persp-confs"
-                          "recentf"
-                          "undo-tree-hist"
-                          "url"
-                          "COMMIT_EDITMSG\\'"))  )
-
-;;;;; savehist
-;; built-in: recent buffer history settings
-;; https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
-(use-package savehist
-  :ensure nil
-  :hook (emacs-startup . savehist-mode)
-  :custom
-  (history-delete-duplicates t)
-  (enable-recursive-minibuffers t "Allow commands in minibuffers.")
-  (history-length 10000)
-  (savehist-save-minibuffer-history t)
-  (savehist-autosave-interval 300)
-  :config
-  (setq savehist-additional-variables (-union savehist-additional-variables
-                                              '(mark-ring
-                                                global-mark-ring
-                                                search-ring
-                                                regexp-search-ring
-                                                extended-command-history))) )
-
 
 ;;;; movement
 ;;;;; mwim
@@ -3384,17 +3385,6 @@ If called with a prefix argument, query for word to search."
   :config
   (setq project-file-history-behavior 'relativize))
 
-;;;;; disproject
-;; integration with project.el and allows for dispatching via transient menus
-;; [[https://github.com/aurtzy/disproject]]
-(use-package disproject
-  ;; Replace `project-prefix-map' with `disproject-dispatch'.
-  :bind ( :map ctl-x-map
-          ("p" . disproject-dispatch))
-  :config
-  (require 'magit nil 'noerror)
-  (require 'magit-todos nil 'noerror))
-
 ;;;;; magit
 ;; interface to the version control system Git
 ;; https://magit.vc/
@@ -3430,6 +3420,17 @@ If called with a prefix argument, query for word to search."
   (magit-file-icons-enable-diff-file-section-icons t)
   (magit-file-icons-enable-untracked-icons t)
   (magit-file-icons-enable-diffstat-icons t))
+
+;;;;; disproject
+;; integration with project.el and allows for dispatching via transient menus
+;; [[https://github.com/aurtzy/disproject]]
+(use-package disproject
+  ;; Replace `project-prefix-map' with `disproject-dispatch'.
+  :bind ( :map ctl-x-map
+          ("p" . disproject-dispatch))
+  :config
+  (require 'magit nil 'noerror)
+  (require 'magit-todos nil 'noerror))
 
 ;;;;; forge
 ;; Access Git forges from Magit
@@ -4425,53 +4426,60 @@ the children of class at point."
   (context-menu-functions . denote-context-menu)
 
   :custom-face
-    (denote-faces-link ((t (:slant italic))))
+  (denote-faces-link ((t (:slant italic))))
 
-  :config
-  ;; Remember to check the doc strings of those variables.
-  (setq denote-directory sej-org-directory)
-  (setq denote-save-buffers t)
-  (setq denote-known-keywords nil)
-  (setq denote-infer-keywords t)
-  (setq denote-sort-keywords t)
-  (setq denote-file-type nil) ; Org is the default, set others here
-  (setq denote-prompts '(title keywords template))
-  (setq denote-excluded-directories-regexp nil)
-  (setq denote-excluded-keywords-regexp nil)
-  (setq denote-rename-confirmations '(rewrite-front-matter modify-file-name))
+  :custom
+  (denote-directory sej-org-directory)
+  (denote-save-buffers t)
+  (denote-known-keywords nil)
+  (denote-infer-keywords t)
+  (denote-sort-keywords t)
+  (denote-file-type nil) ; Org is the default, set others here
+  (denote-prompts '(title keywords template))
+  (denote-excluded-directories-regexp nil)
+  (denote-excluded-keywords-regexp nil)
+  (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
 
   ;; Pick dates, where relevant, with Org's advanced interface:
-  (setq denote-date-prompt-use-org-read-date t)
+  (denote-date-prompt-use-org-read-date t)
 
-  ;; Read this manual for how to specify `denote-templates'.  We do not
-  ;; include an example here to avoid potential confusion.
-  (setq denote-templates
+  ;; Read this manual for how to specify `denote-templates'.
+  (denote-templates
         `((standard . ,(concat "\n\n"
-                               "* "))))
+                               "* ")))
+        `((note . ,(concat "\n\n"
+                               "- ")))
+		)
 
-  (setq denote-date-format nil) ; read doc string
+  (denote-date-format nil) ; use default ; read doc string
 
   ;; By default, we do not show the context of links.  We just display
   ;; file names.  This provides a more informative view.
-  (setq denote-backlinks-show-context t)
+  (denote-backlinks-show-context t)
 
   ;; Also see `denote-backlinks-display-buffer-action' which is a bit
   ;; advanced.
 
   ;; We use different ways to specify a path for demo purposes.
-  (setq denote-dired-directories
-        (list denote-directory
-              (thread-last denote-directory (expand-file-name "personal"))
-              (expand-file-name "~/Documents/knowledge")))
+  (denote-dired-directories
+   (list denote-directory
+         (thread-last
+		   denote-directory (expand-file-name "attachments"))
+		 (expand-file-name "~/personal")
+         (expand-file-name "~/Documents/knowledge")))
 
+  ;; apply `denote-dired-directores' fontification to subdirectories
+  (denote-dired-directories-include-subdirectories t)
+
+  (savehist-additional-variables (-union savehist-additional-variables
+                                         '(denote-file-history
+                                           denote-title-history
+                                           denote-keyword-history
+                                           denote-component-history )))
+
+  :config
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
-
-  (setq savehist-additional-variables (-union savehist-additional-variables
-                                              '(denote-file-history
-                                                denote-title-history
-                                                denote-keyword-history
-                                                denote-component-history )))
 
 ;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
@@ -4596,7 +4604,9 @@ Add this function to the `after-save-hook'."
 
 ;;;;;; denote colleagues
 ;; easy way to launch topic specific files either colleagues or topics
-(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+
+(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
+  "Default file to keep the colleague list, kept in the base variable `denote-directory'." )
 
 (defvar sej/denote-colleagues nil
   "List of names I collaborate with.
@@ -4607,13 +4617,12 @@ the name of this person.")
   "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
 
 (defun sej/denote-colleagues-edit ()
-  "Edit the coleague list."
+  "Edit the colleague list by opening `sej/denote-colleagues'."
   (interactive)
   (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
 
 (defun sej/denote-colleagues-prompt ()
-  "Prompt with completion for a name among `sej/denote-colleagues'.
-Use the last input as the default value."
+  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
   (if (f-exists-p sej/denote-colleagues-p)
     (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
     (setq sej/denote-colleagues  "put colleagues or topics in denote-colleagues.txt"))
@@ -4632,15 +4641,13 @@ Use the last input as the default value."
   (interactive "sName to add: ")
   (with-temp-file
 	  sej/denote-colleagues-p
-	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))
-	) )
+	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))) )
 
 (defun sej/denote-colleagues-get-file (name)
   "Find file in variable `denote-directory' for NAME colleague.
-If there are more than one files, prompt with completion for one among
-them.
-
-NAME is one among `sej/denote-colleagues'."
+If there are more than one files, prompt with completion for one among them.
+NAME is one among `sej/denote-colleagues', which if not found in the list, is
+confirmed and added, calling the function `sej/denote-colleagues-update-file'."
   (if-let* ((files (denote-directory-files name))
             (length-of-files (length files)))
       (cond
@@ -4678,7 +4685,7 @@ one among them and operate therein."
       )))
 
 (defun sej/denote-colleagues-dump ()
-  "Dump to current buffer the current used colleagues in denote directory for refactor purposes."
+  "Dump current used colleagues in denote directory for refactor purposes."
   (interactive)
   (let ((value nil) (element1 nil) (element2 nil))
     (setq value (denote-directory-files "__[^journal]"))
