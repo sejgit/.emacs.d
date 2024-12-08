@@ -1866,7 +1866,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (corfu-echo-documentation nil)
   (corfu-quit-at-boundary nil)
   (corfu-separator ?\s)            ; Use space
-  (corfu-quit-no-match 'separator) ; Don't quit if there is `corfu-separator' inserted
+  (corfu-quit-no-match t) ; Don't quit if there is `corfu-separator' inserted
   (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
   (corfu-preselect-first t)        ; Preselect first candidate?
 
@@ -4430,7 +4430,7 @@ the children of class at point."
   :config
   ;; Remember to check the doc strings of those variables.
   (setq denote-directory sej-org-directory)
-  (setq denote-save-buffers nil)
+  (setq denote-save-buffers t)
   (setq denote-known-keywords nil)
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
@@ -4621,9 +4621,19 @@ Use the last input as the default value."
     (completing-read
      (format-prompt "New meeting with COLLEAGUE" default-value)
      sej/denote-colleagues
-     nil :require-match nil
+     nil
+	 'confirm
+	 nil
      'sej/denote-colleagues-prompt-history
      default-value)))
+
+(defun sej/denote-colleagues-update-file (name)
+  "Update the colleagues file with an additional colleague NAME."
+  (interactive "sName to add: ")
+  (with-temp-file
+	  sej/denote-colleagues-p
+	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))
+	) )
 
 (defun sej/denote-colleagues-get-file (name)
   "Find file in variable `denote-directory' for NAME colleague.
@@ -4638,7 +4648,14 @@ NAME is one among `sej/denote-colleagues'."
         (car files))
        ((> length-of-files 1)
         (completing-read "Select a file: " files nil :require-match)))
-    (user-error "No files for colleague with name `%s'" name)))
+    (progn (denote name
+				   nil
+				   denote-file-type
+				   denote-directory
+				   (denote-parse-date nil)
+				   (alist-get 'standard denote-templates "* ")
+				   nil)
+		   (sej/denote-colleagues-update-file name))))
 
 (defun sej/denote-colleagues-new-meeting ()
   "Prompt for the name of a colleague and insert a timestamped heading therein.
@@ -4661,7 +4678,7 @@ one among them and operate therein."
       )))
 
 (defun sej/denote-colleagues-dump ()
-  "Dump the current used colleagues in denote directory for refactor purposes."
+  "Dump to current buffer the current used colleagues in denote directory for refactor purposes."
   (interactive)
   (let ((value nil) (element1 nil) (element2 nil))
     (setq value (denote-directory-files "__[^journal]"))
