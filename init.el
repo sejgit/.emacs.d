@@ -1,4 +1,3 @@
-
 ;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t; no-byte-compile: t; -*-
 
 ;; Copyright (C) 2019 Stephen Jenkins
@@ -2301,7 +2300,7 @@ Additionally, add `cape-file' as early as possible to the list."
                    #'completion--in-region)
                  args)))
 
-  (add-to-list 'consult-mode-histories '(org-mode)) 
+  (add-to-list 'consult-mode-histories '(org-mode))
 
   (defvar consult--xref-history nil
     "History for the `consult-recent-xref' results.")
