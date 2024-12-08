@@ -4655,14 +4655,14 @@ confirmed and added, calling the function `sej/denote-colleagues-update-file'."
         (car files))
        ((> length-of-files 1)
         (completing-read "Select a file: " files nil :require-match)))
-    (progn (denote name
+    (progn (sej/denote-colleagues-update-file name)
+		   (denote name
 				   nil
 				   denote-file-type
 				   denote-directory
 				   (denote-parse-date nil)
 				   (alist-get 'standard denote-templates "* ")
-				   nil)
-		   (sej/denote-colleagues-update-file name))))
+				   nil))))
 
 (defun sej/denote-colleagues-new-meeting ()
   "Prompt for the name of a colleague and insert a timestamped heading therein.
