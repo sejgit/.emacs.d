@@ -4356,11 +4356,11 @@ the children of class at point."
 ;; https://github.com/rmuslimov/browse-at-remote
 (use-package browse-at-remote
   :bind (:map sej-C-q-map
-              ("b" . browse-at-remote)))
+              ("B" . browse-at-remote)))
 
 ;;; writing & reading
 ;;;;; denote
-;; note organization tooles
+;; note organization tools
 ;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
 ;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
 (use-package denote
@@ -4655,7 +4655,13 @@ the name of this person.")
 If there are more than one files, prompt with completion for one among them.
 NAME is one among `sej/denote-colleagues', which if not found in the list, is
 confirmed and added, calling the function `sej/denote-colleagues-update-file'."
-  (if-let* ((files (denote-directory-files name))
+  (if-let* ((files
+			 (let* ((testname (denote-sluggify 'title name))
+					(files (denote-directory-files testname))
+					(RESULT nil))
+			   (dolist (VAR files RESULT)
+				 (if (string-match (denote-retrieve-filename-title VAR) testname)
+					 (setq RESULT (cons VAR RESULT))))))
             (length-of-files (length files)))
       (cond
        ((= length-of-files 1)
@@ -4683,13 +4689,10 @@ one among them and operate therein."
          (time (format-time-string "%F %a")))  ; add %R if you want the time
     (with-current-buffer (find-file file)
       (goto-char (point-max))
-      ;; Here I am assuming we are in `org-mode', hence the leading
-      ;; asterisk for the heading.  Adapt accordingly.
       (insert "*  \n- ")
       (end-of-line 0)
       (denote-journal-extras-link-or-create-entry)
-      (org-move-to-column 2)
-      )))
+      (org-move-to-column 2))))
 
 (defun sej/denote-colleagues-dump ()
   "Dump current used colleagues in denote directory for refactor purposes."
@@ -4697,10 +4700,7 @@ one among them and operate therein."
   (let ((value nil) (element1 nil) (element2 nil))
     (setq value (denote-directory-files "__[^journal]"))
     (dolist (element value)
-      (save-match-data
-        (and (string-match "\\(--\\)\\([a-z,A-Z,0-9,-]*\\)\\(__\\)" element)
-             (setq  element2 (match-string 2 element))))
-      (insert (concat element2 "\n")) ) )))
+      (insert (concat (denote-retrieve-filename-title element) "\n" ))))))
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
