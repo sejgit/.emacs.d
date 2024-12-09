@@ -2229,8 +2229,7 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; and not necessary for Vertico, Selectrum, etc.
   :hook (completion-list-mode . consult-preview-at-point-mode)
 
-  ;; The :init configuration is always executed (Not lazy)
-  :init
+    :init
 
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
@@ -2246,8 +2245,17 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
 
-  ;; Configure other variables and modes in the :config section,
-  ;; after lazily loading the package.
+  ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
+(setq xref-search-program
+      (cond
+       ((or (executable-find "ripgrep")
+            (executable-find "rg"))
+        'ripgrep)
+       ((executable-find "ugrep")
+        'ugrep)
+       (t
+        'grep)))
+
   :config
 
   ;; Optionally configure preview. The default value
@@ -5195,6 +5203,12 @@ function with the \\[universal-argument]."
 ;;;;;; org-attach
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
+  ;; Tell Org to use Emacs when opening files that end in .md
+  (add-to-list 'org-file-apps '("\\.md\\'" . emacs))
+
+  ;; Do the same for .html
+  (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
+  
 ;;;;;; tags
   ;; defined here for regular topics
   ;; `org-tag-persistent-alist' defined in denote section from current note list
