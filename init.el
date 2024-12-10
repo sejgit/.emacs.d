@@ -4728,7 +4728,7 @@ one among them and operate therein."
 ;; tabed list of denote notes
 ;; [[https://github.com/namilus/denote-menu]]
 (use-package denote-menu
-  :hook (denote-menu-mode . (lambda () (visual-line-mode -1)))
+  :hook (denote-menu-mode . sej/denote-menu-setup)
   :bind (:map sej-C-q-map
          ("n m" . list-denotes)
          :map denote-menu-mode-map
@@ -4736,9 +4736,58 @@ one among them and operate therein."
          ("/ r" . denote-menu-filter)
          ("/ k" . denote-menu-filter-by-keyword)
          ("/ o" . denote-menu-filter-out-keyword)
-         ("e" . denote-menu-export-to-dired))
+         ("e" . denote-menu-export-to-dired)
+		 ("s" . tabulated-list-sort)
+		 ("t" . sej/denote-menu-toggle-journal))
   :config (setq denote-menu-title-column-width 45
-				denote-menu-keywords-column-width 35))
+				denote-menu-keywords-column-width 35)
+  (defun sej/denote-menu-setup ()
+	"Change the denote menu mode to my liking."
+	(interactive)
+	(visual-line-mode -1)
+	(if denote-menu-show-file-signature
+      (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
+                                    ("Signature" ,denote-menu-signature-column-width t)
+                                    ("Title" ,denote-menu-title-column-width t)
+                                    ("Keywords" ,denote-menu-keywords-column-width t)])
+
+    (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
+                                  ("Title" ,denote-menu-title-column-width t)
+                                  ("Keywords" ,denote-menu-keywords-column-width t)]))
+	(denote-menu-update-entries)
+	(setq tabulated-list-sort-key '("Date" . t))
+	(tabulated-list-init-header)
+	(tabulated-list-print))
+
+  (defvar sej/denote-menu-toggle-p 0
+	"Variable to hold current toggle state.")
+
+  (defun sej/denote-menu-toggle-journal ()
+	"Toggle listing All, only-Jounal, no-Journal notes."
+	(interactive)
+	(cond
+	 ((= sej/denote-menu-toggle-p 0)
+	  (setq sej/denote-menu-toggle-p 1)
+	  (denote-menu-filter-by-keyword '("journal"))
+	  (setq tabulated-list-sort-key '("Date" . t))
+	  (tabulated-list-init-header)
+	  (tabulated-list-print)
+	  (beginning-of-buffer))
+	 ((= sej/denote-menu-toggle-p 1)
+	  (setq sej/denote-menu-toggle-p 2)
+	  (denote-menu-clear-filters)
+	  (denote-menu-filter-out-keyword '("journal"))
+	  (setq tabulated-list-sort-key '("Title" . nil))
+	  (tabulated-list-init-header)
+	  (tabulated-list-print)
+	  (beginning-of-buffer))
+	 (t
+	  (setq sej/denote-menu-toggle-p 0)
+	  (setq tabulated-list-sort-key '("Date" . t))
+	  (denote-menu-clear-filters)
+	  (tabulated-list-init-header)
+	  (tabulated-list-print)
+	  (beginning-of-buffer)))) )
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
