@@ -132,6 +132,11 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
+(defun my-package-install-refresh-contents (&rest args)
+  (package-refresh-contents)
+  (advice-remove 'package-install 'my-package-install-refresh-contents))
+
+(advice-add 'package-install :before 'my-package-install-refresh-contents)
 
 ;; Use-Package set-up
 ;; - https://github.com/jwiegley/use-package
@@ -2603,24 +2608,25 @@ If called with a prefix argument, query for word to search."
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
   :bind (("M-<down>" . drag-stuff-down)
-          ("M-<up>" . drag-stuff-up))
+         ("M-<up>" . drag-stuff-up)
+		 :map org-mode-map
+		 ("M-<down>" . sej/drag-stuff-org-down)
+         ("M-<up>" . sej/drag-stuff-org-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
-  (define-key org-mode-map (kbd "M-<up>")
-  (lambda ()
+  (defun sej/drag-stuff-org-up ()
     (interactive)
     (call-interactively
      (if (org-at-heading-p)
          'org-metaup
-       'drag-stuff-up))))
-
-(define-key org-mode-map (kbd "M-<down>")
-  (lambda ()
+       'drag-stuff-up)))
+  
+  (defun sej/drag-stuff-org-down ()
     (interactive)
     (call-interactively
      (if (org-at-heading-p)
          'org-metadown
-       'drag-stuff-down)))))
+       'drag-stuff-down))) )
 
 ;;;; url actions
 ;;;;; sej/url-insert
@@ -2726,6 +2732,9 @@ If called with a prefix argument, query for word to search."
 ;; font management
 ;; [[https://protesilaos.com/emacs/fontaine]]
 (use-package fontaine
+  :vc (:url "https://github.com/protesilaos/fontaine"
+            :rev :newest
+            :branch "main")
   :bind ("C-c f" . fontaine-set-preset)
   :hook (emacs-startup . fontaine-mode)
   :config
@@ -2880,6 +2889,9 @@ If called with a prefix argument, query for word to search."
 ;; Highlight TODO and similar keywords in comments and strings
 ;; https://github.com/tarsius/hl-todo
 (use-package hl-todo
+  :vc (:url "https://github.com/tarsius/hl-todo"
+            :rev :newest
+            :branch "main")
   :custom-face
   (hl-todo ((t (:box t :inherit))))
   :bind (:map hl-todo-mode-map
@@ -2940,14 +2952,20 @@ If called with a prefix argument, query for word to search."
 ;; Highlight some buffer region operations
 ;; https://github.com/k-talo/volatile-highlights.el
 (use-package volatile-highlights
+  :vc (:url "https://github.com/k-talo/volatile-highlights.el"
+            :rev :newest
+            :branch "master")
   :blackout t
   :hook (emacs-startup . volatile-highlights-mode))
 
 ;;;;; Pulsar
 ;; small package that temporarily highlights the current line after a given function is invoked
 ;; additional to built-in pulse
-;; [[https://protesilaos.com/emacs/pulsar][pulsar]]
+;; https://protesilaos.com/emacs/pulsar
 (use-package pulsar
+  :vc (:url "https://github.com/protesilaos/pulsar"
+            :rev :newest
+            :branch "main")
   :bind (:map sej-C-q-map
                ("P p" . pulsar-pulse-line)
                ("P h" . pulsar-highlight-line))
@@ -5391,6 +5409,12 @@ function with the \\[universal-argument]."
 
   ) ; end of use-pacakge for org
 
+;;;;; org-autolist
+;; make return and delete smarter in org lists
+;; [[https://github.com/calvinwyoung/org-autolist]]
+(use-package org-autolist
+  :hook (org-mode . org-autolist-mode))
+
 ;;;;; org-protocol
 (use-package org-protocol
   :ensure nil
@@ -5625,7 +5649,7 @@ function with the \\[universal-argument]."
 ;; consider demand t as lazy loading may not work
 ;; https://github.com/unhammer/org-rich-yank
 (use-package org-rich-yank
-  :demand t
+  :defer 2
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
 
@@ -5648,7 +5672,9 @@ function with the \\[universal-argument]."
   :hook ((org-mode . toc-org-mode)
          (markdown-mode . toc-org-mode))
   :bind (:map org-mode-map
-              ("C-c C-o" . toc-org-mardown-follow-thing-at-point)))
+              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)
+			  :map org-mode-map
+              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)))
 
 ;;;;; org-pretty-tags
 ;; Display text or image surrogates for Org mode tags.
@@ -5701,6 +5727,47 @@ function with the \\[universal-argument]."
   > _ \n
   > "#+END_SRC" \n)
 
+;;;;; sej/org-log-checklist-item
+;; automatically log checklist items into :LOGBOOK:
+;; [[https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode]]
+(defun sej/org-log-checklist-item (item)
+"Insert clocked item into logbook drawer.
+Create drawer if it does not exist yet."
+  (save-excursion
+    (org-previous-visible-heading 1)
+    (while (not (= (org-current-level) 1))
+      (org-previous-visible-heading 1))
+    (forward-line)
+    (let* ((element (org-element-at-point))
+           (logbookp (string= (org-element-property :drawer-name element)
+                              "LOGBOOK")))
+      (if logbookp
+          (goto-char (org-element-property :contents-end element))
+        (org-insert-drawer nil "LOGBOOK"))
+      (insert "- \"" item "\" was checked ")
+      (org-insert-time-stamp (current-time) t t)
+      (when logbookp
+        (insert "\n")))))
+
+(defun sej/org-checkbox-item ()
+"Retrieve the contents (text) of the item."
+  (save-excursion
+    (beginning-of-line)
+    (search-forward "]")
+    (forward-char)
+    (buffer-substring-no-properties (point) (line-end-position))))
+
+(defun sej/org-checklist-change-advice-function (&rest _)
+  (when (org-at-item-checkbox-p)
+    (let ((checkedp (save-excursion
+                      (beginning-of-line)
+                      (search-forward "[")
+                      (looking-at-p "X"))))
+      (when checkedp
+        (sej/org-log-checklist-item (sej/org-checkbox-item))))))
+
+(advice-add 'org-list-struct-apply-struct :after #'sej/org-checklist-change-advice-function)
+;; (advice-add 'org-toggle-checkbox :after #'org-checklist-change-advice-function)
 
 ;;; shell tools
 ;;;;; sh-script
