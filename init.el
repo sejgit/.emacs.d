@@ -4406,6 +4406,7 @@ the children of class at point."
               ("n C-R" . denote-region)
               ("n s" . denote-signature)
               ("n S" . denote-subdirectory)
+			  ("n C-s" . denote-silo-extras-open-or-create)
               ("n t" . denote-type)
               ("n T" . denote-template)
               ;; defined in consult-denote
@@ -4490,7 +4491,7 @@ the children of class at point."
    (list denote-directory
          (thread-last
 		   denote-directory (expand-file-name "attachments"))
-		 (expand-file-name "~/personal")
+		 (expand-file-name "~/Documents/denote-personal")
          (expand-file-name "~/Documents/knowledge")))
 
   ;; apply `denote-dired-directores' fontification to subdirectories
@@ -4503,6 +4504,10 @@ the children of class at point."
                                            denote-component-history )))
 
   :config
+  ;; silos
+  (require 'denote-silo-extras)
+  (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
+
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
 
@@ -4512,6 +4517,7 @@ the children of class at point."
   (defun sej/denote-keywords-update ()
     "Update keywords from file."
     (interactive)
+	(setq sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
     (if (f-exists-p sej/denote-keywords-p)
         (progn (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
                (setq org-tag-persistent-alist (-map #'list denote-known-keywords)))
@@ -4702,6 +4708,7 @@ The name of a colleague corresponds to at least one file in the variable
 one among them and operate therein."
   (declare (interactive-only t))
   (interactive)
+  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
   (let* ((name (sej/denote-colleagues-prompt))
          (file (sej/denote-colleagues-get-file name))
          (time (format-time-string "%F %a")))  ; add %R if you want the time
