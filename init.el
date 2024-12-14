@@ -132,11 +132,12 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
-(defun my-package-install-refresh-contents (&rest args)
+(defun sej/package-install-refresh-contents (&rest args)
+  "With first `package-install' of ARGS, `package-refresh-contents' to ensure list is up to date."
   (package-refresh-contents)
-  (advice-remove 'package-install 'my-package-install-refresh-contents))
+  (advice-remove 'package-install 'sej/package-install-refresh-contents))
 
-(advice-add 'package-install :before 'my-package-install-refresh-contents)
+(advice-add 'package-install :before 'sej/package-install-refresh-contents)
 
 ;; Use-Package set-up
 ;; - https://github.com/jwiegley/use-package
@@ -5740,8 +5741,7 @@ function with the \\[universal-argument]."
 ;; automatically log checklist items into :LOGBOOK:
 ;; [[https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode]]
 (defun sej/org-log-checklist-item (item)
-"Insert clocked item into logbook drawer.
-Create drawer if it does not exist yet."
+"Insert clocked ITEM into logbook drawer. Create drawer if it does not exist yet."
   (save-excursion
     (org-previous-visible-heading 1)
     (while (not (= (org-current-level) 1))
@@ -5767,6 +5767,7 @@ Create drawer if it does not exist yet."
     (buffer-substring-no-properties (point) (line-end-position))))
 
 (defun sej/org-checklist-change-advice-function (&rest _)
+  "Advise function to get and log checkbox item when it is checked."
   (when (org-at-item-checkbox-p)
     (let ((checkedp (save-excursion
                       (beginning-of-line)
