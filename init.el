@@ -4714,9 +4714,11 @@ one among them and operate therein."
          (time (format-time-string "%F %a")))  ; add %R if you want the time
     (with-current-buffer (find-file file)
       (goto-char (point-max))
-      (insert "*  \n- ")
-      (end-of-line 0)
+	  (org-insert-heading '(16) nil 1)
       (denote-journal-extras-link-or-create-entry)
+	  (org-return)
+      (org-insert-item)
+      (end-of-line 0)
       (org-move-to-column 2))))
 
 (defun sej/denote-colleagues-dump ()
