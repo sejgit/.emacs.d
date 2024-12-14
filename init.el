@@ -4380,46 +4380,46 @@ the children of class at point."
 ;;; writing & reading
 ;;;;; denote
 ;; note organization tools
-;; [[https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4][manual]]
-;; [[https://github.com/protesilaos/denote?tab=readme-ov-file][github]]
+;; https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4
+;; https://github.com/protesilaos/denote?tab=readme-ov-file
 (use-package denote
   :bind (:map sej-C-q-map
-              ("n a" . denote-add-links)
-              ("n b" . denote-backlinks)
-              ("n B" . denote-find-backlink)
-              ("n c" . sej/denote-colleagues-new-meeting)
-              ("n C" . sej/denote-colleagues-edit)
-              ("n C-c" . sej/denote-colleagues-dump)
-              ("n d" . denote-date)
-              ("n D" . denote-create-any-dir)
-              ("n e" . denote-org-extras-extract-org-subtree)
-              ("n h" . denote-org-extras-link-to-heading)
-              ("n K" . sej/denote-keywords-edit)
-              ("n C-k" . sej/denote-keywords-dump)
-              ("n l" . denote-link) ; "insert" mnemonic
-              ("n L" . denote-find-link)
-              ("n j" . denote-journal-extras-new-or-existing-entry)
-              ("n J" . denote-journal-extras-link-or-create-entry)
-              ("n n" . denote)
-              ("n N" . denote-open-or-create)
-              ("n r" . denote-rename-file)
-              ("n R" . denote-rename-file-using-front-matter)
-              ("n C-R" . denote-region)
-              ("n s" . denote-signature)
-              ("n S" . denote-subdirectory)
+			  ("n a" . denote-add-links)
+			  ("n b" . denote-backlinks)
+			  ("n B" . denote-find-backlink)
+			  ("n c" . sej/denote-colleagues-new-meeting)
+			  ("n C" . sej/denote-colleagues-edit)
+			  ("n C-c" . sej/denote-colleagues-dump)
+			  ("n d" . denote-date)
+			  ("n D" . denote-create-any-dir)
+			  ("n e" . denote-org-extras-extract-org-subtree)
+			  ("n h" . denote-org-extras-link-to-heading)
+			  ("n K" . sej/denote-keywords-edit)
+			  ("n C-k" . sej/denote-keywords-dump)
+			  ("n l" . denote-link) ; "insert" mnemonic
+			  ("n L" . denote-find-link)
+			  ("n j" . denote-journal-extras-new-or-existing-entry)
+			  ("n J" . denote-journal-extras-link-or-create-entry)
+			  ("n n" . denote)
+			  ("n N" . denote-open-or-create)
+			  ("n r" . denote-rename-file)
+			  ("n R" . denote-rename-file-using-front-matter)
+			  ("n C-R" . denote-region)
+			  ("n s" . denote-signature)
+			  ("n S" . denote-subdirectory)
 			  ("n C-s" . denote-silo-extras-open-or-create)
-              ("n t" . denote-type)
-              ("n T" . denote-template)
-              ;; defined in consult-denote
-                  ;; ("n f f" . consult-denote-find)
-                  ;; ("n g" . consult-denote-grep)
-                  ;; ("n f g" . consult-denote-grep)
-              ;; defined in denote menu
-                  ;; ("n m" . list-denotes)
-              ("n C-d r" . denote-dired-rename-files)
-              ("n C-d k" . denote-dired-rename-marked-files-with-keywords)
-              ("n C-d f" . denote-dired-rename-marked-files-using-front-matter) )
-  :init
+			  ("n t" . denote-type)
+			  ("n T" . denote-template)
+			  ;; defined in consult-denote
+			  ;; ("n f f" . consult-denote-find)
+			  ;; ("n g" . consult-denote-grep)
+			  ;; ("n f g" . consult-denote-grep)
+			  ;; defined in denote menu
+			  ;; ("n m" . list-denotes)
+			  ("n C-d r" . denote-dired-rename-files)
+			  ("n C-d k" . denote-dired-rename-marked-files-with-keywords)
+			  ("n C-d f" . denote-dired-rename-marked-files-using-front-matter))
+		 :init
   (which-key-add-keymap-based-replacements sej-C-q-map
     "n"       "Denote"
     "n f"     "Denote-find"
@@ -4720,7 +4720,7 @@ one among them and operate therein."
 	  (org-return)
       (org-insert-item)
       (end-of-line 0)
-      (org-move-to-column 2))))
+      (org-move-to-column 2)))))
 
 (defun sej/denote-colleagues-dump ()
   "Dump current used colleagues in denote directory for refactor purposes."
@@ -4728,7 +4728,7 @@ one among them and operate therein."
   (let ((value nil) (element1 nil) (element2 nil))
     (setq value (denote-directory-files "__[^journal]"))
     (dolist (element value)
-      (insert (concat (denote-retrieve-filename-title element) "\n" ))))))
+      (insert (concat (denote-retrieve-filename-title element) "\n" )))))) ;end of denote use-package
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
