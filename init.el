@@ -4505,24 +4505,19 @@ the children of class at point."
                                            denote-component-history )))
 
   :config
-  ;; silos
-  (require 'denote-silo-extras)
-  (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
-
-  ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
-  (denote-rename-buffer-mode 1)
 
 ;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
   (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
-  (defun sej/denote-keywords-update ()
+
+  (defun sej/denote-keywords-update (&rest _arg)
     "Update keywords from file."
-    (interactive)
 	(setq sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
     (if (f-exists-p sej/denote-keywords-p)
         (progn (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
                (setq org-tag-persistent-alist (-map #'list denote-known-keywords)))
-      (setq denote-known-keywords  "defined-in-denote-keywords.txt")) )
+      (setq denote-known-keywords  "defined-in-denote-keywords.txt"))
+	(eval nil))
   (sej/denote-keywords-update)
 
   (defun sej/denote-keywords-edit ()
@@ -4539,6 +4534,17 @@ the children of class at point."
         (setq value (cons (denote-extract-keywords-from-path element) value)))
       (setq sej/value (sort (delete-dups (apply #'append value))))
       (insert (mapconcat 'identity sej/value "\n"))))
+
+;;;;;; silos
+  (require 'denote-silo-extras)
+  (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
+
+  (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-keywords-update)
+  (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-keywords-update)
+  (advice-add 'denote-silo-extras-create-note :after #'sej/denote-keywords-update)
+
+  ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
+  (denote-rename-buffer-mode 1)
 
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
