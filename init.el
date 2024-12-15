@@ -4382,6 +4382,31 @@ the children of class at point."
 ;; note organization tools
 ;; https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4
 ;; https://github.com/protesilaos/denote?tab=readme-ov-file
+;;
+;; TODO put below into an automatically generated function when setting up Denote
+;; populate denote main directory `~/Documents/orgtodo' in my case with two files:
+;; `.gitignore'
+;;  /.DS_Store
+;;  /.saves/
+;;  /logs/
+;;  /personal
+;;  .dir-locals-2.el
+;;
+;; `.dir-locals.el'
+;; ;;; Directory Local Variables         -*- no-byte-compile: t; -*-
+;; ;;; For more information see (info "(emacs) Directory Variables")
+;;
+;;  ((org-mode . ((eval . (denote-refs-mode)))))
+;;
+;; `.dir-locals-2.el'
+;; this file is unique to each silo putting the `denote-directory' to the silo directory
+;; the file is ignored by git as you `git clone' to other computers
+;;  ;;; Directory Local Variables         -*- no-byte-compile: t; -*-
+;;  ;;; For more information see (info "(emacs) Directory Variables")
+;;
+;;  ((nil . ((denote-directory . "~/Documents/denote-personal/")
+;;		 (eval . (sej/denote-keywords-update)))))
+;; 
 (use-package denote
   :bind (:map sej-C-q-map
 			  ("n a" . denote-add-links)
@@ -4535,6 +4560,104 @@ the children of class at point."
       (setq sej/value (sort (delete-dups (apply #'append value))))
       (insert (mapconcat 'identity sej/value "\n"))))
 
+;;;;;; denote colleagues
+;; easy way to launch topic specific files either colleagues or topics
+
+(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
+  "Default file to keep the colleague list, kept in the base variable `denote-directory'." )
+
+(defvar sej/denote-colleagues nil
+  "List of names I collaborate with.
+There is at least one file in the variable `denote-directory' that has
+the name of this person.")
+
+(defvar sej/denote-colleagues-prompt-history nil
+  "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
+
+(defun sej/denote-colleagues-edit ()
+  "Edit the colleague list by opening `sej/denote-colleagues'."
+  (interactive)
+  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+  (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
+
+(defun sej/denote-colleagues-prompt ()
+  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
+  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+  (if (f-exists-p sej/denote-colleagues-p)
+    (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
+    (setq sej/denote-colleagues  "put colleagues or topics in denote-colleagues.txt"))
+  (let ((default-value (car sej/denote-colleagues-prompt-history)))
+    (completing-read
+     (format-prompt "New meeting with COLLEAGUE" default-value)
+     sej/denote-colleagues
+     nil
+	 'confirm
+	 nil
+     'sej/denote-colleagues-prompt-history
+     default-value)))
+
+(defun sej/denote-colleagues-update-file (name)
+  "Update the colleagues file with an additional colleague NAME."
+  (interactive "sName to add: ")
+  (with-temp-file
+	  sej/denote-colleagues-p
+	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))) )
+
+(defun sej/denote-colleagues-get-file (name)
+  "Find file in variable `denote-directory' for NAME colleague.
+If there are more than one files, prompt with completion for one among them.
+NAME is one among `sej/denote-colleagues', which if not found in the list, is
+confirmed and added, calling the function `sej/denote-colleagues-update-file'."
+  (if-let* ((files
+			 (let* ((testname (denote-sluggify 'title name))
+					(files (denote-directory-files testname))
+					(RESULT nil))
+			   (dolist (VAR files RESULT)
+				 (if (string-match (denote-retrieve-filename-title VAR) testname)
+					 (setq RESULT (cons VAR RESULT))))))
+            (length-of-files (length files)))
+      (cond
+       ((= length-of-files 1)
+        (car files))
+       ((> length-of-files 1)
+        (completing-read "Select a file: " files nil :require-match)))
+    (progn (sej/denote-colleagues-update-file name)
+		   (denote name
+				   nil
+				   denote-file-type
+				   denote-directory
+				   (denote-parse-date nil)
+				   (alist-get 'standard denote-templates "* ")
+				   nil))))
+
+(defun sej/denote-colleagues-new-meeting ()
+  "Prompt for the name of a colleague and insert a timestamped heading therein.
+The name of a colleague corresponds to at least one file in the variable
+`denote-directory'.  In case there are multiple files, prompt to choose
+one among them and operate therein."
+  (declare (interactive-only t))
+  (interactive)
+  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
+  (let* ((name (sej/denote-colleagues-prompt))
+         (file (sej/denote-colleagues-get-file name))
+         (time (format-time-string "%F %a")))  ; add %R if you want the time
+    (with-current-buffer (find-file file)
+      (goto-char (point-max))
+	  (org-insert-heading '(16) nil 1)
+      (denote-journal-extras-link-or-create-entry)
+	  (org-return)
+      (org-insert-item)
+      (end-of-line 0)
+      (org-move-to-column 2)))))
+
+(defun sej/denote-colleagues-dump ()
+  "Dump current used colleagues in denote directory for refactor purposes."
+  (interactive)
+  (let ((value nil) (element1 nil) (element2 nil))
+    (setq value (denote-directory-files "__[^journal]"))
+    (dolist (element value)
+      (insert (concat (denote-retrieve-filename-title element) "\n" )))))
+
 ;;;;;; silos
   (require 'denote-silo-extras)
   (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
@@ -4545,6 +4668,11 @@ the children of class at point."
 
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
+
+  (defun sej/denote-silo-update ()
+	"Function to update critical variables for switching silos."
+	(setq denote-directory default-directory)
+	(sej/denote-keywords-update))
 
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
@@ -4638,103 +4766,7 @@ Add this function to the `after-save-hook'."
       (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
       (message "Buffer saved; Denote file renamed"))))
 
-(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
-
-;;;;;; denote colleagues
-;; easy way to launch topic specific files either colleagues or topics
-
-(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
-  "Default file to keep the colleague list, kept in the base variable `denote-directory'." )
-
-(defvar sej/denote-colleagues nil
-  "List of names I collaborate with.
-There is at least one file in the variable `denote-directory' that has
-the name of this person.")
-
-(defvar sej/denote-colleagues-prompt-history nil
-  "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
-
-(defun sej/denote-colleagues-edit ()
-  "Edit the colleague list by opening `sej/denote-colleagues'."
-  (interactive)
-  (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
-
-(defun sej/denote-colleagues-prompt ()
-  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
-  (if (f-exists-p sej/denote-colleagues-p)
-    (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
-    (setq sej/denote-colleagues  "put colleagues or topics in denote-colleagues.txt"))
-  (let ((default-value (car sej/denote-colleagues-prompt-history)))
-    (completing-read
-     (format-prompt "New meeting with COLLEAGUE" default-value)
-     sej/denote-colleagues
-     nil
-	 'confirm
-	 nil
-     'sej/denote-colleagues-prompt-history
-     default-value)))
-
-(defun sej/denote-colleagues-update-file (name)
-  "Update the colleagues file with an additional colleague NAME."
-  (interactive "sName to add: ")
-  (with-temp-file
-	  sej/denote-colleagues-p
-	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))) )
-
-(defun sej/denote-colleagues-get-file (name)
-  "Find file in variable `denote-directory' for NAME colleague.
-If there are more than one files, prompt with completion for one among them.
-NAME is one among `sej/denote-colleagues', which if not found in the list, is
-confirmed and added, calling the function `sej/denote-colleagues-update-file'."
-  (if-let* ((files
-			 (let* ((testname (denote-sluggify 'title name))
-					(files (denote-directory-files testname))
-					(RESULT nil))
-			   (dolist (VAR files RESULT)
-				 (if (string-match (denote-retrieve-filename-title VAR) testname)
-					 (setq RESULT (cons VAR RESULT))))))
-            (length-of-files (length files)))
-      (cond
-       ((= length-of-files 1)
-        (car files))
-       ((> length-of-files 1)
-        (completing-read "Select a file: " files nil :require-match)))
-    (progn (sej/denote-colleagues-update-file name)
-		   (denote name
-				   nil
-				   denote-file-type
-				   denote-directory
-				   (denote-parse-date nil)
-				   (alist-get 'standard denote-templates "* ")
-				   nil))))
-
-(defun sej/denote-colleagues-new-meeting ()
-  "Prompt for the name of a colleague and insert a timestamped heading therein.
-The name of a colleague corresponds to at least one file in the variable
-`denote-directory'.  In case there are multiple files, prompt to choose
-one among them and operate therein."
-  (declare (interactive-only t))
-  (interactive)
-  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
-  (let* ((name (sej/denote-colleagues-prompt))
-         (file (sej/denote-colleagues-get-file name))
-         (time (format-time-string "%F %a")))  ; add %R if you want the time
-    (with-current-buffer (find-file file)
-      (goto-char (point-max))
-	  (org-insert-heading '(16) nil 1)
-      (denote-journal-extras-link-or-create-entry)
-	  (org-return)
-      (org-insert-item)
-      (end-of-line 0)
-      (org-move-to-column 2)))))
-
-(defun sej/denote-colleagues-dump ()
-  "Dump current used colleagues in denote directory for refactor purposes."
-  (interactive)
-  (let ((value nil) (element1 nil) (element2 nil))
-    (setq value (denote-directory-files "__[^journal]"))
-    (dolist (element value)
-      (insert (concat (denote-retrieve-filename-title element) "\n" )))))) ;end of denote use-package
+(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)) ;end of denote use-package
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
@@ -4755,6 +4787,7 @@ one among them and operate therein."
   :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
             :rev :newest
             :branch "master")
+  :hook (org-mode . denote-refs-mode)
   :custom
   (denote-refs-update-delay '(2 1 60))) ; needed to allow time for buffer set-up
 
