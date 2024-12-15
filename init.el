@@ -4543,6 +4543,8 @@ the children of class at point."
                (setq org-tag-persistent-alist (-map #'list denote-known-keywords)))
       (setq denote-known-keywords  "defined-in-denote-keywords.txt"))
 	(eval nil))
+
+  ;; update 1st time in config
   (sej/denote-keywords-update)
 
   (defun sej/denote-keywords-edit ()
@@ -4662,17 +4664,21 @@ one among them and operate therein."
   (require 'denote-silo-extras)
   (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
 
-  (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-keywords-update)
-  (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-keywords-update)
-  (advice-add 'denote-silo-extras-create-note :after #'sej/denote-keywords-update)
-
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
   (denote-rename-buffer-mode 1)
 
-  (defun sej/denote-silo-update ()
+  (defun sej/denote-silo-update (&rest _arg)
 	"Function to update critical variables for switching silos."
-	(setq denote-directory default-directory)
+	(let ((dir (locate-dominating-file default-directory ".dir-locals.el") ))
+	  (if (eval dir)
+		  (setq denote-directory dir)
+		(message "No .dir-locals.el file!!")))
+	;(setq denote-directory (locate-dominating-file default-directory ".dir-locals.el"))
 	(sej/denote-keywords-update))
+
+  (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
+  (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
+  (advice-add 'denote-silo-extras-create-note :after #'sej/denote-silo-update)
 
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
