@@ -4582,12 +4582,17 @@ the name of this person.")
   (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
   (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
 
-(defun sej/denote-colleagues-prompt ()
-  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
+(defun sej/denote-colleagues-update (&rest _arg)
+  "Update denote colleagues variables."
   (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
   (if (f-exists-p sej/denote-colleagues-p)
-    (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
-    (setq sej/denote-colleagues  "put colleagues or topics in denote-colleagues.txt"))
+      (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
+	(progn
+	  (setq sej/denote-colleagues '("none-defined"))
+      (message  "Put colleagues and topics in denote-colleagues.txt"))))
+
+(defun sej/denote-colleagues-prompt ()
+  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
   (let ((default-value (car sej/denote-colleagues-prompt-history)))
     (completing-read
      (format-prompt "New meeting with COLLEAGUE" default-value)
@@ -4639,7 +4644,7 @@ The name of a colleague corresponds to at least one file in the variable
 one among them and operate therein."
   (declare (interactive-only t))
   (interactive)
-  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
+  (sej/denote-colleagues-update)
   (let* ((name (sej/denote-colleagues-prompt))
          (file (sej/denote-colleagues-get-file name))
          (time (format-time-string "%F %a")))  ; add %R if you want the time
@@ -4650,7 +4655,7 @@ one among them and operate therein."
 	  (org-return)
       (org-insert-item)
       (end-of-line 0)
-      (org-move-to-column 2)))))
+      (org-move-to-column 2))))
 
 (defun sej/denote-colleagues-dump ()
   "Dump current used colleagues in denote directory for refactor purposes."
@@ -4672,9 +4677,10 @@ one among them and operate therein."
 	(let ((dir (locate-dominating-file default-directory ".dir-locals.el") ))
 	  (if (eval dir)
 		  (setq denote-directory dir)
-		(message "No .dir-locals.el file!!")))
-	;(setq denote-directory (locate-dominating-file default-directory ".dir-locals.el"))
-	(sej/denote-keywords-update))
+		(progn (message "No .dir-locals.el file!!")
+			   (setq denote-directory sej-org-directory))))
+	(sej/denote-keywords-update)
+	(sej/denote-colleagues-update))
 
   (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
