@@ -4512,7 +4512,7 @@ the children of class at point."
   ;; Also see `denote-backlinks-display-buffer-action' which is a bit
   ;; advanced.
 
-  ;; We use different ways to specify a path for demo purposes.
+  ;; directories to use `denote-dired-mode' in.
   (denote-dired-directories
    (list denote-directory
          (thread-last
@@ -4677,8 +4677,14 @@ one among them and operate therein."
 	(let ((dir (locate-dominating-file default-directory ".dir-locals.el") ))
 	  (if (eval dir)
 		  (setq denote-directory dir)
-		(progn (message "No .dir-locals.el file!!")
-			   (setq denote-directory sej-org-directory))))
+		(progn
+		  (if (vc-root-dir)
+			  (progn
+				(setq denote-directory (vc-root-dir))
+				(message "No .dir-locals.el file. Using `vc-root-dir'"))
+			(progn
+			  (setq denote-directory sej-org-directory)
+			  (message "No .dir-locals.el file and `vc-root-dir' not found. Using `sej-org-directory'"))))))
 	(sej/denote-keywords-update)
 	(sej/denote-colleagues-update))
 
@@ -4686,6 +4692,46 @@ one among them and operate therein."
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-create-note :after #'sej/denote-silo-update)
 
+  (defvar sej/switch-buffer-functions
+	nil
+	"A list of functions to be called when the current buffer has been changed.
+Each is passed two arguments, the previous buffer and the current buffer.")
+
+  (defvar sej/switch-buffer-functions--last-buffer
+	nil
+	"The last current buffer.")
+
+  (defun sej/switch-buffer-functions-run ()
+	"Run `sej/switch-buffer-functions' if needed.
+
+This function checks the result of `current-buffer', and run
+`sej/switch-buffer-functions' when it has been changed from
+the last buffer.
+
+This function should be hooked to `post-command-hook'."
+	(unless (eq (current-buffer)
+				sej/switch-buffer-functions--last-buffer)
+      (let ((current (current-buffer))
+			(previous sej/switch-buffer-functions--last-buffer))
+		(setq sej/switch-buffer-functions--last-buffer
+              current)
+		(run-hook-with-args 'sej/switch-buffer-functions
+							previous
+							current))))
+
+  (add-hook 'post-command-hook
+			'sej/switch-buffer-functions-run)
+
+  (defun sej/denote-check-for-denote-buffer-switch (_prev curr)
+	"Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
+	(interactive)
+	(if (string-match "\\[D\\].*" (buffer-name curr))
+		(progn
+		  (message "Denote buffer, updating silo.")
+		  (sej/denote-silo-update))))
+
+  (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch)
+  
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
@@ -5393,8 +5439,8 @@ function with the \\[universal-argument]."
    `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
    `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
 
-   `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "cyan-intense"))))
-   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through t :foreground "bg-active"))))
+   `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
+   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through t :foreground "#b4ccbf"))))
 
    `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
    `(org-block ((t (:inherit fixed-pitch))))
