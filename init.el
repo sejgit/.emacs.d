@@ -2120,7 +2120,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
   ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
@@ -3588,14 +3588,17 @@ If the region is active and option `transient-mark-mode' is on, call
   :ensure nil
   :preface
   (add-to-list 'display-buffer-alist
-               '("^\\*eldoc for" display-buffer-at-bottom
+               '("^\\*eldoc" display-buffer-at-bottom
                  (window-height . 4)))
   (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   :hook
   ((prog-mode . turn-on-eldoc-mode))
   :init
   (setq eldoc-idle-delay 0.2
-        eldoc-echo-area-use-multiline-p nil) )
+        eldoc-echo-area-use-multiline-p nil)
+  :config
+  (eldoc-add-command-completions "paredit-")
+  (eldoc-add-command-completions "combobulate-"))
 
 ;;;;; elisp-slime-nav
 ;; turn on elisp-slime-nav
@@ -4308,8 +4311,8 @@ the children of class at point."
 ;;;;; diredfl
 ;; Extra font-lock rules for a more Colourful dired
 ;; https://github.com/purcell/diredfl
-(use-package diredfl
-  :init (diredfl-global-mode 1))
+(use-package diredfl)
+  ;; :init (diredfl-global-mode 1))
 
 ;;;;; dired-subtree
 ;; The dired-subtree package provides commands to quickly view the contents of a folder with the TAB key.
@@ -4434,7 +4437,8 @@ the children of class at point."
   ;; (add-hook 'dired-mode-hook #'denote-dired-mode)
   ;;
   ;; OR if only want it in `denote-dired-directories':
-  (dired-mode-hook . denote-dired-mode-in-directories)
+  ;;(dired-mode-hook . denote-dired-mode-in-directories)
+  ;; see below for function to work with diredfl
 
   ;; If you use Markdown or plain text files (Org renders links as buttons
   ;; right away)
@@ -4500,6 +4504,16 @@ the children of class at point."
 
   :config
 
+;;;;;; play nice with diredfl 
+  (defun sej/denote-dired-mode-hook()
+	"Function to switch off between diredfl-mode and denote-dired-mode."
+  (denote-dired-mode-in-directories)
+  (if denote-dired-mode
+      (dired-hide-details-mode +1)
+    (diredfl-mode +1)))
+
+(add-hook 'dired-mode-hook #'sej/denote-dired-mode-hook)
+  
 ;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
   (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
