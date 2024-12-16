@@ -751,41 +751,6 @@
 (defconst org-file-code (concat sej-org-directory "/snippets.org"))
 (defconst org-file-electronics (concat sej-org-directory "/electronics.org"))
 
-(defun sej/open-code()
-  "Open code snippets org file."
-  (interactive)
-  (find-file org-file-code))
-
-(defun sej/open-electronics()
-  "Open electronics org file."
-  (interactive)
-  (find-file org-electronics-code))
-
-(defun sej/open-index()
-  "Open index org file."
-  (interactive)
-  (find-file org-file-inbox))
-
-(defun sej/open-gtd()
-  "Open gtd org file."
-  (interactive)
-  (find-file org-file-gtd))
-
-(defun sej/open-journal()
-  "Open journal org file."
-  (interactive)
-  (find-file org-file-journal))
-
-(defun sej/open-notes()
-  "Open notes org file."
-  (interactive)
-  (find-file org-file-notes))
-
-(defun sej/open-someday()
-  "Open someday org file."
-  (interactive)
-  (find-file org-file-someday))
-
 (defun sej/insert-lambda()
   "Insert ™ for 'special-char-map'."
   (interactive)
