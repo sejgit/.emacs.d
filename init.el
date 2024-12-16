@@ -2594,6 +2594,18 @@ If called with a prefix argument, query for word to search."
          'org-metadown
        'drag-stuff-down))) )
 
+;;;;; set region writeable
+;; handy when text is read-only and cannot be deleted
+;; answer to question on stack-overflow
+(defun sej/set-region-writeable (begin end)
+  "Remove the read-only text property from the marked region of BEGIN END."
+  ;; See http://stackoverflow.com/questions/7410125
+  (interactive "r")
+  (let ((modified (buffer-modified-p))
+        (inhibit-read-only t))
+    (remove-text-properties begin end '(read-only t))
+    (set-buffer-modified-p modified)))
+
 ;;;; url actions
 ;;;;; sej/url-insert
 ;; improved from jcs (Irreal) blog to copy url from safari and paste at point
@@ -4361,17 +4373,8 @@ the children of class at point."
 ;; ;;; Directory Local Variables         -*- no-byte-compile: t; -*-
 ;; ;;; For more information see (info "(emacs) Directory Variables")
 ;;
-;;  ((org-mode . ((eval . (denote-refs-mode)))))
+;;  ((org-mode . ((eval . (sej/denote-silo-update)))))
 ;;
-;; `.dir-locals-2.el'
-;; this file is unique to each silo putting the `denote-directory' to the silo directory
-;; the file is ignored by git as you `git clone' to other computers
-;;  ;;; Directory Local Variables         -*- no-byte-compile: t; -*-
-;;  ;;; For more information see (info "(emacs) Directory Variables")
-;;
-;;  ((nil . ((denote-directory . "~/Documents/denote-personal/")
-;;		 (eval . (sej/denote-keywords-update)))))
-;; 
 (use-package denote
   :bind (:map sej-C-q-map
 			  ("n a" . denote-add-links)
@@ -4444,6 +4447,7 @@ the children of class at point."
 
   :custom-face
   (denote-faces-link ((t (:slant italic))))
+  (denote-faces-title ((t (:foreground "royal blue" :underline t))))
 
   :custom
   (denote-directory sej-org-directory)
