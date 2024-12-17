@@ -345,10 +345,6 @@
   "Text for the Label for the Org Capture Project journal."
   :type 'string)
 
-(defcustom sej-project-org-capture-file "~/Documents/orgtodo/journal.org"
-  "Filename for the Org Capture Project Journal."
-  :type 'string)
-
 (defcustom sej-latex-directory "/Library/TeX/texbin"
   "Directory for Latex."
   :type 'string)
@@ -724,13 +720,6 @@
                       ("\\"  . align-regexp) ;Align your code in a pretty way.
                       ("."   . org-time-stamp)
                       ("D"   . describe-personal-keybindings)
-                      ("o c" . sej/open-code)
-                      ("o e" . sej/open-electronics)
-                      ("o i" . sej/open-index)
-                      ("o j" . sej/open-journal)
-                      ("o n" . sej/open-notes)
-                      ("o s" . sej/open-someday)
-                      ("o t" . sej/open-gtd)
 					  ("l"   . sej/toggle-relative-ln)
                       :prefix-map term-map
                       :prefix "C-q S"
@@ -742,14 +731,6 @@
                ("C-x j" . duplicate-dwim)))
 
 ;;;;; sej constants
-
-(defconst org-file-inbox (concat sej-org-directory "/inbox.org"))
-(defconst org-file-someday (concat sej-org-directory "/someday.org"))
-(defconst org-file-gtd (concat sej-org-directory "/gtd.org"))
-(defconst org-file-journal (concat sej-org-directory "/journal.org"))
-(defconst org-file-notes (concat sej-org-directory "/notes.org"))
-(defconst org-file-code (concat sej-org-directory "/snippets.org"))
-(defconst org-file-electronics (concat sej-org-directory "/electronics.org"))
 
 (defun sej/insert-lambda()
   "Insert ™ for 'special-char-map'."
@@ -4363,20 +4344,12 @@ the children of class at point."
 ;; https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4
 ;; https://github.com/protesilaos/denote?tab=readme-ov-file
 ;;
-;; TODO put below into an automatically generated function when setting up Denote
-;; populate denote main directory `~/Documents/orgtodo' in my case with two files:
-;; `.gitignore'
+;; populate denote main directory `~/Documents/orgtodo' in my case with `.gitignore'
 ;;  /.DS_Store
 ;;  /.saves/
 ;;  /logs/
 ;;  /personal
 ;;  .dir-locals-2.el
-;;
-;; `.dir-locals.el'
-;; ;;; Directory Local Variables         -*- no-byte-compile: t; -*-
-;; ;;; For more information see (info "(emacs) Directory Variables")
-;;
-;;  ((org-mode . ((eval . (sej/denote-silo-update)))))
 ;;
 (use-package denote
   :bind (:map sej-C-q-map
@@ -4504,7 +4477,7 @@ the children of class at point."
 
   :config
 
-;;;;;; play nice with diredfl 
+;;;;;; play nice with diredfl
   (defun sej/denote-dired-mode-hook()
 	"Function to switch off between diredfl-mode and denote-dired-mode."
   (denote-dired-mode-in-directories)
@@ -4657,19 +4630,15 @@ one among them and operate therein."
 
   (defun sej/denote-silo-update (&rest _arg)
 	"Function to update critical variables for switching silos."
-	(let ((dir (locate-dominating-file default-directory ".dir-locals.el") ))
-	  (if (eval dir)
-		  (setq denote-directory dir)
-		(progn
-		  (if (vc-root-dir)
-			  (progn
-				(setq denote-directory (vc-root-dir))
-				(message "No .dir-locals.el file. Using `vc-root-dir'"))
-			(progn
-			  (setq denote-directory sej-org-directory)
-			  (message "No .dir-locals.el file and `vc-root-dir' not found. Using `sej-org-directory'"))))))
+	(let ((file buffer-file-name) existin)
+	  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
+		(if (file-in-directory-p file elem)
+				   (setq existin elem))
+	  (if (and existin (not (equal existin denote-directory)))
+				 (setq denote-directory existin))))
 	(sej/denote-keywords-update)
-	(sej/denote-colleagues-update))
+	(sej/denote-colleagues-update)
+	(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory)))
 
   (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
@@ -4696,11 +4665,8 @@ This function should be hooked to `post-command-hook'."
 				sej/switch-buffer-functions--last-buffer)
       (let ((current (current-buffer))
 			(previous sej/switch-buffer-functions--last-buffer))
-		(setq sej/switch-buffer-functions--last-buffer
-              current)
-		(run-hook-with-args 'sej/switch-buffer-functions
-							previous
-							current))))
+		(setq sej/switch-buffer-functions--last-buffer current)
+		(run-hook-with-args 'sej/switch-buffer-functions previous current))))
 
   (add-hook 'post-command-hook
 			'sej/switch-buffer-functions-run)
@@ -4709,9 +4675,7 @@ This function should be hooked to `post-command-hook'."
 	"Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
 	(interactive)
 	(if (string-match "\\[D\\].*" (buffer-name curr))
-		(progn
-		  (message "Denote buffer, updating silo.")
-		  (sej/denote-silo-update))))
+			   (sej/denote-silo-update)))
 
   (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch)
   
@@ -5318,13 +5282,6 @@ function with the \\[universal-argument]."
 
   (setq org-ellipsis "⤵"
         org-directory sej-org-directory
-        ;; below are defined above but not currently used because of denote usages
-        ;; (defconst org-file-inbox (concat org-directory "/inbox.org"))
-        ;; (defconst org-file-someday (concat org-directory "/someday.org"))
-        ;; (defconst org-file-gtd (concat org-directory "/gtd.org"))
-        ;; (defconst org-file-journal (concat org-directory "/journal.org"))
-        ;; (defconst org-file-notes (concat org-directory "/notes.org"))
-        ;; (defconst org-file-code (concat org-directory "/snippets.org"))
         org-insert-heading-respect-content t
         org-replace-disputed-keys t
         org-hide-emphasis-markers t
@@ -5337,7 +5294,6 @@ function with the \\[universal-argument]."
         org-hide-leading-stars t
         org-pretty-entities t
         org-use-sub-superscripts "{}"
-        org-default-notes-file org-file-notes
         org-capture-bookmark t
         org-refile-use-outline-path 'file
         org-log-done 'note
@@ -5603,14 +5559,7 @@ function with the \\[universal-argument]."
          ((agenda deadline-up priority-down)
           (todo priority-down category-keep)
           (tags priority-down category-keep)
-          (search category-keep)))
-        org-refile-targets '((org-file-gtd :maxlevel . 3)
-                             (org-file-someday :maxlevel . 3)
-                             (org-file-inbox :maxlevel . 3)
-                             (org-file-journal :maxlevel . 3)
-                             (org-file-notes :maxlevel . 3)
-                             (org-file-code :maxlevel . 3)
-                             (sej/get-open-org-file :maxlevel . 3))  ))
+          (search category-keep)))))
 
 
 ;;;;; org-src
