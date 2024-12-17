@@ -162,61 +162,61 @@
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
-  (message "Mac OSX")
+  (message "Mac OSX"))
 ;;;;;; OSX Apple keyboard
-  ;; - caps lock is control (through karabiner)
-  ;; Fn key do Hyper
-  ;; LControl key do RControl (karabiner) which is Super (emacs)
-  ;; left opt/alt key do emacs Alt modifier
-  ;; right opt/alt key do regular alt key
-  ;; left and right command(apple) key do Meta
-  ;; spacebar acts as super key with other key
-  ;; karabiner.json backup files in dotfiles under .config directory
-  ;; - https://github.com/pqrs-org/Karabiner-Elements
-  ;; (use-package emacs
-  ;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
-  ;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
+;; - caps lock is control (through karabiner)
+;; Fn key do Hyper
+;; LControl key do RControl (karabiner) which is Super (emacs)
+;; left opt/alt key do emacs Alt modifier
+;; right opt/alt key do regular alt key
+;; left and right command(apple) key do Meta
+;; spacebar acts as super key with other key
+;; karabiner.json backup files in dotfiles under .config directory
+;; - https://github.com/pqrs-org/Karabiner-Elements
+;; (use-package emacs
+;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
+;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
 
-  (if (boundp 'mac-carbon-version-string) ;; using mac-port?
-      ( progn
-        (message "Mac-port")
-        ;; for emacs-mac-port -- default
-        (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
-        (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
-        (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
-        (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
-        (setq mac-right-control-modifier 'super) ; actually left control
-        (setq mac-option-modifier 'alt) ; left option is A-alt key
-        (setq mac-command-modifier 'meta)) ;left command is meta
+(if (boundp 'mac-carbon-version-string) ;; using mac-port?
     ( progn
-      (message "ns-port")
-      ;; for regular Emacs port -- in-case other is installed
-      (setq ns-right-command-modifier 'left)
-      (setq ns-right-option-modifier 'none)
-      (setq ns-function-modifier 'hyper)
-      (setq ns-control-modifier 'control)
-      (setq ns-right-control-modifier 'super)
-      (setq ns-option-modifier 'alt)
-      (setq ns-command-modifier 'meta)
-      ))
-  (use-package exec-path-from-shell
-    :demand t
-    :vc (:url "https://github.com/purcell/exec-path-from-shell"
-              :rev :newest
-              :branch "master")
-    :custom
-    (exec-path-from-shell-arguments nil)
-    :config
-    (exec-path-from-shell-initialize))
+      (message "Mac-port")
+      ;; for emacs-mac-port -- default
+      (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
+      (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
+      (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
+      (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
+      (setq mac-right-control-modifier 'super) ; actually left control
+      (setq mac-option-modifier 'alt) ; left option is A-alt key
+      (setq mac-command-modifier 'meta)) ;left command is meta
+  ( progn
+    (message "ns-port")
+    ;; for regular Emacs port -- in-case other is installed
+    (setq ns-right-command-modifier 'left)
+    (setq ns-right-option-modifier 'none)
+    (setq ns-function-modifier 'hyper)
+    (setq ns-control-modifier 'control)
+    (setq ns-right-control-modifier 'super)
+    (setq ns-option-modifier 'alt)
+    (setq ns-command-modifier 'meta)
+    ))
+(use-package exec-path-from-shell
+  :demand t
+  :vc (:url "https://github.com/purcell/exec-path-from-shell"
+            :rev :newest
+            :branch "master")
+  :custom
+  (exec-path-from-shell-arguments nil)
+  :config
+  (exec-path-from-shell-initialize))
 
-  (global-set-key (kbd "M-`") 'ns-next-frame)
-  (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
-  (setq insert-directory-program "gls")
-  (if (not (getenv "TERM_PROGRAM"))
-      (setenv "PATH"
-              (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-  (setq exec-path (split-string (getenv "PATH") ":"))
-  )
+(global-set-key (kbd "M-`") 'ns-next-frame)
+(global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+(setq insert-directory-program "gls")
+(if (not (getenv "TERM_PROGRAM"))
+    (setenv "PATH"
+            (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
+(setq exec-path (split-string (getenv "PATH") ":"))
+
 
 ;;;;; Linux System specific environment setting
 (when sys/linuxp
@@ -6311,6 +6311,12 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (when (eq system-type 'darwin)
     (define-key eat-semi-char-mode-map (kbd "C-h") #'eat-self-input)
     (define-key eat-semi-char-mode-map (kbd "<backspace>") #'eat-self-input)))
+
+;;;;; tldr.el
+;; connection to the tldr shell command for man pages
+;; [[https://github.com/kuanyui/tldr.el]]
+(use-package tldr
+  :ensure-system-package (tldr . "brew install tlrc")) ; rust version of tldr
 
 ;;;; Other Services
 ;; a place to put set-ups for Emacs outside services
