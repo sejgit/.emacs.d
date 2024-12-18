@@ -3373,10 +3373,7 @@ If called with a prefix argument, query for word to search."
 ;; interface to the version control system Git
 ;; https://magit.vc/
 (use-package magit
-  :bind (("C-x g" . magit-status)
-         ("<f12>" . magit-status)
-         ("C-x M-g" . magit-dispatch)
-         ("C-c M-g" . magit-file-popup))
+  :bind (("C-x g" . magit-status))
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
@@ -4629,7 +4626,9 @@ one among them and operate therein."
   (denote-rename-buffer-mode 1)
 
   (defun sej/denote-silo-update (&rest _arg)
-	"Function to update critical variables for switching silos."
+	"Function to update silo & critical variables based on current buffer/file.
+Chooses silo based on file being in one of the extras-directories any history since.
+Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
 	(let ((file buffer-file-name) existin)
 	  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
 		(if (file-in-directory-p file elem)
@@ -4638,7 +4637,8 @@ one among them and operate therein."
 				 (setq denote-directory existin))))
 	(sej/denote-keywords-update)
 	(sej/denote-colleagues-update)
-	(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory)))
+	(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory))
+	(setq org-refile-targets `(( ,(denote-directory-files "__[^journal]") :maxlevel . 3))))
 
   (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
@@ -5275,7 +5275,9 @@ function with the \\[universal-argument]."
                ("C-c n" . outline-next-visible-heading)
                ("C-c p" . outline-previous-visible-heading)
                ("M-s H" . consult-org-heading)
-			   ("<M-DEL>" . sej/kill-whole-word)))
+			   ("<M-DEL>" . sej/kill-whole-word)
+			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
+			   ("C-c )" . org-fold-hide-drawer-all)))
   :config
   ;; reading man pages in org-mode
   (require 'ol-man)
@@ -5296,6 +5298,8 @@ function with the \\[universal-argument]."
         org-use-sub-superscripts "{}"
         org-capture-bookmark t
         org-refile-use-outline-path 'file
+		org-outline-path-complete-in-steps nil
+		org-refile-allow-creating-parent-nodes 'confirm
         org-log-done 'note
         org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "CANCELED(c@)" "DONE(d!)")
                             (sequence "DELIGATE(D)" "CHECK(C)" "|" "CANCELED(x)" "VERIFIED(V)"))
@@ -5453,6 +5457,15 @@ function with the \\[universal-argument]."
         (insert description))))
 (bind-key "C-c C-H-u" 'sej/org-remove-link)
 
+  (defun sej/org-fold-hide-drawer-toggle ()
+	"Toggle drawer of headline in or above."
+	(interactive)
+	(save-excursion
+	  (org-previous-visible-heading 1)
+	  (org-update-checkbox-count)
+	  (re-search-forward org-drawer-regexp nil 'noerror)
+	  (org-fold-hide-drawer-toggle nil 'noerror)))
+  
   ) ; end of use-pacakge for org
 
 ;;;;; org-autolist
@@ -5547,7 +5560,6 @@ function with the \\[universal-argument]."
         org-agenda-tags-column -100
         org-agenda-use-time-grid t
         org-agenda-include-diary t
-        org-agenda-files (list org-directory)
         org-agenda-window-setup (quote current-window) ;open agenda in current window
         org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
         org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled
