@@ -2120,7 +2120,6 @@ Additionally, add `cape-file' as early as possible to the list."
 ;; completing read
 ;; [[https://github.com/minad/consult][consult]]
 (use-package consult
-  ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (("H-M-," . consult-recent-xref)
           ;; C-c bindings (mode-specific-map)
           ("C-c k" . consult-kmacro)
@@ -2132,7 +2131,6 @@ Additionally, add `cape-file' as early as possible to the list."
           :map ctl-x-map
           ("C-r" . consult-recent-file)
           ("b" . consult-buffer)                ;; orig. switch-to-buffer
-          ("p b" . consult-project-buffer)      ;; switch to buffer within project
           ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
           ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
           ;; Custom sej bindings for fast register access
@@ -2181,7 +2179,7 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; and not necessary for Vertico, Selectrum, etc.
   :hook (completion-list-mode . consult-preview-at-point-mode)
 
-    :init
+  :init
 
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
@@ -2222,9 +2220,7 @@ Additionally, add `cape-file' as early as possible to the list."
    :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   ;; :preview-key "M-."
-   :preview-key '(:debounce 0.4 any))
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -2282,7 +2278,42 @@ Additionally, add `cape-file' as early as possible to the list."
      :lookup #'consult--lookup-location
      :history '(:input consult--xref-history)
      :add-history (thing-at-point 'symbol)
-     :state (consult--jump-state))))
+     :state (consult--jump-state)))
+
+  (defvar org-source
+	(list :name     "Org Buffer"
+          :category 'buffer
+          :narrow   ?o
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+			(with-current-buffer (get-buffer-create name)
+              (insert "#+title: " name "\n\n")
+              (org-mode)
+              (consult--buffer-action (current-buffer))))
+          :items
+          (lambda ()
+			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair))))
+
+  (add-to-list 'consult-buffer-sources 'org-source 'append)
+
+  (defvar denote-source
+	(list :name     "Denote Buffer"
+          :category 'buffer
+          :narrow   ?d
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+			(denote name))
+          :items
+          (lambda ()
+			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair :filter t :include "\\[D\\].*"))))
+
+  (add-to-list 'consult-buffer-sources 'denote-source 'append))
 
 ;;;; movement
 ;;;;; mwim
@@ -4103,6 +4134,7 @@ the children of class at point."
 (set-register ?d '(file . "~/.dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
 (set-register ?i '(file . "~/.emacs.d/init.el"))
+(global-set-key (kbd "H-r") `jump-to-register)
 
 ;;;;; dashboard
 ;; all-in-one start-up screen with current files / projects
@@ -5288,8 +5320,9 @@ function with the \\[universal-argument]."
         org-replace-disputed-keys t
         org-hide-emphasis-markers t
         org-adapt-indentation nil
-        org-special-ctrl-a/e nil
+        org-special-ctrl-a/e t
         org-special-ctrl-k t
+		org-ctrl-k-protect-subtree t
         org-M-RET-may-split-line '((default . nil))
         org-return-follows-link t
         org-fontify-done-headline t
