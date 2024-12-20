@@ -107,214 +107,6 @@
   (>= emacs-major-version 29)
   "Emacs is 29 or above.")
 
-;;;;; should i even be here
-(when (not emacs/>=29p)
-  (error "This requires Emacs 29 and above")  )
-
-;;;;;  Warnings
-;; set-up server & suppress warnings
-;; - [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el][warnings.el]]
-(require 'warnings)
-;; remove warnings for cl depreciated and server already running
-(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
-(setq warning-suppress-log-types (quote ((cl) (org-element))))
-(setq byte-compile-warnings (quote ((cl-functions))))
-
-;; prevent warnings buffer from poping up during package compile
-;; still available in the buffer list
-(add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
-
-;;;;; Package manager
-;; add melpa to already encluded elpa
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-(defun sej/package-install-refresh-contents (&rest args)
-  "With first `package-install' of ARGS, `package-refresh-contents' to ensure list is up to date."
-  (package-refresh-contents)
-  (advice-remove 'package-install 'sej/package-install-refresh-contents))
-
-(advice-add 'package-install :before 'sej/package-install-refresh-contents)
-
-;; Use-Package set-up
-;; - https://github.com/jwiegley/use-package
-;; - https://github.com/emacsmirror/diminish
-;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
-;; Should set before loading `use-package'
-(setq-default use-package-always-defer t
-              use-package-compute-statistics t
-              use-package-expand-minimally t
-              use-package-enable-imenu-support t)
-
-;; part of Emacs built-in as of Emacs29
-(eval-when-compile
-  (require 'use-package))
-(require 'use-package-ensure)
-(setq use-package-always-ensure t)
-(use-package system-packages)
-(use-package use-package-ensure-system-package
-  :ensure nil
-  :after use-package)
-
-;;;;; OSX System specific environment setting
-(when sys/macp
-  (message "Mac OSX"))
-;;;;;; OSX Apple keyboard
-;; - caps lock is control (through karabiner)
-;; Fn key do Hyper
-;; LControl key do RControl (karabiner) which is Super (emacs)
-;; left opt/alt key do emacs Alt modifier
-;; right opt/alt key do regular alt key
-;; left and right command(apple) key do Meta
-;; spacebar acts as super key with other key
-;; karabiner.json backup files in dotfiles under .config directory
-;; - https://github.com/pqrs-org/Karabiner-Elements
-;; (use-package emacs
-;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
-;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
-
-(if (boundp 'mac-carbon-version-string) ;; using mac-port?
-    ( progn
-      (message "Mac-port")
-      ;; for emacs-mac-port -- default
-      (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
-      (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
-      (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
-      (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
-      (setq mac-right-control-modifier 'super) ; actually left control
-      (setq mac-option-modifier 'alt) ; left option is A-alt key
-      (setq mac-command-modifier 'meta)) ;left command is meta
-  ( progn
-    (message "ns-port")
-    ;; for regular Emacs port -- in-case other is installed
-    (setq ns-right-command-modifier 'left)
-    (setq ns-right-option-modifier 'none)
-    (setq ns-function-modifier 'hyper)
-    (setq ns-control-modifier 'control)
-    (setq ns-right-control-modifier 'super)
-    (setq ns-option-modifier 'alt)
-    (setq ns-command-modifier 'meta)
-    ))
-(use-package exec-path-from-shell
-  :demand t
-  :vc (:url "https://github.com/purcell/exec-path-from-shell"
-            :rev :newest
-            :branch "master")
-  :custom
-  (exec-path-from-shell-arguments nil)
-  :config
-  (exec-path-from-shell-initialize))
-
-(global-set-key (kbd "M-`") 'ns-next-frame)
-(global-set-key (kbd "M-h") 'ns-do-hide-emacs)
-(setq insert-directory-program "gls")
-(if (not (getenv "TERM_PROGRAM"))
-    (setenv "PATH"
-            (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-(setq exec-path (split-string (getenv "PATH") ":"))
-
-
-;;;;; Linux System specific environment setting
-(when sys/linuxp
-  (message "Linux")
-;;;;;; Linux keyboard
-  ;; nothing set at this moment
-  ;; load-dir init.d
-  (setq exec-path (append exec-path '("/usr/local/bin")))  )
-
-;;;;; FreeBSD System specific environment setting
-(when sys/freebsdp
-  (message "FreeBSD")
-;;;;;; FreeBSD keyboard
-  ;; - nothing set at this moment
-  ;; load-dir init.d
-  (setq exec-path (append exec-path '("/usr/local/bin")))
-  (setq insert-directory-program "/usr/local/bin/gls"))
-
-;;;;; Microsoft Windows specific environment settings
-;; set execution paths
-(when sys/win32p
-  (message "Microsoft Windows")
-;;;;;; Windows keyboard
-  ;; - CapsLock::LControl through AutoHotkeys
-  ;; scroll lock do hyper (tab to scroll lock using AutoHotkeys)
-  ;; Left control key do super (LControl::Appskey using AutoHotkeys)
-  ;; Left Windows left alone due to win10 taking many keys
-  ;; LAlt::Meta
-  ;; RAlt::Alt modifier (RAlt::NumLock using Autohotkeys) **only works as tap & release
-  ;; Rwin is Alt (not used in current laptop)
-  ;; NOTE: only negative of this set-up is RAlt as numlock -> Alt is awkward push & release
-  ;; - https://www.autohotkey.com/
-  (setq w32-pass-lwindow-to-system t
-        w32-recognize-altgr nil
-        W32-enable-caps-lock nil
-        w32-pass-rwindow-to-system nil
-        w32-rwindow-modifier 'meta
-        w32-apps-modifier 'super
-        w32-pass-alt-to-system t
-        w32-alt-is-meta t
-        w32-scroll-lock-modifier 'hyper
-        w32-enable-num-lock nil)
-  (w32-register-hot-key [A-])
-  (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
-  (setenv "PATH"
-          (mapconcat
-           #'identity exec-path path-separator))
-
-  ;; set exec-path for latex installation
-  (setq exec-path (append (list sej-latex-directory
-                                "c:/msys64/mingw64/bin"
-                                "/mingw64/bin/") exec-path)))
-;;;;; Blackout
-;; Similar to packages like minions, diminish, or delight.
-;; You can alter how your minor and major modes show up in the mode-line.
-;; [[https://github.com/raxod502/blackout][Blackout]]
-(use-package blackout
-  :demand t
-  :vc (:url "https://github.com/radian-software/blackout"
-            :rev :newest
-            :branch "main"))
-
-;;;;; Alert
-;; Alert is a Growl-workalike for Emacs
-;; uses a common notification interface and multiple, selectable "styles"
-;; [[https://github.com/jwiegley/alert][Alert]]
-(use-package alert
-  :config
-  (if sys/macp (setq alert-default-style #'osx-notifier))  )
-
-;;;;; Server set-up
-;; set-up Emacs server
-(use-package emacs
-  :when (or sys/macp sys/linuxp sys/freebsdp)
-  :hook (emacs-startup . sej/server-mode)
-  :init
-  (defun sej/server-mode ()
-    "Start server-mode without errors"
-    (interactive)
-    (with-demoted-errors
-        "%S -- Server exists -- not starting new one."
-      (load "server")
-      (unless (server-running-p) (server-start)) ) ) )
-
-;;;;; GCMH
-;; The Garbage Collector Magic Hack
-;; [[https://github.com/emacsmirror/gcmh][github gcmh]]
-(use-package gcmh
-  :vc (:url "https://github.com/emacsmirror/gcmh"
-            :rev :newest
-            :branch "master")
-  :blackout t
-  :hook ((after-init . gcmh-mode)
-         (focus-out-hook . gcmh-idle-garbage-collect)
-         (suspend-hook . gcmh-idle-garbage-collect))
-  :custom
-  (gcmh-idle-delay 10))
-
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
 (defgroup sej nil
@@ -388,9 +180,210 @@
          (expand-file-name "custom-post.el" "~/.ssh/")))
     (load file :noerror-if-file-is-missing) ) )
 
+;;;;; should i even be here
+(when (not emacs/>=29p)
+  (error "This requires Emacs 29 and above")  )
+
+;;;;;  Warnings
+;; set-up server & suppress warnings
+;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
+(require 'warnings)
+;; remove warnings for cl depreciated and server already running
+(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
+(setq warning-suppress-log-types (quote ((cl) (org-element))))
+(setq byte-compile-warnings (quote ((cl-functions))))
+
+;; prevent warnings buffer from poping up during package compile
+;; still available in the buffer list
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+;;;;; Package manager
+;; add melpa to already encluded elpa
+(require 'package)
+(setq package-check-signature nil)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+(defun sej/package-install-refresh-contents (&rest args)
+  "With first `package-install' of ARGS, `package-refresh-contents' to ensure list is up to date."
+  (package-refresh-contents)
+  (advice-remove 'package-install 'sej/package-install-refresh-contents))
+
+(advice-add 'package-install :before 'sej/package-install-refresh-contents)
+
+;; Use-Package set-up
+;; - https://github.com/jwiegley/use-package
+;; - https://github.com/emacsmirror/diminish
+;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
+;; Should set before loading `use-package'
+(setq-default use-package-always-defer t
+              use-package-compute-statistics t
+              use-package-expand-minimally t
+              use-package-enable-imenu-support t)
+
+;; part of Emacs built-in as of Emacs29
+(eval-when-compile
+  (require 'use-package))
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+(use-package system-packages)
+(use-package use-package-ensure-system-package
+  :ensure nil
+  :after use-package)
+
+;;;;; OSX System specific environment setting
+(when sys/macp
+  (message "Mac OSX"))
+;;;;;; OSX Apple keyboard
+;; - caps lock is control (through karabiner)
+;; Fn key do Hyper
+;; LControl key do RControl (karabiner) which is Super (emacs)
+;; left opt/alt key do emacs Alt modifier
+;; right opt/alt key do regular alt key
+;; left and right command(apple) key do Meta
+;; spacebar acts as super key with other key
+;; karabiner.json backup files in dotfiles under .config directory
+;; - https://github.com/pqrs-org/Karabiner-Elements
+;; (use-package emacs
+;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
+;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
+
+(if (boundp 'mac-carbon-version-string) ;; using mac-port?
+    ( progn
+      (message "Mac-port")
+      ;; for emacs-mac-port -- default
+      (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
+      (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
+      (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
+      (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
+      (setq mac-right-control-modifier 'super) ; actually left control
+      (setq mac-option-modifier 'alt) ; left option is A-alt key
+      (setq mac-command-modifier 'meta)) ;left command is meta
+  ( progn
+    (message "ns-port")
+    ;; for regular Emacs port -- in-case other is installed
+    (setq ns-right-command-modifier 'left)
+    (setq ns-right-option-modifier 'none)
+    (setq ns-function-modifier 'hyper)
+    (setq ns-control-modifier 'control)
+    (setq ns-right-control-modifier 'super)
+    (setq ns-option-modifier 'alt)
+    (setq ns-command-modifier 'meta)
+    ))
+(use-package exec-path-from-shell
+  ;; https://github.com/purcell/exec-path-from-shell
+  :demand t
+  :custom
+  (exec-path-from-shell-arguments nil)
+  :config
+  (exec-path-from-shell-initialize))
+
+(global-set-key (kbd "M-`") 'ns-next-frame)
+(global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+(setq insert-directory-program "gls")
+(if (not (getenv "TERM_PROGRAM"))
+    (setenv "PATH"
+            (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
+(setq exec-path (split-string (getenv "PATH") ":"))
+
+
+;;;;; Linux System specific environment setting
+(when sys/linuxp
+  (message "Linux")
+;;;;;; Linux keyboard
+  ;; nothing set at this moment
+  ;; load-dir init.d
+  (setq exec-path (append exec-path '("/usr/local/bin")))  )
+
+;;;;; FreeBSD System specific environment setting
+(when sys/freebsdp
+  (message "FreeBSD")
+;;;;;; FreeBSD keyboard
+  ;; - nothing set at this moment
+  ;; load-dir init.d
+  (setq exec-path (append exec-path '("/usr/local/bin")))
+  (setq insert-directory-program "/usr/local/bin/gls"))
+
+;;;;; Microsoft Windows specific environment settings
+;; set execution paths
+(when sys/win32p
+  (message "Microsoft Windows")
+;;;;;; Windows keyboard
+  ;; - CapsLock::LControl through AutoHotkeys
+  ;; scroll lock do hyper (tab to scroll lock using AutoHotkeys)
+  ;; Left control key do super (LControl::Appskey using AutoHotkeys)
+  ;; Left Windows left alone due to win10 taking many keys
+  ;; LAlt::Meta
+  ;; RAlt::Alt modifier (RAlt::NumLock using Autohotkeys) **only works as tap & release
+  ;; Rwin is Alt (not used in current laptop)
+  ;; NOTE: only negative of this set-up is RAlt as numlock -> Alt is awkward push & release
+  ;; https://www.autohotkey.com/
+  (setq w32-pass-lwindow-to-system t
+        w32-recognize-altgr nil
+        W32-enable-caps-lock nil
+        w32-pass-rwindow-to-system nil
+        w32-rwindow-modifier 'meta
+        w32-apps-modifier 'super
+        w32-pass-alt-to-system t
+        w32-alt-is-meta t
+        w32-scroll-lock-modifier 'hyper
+        w32-enable-num-lock nil)
+  (w32-register-hot-key [A-])
+  (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
+  (setenv "PATH"
+          (mapconcat
+           #'identity exec-path path-separator))
+
+  ;; set exec-path for latex installation
+  (setq exec-path (append (list sej-latex-directory
+                                "c:/msys64/mingw64/bin"
+                                "/mingw64/bin/") exec-path)))
+;;;;; Blackout
+;; Similar to packages like minions, diminish, or delight.
+;; You can alter how your minor and major modes show up in the mode-line.
+;; https://github.com/raxod502/blackout
+(use-package blackout
+  :demand t)
+
+;;;;; Alert
+;; Alert is a Growl-workalike for Emacs
+;; uses a common notification interface and multiple, selectable "styles"
+;; https://github.com/jwiegley/alert
+(use-package alert
+  :config
+  (if sys/macp (setq alert-default-style #'osx-notifier))  )
+
+;;;;; Server set-up
+;; set-up Emacs server
+(use-package emacs
+  :when (or sys/macp sys/linuxp sys/freebsdp)
+  :hook (emacs-startup . sej/server-mode)
+  :init
+  (defun sej/server-mode ()
+    "Start server-mode without errors"
+    (interactive)
+    (with-demoted-errors
+        "%S -- Server exists -- not starting new one."
+      (load "server")
+      (unless (server-running-p) (server-start)) ) ) )
+
+;;;;; GCMH
+;; The Garbage Collector Magic Hack
+;; https://github.com/emacsmirror/gcmh
+(use-package gcmh
+  :blackout t
+  :hook ((after-init . gcmh-mode)
+         (focus-out-hook . gcmh-idle-garbage-collect)
+         (suspend-hook . gcmh-idle-garbage-collect))
+  :custom
+  (gcmh-idle-delay 10))
+
 ;;;;; async
 ;; A module for doing asynchronous processing in Emacs
-;; [[https://github.com/jwiegley/emacs-async]]
+;; https://github.com/jwiegley/emacs-async
 (use-package async
   :init
   (autoload 'dired-async-mode "dired-async.el" nil t)
@@ -399,61 +392,46 @@
 
 ;;;;; dash
 ;; A modern list API for Emacs. No 'cl required.
-;; [[https://github.com/magnars/dash.el][dash.el]]
+;; https://github.com/magnars/dash.el
 (use-package dash
-  :vc(:url "https://github.com/magnars/dash.el"
-           :rev :recent
-           :branch "master")
   :commands -map -union)
 
 ;;;;; f
 ;; modern API for working with files and directories in Emacs.
-;; [[https://github.com/rejeep/f.el]]
+;; https://github.com/rejeep/f.el
 (use-package f
   :demand t
-  :vc(:url "https://github.com/rejeep/f.el"
-           :rev :recent
-           :branch "master")
   :commands f-read f-join f-exists-p)
 
 ;;;;; s
 ;; The long lost Emacs string manipulation library.
-;; [[https://github.com/magnars/s.el][s.el]]
+;; https://github.com/magnars/s.el
 (use-package s
-  :vc(:url "https://github.com/magnars/s.el"
-           :rev :recent
-           :branch "master")
   :commands s-split)
 
 ;;;;; cl-lib
 ;; Forward cl-lib compatibility library for Emacs<24.3
-;; [[https://elpa.gnu.org/packages/cl-lib.html]]
+;; https://elpa.gnu.org/packages/cl-lib.html
 (require 'cl-lib)
 
 ;;;;; noflet
 ;; noflet is dynamic, local, advice for Emacs-Lisp code.
-;; [[https://github.com/nicferrier/emacs-noflet/tree/master]]
+;; https://github.com/nicferrier/emacs-noflet/tree/master
 (use-package noflet
-  :vc(:url "https://github.com/nicferrier/emacs-noflet"
-           :rev :recent
-           :branch "master")
   :commands (noflet flet))
 
 ;;;;; pcre2el
 ;; RegeXp translator or RegeXp Tools
-;; [[https://github.com/joddie/pcre2el]]
+;; https://github.com/joddie/pcre2el
 ;; start with rxt-explain
 (use-package pcre2el
   :hook (emacs-lisp-mode . rxt-mode))
 
 ;;;;; no-littering feature
 ;; set the default paths for configuration files & persistent data
-;; [[https://github.com/emacscollective/no-littering][no-littering]]
+;; https://github.com/emacscollective/no-littering
 (use-package no-littering
   :demand t
-    :vc(:url "https://github.com/emacscollective/no-littering"
-           :rev :recent
-           :branch "main")
   :init
   (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
         no-littering-var-directory (expand-file-name "~/.cache/emacs/")
@@ -790,7 +768,7 @@
 
 ;;;;; minibuffer
 ;; built-in: minibuffer settings
-;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el][minibuffer.el]]
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el
 (use-package minibuffer
   :ensure nil
   :preface
@@ -895,7 +873,7 @@
 
 ;;;;; vundo
 ;; visual undo displays the undo history as a tree
-;; [[https://github.com/casouri/vundo]]
+;; https://github.com/casouri/vundo
 (use-package vundo
   :blackout t
   :bind ("C-z" . vundo))
@@ -976,15 +954,15 @@ Return its absolute path.  Otherwise, return nil."
                    (display-line-numbers-mode 1))))
 
 ;;;;; list-environment
-;; - environment variables tabulated
-;; - process environment editor
-;; - https://github.com/dgtized/list-environment.el
+;; environment variables tabulated
+;; process environment editor
+;; https://github.com/dgtized/list-environment.el
 (use-package list-environment
   :commands list-environment)
 
 ;;;;; Advice
 ;; built-in: accept versus warn from the Advice system.
-;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][Advising Emacs Lisp Functions]]
+;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html
 (use-package advice
   :ensure nil
   :init
@@ -992,7 +970,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; calc
 ;; built-in: calculator
-;; [[https://www.gnu.org/software/emacs/manual/html_mono/calc.html][GNU Emacs Calculator]]
+;; https://www.gnu.org/software/emacs/manual/html_mono/calc.html
 (use-package calc
   :ensure nil
   :bind (:map sej-C-q-map
@@ -1012,7 +990,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; checkdoc
 ;; built-in: checker of buffer for style issues
-;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/checkdoc.el][checkdoc.el]]
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/checkdoc.el
 (use-package checkdoc
   :ensure nil
   :config
@@ -1020,7 +998,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; face-remap
 ;; changes in the appearance of a face.
-;; [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html]]
+;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html
 (use-package face-remap
   :blackout (buffer-face-mode . "")
   :ensure nil  )
@@ -1029,7 +1007,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; Security
 ;;;;; Auth-Source
 ;; built-in: authentication source
-;; [[https://www.gnu.org/software/emacs/manual/html_mono/auth.html][auth-source docs]]
+;; https://www.gnu.org/software/emacs/manual/html_mono/auth.html
 (use-package auth-source
   :ensure nil
   :init
@@ -1041,7 +1019,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; epa
 ;; built-in: EasyPG assistant for GnuPG implementation of the OpenPGP standard
-;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
+;; https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 (use-package epa
   :ensure nil
   :init
@@ -1051,7 +1029,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; epq
 ;; built-in: EasyPG for GnuPG implementation of the OpenPGP standard
-;; [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs Keeping Secrets]]
+;; https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 (use-package epg
   :ensure nil
   :init
@@ -1059,7 +1037,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; Gnutls
 ;; built-in: GnuTLS is a library that establishes encrypted SSL or TLS connections.
-;; [[https://www.gnu.org/software/emacs/manual/html_mono/emacs-gnutls.html][Emacs GnuTLS]]
+;; https://www.gnu.org/software/emacs/manual/html_mono/emacs-gnutls.html
 (use-package gnutls
   :ensure nil
   :init
@@ -1077,7 +1055,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; Emacs-lock
 ;; built-in: lock buffer from kill and/or Emacs from exiting
-;; [[https://www.emacswiki.org/emacs/ProtectingBuffers][Emacs-Lock Wiki]]
+;; https://www.emacswiki.org/emacs/ProtectingBuffers
 (use-package emacs-lock
   :blackout ""
   :ensure nil)
@@ -1086,7 +1064,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;;; help
 ;;;;; help
 ;; built-in: help mode settings
-;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/help-mode.el][help-mode.el]]
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/help-mode.el
 (use-package help
   :ensure nil
   :init
@@ -1116,9 +1094,6 @@ Return its absolute path.  Otherwise, return nil."
 ;; helpful is an improved help-fns & help-fns+
 ;; https://github.com/Wilfred/helpful
 (use-package helpful
-  :vc (:url "https://github.com/Wilfred/helpful"
-            :rev :newest
-            :branch "master")
   :bind (("C-h ." . helpful-at-point)
           ("C-h x" . helpful-command)
           ("C-h k" . helpful-key) ; C-h k
@@ -1129,10 +1104,8 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; casual
 ;; triansient based jump screens
-;; [[https://github.com/kickingvegas?tab=repositories][casual-parent-github]]
-
+;; https://github.com/kickingvegas?tab=repositories
 (use-package casual-suite
-
  ;; casual-agenda
   :bind (:map org-agenda-mode-map
          ("C-o" . casual-agenda-tmenu)
@@ -1190,7 +1163,7 @@ Return its absolute path.  Otherwise, return nil."
 ;;; user interface
 ;;;; themes
 ;;;;; tron-legacy-theme
-;; [[https://github.com/ianyepan/tron-legacy-emacs-theme][tron-legacy-theme]]
+;; https://github.com/ianyepan/tron-legacy-emacs-theme
 (use-package tron-legacy-theme
   :disabled t
   :init
@@ -1202,7 +1175,7 @@ Return its absolute path.  Otherwise, return nil."
 
 ;;;;; modus-themes
 ;; built-in: theme
-;; [[https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111][modus-theme-manual]]
+;; https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111
 ;; current preferred theme
 (use-package emacs ; built-in package
   :bind ("C-c C-t" . modus-themes-toggle)
@@ -1343,8 +1316,8 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; fringe
 ;; built-in: fringe-mode
-;; [[https://www.emacswiki.org/emacs/TheFringe][The Fringe wiki]]
-;; [[https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/][Customizing the Fringes]]
+;; https://www.emacswiki.org/emacs/TheFringe
+;; https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
 (use-package fringe
   :ensure nil
   :if window-system
@@ -1536,7 +1509,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; winner
 ;; built-in: Restore old window configurations
-;; [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]]
+;; https://www.emacswiki.org/emacs/WinnerMode
 (use-package winner
   :ensure nil
   :hook (emacs-startup . winner-mode)
@@ -1559,7 +1532,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; tab-bar
 ;; built-in: tabs for virtual desktops
 ;; C-x t prefix
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][tab bars Emacs manual]]
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html
 (use-package tab-bar
   :ensure nil
   :bind (("M-["  . tab-bar-history-back)
@@ -1589,14 +1562,14 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; minions
 ;; implements a nested menu that gives access to all minor modes
-;; [[https://github.com/tarsius/minions][minions]]
+;; https://github.com/tarsius/minions
 (use-package minions
   :init
   (setq doom-modeline-minor-modes t)
   (minions-mode 1))
 
 ;;;;; nerd-icons
-;; [[https://github.com/rainstormstudio/nerd-icons.el]]
+;; https://github.com/rainstormstudio/nerd-icons.el
 (use-package nerd-icons
   :custom
   ;; The Nerd Font you want to use in GUI
@@ -1605,18 +1578,18 @@ If FRAME is omitted or nil, use currently selected frame."
   (nerd-icons-font-family "Symbols Nerd Font Mono")  )
 
 ;;;;; nerd-icons-dired
-;; [[https://github.com/rainstormstudio/nerd-icons-dired]]
+;; https://github.com/rainstormstudio/nerd-icons-dired
 (use-package nerd-icons-dired
   :hook (dired-mode . nerd-icons-dired-mode))
 
 ;;;;; nerd-icons-ibuffer
-;; [[https://github.com/seagle0128/nerd-icons-ibuffer]]
+;; https://github.com/seagle0128/nerd-icons-ibuffer
 (use-package nerd-icons-ibuffer
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 ;;;;; nerd-icons-completion
 ;; icons with completion
-;; [[https://github.com/rainstormstudio/nerd-icons-completion]]
+;; https://github.com/rainstormstudio/nerd-icons-completion
 (use-package nerd-icons-completion
   :after marginalia
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
@@ -1624,21 +1597,17 @@ If FRAME is omitted or nil, use currently selected frame."
   (nerd-icons-completion-mode))
 
 ;;;;; nerd-icons-corfu
-;;[[https://github.com/LuigiPiucco/nerd-icons-corfu]]
+;; https://github.com/LuigiPiucco/nerd-icons-corfu
 (use-package nerd-icons-corfu
   :after corfu
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
-
-  ;; Optionally:
   (setq nerd-icons-corfu-mapping
         '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
           (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
-          ;; ...
           (t :style "cod" :icon "code" :face font-lock-warning-face)))
   ;; Remember to add an entry for `t', the library uses that as default.
   )
-
 
 ;;; text manipulation
 ;;;; text manipulation settings
@@ -1671,7 +1640,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;; search
 ;;;;; isearch
 ;; built-in: search function
-;; [[https://github.com/VernonGrant/discovering-emacs/blob/main/show-notes/3-making-incremental-search-work-for-you.md][good tutorial]]
+;; https://github.com/VernonGrant/discovering-emacs/blob/main/show-notes/3-making-incremental-search-work-for-you.md
 (use-package isearch
   :ensure nil
   :bind ( :map minibuffer-local-isearch-map
@@ -1700,7 +1669,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; Anzu
 ;; good query replace search
-;; [[https://github.com/emacsorphanage/anzu][anzu.el]]
+;; https://github.com/emacsorphanage/anzu
 (use-package anzu
   :bind  (([remap query-replace] . anzu-query-replace-regexp)
            ("C-H-r" . anzu-query-replace)
@@ -1712,7 +1681,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; consult-ag
 ;; searching with the silver searcher, consult style
-;; [[https://github.com/yadex205/consult-ag][consult-ag.el]]
+;; https://github.com/yadex205/consult-ag
 (use-package consult-ag
   :after consult
   :commands consult-ag
@@ -1729,7 +1698,8 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; bookmark+
 ;; enhancements to the built-in bookmark package
-;; [[https://www.emacswiki.org/emacs/BookmarkPlus#toc1]
+;; note this version is an updated bookmark+ package
+;; https://github.com/fnoon/BookmarkPlus
 (use-package bookmark+
   :vc (:url "https://github.com/fnoon/BookmarkPlus"
             :rev :newest
@@ -1741,7 +1711,6 @@ If FRAME is omitted or nil, use currently selected frame."
   (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
   :config
   (setq bookmark-save-flag +1))
-
 
 ;;;; completion
 ;;;;; abbrev
@@ -1811,7 +1780,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; vertico
 ;; alternative to ivy, ido, helm
-;; [[https://github.com/minad/vertico][vertico]]
+;; https://github.com/minad/vertico
 (use-package vertico
   :hook (emacs-startup . vertico-mode)
   :config
@@ -1842,7 +1811,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; corfu
 ;; small completion program similar to company
-;; [[https://github.com/minad/corfu][corfu]]
+;; https://github.com/minad/corfu
 (use-package corfu
   :bind (:map corfu-map
               ("A-<return>" . corfu-complete)
@@ -1934,12 +1903,6 @@ If FRAME is omitted or nil, use currently selected frame."
     :demand t
     :config
     (corfu-popupinfo-mode t))
-
-  (use-package corfu-doc
-        :vc (:url "https://github.com/galeo/corfu-doc"
-              :rev :newest
-              :branch "main"))
-
   (use-package corfu-terminal
     :unless (display-graphic-p)
     :demand t
@@ -1957,7 +1920,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; cape
 ;; completion at point extensions
-;; [[https://github.com/minad/cape][cape]]
+;; https://github.com/minad/cape
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
 (use-package cape
@@ -2050,7 +2013,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;;;;; marginalia
 ;; Enable richer annotations using the Marginalia package
-;; [[https://github.com/minad/marginalia][marginalia]]
+;; https://github.com/minad/marginalia
 (use-package marginalia
   :hook (emacs-startup . marginalia-mode)
   :bind (:map completion-list-mode-map
@@ -2063,7 +2026,7 @@ Additionally, add `cape-file' as early as possible to the list."
 ;;;;; orderless
 ;; provides an orderless completion style that divides the pattern into space-separated components,
 ;; and matches candidates that match all of the components in any order.
-;; [[https://github.com/oantolin/orderless][orderless]]
+;; https://github.com/oantolin/orderless
 (use-package orderless
   :custom
   (completion-styles '(orderless basic))
@@ -2072,7 +2035,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;;;;; prescient
 ;; sorts and filters lists of candidates
-;; [[https://github.com/radian-software/prescient.el][prescient]]
+;; https://github.com/radian-software/prescient.el
 (use-package prescient
   :hook (emacs-startup . prescient-persist-mode)
   :init
@@ -2088,7 +2051,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;;;;; embark
 ;; acting on targets
-;; [[https://github.com/oantolin/embark/][embark]]
+;; https://github.com/oantolin/embark/
 (use-package embark
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
            ("M-." . embark-dwim)        ;; good alternative: M-.
@@ -2118,7 +2081,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;;;;; consult
 ;; completing read
-;; [[https://github.com/minad/consult][consult]]
+;; https://github.com/minad/consult
 (use-package consult
   :bind (("H-M-," . consult-recent-xref)
           ;; C-c bindings (mode-specific-map)
@@ -2233,7 +2196,7 @@ Additionally, add `cape-file' as early as possible to the list."
   (defun consult-info-emacs ()
     "Search through Emacs info pages."
     (interactive)
-    (consult-info "emacs" "efaq" "elisp" "cl" "compat"))
+    (consult-info "emacs" "efaq" "elisp" "cl"))
 
   (defun consult-info-org ()
     "Search through the Org info page."
@@ -2510,7 +2473,7 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; beginend
 ;; smart moves redefining M-< and M-> for some modes
-;; [[https://github.com/DamienCassou/beginend]]
+;; https://github.com/DamienCassou/beginend
 (use-package beginend               ; smart M-< & M->
   :bind (("M-<" . beginning-of-buffer)
          ("M->" . end-of-buffer))
@@ -2531,8 +2494,8 @@ If called with a prefix argument, query for word to search."
   (global-subword-mode t))
 
 ;;;;; string inflection
-;; - underscore -> UPCASE -> Camelcase conversion
-;; - https://github.com/akicho8/string-inflection
+;; underscore -> UPCASE -> Camelcase conversion
+;; https://github.com/akicho8/string-inflection
 (use-package string-inflection
   :bind (("M-u" . string-inflection-all-cycle)))
 
@@ -2585,26 +2548,29 @@ If called with a prefix argument, query for word to search."
 (use-package drag-stuff
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
-  :bind (("M-<down>" . drag-stuff-down)
-         ("M-<up>" . drag-stuff-up)
-		 :map org-mode-map
-		 ("M-<down>" . sej/drag-stuff-org-down)
-         ("M-<up>" . sej/drag-stuff-org-up))
+  :bind (("M-<down>" . sej/drag-stuff-down)
+         ("M-<up>" . sej/drag-stuff-up))
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
-  (defun sej/drag-stuff-org-up ()
+  (defun sej/drag-stuff-up ()
+	"Mod of drag-stuff-up which works in org-mode."
     (interactive)
+	(if (equal major-mode "org-mode")
     (call-interactively
      (if (org-at-heading-p)
          'org-metaup
-       'drag-stuff-up)))
+       'drag-stuff-up))
+	(drag-stuff-up 1)))
   
-  (defun sej/drag-stuff-org-down ()
+  (defun sej/drag-stuff-down ()
+	"Mod of drag-stuff-down which works in org-mode."
     (interactive)
+	(if (equal major-mode "org-mode")
     (call-interactively
      (if (org-at-heading-p)
          'org-metadown
-       'drag-stuff-down))) )
+       'drag-stuff-down))
+	(drag-stuff-down 1))))
 
 ;;;;; set region writeable
 ;; handy when text is read-only and cannot be deleted
@@ -2648,7 +2614,7 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; sej/url-git-clone-from-clipboard
 ;; from Alvaro Ramirez function to git clone from url in clipboard mods by me
-;; [[http://xenodium.com/emacs-clone-git-repo-from-clipboard/][git-clone-from-clipboard-url]]
+;; http://xenodium.com/emacs-clone-git-repo-from-clipboard/
 (when sys/macp
   (defun sej/url-git-clone-from-clipboard ()
     "Clone git URL in clipboard asynchronously and open in Dired when finished."
@@ -2690,12 +2656,12 @@ If called with a prefix argument, query for word to search."
 ;;;;; org-mac-link
 (use-package org-mac-link
   ;; pull link from many osx apps
-  ;; [[https://gitlab.com/aimebertrand/org-mac-link]]
+  ;; https://gitlab.com/aimebertrand/org-mac-link
   :bind ("C-H-o" . org-mac-link-get-link))
 
 ;;;;; ace-link
 ;; Quickly follow links
-;; [[https://github.com/abo-abo/ace-link]]
+;; https://github.com/abo-abo/ace-link
 (use-package ace-link
   :bind (("H-u" . ace-link-addr)
          :map org-mode-map
@@ -2704,10 +2670,9 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; orglink
 ;; use Org mode links in other modes
-;; [[https://github.com/tarsius/orglink][orglink]]
-;; (use-package orglink
-;;   :blackout t
-;;   :hook (dashboard-mode . global-orglink-mode))
+;; https://github.com/tarsius/orglink
+(use-package orglink
+  :hook (emacs-startup . global-orglink-mode))
 
 ;;;;; restclient
 ;; Allows query of a restclient with the results left into the buffer
@@ -2722,9 +2687,6 @@ If called with a prefix argument, query for word to search."
 ;; font management
 ;; [[https://protesilaos.com/emacs/fontaine]]
 (use-package fontaine
-  :vc (:url "https://github.com/protesilaos/fontaine"
-            :rev :newest
-            :branch "main")
   :bind ("C-c f" . fontaine-set-preset)
   :hook (emacs-startup . fontaine-mode)
   :config
@@ -2858,7 +2820,7 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; rainbow-mode
 ;; Colorize color names in buffers
-;; https://github.com/tcrayford/emacs/blob/master/vendor/rainbow-mode.el
+;; https://github.com/emacsmirror/rainbow-mode
 (use-package rainbow-mode
   :blackout t
   :hook (prog-mode . rainbow-mode)
@@ -2906,7 +2868,7 @@ If called with a prefix argument, query for word to search."
           ("MAYBE" . "#d1bf8f")
           ("NOTE" . "#5f6000")
           ("OKAY" . "#5f9000")
-          ("STARTED" . "#5f7f5f")
+          ("TRY" . "#5f7f5f")
           ("TODO" . "#cc9393")
           ))
 
@@ -2942,9 +2904,6 @@ If called with a prefix argument, query for word to search."
 ;; Highlight some buffer region operations
 ;; https://github.com/k-talo/volatile-highlights.el
 (use-package volatile-highlights
-  :vc (:url "https://github.com/k-talo/volatile-highlights.el"
-            :rev :newest
-            :branch "master")
   :blackout t
   :hook (emacs-startup . volatile-highlights-mode))
 
@@ -2953,9 +2912,6 @@ If called with a prefix argument, query for word to search."
 ;; additional to built-in pulse
 ;; https://protesilaos.com/emacs/pulsar
 (use-package pulsar
-  :vc (:url "https://github.com/protesilaos/pulsar"
-            :rev :newest
-            :branch "main")
   :bind (:map sej-C-q-map
                ("P p" . pulsar-pulse-line)
                ("P h" . pulsar-highlight-line))
@@ -2984,7 +2940,7 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; paren
 ;; built-in: show paren mode
-;; [[https://www.emacswiki.org/emacs/ShowParenMode][paren wiki]]
+;; https://www.emacswiki.org/emacs/ShowParenMode
 (use-package paren
   :ensure nil
   :hook (emacs-startup . show-paren-mode)
@@ -2998,7 +2954,7 @@ If called with a prefix argument, query for word to search."
 ;;;; indentation
 ;;;;; outli
 ;; outlining with comments, simpler/updated than outshine
-;; [[https://github.com/jdtsmith/outli]]
+;; https://github.com/jdtsmith/outli
 (use-package outli
   :vc (:url "https://github.com/jdtsmith/outli"
             :rev :newest
@@ -3009,11 +2965,8 @@ If called with a prefix argument, query for word to search."
 
 ;;;;; indent-bars
 ;; Highlight indentations
-;; [[https://github.com/jdtsmith/indent-bars]]
+;; https://github.com/jdtsmith/indent-bars
 (use-package indent-bars
-  :vc (:url "https://github.com/jdtsmith/indent-bars"
-            :rev :newest
-            :branch "main")
   :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
   :custom
   (indent-bars-prefer-character t)
@@ -3135,7 +3088,7 @@ If called with a prefix argument, query for word to search."
 ;;;;; tree-sitter
 ;; built-in: Emacs Lisp binding for tree-sitter, an incremental parsing library.
 ;; Important this is using the built-in Emacs version tree-sit.el
-;; [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][elisp-tree-sitter]]
+;; https://github.com/emacs-tree-sitter/elisp-tree-sitter
 ;; `M-x combobulate' (default: `C-c o o') to start using Combobulate
 (use-package treesit
   :ensure nil)
@@ -3152,7 +3105,7 @@ If called with a prefix argument, query for word to search."
 
 (use-package combobulate
   ;; standard movement using treesitter
-  ;; [[https://github.com/mickeynp/combobulate][combobulate]]
+  ;; https://github.com/mickeynp/combobulate
   ;; use C-c o o for menu
   ;; You can manually enable Combobulate with `M-x
   ;; combobulate-mode'.
@@ -3183,7 +3136,7 @@ If called with a prefix argument, query for word to search."
 ;;;;; eglot
 ;; built-in: simple client for Language Server Protocol servers
 ;; https://github.com/joaotavora/eglot
-;; [[https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers][good how to use post]]
+;; https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers
 (use-package eglot
   :ensure nil
   :preface
@@ -3732,7 +3685,7 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; pyenv-mode-auto
 ;; pyenv automatically based on .python-mode
-;; [[https://github.com/emacsattic/pyenv-mode-auto]]
+;; https://github.com/emacsattic/pyenv-mode-auto
 (use-package pyenv-mode-auto
   :vc (:url "https://github.com/emacsattic/pyenv-mode-auto"
             :rev :newest
@@ -3741,7 +3694,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;;;;; envrc
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
 ;; environment variables and then set those environment variables on a per-buffer basis.
-;; [[https://github.com/purcell/envrc][envrc.el - buffer-local direnv integration]]
+;; https://github.com/purcell/envrc
 (use-package envrc
   :hook (after-init . envrc-global-mode))
 
@@ -3919,7 +3872,7 @@ If the region is active and option `transient-mark-mode' is on, call
 
 ;;;;; ccls
 ;; c++-mode, objc-mode, cuda-mode
-;; [[https://github.com/MaskRay/ccls/wiki/lsp-mode][emacs-ccls]]
+;; https://github.com/MaskRay/ccls/wiki/lsp-mode
 (use-package ccls
 
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
@@ -3974,6 +3927,9 @@ the children of class at point."
                            do (push (cons (1+ depth) child) tree)))))))
       (eglot--error "Hierarchy unavailable"))))
 
+;;;;; eglot-ccls
+;; specific extensions for Eglot
+;; https://codeberg.org/akib/emacs-eglot-ccls
 (use-package eglot-ccls
   :vc (:url "https://codeberg.org/akib/emacs-eglot-ccls"
             :rev :newest
@@ -3988,7 +3944,7 @@ the children of class at point."
 
 ;;;;; clang-format
 ;; Clang-format emacs integration for use with C/Objective-C/C++.
-;; [[https://github.com/sonatard/clang-format]]
+;; https://github.com/sonatard/clang-format
 (use-package clang-format
   :bind (:map c-mode-base-map
               ("C-c v" . clang-format-region)
@@ -3998,7 +3954,7 @@ the children of class at point."
 
 ;;;;; modern-cpp-font-lock
 ;; Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
-;; [[https://github.com/ludwigpacifici/modern-cpp-font-lock]]
+;; https://github.com/ludwigpacifici/modern-cpp-font-lock
 (use-package modern-cpp-font-lock
   :hook (c++-mode . modern-c++-font-lock-mode))
 
@@ -4009,7 +3965,7 @@ the children of class at point."
 
 ;;;;; arduino-mode
 ;; mode for .ino files only
-;; [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288]]
+;; https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288
 (use-package arduino-mode
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
@@ -4021,7 +3977,7 @@ the children of class at point."
 
 ;;;;; arduino-cli-mode
 ;; minor mode for using the excellent new arduino command line interface
-;; [[https://github.com/motform/arduino-cli-mode]]
+;; https://github.com/motform/arduino-cli-mode
 (use-package arduino-cli-mode
   :hook (c++-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
@@ -4038,7 +3994,7 @@ the children of class at point."
 ;;   such as irony-mode.
 ;; To keep the index up to date, run platformio-init-update-workspace (C-c i i)
 ;;   after installing any libraries.
-;; [[https://github.com/ZachMassia/platformio-mode]]
+;; https://github.com/ZachMassia/platformio-mode
 (use-package platformio-mode
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
@@ -4051,9 +4007,10 @@ the children of class at point."
 
 ;;;;; go lang
 ;; two different ways to configure
-;; [[https://arenzana.org/2019/12/emacs-go-mode-revisited/][golang with eglot/lsp]]  [[https://github.com/golang/tools/blob/master/gopls/README.md][glpls documentation]]
+;; https://arenzana.org/2019/12/emacs-go-mode-revisited/
+;; https://github.com/golang/tools/blob/master/gopls/README.md
 ;; need to install golang and go get golang/x/tools/gopls
-;; [[https://sandyuraz.com/articles/go-emacs/][go-mode native completion]]
+;; https://sandyuraz.com/articles/go-emacs/
 (use-package go-mode
   :mode ("\\.go\\'" . go-mode)
   :init
@@ -4130,7 +4087,7 @@ the children of class at point."
 ;; :built-in: Registers allow you to jump to a file or other location quickly.
 ;; (i for init.el, r for this file) to jump to it.
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
-(set-register ?c '(file . "~/.ssh/custom-post.el"))
+(set-register ?t '(file . "~/Documents/orgtodo/"))
 (set-register ?d '(file . "~/.dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
 (set-register ?i '(file . "~/.emacs.d/init.el"))
@@ -4900,7 +4857,6 @@ Add this function to the `after-save-hook'."
 (use-package markdown-mode
   :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . visual-line-mode)
-         (markdown-mode . flymake-markdownlint-setup)
          (markdown-mode . flymake-mode))
   :commands (markdown-mode gfm-mode)
   :mode   (("README\\.md\\'" . gfm-mode)
@@ -4917,6 +4873,11 @@ Add this function to the `after-save-hook'."
         markdown-gfm-additional-languages '("sh")
         markdown-header-scaling t)
   (setq markdown-command "pandoc -f markdown -t html")
+
+;;;;; flymake-markdownlint
+  (use-package flymake-markdownlint
+	:vc (:url "https://codeberg.org/shaohme/flymake-markdownlint")
+	:hook (markdown-mode . flymake-markdownlint-setup))
 
 ;;;;; markdown-toc
   ;; Table of contents
@@ -5643,7 +5604,7 @@ function with the \\[universal-argument]."
 
 ;;;;; ox-latex
 ;; built-in: latex exporter
-;; [[https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export][LaTeX Export from the Org Mode manual]]
+;; https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export
 (use-package ox-latex
   :ensure nil
   :config
@@ -5655,12 +5616,12 @@ function with the \\[universal-argument]."
 
 ;;;;; ox-gfm
 ;; github flavoured markdown exporter for Org mode
-;; [[https://github.com/larstvei/ox-gfm][ox-gfm]]
+;; https://github.com/larstvei/ox-gfm
 (use-package ox-gfm)
 
 ;;;;; ox-jdf-report
 ;; exporter for the jdf style report
-;; [[https://githubhelp.com/dylanjm/ox-jdf][ox-jdf style report]]
+;; https://github.com/dylanjm/ox-jdf
 (use-package ox-jdf-report
   :vc (:url "https://github.com/dylanjm/ox-jdf"
             :rev :newest
@@ -5668,7 +5629,7 @@ function with the \\[universal-argument]."
 
 ;;;;; ox-report
 ;; meeting report exporter
-;; [[https://github.com/DarkBuffalo/ox-report][ox-report]]
+;; https://github.com/DarkBuffalo/ox-report
 (use-package ox-report)
 
 ;;;;; ob-go
@@ -5696,7 +5657,7 @@ function with the \\[universal-argument]."
 
 ;;;;; org-fragtog
 ;; LaTeX previews
-;; [[https://github.com/io12/org-fragtog]]
+;; https://github.com/io12/org-fragtog
 (use-package org-fragtog
   :after org
   :hook
@@ -5813,7 +5774,7 @@ function with the \\[universal-argument]."
 
 ;;;;; sej/org-log-checklist-item
 ;; automatically log checklist items into :LOGBOOK:
-;; [[https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode]]
+;; https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode
 (defun sej/org-log-checklist-item (item)
 "Insert clocked ITEM into logbook drawer. Create drawer if it does not exist yet."
   (save-excursion
@@ -5856,7 +5817,7 @@ function with the \\[universal-argument]."
 ;;; shell tools
 ;;;;; sh-script
 ;; built-in: shell script mode
-;; [[https://www.emacswiki.org/emacs/ShMode][sh-script sh-mode wiki]]
+;; https://www.emacswiki.org/emacs/ShMode
 (use-package sh-script
   :ensure nil
   :preface

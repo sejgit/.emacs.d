@@ -100,3 +100,8 @@ var/
 workspace/
 /codeium/
 /.chatgpt-shell.el
+projects
+places
+recentf
+history
+custom.el
