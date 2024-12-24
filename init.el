@@ -5704,11 +5704,11 @@ function with the \\[universal-argument]."
                                   (?C . "⬇")
                                   (?D . "☕")
                                   (?1 . "⚡")
-                                  (?2 . "⮬")
-                                  (?3 . "⮮")
+                                  (?2 . "🍷")
+                                  (?3 . "🍸")
                                   (?4 . "☕")
-                                  (?I . "Important")))
-)
+                                  (?5 . "💩")
+                                  (?I . "Important"))))
 
 ;;;;; toc-org
 ;; Table of contents updated at save to header with TOC tag
