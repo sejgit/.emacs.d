@@ -4855,6 +4855,7 @@ Add this function to the `after-save-hook'."
 ;; https://jblevins.org/projects/markdown-mode/
 ;; https://leanpub.com/markdown-mode
 (use-package markdown-mode
+  :ensure-system-package (multimarkdown . "brew install multimarkdown")
   :hook ((markdown-mode . auto-fill-mode)
          (markdown-mode . visual-line-mode)
          (markdown-mode . flymake-mode))
@@ -4872,11 +4873,12 @@ Add this function to the `after-save-hook'."
         markdown-make-gfm-checkboxes-buttons t
         markdown-gfm-additional-languages '("sh")
         markdown-header-scaling t)
-  (setq markdown-command "pandoc -f markdown -t html")
+  ;; (setq markdown-command "pandoc -f markdown -t html")
 
 ;;;;; flymake-markdownlint
   (use-package flymake-markdownlint
 	:vc (:url "https://codeberg.org/shaohme/flymake-markdownlint")
+	:ensure-system-package (markdownlint . "brew install markdownlint-cli")
 	:hook (markdown-mode . flymake-markdownlint-setup))
 
 ;;;;; markdown-toc
@@ -4889,6 +4891,7 @@ Add this function to the `after-save-hook'."
 
 ;;;;; markdown-soma
 ;; realtime preview by eww
+;; below SHOULD happen automagically, here just incase
 ;; install soma first in the .cargo directory (my dotfiles has path for this)
 ;; used for live updates for markdown
 ;; requires install of `rustup` which can happen from `brew` in osx or best is direct in others
@@ -4900,6 +4903,8 @@ Add this function to the `after-save-hook'."
 ;; markdownlint-cli is used for the linting of markdown-mode files
 ;; [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
+  :ensure-system-package (rustup . "brew install rustup")
+  :vc (:url "https://github.com/jasonm23/markdown-soma")
   ;; :hook (markdown-mode . markdown-soma-mode)
   :bind (:map markdown-mode-command-map
               ("p" . markdown-soma-mode)
@@ -4907,6 +4912,10 @@ Add this function to the `after-save-hook'."
               ("+" . sej/markdown-soma-mod-plus)
               ("=" . sej/markdown-soma-mod-plus)
               ("-" . sej/markdown-soma-mod-minus) )
+  :init
+  ;; add to path
+  (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
+
   :config
   ;; select css theme
   (setq markdown-soma-custom-css
@@ -4919,7 +4928,7 @@ Add this function to the `after-save-hook'."
   (defun sej/markdown-soma-mod (x)
     "Calibrate  markdown-soma display by X."
     (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
-    (print x))
+	(nth 6 (posn-at-point)))
 
   (defun sej/markdown-soma-mod-plus ()
     "Add to display mod correction."
@@ -4931,8 +4940,23 @@ Add this function to the `after-save-hook'."
     (interactive)
     (setq sej/markdown-soma-mod-var (- sej/markdown-soma-mod-var 5)))
 
-  ;; (advice-remove 'markdown-soma--window-point #'sej/markdown-soma-mod)
-  (advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod))
+  (advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod)
+
+  (defun sej/markdown-soma-shell-command (x)
+  "Advise to execute the soma app with path."
+  (interactive)
+  (format (concat (file-name-directory (executable-find "soma")) x)))
+
+  (advice-add 'markdown-soma--shell-command :filter-return #'sej/markdown-soma-shell-command)
+
+  (defun sej/markdown-soma-compile-soma ()
+	"Compile soma if does not exist."
+	(unless (executable-find "soma")
+	  (message "compiling soma...")
+	  (let ((default-directory "~/.emacs.d/elpa/markdown-soma"))
+		(shell-command-to-string (concat (executable-find "cargo") " install --path .")))))
+
+  (advice-add 'markdown-soma-start :before #'sej/markdown-soma-compile-soma))
 
 ;;;;; textile-mode
 ;; textile markup editing major mode
