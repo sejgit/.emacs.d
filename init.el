@@ -5265,8 +5265,7 @@ function with the \\[universal-argument]."
                ("C-M-<return>" . org-insert-subheading)
                ("M-S-<return>" . org-insert-todo-heading)
                ("C-\\" . org-insert-item)
-               ("C-c n" . outline-next-visible-heading)
-               ("C-c p" . outline-previous-visible-heading)
+			   ("C-c d" . org-check-deadlines)
                ("M-s H" . consult-org-heading)
 			   ("<M-DEL>" . sej/kill-whole-word)
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
@@ -5544,7 +5543,7 @@ function with the \\[universal-argument]."
   :config
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
-        org-agenda-files `(,org-directory "~/Documents")
+        org-agenda-files `(,org-directory)
         org-agenda-dim-blocked-tasks 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
@@ -5559,14 +5558,8 @@ function with the \\[universal-argument]."
         org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled
                                         ; if they are already shown as a deadline
         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-        org-agenda-sorting-strategy ;sort tasks in order of when they are due and then by priority
         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-        (quote
-         ((agenda deadline-up priority-down)
-          (todo priority-down category-keep)
-          (tags priority-down category-keep)
-          (search category-keep)))))
-
+		))
 
 ;;;;; org-src
 ;; built-in: org src block settings
@@ -5675,13 +5668,13 @@ function with the \\[universal-argument]."
     :hook
     (org-mode . org-modern-mode)
     :custom
-    (org-modern-table nil)
+    (org-modern-table t)
     (org-modern-keyword nil)
     (org-modern-timestamp nil)
     (org-modern-priority nil)
     (org-modern-checkbox nil)
     (org-modern-tag nil)
-    (org-modern-block-name nil)
+    (org-modern-block-name t)
     (org-modern-keyword nil)
     (org-modern-footnote nil)
     (org-modern-internal-target nil)
@@ -5706,8 +5699,16 @@ function with the \\[universal-argument]."
   :defines org-fancy-priorities-list
   :hook (org-mode . org-fancy-priorities-mode)
   :config
-  (unless (char-displayable-p ?❗)
-    (setq org-fancy-priorities-list '("HIGH" "MID" "LOW" "OPTIONAL"))))
+(setq org-fancy-priorities-list '((?A . "❗")
+                                  (?B . "⬆")
+                                  (?C . "⬇")
+                                  (?D . "☕")
+                                  (?1 . "⚡")
+                                  (?2 . "⮬")
+                                  (?3 . "⮮")
+                                  (?4 . "☕")
+                                  (?I . "Important")))
+)
 
 ;;;;; toc-org
 ;; Table of contents updated at save to header with TOC tag
