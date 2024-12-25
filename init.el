@@ -44,7 +44,7 @@
 (setq debug-on-event nil)
 
 ;;;;; system custom constants
-;; - section for global constants
+;; section for global constants
 (defconst sys/win32p
   (eq system-type 'windows-nt)
   "Are we running on a WinTel system?")
@@ -186,7 +186,7 @@
 
 ;;;;;  Warnings
 ;; set-up server & suppress warnings
-;; - https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
 (require 'warnings)
 ;; remove warnings for cl depreciated and server already running
 (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
@@ -214,10 +214,10 @@
 (advice-add 'package-install :before 'sej/package-install-refresh-contents)
 
 ;; Use-Package set-up
-;; - https://github.com/jwiegley/use-package
-;; - https://github.com/emacsmirror/diminish
-;; - https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; - https://github.com/jwiegley/use-package#use-package-ensure-system-package
+;; https://github.com/jwiegley/use-package
+;; https://github.com/emacsmirror/diminish
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; https://github.com/jwiegley/use-package#use-package-ensure-system-package
 ;; Should set before loading `use-package'
 (setq-default use-package-always-defer t
               use-package-compute-statistics t
@@ -236,9 +236,14 @@
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
-  (message "Mac OSX"))
+  (message "Mac OSX")
+  (unless (find-font (font-spec :name "Iosevka"))
+	(shell-command-to-string "brew install font-iosevka"))
+  (if (find-font (font-spec :name "Iosevka"))
+	  (add-to-list 'default-frame-alist '(font . "iosevka-14"))))
+
 ;;;;;; OSX Apple keyboard
-;; - caps lock is control (through karabiner)
+;; caps lock is control (through karabiner)
 ;; Fn key do Hyper
 ;; LControl key do RControl (karabiner) which is Super (emacs)
 ;; left opt/alt key do emacs Alt modifier
@@ -246,15 +251,12 @@
 ;; left and right command(apple) key do Meta
 ;; spacebar acts as super key with other key
 ;; karabiner.json backup files in dotfiles under .config directory
-;; - https://github.com/pqrs-org/Karabiner-Elements
-;; (use-package emacs
-;;   :ensure-system-package (Iosevka . "brew install --cask font-iosevka"))
-;; (add-to-list 'default-frame-alist '(font . "iosevka-14"))
+;; https://github.com/pqrs-org/Karabiner-Elements
 
 (if (boundp 'mac-carbon-version-string) ;; using mac-port?
     ( progn
       (message "Mac-port")
-      ;; for emacs-mac-port -- default
+      ;; for emacs-mac-port
       (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
       (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
       (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
@@ -264,7 +266,7 @@
       (setq mac-command-modifier 'meta)) ;left command is meta
   ( progn
     (message "ns-port")
-    ;; for regular Emacs port -- in-case other is installed
+    ;; for regular Emacs port
     (setq ns-right-command-modifier 'left)
     (setq ns-right-option-modifier 'none)
     (setq ns-function-modifier 'hyper)
@@ -288,7 +290,6 @@
     (setenv "PATH"
             (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
 (setq exec-path (split-string (getenv "PATH") ":"))
-
 
 ;;;;; Linux System specific environment setting
 (when sys/linuxp
@@ -463,8 +464,8 @@
       version-control t))
 
 ;;;;; Emacs internal settings
-;; - a use-package friendly place to put settings
-;;   no real extra value to putting as setq but feels clean
+;; a use-package friendly place to put settings
+;; no real extra value to putting as setq but feels clean
 (use-package emacs
   :custom
 ;;;;;; general
@@ -681,14 +682,6 @@
 		              (">" . sej/insert-rightarrow)
 		              ("8" . sej/insert-infinity)
 		              ("v" . sej/insert-check))
-
-  ;; :bind (:map special-char-map
-  ;; 	      ("l" ("λ" . sej/special-char-insert-lambda))
-  ;;             ("t" ("™" . sej/special-char-insert-tm))
-  ;;             ("c" ("©" . sej/special-char-insert-copyright))
-  ;;             (">" ("→" . sej/special-char-insert-rightarrow))
-  ;;             ("8" ("∞" . sej/special-char-insert-infinity))
-  ;;             ("v" ("✓" . sej/special-char-insert-check)))
 
 ;;;;;; sej-C-q bindings
   :bind (:prefix-map sej-C-q-map
@@ -975,7 +968,7 @@ Return its absolute path.  Otherwise, return nil."
   :ensure nil
   :bind (:map sej-C-q-map
               ("c" . calc)
-              ("C-c" . calc))
+              ("C-c" . quick-calc))
   :commands (quick-calc calc)
   :init
   (setq math-additional-units
@@ -1032,6 +1025,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 (use-package epg
   :ensure nil
+  :ensure-system-package gpg
   :init
   (setq epg-pinentry-mode 'loopback))
 
@@ -1044,7 +1038,10 @@ Return its absolute path.  Otherwise, return nil."
   (setq gnutls-verify-error t
         gnutls-min-prime-bits 2048
         tls-checktrust gnutls-verify-error)
-  (gnutls-available-p))
+  
+  (unless (gnutls-available-p)
+	(message "installing gnutls...")
+	(shell-command-to-string "brew install gnutls")))
 
 ;;;;; keychain-environment
 ;; set up any SSH or GPG keychains that the Keychain tool has set up for us
@@ -1059,7 +1056,6 @@ Return its absolute path.  Otherwise, return nil."
 (use-package emacs-lock
   :blackout ""
   :ensure nil)
-
 
 ;;;; help
 ;;;;; help
@@ -1570,6 +1566,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; nerd-icons
 ;; https://github.com/rainstormstudio/nerd-icons.el
+;; use nerd-icons-install-fonts
 (use-package nerd-icons
   :custom
   ;; The Nerd Font you want to use in GUI
@@ -1684,6 +1681,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; https://github.com/yadex205/consult-ag
 (use-package consult-ag
   :after consult
+  :ensure-system-package ag
   :commands consult-ag
   :bind (("C-S-s" . consult-ag)
          :map search-map
@@ -3061,6 +3059,7 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/erickgnavar/flymake-ruff][flymake-ruff]]
 ;; ("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
 (use-package flymake-ruff
+  :ensure-system-package ruff
   :hook (python-base-mode . flymake-ruff-load)
   ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
   )
@@ -3074,6 +3073,7 @@ If called with a prefix argument, query for word to search."
 ;; ruff format using reformatter
 ;; [[https://github.com/scop/emacs-ruff-format?tab=readme-ov-file][ruff-format]]
 (use-package ruff-format
+  :ensure-system-package ruff
   :after reformatter)
 
 ;;;;; format-all
@@ -3221,7 +3221,7 @@ If called with a prefix argument, query for word to search."
 (use-package newcomment
   :ensure nil
   :bind (("H-;" . comment-box)
-		 ("M-;" . comment-dwim))
+		 ("M-;" . comment-line))
   :custom (comment-empty-lines t
 							   comment-fill-column 0
 							   comment-multi-line t
@@ -3607,7 +3607,7 @@ If the region is active and option `transient-mark-mode' is on, call
     (call-interactively 'ielm)))
 
 ;;;;; sej/remove-elc-on-save
-;; - When saving an elisp file, remove its compiled version if
+;; When saving an elisp file, remove its compiled version if
 ;; there is one, as you'll want to recompile it.
 
 (defun sej/remove-elc-on-save ()
@@ -5012,8 +5012,9 @@ Add this function to the `after-save-hook'."
             ("C-x r N" . sej/number-rectangle))
 
 ;;;;; flyspell
-;; - main spelling package
-;; - https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
+;; standard spelling package
+;; use jinx now but this set-up is here in case I move back
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 ;; (use-package flyspell
 ;;   :disabled t
 ;;
