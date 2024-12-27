@@ -4777,6 +4777,7 @@ Add this function to the `after-save-hook'."
 ;; puts links and back-links after header in denote files
 ;; put below in .dir-locals.el in denote-directory
 ;; ((org-mode . ((eval . (denote-refs-mode)))))
+;; FIX DEBUG PROBLEM seems to be causing org-parse lock-ups
 (use-package denote-refs
   :disabled t
   :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
@@ -5767,7 +5768,16 @@ function with the \\[universal-argument]."
           ("SERVICE" . "✍")
           ("Blog" . "✍")
           ("music" . "♬")
-          ("security" . "🔥"))))
+          ("security" . "🔥")
+		  ("French" . "🇫🇷Fr")
+		  ("French" . "🇫🇷Fr")
+		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
+		  ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
+		  ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
+		  ("Liquor" . "🫒🍸")
+		  ("ATTACH" . "📎")
+		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
+		  )))
   (org-pretty-tags-global-mode))
 
 ;;;;; org-skeleton
