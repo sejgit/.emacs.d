@@ -4778,6 +4778,7 @@ Add this function to the `after-save-hook'."
 ;; put below in .dir-locals.el in denote-directory
 ;; ((org-mode . ((eval . (denote-refs-mode)))))
 (use-package denote-refs
+  :disabled t
   :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
             :rev :newest
             :branch "master")
@@ -5296,6 +5297,8 @@ function with the \\[universal-argument]."
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
 			   ("C-c )" . org-fold-hide-drawer-all)))
   :config
+  ;; get denote up and going
+  (require 'denote)
   ;; reading man pages in org-mode
   (require 'ol-man)
 
@@ -5336,6 +5339,10 @@ function with the \\[universal-argument]."
         org-highlight-latex-and-related '(latex))
 
 ;;;;;; org-attach
+  ;; directory to store attachments in relative to file
+  ;; below is an absolute dir parallel to denote-directory
+  (setq org-attach-id-dir  (expand-file-name "../denote-attachments/" denote-directory) )
+  
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
   ;; Tell Org to use Emacs when opening files that end in .md
