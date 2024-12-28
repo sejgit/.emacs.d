@@ -1038,7 +1038,7 @@ Return its absolute path.  Otherwise, return nil."
   (setq gnutls-verify-error t
         gnutls-min-prime-bits 2048
         tls-checktrust gnutls-verify-error)
-  
+
   (unless (gnutls-available-p)
 	(message "installing gnutls...")
 	(shell-command-to-string "brew install gnutls")))
@@ -1847,7 +1847,7 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
-  
+
   :config
   ;; (setq global-corfu-modes '((not markdown-mode) t))
   ;; TAB cycle if there are only few candidates
@@ -2559,7 +2559,7 @@ If called with a prefix argument, query for word to search."
          'org-metaup
        'drag-stuff-up))
 	(drag-stuff-up 1)))
-  
+
   (defun sej/drag-stuff-down ()
 	"Mod of drag-stuff-down which works in org-mode."
     (interactive)
@@ -2757,7 +2757,7 @@ If called with a prefix argument, query for word to search."
                 :italic-slant italic
 
                 :line-spacing nil))
-                    
+
        (sej-font-text `((regular) ; like this it uses all the fallback values and is named `regular'
                (small
                 :default-height 100)
@@ -3109,7 +3109,7 @@ If called with a prefix argument, query for word to search."
   ;; use C-c o o for menu
   ;; You can manually enable Combobulate with `M-x
   ;; combobulate-mode'.
-  
+
   :vc (:url "https://github.com/mickeynp/combobulate"
             :rev :newest
             :branch "master")
@@ -3117,7 +3117,7 @@ If called with a prefix argument, query for word to search."
   ;; You can customize Combobulate's key prefix here.
   ;; Note that you may have to restart Emacs for this to take effect!
   (setq combobulate-key-prefix "C-c o")
-  
+
   ;; Optional, but recommended.
   ;;
   ;; You can manually enable Combobulate with `M-x
@@ -4472,7 +4472,7 @@ the children of class at point."
     (diredfl-mode +1)))
 
 (add-hook 'dired-mode-hook #'sej/denote-dired-mode-hook)
-  
+
 ;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
   (defvar sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
@@ -4667,7 +4667,7 @@ This function should be hooked to `post-command-hook'."
 			   (sej/denote-silo-update)))
 
   (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch)
-  
+
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
@@ -5296,7 +5296,8 @@ function with the \\[universal-argument]."
                ("M-s H" . consult-org-heading)
 			   ("<M-DEL>" . sej/kill-whole-word)
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
-			   ("C-c )" . org-fold-hide-drawer-all)))
+			   ("C-c )" . org-fold-hide-drawer-all)
+			   ("C-c b" . org-switchb)))
   :config
   ;; get denote up and going
   (require 'denote)
@@ -5343,7 +5344,7 @@ function with the \\[universal-argument]."
   ;; directory to store attachments in relative to file
   ;; below is an absolute dir parallel to denote-directory
   (setq org-attach-id-dir  (expand-file-name "../denote-attachments/" denote-directory) )
-  
+
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
   ;; Tell Org to use Emacs when opening files that end in .md
@@ -5351,7 +5352,7 @@ function with the \\[universal-argument]."
 
   ;; Do the same for .html
   (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
-  
+
 ;;;;;; tags
   ;; defined here for regular topics
   ;; `org-tag-persistent-alist' defined in denote section from current note list
@@ -5491,7 +5492,7 @@ function with the \\[universal-argument]."
 	  (org-update-checkbox-count)
 	  (re-search-forward org-drawer-regexp nil 'noerror)
 	  (org-fold-hide-drawer-toggle nil 'noerror)))
-  
+
   ) ; end of use-pacakge for org
 
 ;;;;; org-autolist
@@ -5576,7 +5577,7 @@ function with the \\[universal-argument]."
   :config
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
-        org-agenda-files `(,org-directory)
+        org-agenda-files `(,org-directory ,denote-journal-extras-directory)
         org-agenda-dim-blocked-tasks 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
@@ -5592,7 +5593,65 @@ function with the \\[universal-argument]."
                                         ; if they are already shown as a deadline
         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-		))
+		)
+
+  (defvar sej/org-custom-daily-agenda
+	;; stolen shamelessly from prot
+	`((tags-todo "*"
+				 ((org-agenda-skip-function '(org-agenda-skip-if nil '(timestamp)))
+                  (org-agenda-skip-function
+                   `(org-agenda-skip-entry-if
+					 'notregexp ,(format "\\[#%s\\]" (char-to-string org-priority-highest))))
+                  (org-agenda-block-separator nil)
+                  (org-agenda-overriding-header "Important tasks without a date\n")))
+      (agenda "" ((org-agenda-span 1)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator nil)
+                  (org-scheduled-past-days 0)
+                  (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                  (org-agenda-format-date "%A %-e %B %Y")
+                  (org-agenda-overriding-header "\nToday's agenda\n")))
+      (agenda "" ((org-agenda-start-on-weekday nil)
+                  (org-agenda-start-day "+1d")
+                  (org-agenda-span 3)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator nil)
+                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                  (org-agenda-overriding-header "\nNext three days\n")))
+      (agenda "" ((org-agenda-time-grid nil)
+                  (org-agenda-start-on-weekday nil)
+                  ;; We don't want to replicate the previous section's
+                  ;; three days, so we start counting from the day after.
+                  (org-agenda-start-day "+4d")
+                  (org-agenda-span 14)
+                  (org-agenda-show-all-dates nil)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator nil)
+                  (org-agenda-entry-types '(:deadline))
+                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                  (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
+	"Custom agenda for use in `org-agenda-custom-commands'.")
+
+  (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
+									 ("d" "Deadlines" agenda "display deadlines and scheduled"
+									  ((org-agenda-span 'month)
+									   (org-agenda-time-grid nil)
+									   (org-agenda-show-all-dates nil)
+									   (org-agenda-entry-types '(:deadline :scheduled))
+									   (org-deadline-warning-days 0)
+									   (org-agenda-sorting-strategy '(priority-up effort-down))))
+									 ("A" "Daily agenda and top priority tasks"
+									  ,sej/org-custom-daily-agenda)
+									 ("P" "Plain text daily agenda and top priorities"
+									  ,sej/org-custom-daily-agenda
+									  ((org-agenda-with-colors nil)
+									   (org-agenda-prefix-format "%t %s")
+									   (org-agenda-current-time-string ,(car (last org-agenda-time-grid)))
+									   (org-agenda-fontify-priorities nil)
+									   (org-agenda-remove-tags t))
+									  ("agenda.txt"))
+									 ))
+  )
 
 ;;;;; org-src
 ;; built-in: org src block settings
