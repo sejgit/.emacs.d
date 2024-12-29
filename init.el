@@ -4213,6 +4213,12 @@ the children of class at point."
   ;; Show directory first
   (setq dired-listing-switches "-AFGhlv --group-directories-first")
 
+  ;; ls-lisp settings
+  (require 'ls-lisp)
+  (setq ls-lisp-use-insert-directory-program nil)
+  (setq ls-lisp-ignore-case 't)
+  (setq ls-lisp-use-string-collate nil)
+
   (setq dired-dwim-target t
         dired-auto-revert-buffer #'dired-directory-changed-p
         dired-free-space nil
@@ -5133,24 +5139,19 @@ Add this function to the `after-save-hook'."
 
 ;;;;; pdf-tools
 ;; PDF reader
-;; https://github.com/politza/pdf-tools
-(when (display-graphic-p)
+;; see github for install directions
+;; must be compiled
+;; [[https://github.com/vedang/pdf-tools]]
   (use-package pdf-tools
-    :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
-    :defines pdf-annot-activate-created-annotations
+	:if sys/mac-x-p
+	:vc (:url "https://github.com/vedang/pdf-tools"
+			  :branch "master")
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
-    :init
-    (pdf-loader-install)
-    (setq pdf-view-midnight-colors '("#ededed" . "#21242b"))
-    (setq pdf-annot-activate-created-annotations t)
-
-    ;; Recover last viewed position
-    (use-package pdf-view-restore
-      :hook (pdf-view-mode . pdf-view-restore-mode)
-      :init (setq pdf-view-restore-filename
-                  (locate-user-emacs-file ".pdf-view-restore")))
-    ))
+    :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :defines pdf-annot-activate-created-annotations
+	:init (pdf-loader-install)
+	:config (pdf-tools-install))
 
 ;;;;; nov
 ;; Epub reader
@@ -5596,17 +5597,17 @@ function with the \\[universal-argument]."
 		)
 
   (defvar sej/org-custom-daily-agenda
-	;; stolen shamelessly from prot
+	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat>
+	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
 	`((tags-todo "*"
 				 ((org-agenda-skip-function '(org-agenda-skip-if nil '(timestamp)))
                   (org-agenda-skip-function
-                   `(org-agenda-skip-entry-if
-					 'notregexp ,(format "\\[#%s\\]" (char-to-string org-priority-highest))))
-                  (org-agenda-block-separator nil)
-                  (org-agenda-overriding-header "Important tasks without a date\n")))
+                   `(org-agenda-skip-entry-if 'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED"))
+                  (org-agenda-block-separator 9472)
+                  (org-agenda-overriding-header "Tasks with action needed without a date\n")))
       (agenda "" ((org-agenda-span 1)
                   (org-deadline-warning-days 0)
-                  (org-agenda-block-separator nil)
+                  (org-agenda-block-separator 9472)
                   (org-scheduled-past-days 0)
                   (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
                   (org-agenda-format-date "%A %-e %B %Y")
@@ -5615,18 +5616,16 @@ function with the \\[universal-argument]."
                   (org-agenda-start-day "+1d")
                   (org-agenda-span 3)
                   (org-deadline-warning-days 0)
-                  (org-agenda-block-separator nil)
+                  (org-agenda-block-separator 9472)
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "\nNext three days\n")))
       (agenda "" ((org-agenda-time-grid nil)
                   (org-agenda-start-on-weekday nil)
-                  ;; We don't want to replicate the previous section's
-                  ;; three days, so we start counting from the day after.
                   (org-agenda-start-day "+4d")
                   (org-agenda-span 14)
                   (org-agenda-show-all-dates nil)
                   (org-deadline-warning-days 0)
-                  (org-agenda-block-separator nil)
+                  (org-agenda-block-separator 9472)
                   (org-agenda-entry-types '(:deadline))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
@@ -5836,6 +5835,13 @@ function with the \\[universal-argument]."
 		  ("Liquor" . "🫒🍸")
 		  ("ATTACH" . "📎")
 		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
+		  ("home" . "🏠") ("home_routines" . "🛠️")
+		  ("journal" . "✒️") ("knowledge" . "🤓")
+		  ("wine" . "🍷")
+		  ("debug" . "🐞")
+		  ("friends" . "🍻")
+		  ("home_automation" . "⚙️") ("plugin" . "🔌")
+		  ("travel" . "✈️") ("read" . "👀")
 		  )))
   (org-pretty-tags-global-mode))
 
