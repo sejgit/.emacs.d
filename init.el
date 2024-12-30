@@ -5629,7 +5629,7 @@ function with the \\[universal-argument]."
                   (org-agenda-entry-types '(:deadline))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
-	"Custom agenda for use in `org-agenda-custom-commands'.")
+	"Custom agenda for use in `org-agenda-custom-commands'."))
 
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
 									 ("d" "Deadlines" agenda "display deadlines and scheduled"
@@ -5820,30 +5820,32 @@ function with the \\[universal-argument]."
   :hook (org-mode . org-pretty-tags-global-mode)
   :config
   (setq org-pretty-tags-surrogate-strings
-        (quote
-         (("TOPIC" . "☆")
-          ("PROJECT" . "💡")
-          ("SERVICE" . "✍")
+         `(("TOPIC" . "☆")
+          ("project" . "💡") ("idea" . "💡")
+          ("service" . "✍")
           ("Blog" . "✍")
           ("music" . "♬")
           ("security" . "🔥")
-		  ("French" . "🇫🇷Fr")
-		  ("French" . "🇫🇷Fr")
+		  ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
 		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
 		  ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
 		  ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
 		  ("Liquor" . "🫒🍸")
 		  ("ATTACH" . "📎")
 		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
-		  ("home" . "🏠") ("home_routines" . "🛠️")
+		  ("friends" . "🍻")
+		  ("home" . "🏠") ("home_routines" . "🧰")
+		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓")
 		  ("journal" . "✒️") ("knowledge" . "🤓")
 		  ("wine" . "🍷")
 		  ("debug" . "🐞")
-		  ("friends" . "🍻")
 		  ("home_automation" . "⚙️") ("plugin" . "🔌")
 		  ("travel" . "✈️") ("read" . "👀")
-		  )))
-  (org-pretty-tags-global-mode))
+		  ("stereo" . "🎧") ("tool" . "🪛")
+		  ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
+		  ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
+		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
+		  )) )
 
 ;;;;; org-skeleton
 ;; skeleton template for new org file
