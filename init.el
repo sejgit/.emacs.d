@@ -699,7 +699,8 @@
   :bind (:map override-global-map
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
-               ("C-x j" . duplicate-dwim)))
+               ("C-x j" . duplicate-dwim)
+			   ("M-\\" . cycle-spacing)))
 
 ;;;;; sej constants
 
@@ -1081,10 +1082,7 @@ Return its absolute path.  Otherwise, return nil."
   :init
   (setq which-key-use-C-h-commands t
         which-key-separator " "
-        which-key-prefix-prefix "+")
-  :config
-  (which-key-add-keymap-based-replacements sej-C-q-map
-    "o" "open"))
+        which-key-prefix-prefix "+"))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
@@ -2106,7 +2104,8 @@ Additionally, add `cape-file' as early as possible to the list."
           ("f" . consult-flymake)
           ("g" . consult-goto-line)             ;; orig. goto-line
           ("M-g" . consult-goto-line)           ;; orig. goto-line
-          ("o" . consult-outline)               ;; Alternative: consult-org-heading
+          ("o" . consult-org-heading)               ;; Alternative: consult-org-heading
+          ("O" . consult-outline)
           ("m" . consult-mark)
           ("k" . consult-global-mark)
           ("i" . consult-imenu)
@@ -2496,7 +2495,6 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/akicho8/string-inflection
 (use-package string-inflection
   :bind (("M-u" . string-inflection-all-cycle)))
-
 
 ;;;; regions
 ;;;;; easy-kill-extras
@@ -5298,7 +5296,9 @@ function with the \\[universal-argument]."
 			   ("<M-DEL>" . sej/kill-whole-word)
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
 			   ("C-c )" . org-fold-hide-drawer-all)
-			   ("C-c b" . org-switchb)))
+			   ("C-c b" . org-switchb))
+		 (:map dired-mode-map
+			   ("C-c C-a" . org-attach-dired-to-subtree)))
   :config
   ;; get denote up and going
   (require 'denote)
@@ -5820,28 +5820,43 @@ function with the \\[universal-argument]."
   :hook (org-mode . org-pretty-tags-global-mode)
   :config
   (setq org-pretty-tags-surrogate-strings
-         `(("TOPIC" . "☆")
-          ("project" . "💡") ("idea" . "💡")
+        `(;; generic tags
+		  ("topic" . "☆")
+          ("idea" . "💡")
           ("service" . "✍")
           ("Blog" . "✍")
-          ("music" . "♬")
           ("security" . "🔥")
+		  ;; denotes generic togs
+		  ("ATTACH" . "📎")
+		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "🧰") ("routine" . "🧹")
+		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛")
+		  ("read" . "👀")
+		  ("debug" . "🐞")
+		  ("family" . "👨‍👩‍👧‍👦")
+		  ("kids" . "👶🏻")
+		  ("friends" . "🍻")
+		  ("travel" . "✈️")
+		  ("home" . "🏠")
+		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
+		  ("computer" . "🖥️")
+		  ("automation" . "⚙️")
+		  ("plugin" . "🔌")
+
+		  ;; media & specific tags
+          ("media" . "💿")
+		  ("music" . "🎶")
+		  
+		  ;; wine & specific tags
+		  ("wine" . "🍷")
+		  ("Liquor" . "🫒🍸")
 		  ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
 		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
 		  ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
 		  ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
-		  ("Liquor" . "🫒🍸")
-		  ("ATTACH" . "📎")
-		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
-		  ("friends" . "🍻")
-		  ("home" . "🏠") ("home_routines" . "🧰")
-		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓")
-		  ("journal" . "✒️") ("knowledge" . "🤓")
-		  ("wine" . "🍷")
-		  ("debug" . "🐞")
-		  ("home_automation" . "⚙️") ("plugin" . "🔌")
-		  ("travel" . "✈️") ("read" . "👀")
-		  ("stereo" . "🎧") ("tool" . "🪛")
+		  
+		  ;; electronics & specific tags
+		  ("electronics" . "electronics")
+		  ("stereo" . "🎧")
 		  ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
 		  ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
 		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
