@@ -5649,6 +5649,11 @@ function with the \\[universal-argument]."
 									   (org-agenda-fontify-priorities nil)
 									   (org-agenda-remove-tags t))
 									  ("agenda.txt"))
+									 ("w" . "Wine searches")
+									 ("wi" tags "+wine+Italian")
+									 ("wf" tags "+wine+French")
+									 ("ws" tags "+wine+Spanish")
+									 ("ww" tags "+wine")
 									 ))
   )
 
@@ -5850,6 +5855,8 @@ function with the \\[universal-argument]."
 		  
 		  ;; wine & specific tags
 		  ("wine" . "🍷")
+		  ("Red" . "🍷") ("Rose" . "🌹") ("White" . "🥂")
+		  ("Champagne" "🍾") ("Prosecco" "🍾") ("Cava" "🍾") ("Sparkling" "🍾")
 		  ("Liquor" . "🫒🍸")
 		  ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
 		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
