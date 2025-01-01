@@ -5602,7 +5602,7 @@ function with the \\[universal-argument]."
 	`((tags-todo "*"
 				 ((org-agenda-skip-function '(org-agenda-skip-if nil '(timestamp)))
                   (org-agenda-skip-function
-                   `(org-agenda-skip-entry-if 'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED"))
+                   `(org-agenda-skip-entry-if 'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED")))
                   (org-agenda-block-separator 9472)
                   (org-agenda-overriding-header "Tasks with action needed without a date\n")))
       (agenda "" ((org-agenda-span 1)
@@ -5629,7 +5629,7 @@ function with the \\[universal-argument]."
                   (org-agenda-entry-types '(:deadline))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
-	"Custom agenda for use in `org-agenda-custom-commands'."))
+	"Custom agenda for use in `org-agenda-custom-commands'.")
 
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
 									 ("d" "Deadlines" agenda "display deadlines and scheduled"
@@ -5823,13 +5823,14 @@ function with the \\[universal-argument]."
         `(;; generic tags
 		  ("topic" . "☆")
           ("idea" . "💡")
+		  ("log" . "📋")
           ("service" . "✍")
           ("Blog" . "✍")
           ("security" . "🔥")
 		  ;; denotes generic togs
 		  ("ATTACH" . "📎")
-		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "🧰") ("routine" . "🧹")
-		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛")
+		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹")
+		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛🔧")
 		  ("read" . "👀")
 		  ("debug" . "🐞")
 		  ("family" . "👨‍👩‍👧‍👦")
@@ -5839,6 +5840,7 @@ function with the \\[universal-argument]."
 		  ("home" . "🏠")
 		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
 		  ("computer" . "🖥️")
+		  ("financial" . "💰")
 		  ("automation" . "⚙️")
 		  ("plugin" . "🔌")
 
