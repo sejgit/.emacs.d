@@ -4418,6 +4418,7 @@ the children of class at point."
 
   :custom
   (denote-directory sej-org-directory)
+  (denote-journal-extras-directory (expand-file-name "journal" denote-directory))
   (denote-save-buffers t)
   (denote-known-keywords nil)
   (denote-infer-keywords t)
@@ -4427,17 +4428,16 @@ the children of class at point."
   (denote-excluded-directories-regexp nil)
   (denote-excluded-keywords-regexp nil)
   (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
+  (denote-journal-extras-title-format 'day-date-month-year)
 
   ;; Pick dates, where relevant, with Org's advanced interface:
   (denote-date-prompt-use-org-read-date t)
 
   ;; Read this manual for how to specify `denote-templates'.
   (denote-templates
-        `((standard . ,(concat "\n\n"
-                               "* ")))
-        `((note . ,(concat "\n\n"
-                               "- ")))
-		)
+        `((standard . ,(concat "\n\n" "* "))
+        (note . ,(concat "\n\n" "- "))
+        (journal . ,(concat "#+category: journal" "\n\n" "* "))))
 
   (denote-date-format nil) ; use default ; read doc string
 
@@ -5576,6 +5576,10 @@ function with the \\[universal-argument]."
   org-agenda-sorting-strategy
   org-agenda-skip-deadline-prewarning-if-scheduled)
   :config
+  ;; get denote up and running
+  (require 'denote)
+  (require 'denote-journal-extras)
+  
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
         org-agenda-files `(,org-directory ,denote-journal-extras-directory)
@@ -5650,10 +5654,10 @@ function with the \\[universal-argument]."
 									   (org-agenda-remove-tags t))
 									  ("agenda.txt"))
 									 ("w" . "Wine searches")
-									 ("wi" tags "+wine+Italian")
-									 ("wf" tags "+wine+French")
-									 ("ws" tags "+wine+Spanish")
-									 ("ww" tags "+wine")
+									 ("wi" tags "+Italian+CATEGORY=\"wine\"")
+									 ("wf" tags "+French+CATEGORY=\"wine\"")
+									 ("ws" tags "+Spanish+CATEGORY=\"wine\"")
+									 ("ww" tags "+CATEGORY=\"wine\"")
 									 ))
   )
 
@@ -5834,7 +5838,7 @@ function with the \\[universal-argument]."
           ("security" . "🔥")
 		  ;; denotes generic togs
 		  ("ATTACH" . "📎")
-		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹")
+		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹🔁")
 		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛🔧")
 		  ("read" . "👀")
 		  ("debug" . "🐞")
