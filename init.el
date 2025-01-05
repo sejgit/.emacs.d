@@ -133,28 +133,8 @@
   "Set org directory."
   :type 'string)
 
-(defcustom sej-project-org-capture-text "Project"
-  "Text for the Label for the Org Capture Project journal."
-  :type 'string)
-
 (defcustom sej-latex-directory "/Library/TeX/texbin"
   "Directory for Latex."
-  :type 'string)
-
-(defcustom sej-irc-nick "nick"
-  "Nickname for ERC/IRC."
-  :type 'string)
-
-(defcustom sej-irc-pass "pass"
-  "Password for ERC/IRC."
-  :type 'string)
-
-(defcustom sej-chatgpt-user "user"
-  "User name for chatgpt default user."
-  :type 'string)
-
-(defcustom sej-chatgpt-key "key"
-  "Key for chatgpt should be secret."
   :type 'string)
 
 ;;;;; Load `custom-file'
@@ -1004,6 +984,7 @@ Return its absolute path.  Otherwise, return nil."
 ;; https://www.gnu.org/software/emacs/manual/html_mono/auth.html
 (use-package auth-source
   :ensure nil
+  :demand t
   :init
   (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
                        ,(f-expand "~/.ssh/.authinfo")
@@ -1099,12 +1080,18 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; casual
 ;; triansient based jump screens
 ;; https://github.com/kickingvegas?tab=repositories
-(use-package casual-suite
+(use-package casual
  ;; casual-agenda
   :bind (:map org-agenda-mode-map
          ("C-o" . casual-agenda-tmenu)
          ("M-j" . org-agenda-clock-goto) ; optional
          ("J" . bookmark-jump)) ; optional
+
+;; casual-bookmarks
+  :bind (:map bookmark-bmenu-mode-map
+              ("C-o" . casual-bookmarks-tmenu)
+              ("S" . casual-bookmarks-sortby-tmenu)
+              ("J" . bookmark-jump))
 
 ;; casual-calc
   :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu))
@@ -1115,10 +1102,10 @@ Return its absolute path.  Otherwise, return nil."
 ;; casual-dired
   :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu))
 
- ;; casual-isearch
-  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu))
+;; casual-editkit
+  :bind (:map global-map ("C-o" . 'casual-editkit-main-tmenu))
 
- ;; casual-ibuffer
+;; casual-ibuffer
   :bind (:map
          ibuffer-mode-map
          ("C-o" . casual-ibuffer-tmenu)
@@ -1132,27 +1119,25 @@ Return its absolute path.  Otherwise, return nil."
          ("]" . ibuffer-forward-filter-group)  ; optional
          ("$" . ibuffer-toggle-filter-group)) ; optional
 
- ;; casual-info
+;; casual-info
   :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu))
 
- ;; casual-re-builder
+;; casual-isearch
+  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu))
+
+;; casual-re-builder
   :bind (:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu))
+         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
 
- ;; casual-bookmarks
-  :bind (:map bookmark-bmenu-mode-map
-              ("C-o" . casual-bookmarks-tmenu)
-              ("S" . casual-bookmarks-sortby-tmenu)
-              ("J" . bookmark-jump)) )
-
-;; avy, symbol-overlay are separate packages
+ ;; avy, symbol-overlay are separate packages
 (use-package casual-avy
   :after avy
   :bind ("H-/" . casual-avy-tmenu))
 
 (use-package casual-symbol-overlay
   :after symbol-overlay
-  :bind ("C-o" . casual-symbold-overlay-tmenu))
+  :bind (:map symbol-overlay-map
+			  ("C-o" . casual-symbold-overlay-tmenu)))
 
 ;;; user interface
 ;;;; themes
@@ -4797,7 +4782,7 @@ Add this function to the `after-save-hook'."
 (use-package denote-menu
   :hook (denote-menu-mode . sej/denote-menu-setup)
   :bind (:map sej-C-q-map
-         ("n m" . list-denotes)
+         ("n m" . sej/denote-menu-only-categories)
          :map denote-menu-mode-map
          ("c" . denote-menu-clear-filters)
          ("/ r" . denote-menu-filter)
@@ -4805,7 +4790,7 @@ Add this function to the `after-save-hook'."
          ("/ o" . denote-menu-filter-out-keyword)
          ("e" . denote-menu-export-to-dired)
 		 ("s" . tabulated-list-sort)
-		 ("t" . sej/denote-menu-toggle-journal))
+		 ("t" . sej/denote-menu-cycle))
   :config (setq denote-menu-title-column-width 45
 				denote-menu-keywords-column-width 35)
   (defun sej/denote-menu-setup ()
@@ -4829,32 +4814,51 @@ Add this function to the `after-save-hook'."
   (defvar sej/denote-menu-toggle-p 0
 	"Variable to hold current toggle state.")
 
-  (defun sej/denote-menu-toggle-journal ()
-	"Toggle listing All, only-Jounal, no-Journal notes."
+  (defun sej/denote-menu-cycle ()
+	"Cycle listing All, only-Jounal, no-Journal notes."
 	(interactive)
+	(list-denotes)
 	(cond
 	 ((= sej/denote-menu-toggle-p 0)
-	  (setq sej/denote-menu-toggle-p 1)
-	  (denote-menu-filter-by-keyword '("journal"))
-	  (setq tabulated-list-sort-key '("Date" . t))
-	  (tabulated-list-init-header)
-	  (tabulated-list-print)
-	  (beginning-of-buffer))
+	  (sej/denote-menu-only-journal))
 	 ((= sej/denote-menu-toggle-p 1)
-	  (setq sej/denote-menu-toggle-p 2)
-	  (denote-menu-clear-filters)
-	  (denote-menu-filter-out-keyword '("journal"))
-	  (setq tabulated-list-sort-key '("Title" . nil))
-	  (tabulated-list-init-header)
-	  (tabulated-list-print)
-	  (beginning-of-buffer))
-	 (t
-	  (setq sej/denote-menu-toggle-p 0)
-	  (setq tabulated-list-sort-key '("Date" . t))
-	  (denote-menu-clear-filters)
-	  (tabulated-list-init-header)
-	  (tabulated-list-print)
-	  (beginning-of-buffer)))) )
+	  (sej/denote-menu-only-categories))
+	 (t (sej/denote-menu-all))))
+
+  (defun sej/denote-menu-all ()
+	"Cycle listing All, only-Jounal, no-Journal notes."
+	(interactive)
+	(list-denotes)
+	(setq sej/denote-menu-toggle-p 0)
+	(setq tabulated-list-sort-key '("Date" . t))
+	(denote-menu-clear-filters)
+	(tabulated-list-init-header)
+	(tabulated-list-print)
+	(beginning-of-buffer))
+  
+  (defun sej/denote-menu-only-journal ()
+	"Listing only-Jounal notes."
+	(interactive)
+	(list-denotes)
+	(setq sej/denote-menu-toggle-p 1)
+	(denote-menu-filter-by-keyword '("journal"))
+	(setq tabulated-list-sort-key '("Date" . t))
+	(tabulated-list-init-header)
+	(tabulated-list-print)
+	(beginning-of-buffer))
+  
+  (defun sej/denote-menu-only-categories ()
+	"Cycle listing only-categories."
+	(interactive)
+	(list-denotes)
+	(setq sej/denote-menu-toggle-p 2)
+	(denote-menu-clear-filters)
+	(denote-menu-filter-out-keyword '("journal"))
+	(setq tabulated-list-sort-key '("Title" . nil))
+	(tabulated-list-init-header)
+	(tabulated-list-print)
+	(beginning-of-buffer))
+)
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
@@ -5302,6 +5306,9 @@ function with the \\[universal-argument]."
   :config
   ;; get denote up and going
   (require 'denote)
+  (require 'denote-journal-extras)
+  (require 'denote-silo-extras)
+  
   ;; reading man pages in org-mode
   (require 'ol-man)
 
@@ -5833,6 +5840,8 @@ function with the \\[universal-argument]."
 		  ("topic" . "☆")
           ("idea" . "💡")
 		  ("log" . "📋")
+		  ("done" . "✅")
+		  ("closed". "🔒")
           ("service" . "✍")
           ("Blog" . "✍")
           ("security" . "🔥")
@@ -5856,6 +5865,10 @@ function with the \\[universal-argument]."
 		  ;; media & specific tags
           ("media" . "💿")
 		  ("music" . "🎶")
+
+		  ;; sports
+		  ("hockey" . "🏒")
+		  ("swimming" . "🏊‍♀️")
 		  
 		  ;; wine & specific tags
 		  ("wine" . "🍷")
@@ -6455,8 +6468,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package erc
   :ensure nil
   :bind (:map sej-C-q-map
-              ("I" . sej/erc-dwim))
+              ("I" . sej/erc-start-or-switch))
   :config
+  (setq auth-source-debug t)
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
   ;; erc hack for gnutls for client cert.
   (defvar *uconf/erc-certs* nil
@@ -6486,8 +6500,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (defun uconf/erc-open-tls-stream (name buffer host port)
     (unwind-protect
         (progn
-          (setq *uconf/erc-certs* sej-tls-certfile)
-          (open-network-stream name buffer host port
+          (setq *uconf/erc-certs*
+				`((,(plist-get (car (auth-source-search :host "irc.libera.chat")) :cert ) ) ) )
+			      (open-network-stream name buffer host port
                                :nowait t
                                :type 'tls))
       (setq *uconf/erc-certs* nil)))
@@ -6497,28 +6512,52 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
   (setq erc-prompt-for-password nil)
 
-  (defun sej/erc-dwim ()
-    "Switch to latest `erc' buffer or log in."
-    (interactive)
-    (let* ((irc "irc.libera.chat")
-           (nick sej-irc-nick)
-           (pass sej-irc-pass)
-           (bufs (erc-buffer-list)))
-      (if bufs
-          (erc-track-switch-buffer 1)
-        (erc-tls :server irc
-                 :port 6697
-                 :nick nick
-                 :password pass
-                 :full-name nick
-                 )
-        ;;       (erc :server irc
-        ;;          :port 6697
-        ;;        :nick nick
-        ;;      :password pass
-        ;;    :full-name nick)
-        )))
+  (defun sej/erc-buffer-connected-p (buffer)
+	"Check if ERC BUFFER is connected."
+	(with-current-buffer buffer
+      (and (erc-server-process-alive)
+           erc-server-connected)))
 
+  (defun sej/erc-start-or-switch ()
+	"Connects to ERC, or switch to last active buffer.
+
+This function serves multiple purposes:
+
+1. Check Active Buffers: It iterates through a predefined list of ERC buffers
+   to determine if any of them are actively connected to an IRC server.
+
+2. Verify Connection Status: For each buffer, it checks whether the associated
+   ERC process is alive and whether there is an established network connection
+   to the server. This is done using the `erc-server-process-alive' function and
+   the `erc-server-connected' variable.
+
+3. Switch to Active Buffer: If any buffer is found to be actively connected,
+   the function switches to that buffer using `erc-track-switch-buffer'.
+
+4. Reconnect if Disconnected: If none of the checked buffers are connected,
+   the function prompts the user to reconnect to the IRC server. If the user
+   confirms, a new connection is initiated using the `erc' command with the
+   server and port specified (`irc.libera.chat` on port 6667)."
+	(interactive)
+	(let ((erc-buffers '("Libera.Chat" "irc.libera.chat" "irc.libera.chat:6667"))
+          (connected nil))
+      (dolist (buffer erc-buffers)
+		(when (and (get-buffer buffer)
+                   (my/erc-buffer-connected-p buffer))
+          (setq connected t)))
+      (if connected
+          (erc-track-switch-buffer 1)
+		(when (y-or-n-p "Start ERC? ")
+		  (let ((irc "irc.libera.chat"))
+			;; TODO need to get back to erc-tls
+			(erc :server irc
+					 :port 6697
+					 :nick (car (auth-source-user-and-password irc))
+					 :full-name (car (auth-source-user-and-password irc))
+					 :password (cadr (auth-source-user-and-password irc))
+					 ) ))
+		)))
+  
   ;; Options
 
   ;; Join the #emacs and #erc channels whenever connecting to libera.
