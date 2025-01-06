@@ -5346,8 +5346,15 @@ function with the \\[universal-argument]."
         org-tags-column -80
         org-startup-with-inline-images t
         org-image-actual-width '(300)
-        org-highlight-latex-and-related '(latex))
+        org-highlight-latex-and-related '(latex)
+		org-clock-sound t)
 
+  (defun sej/org-timer-done-alert ()
+	"Alert when timer is done."
+	(interactive)
+	(tmr "0s" "org timer done!"))
+  (add-hook 'org-timer-done-hook #'sej/org-timer-done-alert)
+  
 ;;;;;; org-attach
   ;; directory to store attachments in relative to file
   ;; below is an absolute dir parallel to denote-directory
@@ -6732,7 +6739,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
            :id 'test-alert
            :style 'osx-notifier
 		   :persistent 'persistent) )
-		(setq tmr-sound-file "/System/Library/Sounds/Hero.aiff")
+		(setq tmr-sound-file "/System/Library/Sounds/Blow.aiff")
         (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
         ;; (delete 'tmr-notification-notify tmr-timer-finished-functions)
 		)))
