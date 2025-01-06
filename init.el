@@ -5673,7 +5673,36 @@ function with the \\[universal-argument]."
 									 ("ws" tags "+Spanish+CATEGORY=\"wine\"")
 									 ("ww" tags "+CATEGORY=\"wine\"")
 									 ))
-  )
+  
+  (defun sej/org-agenda-entry-get-repeat ()
+	"Get the repeater of the current entry with 'org-get-repeat'."
+	(when-let ((marker (org-get-at-bol 'org-marker))
+               (buffer (marker-buffer marker))
+               (pos (marker-position marker)))
+      (with-current-buffer buffer
+		(goto-char pos)
+		(org-get-repeat))))
+
+  (defun sej/org-agenda-update-repeated-entry()
+	"Update the scheduled leader to repeater for current entry.
+
+    e.g., Replace 'Scheduled:' to 'Rept .+1d:'."
+	(save-excursion
+      (when-let ((org-repeat (sej/org-agenda-entry-get-repeat))
+				 (rept-str (format "Rept %4s: " org-repeat))
+				 (scheduled-leader (car org-agenda-scheduled-leaders)))
+		(when (search-backward scheduled-leader (pos-bol) t)
+          (delete-forward-char (length scheduled-leader))
+          (insert-and-inherit rept-str)))))
+
+  (defun sej/org-agenda-update-repeated-entries ()
+	"Update the scheduled leader to repeater for all entries."
+	(save-excursion
+      (goto-char (point-min))
+      (while (text-property-search-forward 'type "scheduled" t)
+		(my/org-agenda-update-repeated-entry))))
+
+  (add-hook 'org-agenda-finalize-hook #'sej/org-agenda-update-repeated-entries) )
 
 ;;;;; org-src
 ;; built-in: org src block settings
