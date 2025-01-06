@@ -5341,7 +5341,7 @@ function with the \\[universal-argument]."
                                  ("DELIGATE" . (:foreground "blue"))
                                  ("VERIFIED" . (:foreground "green"))
                                  ("CANCELED" . (:foreground "grey")))
-        org-startup-folded nil
+        org-startup-folded 'content
         org-startup-indented t
         org-tags-column -80
         org-startup-with-inline-images t
@@ -5888,6 +5888,14 @@ function with the \\[universal-argument]."
 		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
 		  )) )
 
+;;;;; org-download
+;; facilitates moving images by drag-drop, clipboard, kill-ring
+;; to attach or specified directory
+;; [[https://github.com/abo-abo/org-download]]
+(use-package org-download
+  :hook ((emacs-startup . org-download-enable)
+		 (dired-mode . org-download-enable)))
+
 ;;;;; org-skeleton
 ;; skeleton template for new org file
 (define-skeleton org-skeleton
@@ -5902,7 +5910,7 @@ function with the \\[universal-argument]."
   "-----\n\n")
 (global-set-key [C-S-f4] 'org-skeleton)
 
-;;;;; sej/org-wrap-elisp skeleton
+;;;;;; sej/org-wrap-elisp skeleton
 ;; skeletons are a kind of yasnippet but they don't mess with keybindings
 ;; skeleton to wrap elisp babel source
 
@@ -5913,7 +5921,7 @@ function with the \\[universal-argument]."
   > _ \n
   > "#+END_SRC" \n)
 
-;;;;; sej/org-wrap-source skeleton
+;;;;;; sej/org-wrap-source skeleton
 ;; skeletons are a kind of yasnippet but they don't mess with keybindings
 ;; skeleton to wrap generic babel source
 (define-skeleton sej/org-wrap-source
