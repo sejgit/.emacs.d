@@ -1480,11 +1480,11 @@ If FRAME is omitted or nil, use currently selected frame."
   :custom ((aw-dispatch-always t)
 		   (aw-frame-offset '(100 . 0)))
   :config
-  (defun sej/aw-lower-frame (window)
-	"Lower frame containing window."
+  (defun sej/hide-frame (window)
+	"Hide frame containing window."
 	(lower-frame (window-frame window)))
 
-  (add-to-list 'aw-dispatch-alist '(?l sej/aw-lower-frame "Lower Frame")))
+  (add-to-list 'aw-dispatch-alist '(?h sej/hide-frame "Hide Frame")))
 
 ;;;;; winner
 ;; built-in: Restore old window configurations
@@ -6762,10 +6762,10 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package elfeed
   :bind ("C-q w" . elfeed)
   :config
-  (setq elfeed-feeds '("http://nullprogram.com/feed/" blog emacs
-					   "https://planet.emacslife.com/atom.xml" blog emacs
-					   "https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs
-					   "http://nedroid.com/feed/" webcomic)))
+  (setq elfeed-feeds '(("http://nullprogram.com/feed/" blog emacs)
+					   ( "https://planet.emacslife.com/atom.xml" blog emacs)
+					   ("https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs)
+					   ("http://nedroid.com/feed/" webcomic))))
 
 ;;; init.el --- end
 (message "init.el ends here")
