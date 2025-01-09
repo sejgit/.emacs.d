@@ -4608,15 +4608,16 @@ one among them and operate therein."
 Chooses silo based on file being in one of the extras-directories any history since.
 Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
 	(let ((file buffer-file-name) existin)
-	  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
-		(if (file-in-directory-p file elem)
-				   (setq existin elem))
-	  (if (and existin (not (equal existin denote-directory)))
-				 (setq denote-directory existin))))
-	(sej/denote-keywords-update)
-	(sej/denote-colleagues-update)
-	(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory))
-	(setq org-refile-targets `(( ,(denote-directory-files "__[^journal]") :maxlevel . 3))))
+	  (if file
+		  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
+			(if (file-in-directory-p file elem)
+				(setq existin elem))
+			(if (and existin (not (equal existin denote-directory)))
+				(setq denote-directory existi n)))
+		(sej/denote-keywords-update)
+		(sej/denote-colleagues-update)
+		(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory)))
+	  (setq org-refile-targets `(( ,(denote-directory-files "__[^journal]") :maxlevel . 3)))))
 
   (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
