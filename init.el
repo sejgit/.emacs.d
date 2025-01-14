@@ -5619,9 +5619,9 @@ function with the \\[universal-argument]."
 	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat>
 	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
 	`((tags-todo "*"
-				 ((org-agenda-skip-function '(org-agenda-skip-if nil '(timestamp)))
-                  (org-agenda-skip-function
-                   `(org-agenda-skip-entry-if 'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED")))
+				 ((org-agenda-skip-function
+				   `(org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp
+											  'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED")))
                   (org-agenda-block-separator 9472)
                   (org-agenda-overriding-header "Tasks with action needed without a date\n")))
       (agenda "" ((org-agenda-span 1)
