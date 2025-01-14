@@ -5616,7 +5616,7 @@ function with the \\[universal-argument]."
 		)
 
   (defvar sej/org-custom-daily-agenda
-	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat>
+	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
 	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
 	`((tags-todo "*"
 				 ((org-agenda-skip-function
@@ -5645,7 +5645,7 @@ function with the \\[universal-argument]."
                   (org-agenda-show-all-dates nil)
                   (org-deadline-warning-days 0)
                   (org-agenda-block-separator 9472)
-                  (org-agenda-entry-types '(:deadline))
+                  (org-agenda-entry-types '(:deadline :scheduled))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
 	"Custom agenda for use in `org-agenda-custom-commands'.")
@@ -5685,8 +5685,11 @@ function with the \\[universal-argument]."
       (format "%4s: " (or (org-get-repeat) ""))))
 
   ;; Add `sej/org-agenda-repeater' to the agenda prefix.
-  (setcdr (assoc 'agenda org-agenda-prefix-format)
-          " %i %-12:c%?-12t%s%(sej/org-agenda-repeater)"))
+  (setq org-agenda-prefix-format
+		`((agenda . " %i %-12:c%?-12t%-6e% s%(sej/org-agenda-repeater)")
+		 (todo . " %i %-12:c %-6e")
+		 (tags . " %i %-12:c")
+		 (search . " %i %-12:c"))))
 
 ;;;;; org-src
 ;; built-in: org src block settings
