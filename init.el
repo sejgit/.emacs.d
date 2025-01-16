@@ -424,7 +424,7 @@
 ;;;;;; backups
 ;; Put backup files neatly away
 (let ((backup-dir (nl-var-expand "backups/"))
-      (auto-saves-dir (nl-var-expand "auto-saves/")))
+      (auto-saves-dir (nl-var-expand "auto-save/")))
   (dolist (dir (list backup-dir auto-saves-dir))
     (when (not (file-directory-p dir))
       (make-directory dir t)))
@@ -4413,7 +4413,7 @@ the children of class at point."
   (denote-excluded-directories-regexp nil)
   (denote-excluded-keywords-regexp nil)
   (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
-  (denote-journal-extras-title-format 'day-date-month-year)
+  (denote-journal-extras-title-format "%y-%m")
 
   ;; Pick dates, where relevant, with Org's advanced interface:
   (denote-date-prompt-use-org-read-date t)
@@ -4422,7 +4422,7 @@ the children of class at point."
   (denote-templates
         `((standard . ,(concat "\n\n" "* "))
         (note . ,(concat "\n\n" "- "))
-        (journal . ,(concat "#+category: journal" "\n\n" "* "))))
+        (journal . ,(concat "#+category: journal" "\n\n" "* Notes\n" (org-insert-timestamp nil) "\n ") )))
 
   (denote-date-format nil) ; use default ; read doc string
 
@@ -5597,7 +5597,7 @@ function with the \\[universal-argument]."
   
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
-        org-agenda-files `(,org-directory ,denote-journal-extras-directory)
+		org-agenda-files `(,org-directory ,denote-journal-extras-directory)
         org-agenda-dim-blocked-tasks 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
