@@ -5582,7 +5582,9 @@ function with the \\[universal-argument]."
 ;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
 (use-package org-agenda
   :ensure nil
-  :bind (("C-c a" . org-agenda))
+  :bind (("C-c a" . org-agenda)
+		 :map org-agenda-mode-map
+		 ("2" . org-agenda-fortnight-view))
   :defines
   (org-agenda-span
   org-agenda-skip-scheduled-if-deadline-is-shown
