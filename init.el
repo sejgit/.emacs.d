@@ -5327,15 +5327,24 @@ function with the \\[universal-argument]."
 		org-outline-path-complete-in-steps nil
 		org-refile-allow-creating-parent-nodes 'confirm
         org-log-done 'note
-        org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "CANCELED(c@)" "DONE(d!)")
-                            (sequence "DELIGATE(D)" "CHECK(C)" "|" "CANCELED(x)" "VERIFIED(V)"))
+        org-todo-keywords '(
+							(sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "DONE(d!)")
+                            (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
+							(sequence "FIX(f)" "INPROCESS(i)" "|" "FIXED(F!)")
+							(sequence "|" "CANCELED(x@!)")
+							)
         org-todo-keyword-faces '(("TODO" . (:foreground "pink"))
                                  ("MAYBE" . (:foreground "blue"))
-                                 ("WAITING" . (:foreground "blue"))
+                                 ("WAITING" . (:foreground "yellow"))
                                  ("DONE" . (:foreground "green"))
                                  ("DELIGATE" . (:foreground "blue"))
+                                 ("CHECK" . (:foreground "yellow"))
                                  ("VERIFIED" . (:foreground "green"))
-                                 ("CANCELED" . (:foreground "grey")))
+                                 ;;("FIX" . (:foreground "pink"))
+                                 ("INPROCESS" . (:foreground "yellow"))
+                                 ("FIXED" . (:foreground "green"))
+                                 ("CANCELED" . (:foreground "grey"))
+								 )
         org-startup-folded 'content
         org-startup-indented t
         org-tags-column -80
