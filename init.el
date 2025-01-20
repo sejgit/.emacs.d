@@ -1914,7 +1914,6 @@ If FRAME is omitted or nil, use currently selected frame."
          (org-mode . sej/cape-capf-setup-org)
          (eshell-mode . sej/cape-capf-setup-eshell)
          (git-commit-mode . sej/cape-capf-setup-git-commit)
-         (sh-mode . sej/cape-capf-setup-sh)
          )
 
   :custom (cape-dabbrev-min-length 3)
@@ -1975,11 +1974,6 @@ Additionally, add `cape-file' as early as possible to the list."
     (let ((result))
       (dolist (element '(pcomplete-completions-at-point cape-file) result)
         (add-to-list 'completion-at-point-functions element))      ))
-
-  ;; Sh
-  (defun sej/cape-capf-setup-sh ()
-    (require 'company-shell)
-    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
 
   :config
   ;; For pcomplete. For now these two advices are strongly recommended to
@@ -5348,7 +5342,9 @@ function with the \\[universal-argument]."
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex)
-		org-clock-sound t)
+		org-clock-sound t
+		org-id-method 'ts
+		org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
 
   (defun sej/org-timer-done-alert ()
 	"Alert when timer is done."
