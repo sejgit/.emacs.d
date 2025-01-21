@@ -2820,7 +2820,7 @@ If called with a prefix argument, query for word to search."
             :rev :newest
             :branch "main")
   :custom-face
-  (hl-todo ((t (:box t :inherit))))
+  (hl-todo ((t (:box nil :inherit))))
   :bind (:map hl-todo-mode-map
 			  ("H-P" . hl-todo-previous)
 			  ("H-N" . hl-todo-next)
@@ -5327,27 +5327,29 @@ function with the \\[universal-argument]."
 		org-outline-path-complete-in-steps nil
 		org-refile-allow-creating-parent-nodes 'confirm
         org-log-done 'note
+		org-log-into-drawer t
         org-todo-keywords '(
-							(sequence "TODO(t)" "MAYBE(m)" "WAITING(w@/!)" "|" "DONE(d!)")
+							(sequence "MAYBE(m)" "TODO(t)" "WAITING(w@/!)" "|" "DONE(d!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-							(sequence "FIX(f)" "INPROCESS(i)" "|" "FIXED(F!)")
-							(sequence "|" "CANCELED(x@!)")
+							(sequence "FIX(f)" "INPROCESS(i)" "|" "FIXED(F@)")
+							(sequence "|" "CANCELED(x@)")
 							)
-        org-todo-keyword-faces '(("TODO" . (:foreground "pink"))
-                                 ("MAYBE" . (:foreground "blue"))
+        org-todo-keyword-faces '(
+                                 ("MAYBE" . (:foreground  "#9ac8e0"))
+								 ("TODO" . (:foreground "pink"))
                                  ("WAITING" . (:foreground "yellow"))
                                  ("DONE" . (:foreground "green"))
                                  ("DELIGATE" . (:foreground "blue"))
                                  ("CHECK" . (:foreground "yellow"))
                                  ("VERIFIED" . (:foreground "green"))
-                                 ;;("FIX" . (:foreground "pink"))
+                                 ("FIX" . (:foreground "pink"))
                                  ("INPROCESS" . (:foreground "yellow"))
                                  ("FIXED" . (:foreground "green"))
                                  ("CANCELED" . (:foreground "grey"))
 								 )
         org-startup-folded 'content
         org-startup-indented t
-        org-tags-column -80
+        org-tags-column -100
         org-startup-with-inline-images t
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex)
@@ -5431,7 +5433,7 @@ function with the \\[universal-argument]."
    `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
 
    `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
-   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through t :foreground "#b4ccbf"))))
+   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through nil :foreground "#71696A"))))
 
    `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
    `(org-block ((t (:inherit fixed-pitch))))
@@ -5446,27 +5448,12 @@ function with the \\[universal-argument]."
    `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
    `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
    `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
-   `(org-done ((t (:foreground "PaleGreen" :strike-through t))))
+   `(org-done ((t (:foreground "#71696A" :strike-through nil))))
    ) )
 
 ;;;;;; prettify org checkboxes with unicode characters
-  (font-lock-add-keywords
-   'org-mode
-   '(("^ *\\([-]\\) "
-      (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-  (font-lock-add-keywords 'org-mode
-                          '(("^ *\\([+]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
-
-  (add-hook 'org-mode-hook '(lambda ()
-                              "Beautify Org Checkbox Symbol"
-                              (push '("[ ]" . "☐" ) prettify-symbols-alist)
-                              (push '("[X]" . "☑" ) prettify-symbols-alist)
-                              (push '("[-]" . "⊡" ) prettify-symbols-alist)
-                              (prettify-symbols-mode)))
-
   (defface org-checkbox-done-text
-    '((t (:foreground "#71696A" :strike-through t)))
+    '((t (:foreground "#71696A" :strike-through nil)))
     "Face for the text part of a checked org-mode checkbox.")
 
   (font-lock-add-keywords
@@ -5628,7 +5615,7 @@ function with the \\[universal-argument]."
 	`((tags-todo "*"
 				 ((org-agenda-skip-function
 				   `(org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp
-											  'todo '("MAYBE" "WAITING" "CANCELED" "DONE" "CANCELED" "VERIFIED")))
+											  'todo '("MAYBE" "CANCELED" "DONE" "VERIFIED" "FIXED")))
                   (org-agenda-block-separator 9472)
                   (org-agenda-overriding-header "Tasks with action needed without a date\n")))
       (agenda "" ((org-agenda-span 1)
@@ -5803,21 +5790,48 @@ function with the \\[universal-argument]."
 ;; https://github.com/minad/org-modern
 (use-package org-modern
     :hook
-    (org-mode . org-modern-mode)
-    :custom
+    (
+	 (org-mode . org-modern-mode)
+    (org-agenda-finalize . org-modern-agenda))
+	:custom-face
+	(org-modern-symbol ((t (:family "Iosevka Fixed"))))
+	(org-modern-label ((t (:family "Iosevka Fixed" :height 1.0 :background ,(face-attribute 'default :background)))))
+	(org-modern-tag ((t (:foreground "cyan" :background ,(face-attribute 'default :background)))))
+	(org-modern-block-name ((t (:family "Iosevka Fixed" :height 1.0 :weight light))))
+	:custom
+	(org-modern-star 'fold)
+	(org-modern-hide-stars nil)
+    (org-modern-timestamp nil)
     (org-modern-table t)
     (org-modern-keyword nil)
-    (org-modern-timestamp nil)
-    (org-modern-priority nil)
-    (org-modern-checkbox nil)
-    (org-modern-tag nil)
+    (org-modern-priority t)
+	(org-modern-priority '((?1 . "🎉")
+						   (?2 . "😄")
+						   (?3 . "🆗")
+						   (?4 . "☹️")
+						   (?5 . "🤮")
+						   ))
+	(org-modern-priority-faces '((?A :foreground "red")
+								 (?B :foreground "pink")
+								 (?C :foreground "yellow")
+								 (?D :foreground "beige")
+								 (?E :foreground "grey")
+								 (?1 :foreground "red")
+								 (?2 :foreground "pink")
+								 (?3 :foreground "yellow")
+								 (?4 :foreground "beige")
+								 (?5 :foreground "grey")))
+    (org-modern-checkbox '((88 . "☑") (45 . #("□–" 0 2 (composition ((2))))) (32 . "□")))
+	(org-modern-todo t)
+	(org-modern-todo-faces org-todo-keyword-faces)
+    (org-modern-tag t)
+	(org-modern-progress 8)
     (org-modern-block-name t)
-    (org-modern-keyword nil)
+    (org-modern-keyword t)
     (org-modern-footnote nil)
-    (org-modern-internal-target nil)
-    (org-modern-radio-target nil)
-    (org-modern-statistics nil)
-    (org-modern-progress nil))
+    (org-modern-internal-target '(" ↪ " t " "))
+	(org-modern-radio-target '(" ⛯ " t " "))
+    	)
 
 ;;;;; org-rich-yank
 ;; Rich text clipboard when yanking code into org buffer
@@ -5827,25 +5841,6 @@ function with the \\[universal-argument]."
   :defer 2
   :bind (:map org-mode-map
               ("C-M-y" . org-rich-yank)))
-
-;;;;; org-fancy-priorities
-;; displays org priorities as custom strings
-;; https://github.com/harrybournis/org-fancy-priorities
-(use-package org-fancy-priorities
-  :blackout t
-  :defines org-fancy-priorities-list
-  :hook (org-mode . org-fancy-priorities-mode)
-  :config
-(setq org-fancy-priorities-list '((?A . "❗")
-                                  (?B . "⬆")
-                                  (?C . "⬇")
-                                  (?D . "☕")
-                                  (?1 . "⚡")
-                                  (?2 . "🍷")
-                                  (?3 . "🍸")
-                                  (?4 . "☕")
-                                  (?5 . "💩")
-                                  (?I . "Important"))))
 
 ;;;;; toc-org
 ;; Table of contents updated at save to header with TOC tag
