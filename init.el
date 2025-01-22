@@ -5798,10 +5798,22 @@ function with the \\[universal-argument]."
 	(org-modern-label ((t (:family "Iosevka Fixed" :height 1.0 :background ,(face-attribute 'default :background)))))
 	(org-modern-tag ((t (:foreground "cyan" :background ,(face-attribute 'default :background)))))
 	(org-modern-block-name ((t (:family "Iosevka Fixed" :height 1.0 :weight light))))
-	:custom
+	(org-modern-date-active ((((background light)) :background "gray90" :foreground "black")
+							  (t :background "gray10" :foreground "#00d3d0")))
+	(org-modern-time-active ((((background light)) :background "gray35" :foreground "white" :distant-foreground "black")
+							  (t :background "gray10" :foreground "#00e9ff" :distant-foreground "white")))
+	(org-modern-date-inactive ((((background light)) :background "gray90" :foreground "gray30")
+								(t :background "black" :foreground "gray70")))
+	(org-modern-time-inactive ((((background light)) :foreground "gray95" :distant-foreground "gray5")
+								(t :background "black" :foreground "gray5" :distant-foreground "gray95")))
+	(org-modern-progress-complete ((((background light)) :background "gray20" :foreground "white")
+									(t :background "gray75" :foreground "black")))
+	(org-modern-progress-incomplete ((((background light)) :background "gray90" :foreground "black")
+									  (t :background "gray20" :foreground "white")))
+:custom
 	(org-modern-star 'fold)
 	(org-modern-hide-stars nil)
-    (org-modern-timestamp nil)
+    (org-modern-timestamp t)
     (org-modern-table t)
     (org-modern-keyword nil)
     (org-modern-priority t)
@@ -5831,7 +5843,7 @@ function with the \\[universal-argument]."
     (org-modern-footnote nil)
     (org-modern-internal-target '(" ↪ " t " "))
 	(org-modern-radio-target '(" ⛯ " t " "))
-    	)
+	(org-modern-horizontal-rule nil))
 
 ;;;;; org-rich-yank
 ;; Rich text clipboard when yanking code into org buffer
