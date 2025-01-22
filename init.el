@@ -4445,6 +4445,19 @@ the children of class at point."
                                            denote-component-history )))
 
   :config
+;;;;;; denote-journal-extras mods
+  ;; replacement function to only use year and month for title yy-mm.
+  (defun denote-journal-extras--entry-today (&optional date)
+	"Return list of files matching a journal for today or optional DATE.
+     DATE has the same format as that returned by `denote-parse-date'."
+  (interactive)
+  (let* ((identifier (format "%s"(format-time-string "%y-%m" date)))
+         (files (denote-directory-files identifier))
+         (keyword (concat "_" (regexp-quote denote-journal-extras-keyword))))
+    (seq-filter
+     (lambda (file)
+       (string-match-p keyword file))
+     files)))
 
 ;;;;;; play nice with diredfl
   (defun sej/denote-dired-mode-hook()
