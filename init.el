@@ -5597,6 +5597,13 @@ function with the \\[universal-argument]."
   org-agenda-todo-ignore-scheduled
   org-agenda-sorting-strategy
   org-agenda-skip-deadline-prewarning-if-scheduled)
+  :custom-face
+  (org-agenda-calendar-event ((t (:foreground "gray70"))))
+  (org-imminent-deadline ((t (:bold nil :foreground "chocolate3"))))
+  (org-upcoming-deadline ((t (:bold nil :foreground "peru"))))
+  (org-upcoming-distant-deadline ((t (:foreground "chocolate4"))))
+  (org-agenda-date ((t (:bold nil :foreground "medium sea green"))))
+  (org-agenda-date-weekend ((t (:bold nil :foreground "medium aquamarine"))))
   :config
   ;; get denote up and running
   (require 'denote)
@@ -5605,7 +5612,7 @@ function with the \\[universal-argument]."
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
 		org-agenda-files `(,org-directory ,denote-journal-extras-directory)
-        org-agenda-dim-blocked-tasks 'invisible
+        org-agenda-dim-blocked-tasks t ; other option is 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
         org-agenda-skip-scheduled-if-done t
@@ -5658,12 +5665,19 @@ function with the \\[universal-argument]."
 	"Custom agenda for use in `org-agenda-custom-commands'.")
 
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
-									 ("d" "Deadlines" agenda "display deadlines and scheduled"
+									 ("d" "Deadlines & scheduled" agenda ""
 									  ((org-agenda-span 'month)
 									   (org-agenda-time-grid nil)
 									   (org-agenda-show-all-dates nil)
 									   (org-agenda-entry-types '(:deadline :scheduled))
 									   (org-deadline-warning-days 0)
+									   (org-agenda-sorting-strategy '(priority-up effort-down))))
+									 ("D" "Deadlines & scheduled w/warnings" agenda ""
+									  ((org-agenda-span 'month)
+									   (org-agenda-time-grid nil)
+									   (org-agenda-show-all-dates nil)
+									   (org-agenda-entry-types '(:deadline :scheduled))
+									   (org-deadline-warning-days 7)
 									   (org-agenda-sorting-strategy '(priority-up effort-down))))
 									 ("A" "Daily agenda and top priority tasks"
 									  ,sej/org-custom-daily-agenda)
@@ -5809,7 +5823,7 @@ function with the \\[universal-argument]."
 	:custom-face
 	(org-modern-symbol ((t (:family "Iosevka Fixed"))))
 	(org-modern-label ((t (:family "Iosevka Fixed" :height 1.0 :background ,(face-attribute 'default :background)))))
-	(org-modern-tag ((t (:foreground "cyan" :background ,(face-attribute 'default :background)))))
+	(org-modern-tag ((t (:foreground "dark cyan" :background ,(face-attribute 'default :background)))))
 	(org-modern-block-name ((t (:family "Iosevka Fixed" :height 1.0 :weight light))))
 	(org-modern-date-active ((((background light)) :background "gray90" :foreground "black")
 							  (t :background "gray10" :foreground "#00d3d0")))
