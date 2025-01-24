@@ -4446,8 +4446,8 @@ the children of class at point."
 
   :config
 ;;;;;; denote-journal-extras mods
-  ;; replacement function to only use year and month for title yy-mm.
-  (defun denote-journal-extras--entry-today (&optional date)
+  ;; replacement function to only use year and month for journal title yy-mm.
+  (defun sej/denote-journal-extras--entry-today (&optional date)
 	"Return list of files matching a journal for today or optional DATE.
      DATE has the same format as that returned by `denote-parse-date'."
   (interactive)
@@ -4459,6 +4459,9 @@ the children of class at point."
        (string-match-p keyword file))
      files)))
 
+  ;; (denote-journal-extras--entry-today)
+  (advice-add 'denote-journal-extras--entry-today :override #'sej/denote-journal-extras--entry-today)
+  
 ;;;;;; play nice with diredfl
   (defun sej/denote-dired-mode-hook()
 	"Function to switch off between diredfl-mode and denote-dired-mode."
