@@ -5392,6 +5392,13 @@ function with the \\[universal-argument]."
   ;; Do the same for .html
   (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
 
+  (defun sej/org-attach-save-file-list-to-property (dir)
+  "Save list of attachments to ORG_ATTACH_FILES property."
+  (when-let* ((files (org-attach-file-list dir)))
+    (org-set-property "ORG_ATTACH_FILES" (mapconcat #'identity files ", "))))
+  
+(add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property)
+
 ;;;;;; tags
   ;; defined here for regular topics
   ;; `org-tag-persistent-alist' defined in denote section from current note list
