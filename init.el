@@ -3147,7 +3147,14 @@ If called with a prefix argument, query for word to search."
                `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
                                                          '(("ccls" )
                                                            ("clangd")))))
-  (setq help-at-pt-display-when-idle t)
+  ;; basedpyright-langserver [[https://docs.basedpyright.com/latest/installation/ides/][link]]
+  ;; Emacs set-up [[https://webbureaucrat.gitlab.io/articles/emacs-for-python-and-poetry-using-basedpyright-langserver/][link]]
+  ;; brew install basedpyright
+(add-to-list 'eglot-server-programs
+			   '((python-mode python-ts-mode)
+               "basedpyright-langserver" "--stdio"))
+
+(setq help-at-pt-display-when-idle t)
   (setq completion-category-defaults nil)
   (use-package consult-eglot
     :commands consult-eglot-symbols))
@@ -3613,6 +3620,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; Install:
 ;; pip3 install -U setuptools
 ;; brew install pyright
+;; optional install basedpyright
 ;; YAPF or Black
 ;; http://wikemacs.org/wiki/Python
 ;; (require 'python)
