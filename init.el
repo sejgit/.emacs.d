@@ -2851,6 +2851,7 @@ If called with a prefix argument, query for word to search."
           ("OKAY" . "#5f9000")
           ("TRY" . "#5f7f5f")
           ("TODO" . "#cc9393")
+          ("TEST" . "#ff7700")
           ))
 
   (push 'org-mode hl-todo-include-modes))
@@ -5307,7 +5308,7 @@ function with the \\[universal-argument]."
   :ensure nil
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
-          (org-mode . org-num-mode)
+          ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
           (org-mode . variable-pitch-mode))
   :bind (( ("C-c l" . org-store-link)
            ("C-c c" . org-capture)
@@ -5331,6 +5332,7 @@ function with the \\[universal-argument]."
 		 (:map goto-map
 			   ("M-o" . org-goto)))
   :config
+  (setq org-num-face 'org-modern-date-inactive)
   ;; get denote up and going
   (require 'denote)
   (require 'denote-journal-extras)
