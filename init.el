@@ -2798,19 +2798,14 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/emacsmirror/rainbow-mode
 (use-package rainbow-mode
   :blackout t
-  :hook (prog-mode . rainbow-mode)
+  :hook ((prog-mode . rainbow-mode)
+		 (org-mode . rainbow-mode)
+		 (conf-space-mode . rainbow-mode))
+  :bind (:map sej-C-q-map
+			  ("R" . rainbow-mode))
   :config
-  (setq rainbow-ansi-colors nil
-        rainbow-x-colors nil)
-  (defun sej/rainbow-mode-in-themes ()
-    (when-let* ((file (buffer-file-name))
-                ((derived-mode-p 'emacs-lisp-mode))
-                ((string-match-p "-theme" file)))
-      (rainbow-mode 1)))
-
-  (add-hook 'emacs-lisp-mode-hook #'sej/rainbow-mode-in-themes)
-
-  (define-key ctl-x-x-map "c" #'rainbow-mode)) ; C-x x c
+  (setq rainbow-ansi-colors t
+        rainbow-x-colors t))
 
 ;;;;; hl-todo
 ;; Highlight TODO and similar keywords in comments and strings
@@ -6021,7 +6016,8 @@ function with the \\[universal-argument]."
       (if logbookp
           (goto-char (org-element-property :contents-end element))
         (org-insert-drawer nil "LOGBOOK"))
-      (insert "- \"" item "\" was checked ")
+
+	  (insert "- " item " ")
       (org-insert-time-stamp (current-time) t t)
       (when logbookp
         (insert "\n")))))
@@ -6817,10 +6813,18 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 (use-package elfeed
   :bind ("C-q w" . elfeed)
   :config
-  (setq elfeed-feeds '(("http://nullprogram.com/feed/" blog emacs)
-					   ( "https://planet.emacslife.com/atom.xml" blog emacs)
-					   ("https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs)
-					   ("http://nedroid.com/feed/" webcomic))))
+  ;;(setq elfeed-feeds '(("http://nullprogram.com/feed/" blog emacs)
+					   ;; ( "https://planet.emacslife.com/atom.xml" blog emacs)
+					   ;; ("https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs)
+					   ;; ("http://nedroid.com/feed/" webcomic))))
+
+;;;;;; Configure Elfeed with org mode
+  (use-package elfeed-org
+	:demand t
+    :config
+    (elfeed-org)
+    :custom
+    (rmh-elfeed-org-files '("~/Documents/orgtodo/20250124T203443--elfeed.org"))))
 
 ;;; init.el --- end
 (message "init.el ends here")
