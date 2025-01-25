@@ -2752,6 +2752,17 @@ If called with a prefix argument, query for word to search."
 ;; (the `regular' in this case).
 (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))  )
 
+;;;;; show-font
+;; preview fonts on the system
+;; [[https://protesilaos.com/emacs/show-font][manual]], [[https://github.com/protesilaos/show-font][github]], [[https://protesilaos.com/codelog/2024-09-10-emacs-show-font-0-1-0/][pics]]
+(use-package show-font
+  :init
+  (which-key-add-keymap-based-replacements sej-C-q-map "C-f" "show-font")
+  :bind (:map sej-C-q-map
+			  ("C-f f" . show-font-select-preview)
+			  ("C-f l" . show-font-list)
+			  ("C-f t" . show-font-tabulated)))
+
 ;;;;; symbol-overlay
 ;; Highlight symbols and move between them
 ;; https://github.com/wolray/symbol-overlay
@@ -5308,7 +5319,9 @@ function with the \\[universal-argument]."
 			   ("C-c )" . org-fold-hide-drawer-all)
 			   ("C-c b" . org-switchb))
 		 (:map dired-mode-map
-			   ("C-c C-a" . org-attach-dired-to-subtree)))
+			   ("C-c C-a" . org-attach-dired-to-subtree))
+		 (:map goto-map
+			   ("M-o" . org-goto)))
   :config
   ;; get denote up and going
   (require 'denote)
