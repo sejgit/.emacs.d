@@ -6849,6 +6849,17 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
     :custom
     (rmh-elfeed-org-files '("~/Documents/orgtodo/20250124T203443--elfeed.org"))))
 
+;;;;; elfeed-webkit
+;; render in webkit [[https://github.com/fritzgrabo/elfeed-webkit][link]]
+(use-package elfeed-webkit
+  :after elfeed
+  :bind (:map elfeed-show-mode-map
+              ("'" . elfeed-webkit-toggle)))
+  ;; :init
+  ;; (setq elfeed-webkit-auto-enable-tags '(webkit comics))
+  ;; :config
+  ;; ;;(elfeed-webkit-auto-toggle-by-tag)
+
 ;;; init.el --- end
 (message "init.el ends here")
 (provide 'init)
