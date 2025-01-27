@@ -5332,7 +5332,6 @@ function with the \\[universal-argument]."
 		 (:map goto-map
 			   ("M-o" . org-goto)))
   :config
-  (setq org-num-face 'org-modern-date-inactive)
   ;; get denote up and going
   (require 'denote)
   (require 'denote-journal-extras)
@@ -5340,6 +5339,14 @@ function with the \\[universal-argument]."
   
   ;; reading man pages in org-mode
   (require 'ol-man)
+
+;; set headline numbering face to something more subtle
+  (setq org-num-face 'org-modern-date-inactive)
+
+  ;; archive location setting
+  ;; based on year of archive, under heading of file it comes from
+  ;; in denote format eg. 20250101T00000000--ARCHIVE.org for 2025
+  (setq org-archive-location (concat org-directory (format-time-string "/%Y") "0101T000000--archive.org::* %s"))
 
   (setq org-ellipsis "⤵"
         org-directory sej-org-directory
