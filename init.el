@@ -4632,6 +4632,7 @@ one among them and operate therein."
 	"Function to update silo & critical variables based on current buffer/file.
 Chooses silo based on file being in one of the extras-directories any history since.
 Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
+	(interactive)
 	(let ((file buffer-file-name) existin)
 	  (if file
 		  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
@@ -4642,7 +4643,7 @@ Then proceeds to update keywords, colleagues, journal directory & finally refile
 		(sej/denote-keywords-update)
 		(sej/denote-colleagues-update)
 		(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory)))
-	  (setq org-refile-targets `(( ,(denote-directory-files "__[^journal]") :maxlevel . 3)))))
+	  (setq org-refile-targets `((org-agenda-files . (:maxlevel 3))))))
 
   (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
