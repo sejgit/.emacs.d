@@ -38,28 +38,9 @@
 ;; (setq package-enable-at-startup nil)
 
 ;;;;; Garbage collection
-;; Defer garbage collection further back in the startup process
-(defvar default-file-name-handler-alist file-name-handler-alist)
-(defvar extended-gc-cons-threshold most-positive-fixnum)
-(defvar default-gc-cons-threshold (* 128 1024 1024))
-
-(setq file-name-handler-alist nil
-      gc-cons-threshold extended-gc-cons-threshold)
-
-(defun sej/return-gc-to-default ()
-  "Take garbage collection back to default."
-  (setq-default gc-cons-threshold default-gc-cons-threshold
-                load-prefer-newer nil))
-
-(defun sej/reset-file-handler-alist-h ()
-  "Take file name handler back to default."
-  (dolist (handler file-name-handler-alist)
-    (add-to-list 'default-file-name-handler-alist handler))
-  (setq file-name-handler-alist default-file-name-handler-alist))
-
-(add-hook 'after-init-hook #'sej/reset-file-handler-alist-h)
-(add-hook 'after-init-hook #'sej/return-gc-to-default)
-(advice-add #'package--ensure-init-file :override #'ignore)
+(setq gc-cons-percentage 0.5
+      gc-cons-threshold (* 128 1024 1024))
+(add-hook 'after-init-hook #'garbage-collect t)
 
 ;;;;; gccemacs
 ;; Native Compilation Vars

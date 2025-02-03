@@ -43,6 +43,67 @@
 (setq debug-on-error nil)
 (setq debug-on-event nil)
 
+;;;;; should i even be here
+(defconst emacs/>=30p
+  ( >= emacs-major-version 30 )
+  "Emacs is 30 or above.")
+(when (not emacs/>=30p)
+  (error "This requires Emacs 29 and above")  )
+
+;;;;; Use-Package set-up
+;; https://github.com/jwiegley/use-package
+;; https://github.com/emacsmirror/diminish
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; https://github.com/jwiegley/use-package#use-package-ensure-system-package
+;; Should set before loading `use-package'
+(setq-default use-package-always-defer t
+              use-package-compute-statistics t
+              use-package-expand-minimally t
+              use-package-enable-imenu-support t)
+
+(eval-and-compile
+  (defsubst emacs-path (path)
+    (expand-file-name path user-emacs-directory))
+
+  (setq package-enable-at-startup nil
+        load-path (append (list (emacs-path "lisp"))
+						  (delete-dups load-path))))
+
+;; part of Emacs built-in as of Emacs29
+(eval-when-compile
+  (require 'use-package))
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+(use-package system-packages)
+(use-package use-package-ensure-system-package
+  :ensure nil
+  :after use-package)
+
+;;;;;  Warnings
+;; set-up server & suppress warnings
+;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
+(require 'warnings)
+;; remove warnings for cl depreciated and server already running
+(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
+(setq warning-suppress-log-types (quote ((cl) (org-element))))
+(setq byte-compile-warnings (quote ((cl-functions))))
+
+;; prevent warnings buffer from poping up during package compile
+;; still available in the buffer list
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+;;;;; during loading clear file-name-handler-alist
+(defvar file-name-handler-alist-old file-name-handler-alist)
+
+(setq file-name-handler-alist nil)
+
+(add-hook 'after-init-hook
+          #'(lambda ()
+              (setq file-name-handler-alist file-name-handler-alist-old)))
+
 ;;;;; system custom constants
 ;; section for global constants
 (defconst sys/win32p
@@ -99,14 +160,6 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
-(defconst emacs/>=30p
-  ( >= emacs-major-version 30 )
-  "Emacs is 30 or above.")
-
-(defconst emacs/>=29p
-  (>= emacs-major-version 29)
-  "Emacs is 29 or above.")
-
 ;;;;; customization variables set
 ;; set-up Emacs customizations choices which are then modified by custom.el
 (defgroup sej nil
@@ -139,10 +192,10 @@
 
 ;;;;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq custom-file (emacs-path "custom.el"))
 
 (let ((custom-template-file
-       (expand-file-name "custom-template.el" user-emacs-directory)))
+       (emacs-path "custom-template.el")))
   (if (and (file-exists-p custom-template-file)
            (not (file-exists-p custom-file)))
       (copy-file custom-template-file custom-file)))
@@ -154,31 +207,11 @@
 ;; place to hold specific & secret stuff ~/.ssh is best
 (progn
   (let ((file
-         (expand-file-name "custom-post.el" user-emacs-directory)))
+         (emacs-path "custom-post.el")))
     (load file :noerror-if-file-is-missing) )
   (let ((file
          (expand-file-name "custom-post.el" "~/.ssh/")))
     (load file :noerror-if-file-is-missing) ) )
-
-;;;;; should i even be here
-(when (not emacs/>=29p)
-  (error "This requires Emacs 29 and above")  )
-
-;;;;;  Warnings
-;; set-up server & suppress warnings
-;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
-(require 'warnings)
-;; remove warnings for cl depreciated and server already running
-(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
-(setq warning-suppress-log-types (quote ((cl) (org-element))))
-(setq byte-compile-warnings (quote ((cl-functions))))
-
-;; prevent warnings buffer from poping up during package compile
-;; still available in the buffer list
-(add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
 
 ;;;;; Package manager
 ;; add melpa to already encluded elpa
@@ -193,26 +226,25 @@
 
 (advice-add 'package-install :before 'sej/package-install-refresh-contents)
 
-;; Use-Package set-up
-;; https://github.com/jwiegley/use-package
-;; https://github.com/emacsmirror/diminish
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; https://github.com/jwiegley/use-package#use-package-ensure-system-package
-;; Should set before loading `use-package'
-(setq-default use-package-always-defer t
-              use-package-compute-statistics t
-              use-package-expand-minimally t
-              use-package-enable-imenu-support t)
+;;;;; exec-path-from-shell
+;; https://github.com/purcell/exec-path-from-shell
+(use-package exec-path-from-shell
+  :demand t
+  :custom
+  (exec-path-from-shell-arguments nil)
+  :config
+  (exec-path-from-shell-initialize))
 
-;; part of Emacs built-in as of Emacs29
-(eval-when-compile
-  (require 'use-package))
-(require 'use-package-ensure)
-(setq use-package-always-ensure t)
-(use-package system-packages)
-(use-package use-package-ensure-system-package
-  :ensure nil
-  :after use-package)
+;;;;; ultra-scroll
+;; [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] is a smooth-scrolling package for emacs, with native support for standard builds as well as emacs-mac
+(use-package ultra-scroll
+  :demand t
+  :vc (:url "https://github.com/jdtsmith/ultra-scroll")
+  :init
+  (setq scroll-conservatively 101 ; important!
+        scroll-margin 0)
+  :config
+  (ultra-scroll-mode 1))
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -220,7 +252,7 @@
   (unless (find-font (font-spec :name "Iosevka"))
 	(shell-command-to-string "brew install font-iosevka"))
   (if (find-font (font-spec :name "Iosevka"))
-	  (add-to-list 'default-frame-alist '(font . "iosevka-14"))))
+	  (add-to-list 'default-frame-alist '(font . "iosevka-14")))
 
 ;;;;;; OSX Apple keyboard
 ;; caps lock is control (through karabiner)
@@ -255,21 +287,14 @@
     (setq ns-option-modifier 'alt)
     (setq ns-command-modifier 'meta)
     ))
-(use-package exec-path-from-shell
-  ;; https://github.com/purcell/exec-path-from-shell
-  :demand t
-  :custom
-  (exec-path-from-shell-arguments nil)
-  :config
-  (exec-path-from-shell-initialize))
-
 (global-set-key (kbd "M-`") 'ns-next-frame)
 (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
 (setq insert-directory-program "gls")
+
 (if (not (getenv "TERM_PROGRAM"))
     (setenv "PATH"
             (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-(setq exec-path (split-string (getenv "PATH") ":"))
+(setq exec-path (split-string (getenv "PATH") ":")))
 
 ;;;;; Linux System specific environment setting
 (when sys/linuxp
@@ -351,17 +376,6 @@
       (load "server")
       (unless (server-running-p) (server-start)) ) ) )
 
-;;;;; GCMH
-;; The Garbage Collector Magic Hack
-;; https://github.com/emacsmirror/gcmh
-(use-package gcmh
-  :blackout t
-  :hook ((after-init . gcmh-mode)
-         (focus-out-hook . gcmh-idle-garbage-collect)
-         (suspend-hook . gcmh-idle-garbage-collect))
-  :custom
-  (gcmh-idle-delay 10))
-
 ;;;;; async
 ;; A module for doing asynchronous processing in Emacs
 ;; https://github.com/jwiegley/emacs-async
@@ -416,7 +430,8 @@
   :init
   (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
         no-littering-var-directory (expand-file-name "~/.cache/emacs/")
-        temporary-file-directory (expand-file-name "~/.cache/emacs/tmp/"))
+        temporary-file-directory (expand-file-name "~/.cache/emacs/tmp/")
+		create-lockfiles nil)
   (make-directory temporary-file-directory :parents)
   (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
   (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name)
@@ -441,12 +456,15 @@
       kept-old-versions 2   ; and some old ones, too
       vc-make-backup-files t
       backup-by-copying t
-      version-control t))
+      version-control t
+	  auto-save-interval 64
+	  auto-save-timeout 2))
 
 ;;;;; Emacs internal settings
 ;; a use-package friendly place to put settings
 ;; no real extra value to putting as setq but feels clean
 (use-package emacs
+  :demand t
   :custom
 ;;;;;; general
   (default-directory (f-expand "$HOME") "Set startup directory.")
@@ -465,6 +483,8 @@
   (grep-use-headings t "use headings rather than per line")
   (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
   (next-line-add-newlines t "Add a new line when going to the next line.")
+  (load-prefer-newer t)
+  (inhibit-startup-screen t)
 
 ;;;;;; whitespace and end-of-buffer settings
   (indicate-empty-lines t)
@@ -478,13 +498,14 @@
   (tab-first-completion 'word-or-paren-or-punct)
   (tab-width 4)
   (indent-tabs-mode t)
-  (fill-column 160)
+  (fill-column 78)
   (x-stretch-cursor 1)
 
 ;;;;;; long line settings
   (truncate-lines 1)
   (font-lock-maximum-decoration t)
   (truncate-partial-width-windows 1)
+  (auto-hscroll-mode 'current-line)
 
 ;;;;;; mouse
   (make-pointer-invisible t "Hide mouse while typing.")
@@ -643,7 +664,8 @@
   (unbind-key "C-q")
   (unbind-key "M-z")
   (unbind-key "C-h C-h")
-
+  (define-key input-decode-map [?\C-m] [C-m]) ;; fix C-m so not decoded as <ret>
+  
   :bind (:prefix-map transpose-map
                       :prefix "M-t"
                       :prefix-docstring "transpose map"
@@ -663,24 +685,33 @@
 		              ("8" . sej/insert-infinity)
 		              ("v" . sej/insert-check))
 
-;;;;;; sej-C-q bindings
+;;;;;; map bindings sej-C-x bindings
   :bind (:prefix-map sej-C-q-map
                       :prefix "C-q"
                       :prefix-docstring "SeJ Personal C-q key bindings"
                       ("v"   . emacs-version)
                       ("\\"  . align-regexp) ;Align your code in a pretty way.
-                      ("."   . org-time-stamp)
                       ("D"   . describe-personal-keybindings)
-					  ("l"   . sej/toggle-relative-ln)
-                      :prefix-map term-map
+					  ("l"   . sej/toggle-relative-ln))
+
+  :bind (:prefix-map term-map
                       :prefix "C-q S"
                       :prefix-docstring "Term bindings")
+
+  :bind (:prefix-map sej-C-m-map
+                      :prefix "<C-m>"
+                      :prefix-docstring "Multi-menu")
+
+  :bind (:prefix-map sej-denote-map
+					 :prefix "C-,"
+					 :prefix-docstring "SeJ Denote key bindings"
+					 ("."   . org-time-stamp))
 
   :bind (:map override-global-map
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)
-			   ("M-\\" . cycle-spacing)))
+			   ("M-\\" . cycle-spacing)))  ;; end of emacs
 
 ;;;;; sej constants
 
@@ -744,29 +775,10 @@
 ;; built-in: minibuffer settings
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el
 (use-package minibuffer
+  :demand t
   :ensure nil
-  :preface
-  ;; Set garbage collection threshold
-  (defun sej/minibuffer-setup-hook ()
-    (setq gc-cons-threshold extended-gc-cons-threshold))
-
-  (defun sej/minibuffer-exit-hook ()
-    (setq gc-cons-threshold default-gc-cons-threshold))
-
-  (defun sej/always-exit-minibuffer-first ()
-    (if-let ((minibuffer (active-minibuffer-window)))
-        (with-current-buffer (window-buffer minibuffer)
-          (minibuffer-keyboard-quit))
-      (funcall keyboard-quit)))
-
-  :init
-  (add-hook 'minibuffer-setup-hook #'sej/minibuffer-setup-hook)
-  (add-hook 'minibuffer-exit-hook #'sej/minibuffer-exit-hook)
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-  (advice-add #'sej/always-exit-minibuffer-first :around 'keyboard-quit)
-
   :config
-  (setq completion-cycle-threshold 3
+  (setq completion-cycle-threshold 7
         completion-flex-nospace nil
         completion-styles '(orderless basic)
         completion-category-defaults nil
@@ -856,6 +868,11 @@
 
 ;;;;; sej functions
 ;; some basic functions
+
+(defun add-all-to-list (var &rest elems)
+  "Add all these elements ELEMS to a list VAR rather than one at a time."
+  (dolist (elem (reverse elems))
+    (add-to-list var elem)))
 
 (defun sej/open-new-line()
   "Open new line without breaking and place cursor there."
@@ -982,15 +999,28 @@ Return its absolute path.  Otherwise, return nil."
 ;;;;; Auth-Source
 ;; built-in: authentication source
 ;; https://www.gnu.org/software/emacs/manual/html_mono/auth.html
-(use-package auth-source
-  :ensure nil
-  :demand t
-  :init
-  (setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
-                       ,(f-expand "~/.ssh/.authinfo")
-                       macos-keychain-generic
-                       macos-keychain-internet))
-  (setq auth-source-do-cache t))
+(eval-when-compile
+  (require 'auth-source)
+  (require 'auth-source-pass))
+
+(setq auth-sources `(,(f-expand "~/.ssh/.authinfo.gpg")
+                     ,(f-expand "~/.ssh/.authinfo")
+                     macos-keychain-generic
+                     macos-keychain-internet)
+	  auth-source-do-cache t)
+
+(defun sej/lookup-password (host user port)
+  "Lookup password for HOST USER PORT."
+  (require 'auth-source)
+  (require 'auth-source-pass)
+  (let ((auth (auth-source-search :host host :user user :port port)))
+    (if auth
+        (let ((secretf (plist-get (car auth) :secret)))
+          (if secretf
+              (funcall secretf)
+            (error "Auth entry for %s@%s:%s has no secret!"
+                   user host port)))
+      (error "No auth entry found for %s@%s:%s" user host port))))
 
 ;;;;; epa
 ;; built-in: EasyPG assistant for GnuPG implementation of the OpenPGP standard
@@ -1081,60 +1111,86 @@ Return its absolute path.  Otherwise, return nil."
 ;; triansient based jump screens
 ;; https://github.com/kickingvegas?tab=repositories
 (use-package casual
- ;; casual-agenda
+  :demand t)
+
+(use-package casual-agenda
+  :ensure nil
+  :after org-agenda
   :bind (:map org-agenda-mode-map
          ("C-o" . casual-agenda-tmenu)
          ("M-j" . org-agenda-clock-goto) ; optional
-         ("J" . bookmark-jump)) ; optional
+         ("J" . bookmark-jump)))
 
-;; casual-bookmarks
+(use-package casual-bookmarks
+  :ensure nil
+  :after bookmark
   :bind (:map bookmark-bmenu-mode-map
               ("C-o" . casual-bookmarks-tmenu)
               ("S" . casual-bookmarks-sortby-tmenu)
-              ("J" . bookmark-jump))
+              ("J" . bookmark-jump)))
 
-;; casual-calc
-  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu))
+(use-package casual-calc
+  :ensure nil
+  :after calc
+  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
 
-;; casual-calendar
-  :bind (:map calendar-mode-map ("C-o" . 'casual-calendar))
+(use-package casual-calendar
+  :ensure nil
+  :after calendar
+  :bind (:map calendar-mode-map ("C-o" . 'casual-calendar)))
 
-;; casual-dired
-  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu))
+(use-package casual-dired
+  :ensure nil
+  :after dired
+  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
 
-;; casual-editkit
-  :bind (:map global-map ("C-o" . 'casual-editkit-main-tmenu))
+(use-package casual-editkit
+  :ensure nil
+  :bind (:map global-map ("C-o" . 'casual-editkit-main-tmenu)))
 
-;; casual-ibuffer
-  :bind (:map
-         ibuffer-mode-map
+(use-package casual-ibuffer
+  :ensure nil
+  :after ibuffer
+  :bind (:map ibuffer-mode-map
          ("C-o" . casual-ibuffer-tmenu)
          ("F" . casual-ibuffer-filter-tmenu)
          ("s" . casual-ibuffer-sortby-tmenu)
          ("<double-mouse-1>" . ibuffer-visit-buffer) ; optional
          ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window) ; optional
-         ("{" . ibuffer-backwards-next-marked) ; optional
-         ("}" . ibuffer-forward-next-marked)   ; optional
-         ("[" . ibuffer-backward-filter-group) ; optional
-         ("]" . ibuffer-forward-filter-group)  ; optional
-         ("$" . ibuffer-toggle-filter-group)) ; optional
+         ("{" . ibuffer-backwards-next-marked)
+         ("}" . ibuffer-forward-next-marked)
+         ("[" . ibuffer-backward-filter-group)
+         ("]" . ibuffer-forward-filter-group)
+         ("$" . ibuffer-toggle-filter-group)))
 
-;; casual-info
-  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu))
+(use-package casual-info
+  :ensure nil
+  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
 
-;; casual-isearch
-  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu))
+(use-package casual-isearch
+  :ensure nil
+  :after isearch
+  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
 
-;; casual-re-builder
+(use-package casual-re-builder
+  :ensure nil
+  :after re-builder
   :bind (:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-         :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
+			  :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
 
- ;; avy, symbol-overlay are separate packages
+(use-package casual-image
+  :ensure nil
+  :hook (image-mode . casual-image-tmenu)
+  :bind (:map image-mode-map
+			  ("C-o" . casual-image-tmenu)))
+
 (use-package casual-avy
+  :ensure t ; separate package from casual
   :after avy
   :bind ("H-/" . casual-avy-tmenu))
 
 (use-package casual-symbol-overlay
+  :ensure t ; separate package from casual
   :after symbol-overlay
   :bind (:map symbol-overlay-map
 			  ("C-o" . casual-symbold-overlay-tmenu)))
@@ -1179,6 +1235,24 @@ Return its absolute path.  Otherwise, return nil."
           ("s-w" . delete-frame)
           ;; C-x combo
           ("C-x w" . delete-frame)
+          ;; A-M combo
+          ("A-M-s-k" . toggle-frame-fullscreen)
+          ("A-M-k" . sej/frame-resize-full)
+          ("A-M-h" . sej/frame-resize-l)
+          ("A-M-l" . sej/frame-resize-r)
+          ("A-M-s-h" . sej/frame-resize-l2)
+          ("A-M-s-l" . sej/frame-resize-r2)
+          ("A-M-H" . sej/frame-resize-l3)
+          ("A-M-L" . sej/frame-resize-r3)
+          ;; A-M h-j-k-l combo
+          ("A-M-s-<up>" . toggle-frame-fullscreen)
+          ("A-M-<up>" . sej/frame-resize-full)
+          ("A-M-<left>" . sej/frame-resize-l)
+          ("A-M-<right>" . sej/frame-resize-r)
+          ("A-M-s-<left>" . sej/frame-resize-l2)
+          ("A-M-s-<right>" . sej/frame-resize-r2)
+          ("A-M-<S-left>" . sej/frame-resize-l3)
+          ("A-M-<S-right>" . sej/frame-resize-r3)
           ;; C-q combo
           :map sej-C-q-map
           ("m" . sej/frame-recentre)
@@ -1186,8 +1260,11 @@ Return its absolute path.  Otherwise, return nil."
           ("<up>" . sej/frame-resize-full)
           ("<left>" . sej/frame-resize-l)
           ("<right>" . sej/frame-resize-r)
-          ("<S-left>" . sej/frame-resize-l2)
-          ("<S-right>" . sej/frame-resize-r2))
+          ("<s-left>" . sej/frame-resize-l2)
+          ("<s-right>" . sej/frame-resize-r2)
+          ("<S-left>" . sej/frame-resize-l3)
+          ("<S-right>" . sej/frame-resize-r3)
+		  )
   :init
   (setq window-divider-default-places t
         window-divider-default-bottom-width 1
@@ -1225,52 +1302,72 @@ Return its absolute path.  Otherwise, return nil."
     "Set frame full height and 1/2 wide, position at screen left."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size
-     (selected-frame)
-     (- (truncate (/ (display-pixel-width) 2)) 14)
-     (- (display-pixel-height)
-        (- (frame-outer-height)
-           (frame-inner-height) sej/menu-height))
-     1))
+    (set-frame-size (selected-frame)
+					(- (truncate (/ (display-pixel-width) 2)) 14)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
 
   (defun sej/frame-resize-l2 ()
     "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
-    (set-frame-size
-     (selected-frame)
-     (- (truncate (/ (display-pixel-width) 4)) 0)
-     (- (display-pixel-height)
-        (- (frame-outer-height)
-           (frame-inner-height) sej/menu-height))
-     1)  )
+    (set-frame-size (selected-frame)
+					(- (truncate (/ (display-pixel-width) 4)) 0)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
+
+  (defun sej/frame-resize-l3 ()
+    "Set frame full height and 2/3 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
+    (interactive)
+    (set-frame-position (selected-frame) 0 0)
+    (set-frame-size (selected-frame)
+					(- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
 
   (defun sej/frame-resize-r ()
     "Set frame full height and 1/2 wide, position at screen right."
     (interactive)
     (set-frame-position (selected-frame)
                         (- (truncate (/ (display-pixel-width) 2)) 0) 0)
-    (set-frame-size
-     (selected-frame)
-     (- (truncate (/ (display-pixel-width) 2)) 14)
-     (- (display-pixel-height)
-        (- (frame-outer-height)
-           (frame-inner-height) sej/menu-height))
-     1)  )
+    (set-frame-size (selected-frame)
+					(- (truncate (/ (display-pixel-width) 2)) 14)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
 
   (defun sej/frame-resize-r2 ()
     "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame)
-                        (- (/ (display-pixel-width) 2)
-                           (frame-pixel-width)) 0)
-    (set-frame-size
-     (selected-frame)
-     (- (truncate (/ (display-pixel-width) 4)) 0)
-     (- (display-pixel-height)
-        (- (frame-outer-height)
-           (frame-inner-height)) sej/menu-height)
-     1)  )
+                        (truncate (* (/ (display-pixel-width) 4) 3))
+						0)
+    (set-frame-size (selected-frame)
+					(- (truncate (/ (display-pixel-width) 4)) 0)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
+
+  (defun sej/frame-resize-r3 ()
+    "Set frame full height and 2/3 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
+    (interactive)
+    (set-frame-position (selected-frame)
+                        (truncate (* (/ (display-pixel-width) 3) 1))
+						0)
+    (set-frame-size (selected-frame)
+					(- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
+					(- (display-pixel-height)
+					   (- (frame-outer-height)
+						  (frame-inner-height) sej/menu-height))
+					1))
 
   (when sys/mac-x-p
     (setq ns-use-native-fullscreen nil))
@@ -1407,21 +1504,15 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; keep the scratch buffer from session to session
 ;; https://github.com/Fanael/persistent-scratch
 (use-package persistent-scratch
-  :preface
-  (defun my-save-buffer ()
-    "Save scratch and other buffer."
-    (interactive)
-    (let ((scratch-name "*scratch*"))
-      (if (string-equal (buffer-name) scratch-name)
-          (progn
-            (message "Saving %s..." scratch-name)
-            (persistent-scratch-save)
-            (message "Wrote %s" scratch-name))
-        (save-buffer))))
+  :commands persistent-scratch-setup-default
   :hook (emacs-startup . persistent-scratch-setup-default)
-  :bind (:map lisp-interaction-mode-map
-              ("C-x C-s" . my-save-buffer)))
-
+  :custom
+  (persistent-scratch-autosave-interval 30)
+  (persistent-scratch-backup-directory nil)
+  :config
+  (persistent-scratch-autosave-mode)
+  (with-demoted-errors "Error: %S"
+    (persistent-scratch-setup-default)))
 
 ;;;; windows
 ;;;;; window key-bindings
@@ -1507,6 +1598,26 @@ If FRAME is omitted or nil, use currently selected frame."
                                 "*Ibuffer*"
                                 "*esh command on file*")))
 
+;;;;; popper
+;; minor-mode to tame ephemeral windows [[https://github.com/karthink/popper][link]]
+(use-package popper
+  :demand t
+  :bind (("C-`"   . popper-toggle)
+         ("C-~"   . popper-cycle)
+         ("H-`" . popper-toggle-type))
+  :custom
+  (popper-reference-buffers
+   '("\\*Messages\\*"
+     "Output\\*$"
+     "\\*Async Shell Command\\*"
+     help-mode
+     special-mode
+     compilation-mode))
+  :config
+  (popper-mode +1)
+  (popper-echo-mode +1)
+  )
+
 ;;;; tabs
 ;;;;; tab-bar
 ;; built-in: tabs for virtual desktops
@@ -1529,7 +1640,6 @@ If FRAME is omitted or nil, use currently selected frame."
 
   (tab-bar-mode t)
   (tab-bar-history-mode t))
-
 
 ;;;; mode-line
 ;;;;; doom-modeline
@@ -1606,16 +1716,26 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; Multiple cursors
 ;; https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
-  :bind (( ("C-S-c C-S-c"   . mc/edit-lines)
+  :bind (:map global-map
+		   ("C-S-c C-S-c"   . mc/edit-lines)
            ("C->"           . mc/mark-next-like-this)
            ("C-<"           . mc/mark-previous-like-this)
            ("C-c C-<"       . mc/mark-all-like-this)
            ("C-M->"         . mc/skip-to-next-like-this)
            ("C-M-<"         . mc/skip-to-previous-like-this)
-           ("s-<mouse-1>"   . mc/add-cursor-on-click))
-         (:map mc/keymap
-               ("C-|" . mc/vertical-align-with-space))))
-
+           ("s-<mouse-1>"   . mc/add-cursor-on-click)
+		   ("<C-m> a"         . mc/edit-beginings-of-lines)
+		   ("<C-m> e"         . mc/edit-ends-of-lines)
+		   ("<C-m> s"         . mc/mark-next-like-this-symbol)
+		   ("<C-m> S"         . mc/mark-all-symbols-like-this)
+		   ("<C-m> D"         . mc/mark-all-like-this-in-defun)
+		   ("<C-m> d"         . mc/mark-all-dwim)
+		   ("<C-m> r"         . mc/mark-all-in-region)
+		   ("<C-m> w"         . mc/mark-next-like-this-word)
+		   ("<C-m> W"         . mc/mark-all-words-like-this)
+           :map mc/keymap
+		   ("C-m v"         . mc/vertical-align)
+           ("C-|" . mc/vertical-align-with-space)))
 
 ;;;; search
 ;;;;; isearch
@@ -1677,16 +1797,13 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :config (setq reb-re-syntax 'read))
 
-;;;;; bookmark+
-;; enhancements to the built-in bookmark package
-;; note this version is an updated bookmark+ package
-;; https://github.com/fnoon/BookmarkPlus
-(use-package bookmark+
-  :vc (:url "https://github.com/fnoon/BookmarkPlus"
-            :rev :newest
-            :branch "master")
+;;;;; bookmark
+;; built-in bookmark package
+(use-package bookmark
+  :ensure nil
+  :demand t
   :init
-  (setq bookmark-use-annotations nil)
+  (setq bookmark-use-annotations t)
   (setq bookmark-automatically-show-annotations t)
   (setq bookmark-set-fringe-mark t) ; Emacs28
   (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
@@ -1703,6 +1820,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
         (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+  (setq save-abbrevs 'silently)
 
   (define-abbrev-table
     'org-mode-abbrev-table
@@ -1759,40 +1877,88 @@ If FRAME is omitted or nil, use currently selected frame."
           try-expand-list-all-buffers
           try-expand-line-all-buffers)))
 
-;;;;; vertico
+;;;;; [[https://github.com/minad/vertico][vertico]]
 ;; alternative to ivy, ido, helm
-;; https://github.com/minad/vertico
 (use-package vertico
-  :hook (emacs-startup . vertico-mode)
+  :bind (("C-H-v" . vertico-repeat)
+         :map vertico-map
+         ("C-j"   . vertico-exit-input)
+         ("C-M-n" . vertico-next-group)
+         ("C-M-p" . vertico-previous-group))
+  :hook ((emacs-startup . vertico-mode)
+		 (minibuffer-setup . vertico-repeat-save))
   :config
-  ;; Different scroll margin
-  (setq vertico-scroll-margin 0)
+  (setq vertico-scroll-margin 0) ;; Different scroll margin
+  (setq vertico-count 20)        ;; Show more candidates
+  (setq vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
+  (setq vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
 
-  ;; Show more candidates
-  (setq vertico-count 20)
+  ;; Hide commands in M-x which do not work in the current mode. Vertico
+  ;; commands are hidden in normal buffers.
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
 
-  ;; Grow and shrink the Vertico minibuffer
-  (setq vertico-resize t)
+;;;;;; vertico-repeat
+  (use-package vertico-repeat
+	:ensure nil
+	:demand t
+	:config
+	(add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t))
+;;;;;; vertico-quick
+  (use-package vertico-quick
+	:ensure nil
+    :demand t
+    :bind (:map vertico-map
+                ("C-o"   . vertico-quick-exit)
+                ("C-." . vertico-quick-embark))
+    :preface
+    (defun vertico-quick-embark (&optional arg)
+      "Embark on candidate using quick keys."
+      (interactive)
+      (when (vertico-quick-jump)
+        (embark-act arg))))
 
-;;;;; vertico-directory
+;;;;;; vertico-multiform
+  (use-package vertico-multiform
+	:ensure nil
+    :demand t
+    :bind (:map vertico-map
+                ("C-i"   . vertico-multiform-vertical)
+                ("<tab>" . vertico-insert))
+    :custom
+    (vertico-multiform-commands
+     '((consult-imenu buffer)
+       (consult-line buffer)
+       (consult-grep buffer)
+       (consult-git-grep buffer)
+       (consult-ripgrep buffer)
+       (consult-yank-pop)
+       (embark-bindings buffer)
+       (xref-find-references buffer)))
+    (vertico-multiform-categories
+     '((t unobtrusive)))
+    :config
+    (vertico-multiform-mode 1))
+
+;;;;;; vertico-directory
 ;; Configure directory extension.
 (use-package vertico-directory
   :after vertico
   :ensure nil
+  :demand t
   ;; More convenient directory navigation commands
   :bind (:map vertico-map
               ("RET" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
+              ("C-<backspace>" . vertico-directory-delete-word)
+              ("C-w" . vertico-directory-delete-word)
+			  )
   ;; Tidy shadowed file names
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
 
-;;;;; corfu
+;;;;; [[https://github.com/minad/corfu][corfu]]
 ;; small completion program similar to company
-;; https://github.com/minad/corfu
 (use-package corfu
   :bind (:map corfu-map
               ("A-<return>" . corfu-complete)
@@ -1899,16 +2065,15 @@ If FRAME is omitted or nil, use currently selected frame."
     :init
     (corfu-doc-terminal-mode +1) ) )
 
-;;;;; cape
+;;;;; [[https://github.com/minad/cape][cape]]
 ;; completion at point extensions
-;; https://github.com/minad/cape
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
   :demand t
-  :bind ("s-/" . completion-at-point) ;; capf
+  :bind ("C-H-/" . completion-at-point) ;; capf
   :bind-keymap ("A-/" . cape-prefix-map)
   :hook ((emacs-lisp-mode .  sej/cape-capf-setup-elisp)
          (org-mode . sej/cape-capf-setup-org)
@@ -1918,62 +2083,69 @@ If FRAME is omitted or nil, use currently selected frame."
 
   :custom (cape-dabbrev-min-length 3)
   :init
-  ;; completion functions takes precedence over the global list.
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  ;; (add-to-list 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-history)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
-  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
-  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  (add-to-list 'completion-at-point-functions #'cape-abbrev)
-  (add-to-list 'completion-at-point-functions #'cape-dict)
-  ;; (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  ;; (add-to-list 'completion-at-point-functions #'cape-line)
+  (add-all-to-list 'completion-at-point-functions
+				   #'cape-dabbrev
+				   #'cape-file
+				   #'cape-abbrev)
+
+  ;; #'cape-history
+  ;; #'cape-keyword
+  ;; #'cape-tex
+  ;; #'cape-sgml
+  ;; #'cape-rfc1345
+  ;; #'cape-dict
+  ;; #'cape-elisp-symbol
+  ;; #'cape-line
 
   ;; Elisp
   (defun sej/cape-capf-ignore-keywords-elisp (cand)
     "Ignore keywords with forms that begin with \":\" (e.g.:history)."
     (or (not (keywordp cand))
         (eq (char-after (car completion-in-region--data)) ?:)))
+
   (defun sej/cape-capf-setup-elisp ()
-    "Replace the default `elisp-completion-at-point'
-completion-at-point-function. Doing it this way will prevent
-disrupting the addition of other capfs (e.g. merely setting the
-variable entirely, or adding to list).
+    "Set completion at point for elisp."
+	(setq-local completion-at-point-functions
+                `(,(cape-capf-super
+                    #'elisp-completion-at-point
+                    #'cape-dabbrev)
+                  cape-file)
+                cape-dabbrev-min-length 5))
 
-Additionally, add `cape-file' as early as possible to the list."
-    (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
-          #'elisp-completion-at-point)
-    ;; I prefer this being early/first in the list
-    (add-to-list 'completion-at-point-functions #'cape-history)
-    (add-to-list 'completion-at-point-functions #'cape-keyword)
-    (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-    (add-to-list 'completion-at-point-functions #'cape-file))
-
- ;; Org
+  ;; Org
   (defun sej/cape-capf-setup-org ()
-      (let ((result))
-        (dolist (element (list
-                          #'cape-dict
-                          #'cape-dabbrev
-                          #'cape-history
-                          #'cape-abbrev)
-                         result)
-          (add-to-list 'completion-at-point-functions element))) )
+    "Set completion at point for org."
+    (setq-local completion-at-point-functions
+                `(,(cape-capf-super
+					#'cape-dict
+					#'cape-dabbrev
+					#'cape-history
+					#'cape-abbrev)
+				  cape-file)
+				cape-dabbrev-min-length 3))
 
 ;;git-commit
   (defun sej/cape-capf-setup-git-commit ()
-  (let ((result))
-    (dolist (element '(cape-dict cape-dabbrev cape-abbrev) result)
-      (add-to-list 'completion-at-point-functions element))))
+    "Set completion at point in git commits."
+    (setq-local completion-at-point-functions
+                `(,(cape-capf-super
+					#'cape-dict
+					#'cape-dabbrev
+					#'cape-history
+					#'cape-abbrev)
+				  cape-file)
+				cape-dabbrev-min-length 3))
 
   ;; Eshell
   (defun sej/cape-capf-setup-eshell ()
-    (let ((result))
-      (dolist (element '(pcomplete-completions-at-point cape-file) result)
-        (add-to-list 'completion-at-point-functions element))      ))
+    "Set completion at point in eshell."
+    (setq-local completion-at-point-functions
+                `( #'pcomplete-completions-at-point
+				   #'cape-file
+				   #'cape-dabbrev
+				   #'cape-history
+				   #'cape-abbrev
+				cape-dabbrev-min-length 3)))
 
   :config
   ;; For pcomplete. For now these two advices are strongly recommended to
@@ -1986,9 +2158,8 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
-;;;;; marginalia
+;;;;; [[https://github.com/minad/marginalia][marginalia]]
 ;; Enable richer annotations using the Marginalia package
-;; https://github.com/minad/marginalia
 (use-package marginalia
   :hook (emacs-startup . marginalia-mode)
   :bind (:map completion-list-mode-map
@@ -1998,19 +2169,17 @@ Additionally, add `cape-file' as early as possible to the list."
   :init
   (marginalia-mode))
 
-;;;;; orderless
+;;;;; [[https://github.com/oantolin/orderless][orderless]]
 ;; provides an orderless completion style that divides the pattern into space-separated components,
 ;; and matches candidates that match all of the components in any order.
-;; https://github.com/oantolin/orderless
 (use-package orderless
+  :demand t
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-defaults nil)
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
-;;;;; prescient
+;;;;; [[https://github.com/radian-software/prescient.el][prescient]]
 ;; sorts and filters lists of candidates
-;; https://github.com/radian-software/prescient.el
 (use-package prescient
   :hook (emacs-startup . prescient-persist-mode)
   :init
@@ -2024,23 +2193,24 @@ Additionally, add `cape-file' as early as possible to the list."
   :after prescient
   :hook (corfu-mode . corfu-prescient-mode))
 
-;;;;; embark
+;;;;; [[https://github.com/oantolin/embark/][embark]]
 ;; acting on targets
-;; https://github.com/oantolin/embark/
 (use-package embark
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
            ("M-." . embark-dwim)        ;; good alternative: M-.
            ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
            ("C-s-e" . embark-export)
-           ("H-e" . embark-export))
+           ("H-e" . embark-export)
+		   :map embark-collect-mode-map
+		   ("C-c C-a" . embark-collect-direct-action-minor-mode))
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
 
   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
   ;; strategy, if you want to see the documentation from multiple providers.
-  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
   ;; Hide the mode line of the Embark live/completions buffers
@@ -2049,14 +2219,21 @@ Additionally, add `cape-file' as early as possible to the list."
                  nil
                  (window-parameters (mode-line-format . none)))))
 
-;; Consult users will also want the embark-consult package.
+;;;;; [[https://github.com/oantolin/embark/blob/master/embark-consult.el][embark-consult]]
+;; embark-consult provides integration between Embark and Consult. The package will be loaded automatically by Embark.
+;; 
+;; Some of the functionality here was previously contained in Embark itself:
+;; 
+;; Support for consult-buffer, so that you get the correct actions for each type of entry in consult-buffer’s list.
+;; Support for consult-line, consult-outline, consult-mark and  consult-global-mark, so that the insert and save actions
+;; don’t include a weird unicode character at the start of the line, and so you can export from them to an occur buffer
+;; (where occur-edit-mode works!).
 (use-package embark-consult
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;;;;; consult
+;;;;; [[https://github.com/minad/consult][consult]]
 ;; completing read
-;; https://github.com/minad/consult
 (use-package consult
   :bind (("H-M-," . consult-recent-xref)
           ;; C-c bindings (mode-specific-map)
@@ -2068,9 +2245,12 @@ Additionally, add `cape-file' as early as possible to the list."
           ;; C-x bindings (ctl-x-map)
           :map ctl-x-map
           ("C-r" . consult-recent-file)
-          ("b" . consult-buffer)                ;; orig. switch-to-buffer
-          ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-          ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+          ("b" . consult-buffer)                    ;; orig. switch-to-buffer
+          ("4 b" . consult-buffer-other-window)     ;; orig. switch-to-buffer-other-window
+          ("r b" . consult-bookmark)                ;; orig. bookmark-jump
+          ("4 r" . consult-bookmark-other-window) ;; orig. find-file-read-only-other-window
+          ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
+          ("5 b" . consult-buffer-other-frame)      ;; orig. switch-to-buffer-other-frame
           ;; Custom sej bindings for fast register access
           :map sej-C-q-map
           ("C-y" . consult-register-load)
@@ -2081,8 +2261,8 @@ Additionally, add `cape-file' as early as possible to the list."
           :map goto-map
           ("e" . consult-compile-error)
           ("f" . consult-flymake)
-          ("g" . consult-goto-line)             ;; orig. goto-line
-          ("M-g" . consult-goto-line)           ;; orig. goto-line
+          ("g" . consult-goto-line)                 ;; orig. goto-line
+          ("M-g" . consult-goto-line)               ;; orig. goto-line
           ("o" . consult-org-heading)               ;; Alternative: consult-org-heading
           ("O" . consult-outline)
           ("m" . consult-mark)
@@ -2091,7 +2271,7 @@ Additionally, add `cape-file' as early as possible to the list."
           ("I" . consult-imenu-multi)
           ;; M-s bindings (search-map)
           :map search-map
-          ("a" . consult-ag)                    ;;if executable ag "Silver-Searcher" exists
+          ("a" . consult-ag)                        ;; if executable ag "Silver-Searcher" exists
           ("f" . consult-find)
           ("L" . consult-locate)
           ("g" . consult-grep)
@@ -2118,8 +2298,37 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; and not necessary for Vertico, Selectrum, etc.
   :hook (completion-list-mode . consult-preview-at-point-mode)
 
-  :init
+  :custom-face
+  (consult-file ((t (:inherit font-lock-string-face))))
 
+  :preface
+  (defun consult-bookmark-other-window (name)
+    "If bookmark NAME exists, open it, otherwise create a new bookmark with NAME.
+
+  The command supports preview of file bookmarks and narrowing.  See the
+  variable `consult-bookmark-narrow' for the narrowing configuration."
+    (interactive
+     (list
+      (let* ((consult--buffer-display #'switch-to-buffer-other-window)
+             (narrow (cl-loop for (x y . _) in consult-bookmark-narrow collect (cons x y))))
+        (consult--read
+         (consult--bookmark-candidates)
+         :prompt "Bookmark: "
+         :state (consult--bookmark-preview)
+         :category 'bookmark
+         :history 'bookmark-history
+         ;; Add default names to future history.
+         ;; Ignore errors such that `consult-bookmark' can be used in
+         ;; buffers which are not backed by a file.
+         :add-history (ignore-errors (bookmark-prop-get (bookmark-make-record) 'defaults))
+         :group (consult--type-group narrow)
+         :narrow (consult--type-narrow narrow)))))
+    (bookmark-maybe-load-default-file)
+    (if (assoc name bookmark-alist)
+        (bookmark-jump name #'switch-to-buffer-other-window)
+      (bookmark-set name)))
+  
+  :init
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
@@ -2130,7 +2339,7 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
 
-  ;; Use Consult to select xref locations with preview
+  ;; Use Consult to select xref locations with preview `C-M-.'
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
 
@@ -2145,8 +2354,8 @@ Additionally, add `cape-file' as early as possible to the list."
        (t
         'grep)))
 
-  :config
-
+:config
+(require 'consult-xref)
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
@@ -2158,7 +2367,7 @@ Additionally, add `cape-file' as early as possible to the list."
    consult-theme
    :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
+   consult-bookmark consult-recent-file consult-xref consult--source-file-register
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
 
   ;; Optionally configure the narrowing key.
@@ -2252,20 +2461,74 @@ Additionally, add `cape-file' as early as possible to the list."
           (lambda ()
 			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair :filter t :include "\\[D\\].*"))))
 
-  (add-to-list 'consult-buffer-sources 'denote-source 'append))
+  (add-to-list 'consult-buffer-sources 'denote-source 'append)) ;; end of consult
+
+;;;;; [[https://github.com/karthink/consult-dir][consult-dir]]
+;; Think of it like the shell tools autojump, fasd or z but for Emacs.
+(use-package consult-dir
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
+
+;;;;; consult-dir-vertico
+;;
+(use-package consult-dir-vertico
+  :no-require t
+  :ensure nil
+  :after (consult-dir vertico)
+  :defines (vertico-map)
+  :bind (:map vertico-map
+              ("C-x C-j" . consult-dir)
+              ("M-g d"   . consult-dir)
+              ("M-s f"   . consult-dir-jump-file)))
+
+;;;;; [[https://github.com/joaotavora/yasnippet][yasnippet]]
+;; YASnippet is a template system for Emacs.
+(use-package yasnippet
+  :demand t
+  :diminish yas-minor-mode
+  :commands yas-minor-mode-on
+  :init
+  (which-key-add-keymap-based-replacements sej-C-q-map "y" "yasnippet")
+  :bind ((:map sej-C-q-map
+			   ("y d" . yas-load-directory)
+			   ("y f" . yas-visit-snippet-file)
+			   ("y n" . yas-new-snippet)
+			   ("y t" . yas-tryout-snippet)
+			   ("y l" . yas-describe-tables)
+			   ("y g" . yas-global-mode)
+			   ("y m" . yas-minor-mode)
+			   ("y r" . yas-reload-all)
+			   ("y x" . yas-expand))
+		 (:map yas-keymap
+			   ("C-i" . yas-next-field-or-maybe-expand)))
+   :hook (prog-mode . yas-minor-mode-on)
+  :custom
+  (yas-prompt-functions '(yas-completing-prompt yas-no-prompt))
+    (yas-triggers-in-field t)
+  (yas-wrap-around-region t)
+  :custom-face
+  (yas-field-highlight-face ((t (:background "grey30"))))
+  :init
+  (use-package yasnippet-snippets))
+
+(use-package consult-yasnippet
+  :after (consult yasnippet)
+  :bind (:map sej-C-q-map
+			  ("y i" . consult-yasnippet)
+			  ("y v" . consult-yasnippet-visit-snippet-file)))
 
 ;;;; movement
-;;;;; mwim
+;;;;; [[https://github.com/alezost/mwim.el][mwim]]
 ;; better than crux for C-e mwim-end
 ;; will cycle between end of code and end-of-code plus comments
-;; https://github.com/alezost/mwim.el
 (use-package mwim
   :bind (("C-a" . mwim-beginning) ; C-a Cycles between Absolute and Logical line beginning
           ("C-e" . mwim-end))) ; C-e better than crux
 
-;;;;; avy
+;;;;; [[https://github.com/abo-abo/avy][avy]]
 ;; Jump to things in Emacs tree-style
-;; https://github.com/abo-abo/avy
 (use-package avy
   :bind (("H-'" . avy-goto-char-timer)
           ("M-g l" . avy-goto-line)
@@ -2444,8 +2707,7 @@ If called with a prefix argument, query for word to search."
 ;; goto the last changes made in buffer
 ;; https://github.com/camdez/goto-last-change.el
 (use-package goto-last-change
-  :bind (("H-." . goto-last-change)
-          ("H-," . goto-last-change-reverse)) )
+  :bind ("H-." . goto-last-change))
 
 ;;;;; beginend
 ;; smart moves redefining M-< and M-> for some modes
@@ -2545,7 +2807,17 @@ If called with a prefix argument, query for word to search."
      (if (org-at-heading-p)
          'org-metadown
        'drag-stuff-down))
-	(drag-stuff-down 1))))
+	(drag-stuff-down 1)))
+
+  (defun sej/indent-region-advice (&rest ignored)
+    (let ((deactivate deactivate-mark))
+      (if (region-active-p)
+          (indent-region (region-beginning) (region-end))
+        (indent-region (line-beginning-position) (line-end-position)))
+      (setq deactivate-mark deactivate)))
+
+  (advice-add 'sej/drag-stuff-up :after 'sej/indent-region-advice)
+  (advice-add 'sej/drag-stuff-down :after 'sej/indent-region-advice))
 
 ;;;;; set region writeable
 ;; handy when text is read-only and cannot be deleted
@@ -3136,6 +3408,8 @@ If called with a prefix argument, query for word to search."
               ("C-c o" . eglot-code-action-organize-imports)
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions))
+  :custom
+  (eglot-autoshutdown t)
   :config
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
@@ -3148,14 +3422,24 @@ If called with a prefix argument, query for word to search."
                `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
                                                          '(("ccls" )
                                                            ("clangd")))))
+(setq read-process-output-max (* 1024 1024))
+
+  (add-hook 'eglot-managed-mode-hook
+            #'(lambda ()
+                ;; Show flymake diagnostics first.
+                (setq eldoc-documentation-functions
+                      (cons #'flymake-eldoc-function
+                            (remove #'flymake-eldoc-function
+                                    eldoc-documentation-functions)))))
+
   ;; basedpyright-langserver [[https://docs.basedpyright.com/latest/installation/ides/][link]]
   ;; Emacs set-up [[https://webbureaucrat.gitlab.io/articles/emacs-for-python-and-poetry-using-basedpyright-langserver/][link]]
   ;; brew install basedpyright
-(add-to-list 'eglot-server-programs
+  (add-to-list 'eglot-server-programs
 			   '((python-mode python-ts-mode)
                "basedpyright-langserver" "--stdio"))
 
-(setq help-at-pt-display-when-idle t)
+  (setq help-at-pt-display-when-idle t)
   (setq completion-category-defaults nil)
   (use-package consult-eglot
     :commands consult-eglot-symbols))
@@ -4323,6 +4607,21 @@ the children of class at point."
               ("B" . browse-at-remote)))
 
 ;;; writing & reading
+
+;;;;; typo
+;; [[https://github.com/jorgenschaefer/typoel][typo-mode]] is a buffer-specific minor mode that will change a number of normal keys to make them insert
+;; typographically useful unicode characters. Some of those keys can be used repeatedly to cycle through
+;; variations. This includes in particular quotation marks and dashes.
+(use-package typo
+  :diminish
+  :bind
+  (:map typo-mode-map
+        ("-" . self-insert-command))
+  :hook
+  ((org-mode markdown-mode gnus-message-setup) . typo-mode)
+  :config
+  (typo-global-mode 1))
+
 ;;;;; denote
 ;; note organization tools
 ;; https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4
@@ -4336,59 +4635,58 @@ the children of class at point."
 ;;  .dir-locals-2.el
 ;;
 (use-package denote
-  :bind (:map sej-C-q-map
-			  ("n a" . denote-add-links)
-			  ("n b" . denote-backlinks)
-			  ("n B" . denote-find-backlink)
-			  ("n c" . sej/denote-colleagues-new-meeting)
-			  ("n C" . sej/denote-colleagues-edit)
-			  ("n C-c" . sej/denote-colleagues-dump)
-			  ("n d" . denote-date)
-			  ("n D" . denote-create-any-dir)
-			  ("n e" . denote-org-extras-extract-org-subtree)
-			  ("n h" . denote-org-extras-link-to-heading)
-			  ("n K" . sej/denote-keywords-edit)
-			  ("n C-k" . sej/denote-keywords-dump)
-			  ("n l" . denote-link) ; "insert" mnemonic
-			  ("n L" . denote-find-link)
-			  ("n j" . denote-journal-extras-new-or-existing-entry)
-			  ("n J" . denote-journal-extras-link-or-create-entry)
-			  ("n n" . denote)
-			  ("n N" . denote-open-or-create)
-			  ("n r" . denote-rename-file)
-			  ("n R" . denote-rename-file-using-front-matter)
-			  ("n C-R" . denote-region)
-			  ("n s" . denote-signature)
-			  ("n S" . denote-subdirectory)
-			  ("n C-s" . denote-silo-extras-open-or-create)
-			  ("n t" . denote-type)
-			  ("n T" . denote-template)
+  :bind (:map sej-denote-map
+			  ("a" . denote-add-links)
+			  ("b" . denote-backlinks)
+			  ("B" . denote-find-backlink)
+			  ("c" . sej/denote-colleagues-new-meeting)
+			  ("C" . sej/denote-colleagues-edit)
+			  ("C-c" . sej/denote-colleagues-dump)
+			  ("d" . denote-date)
+			  ("D" . denote-create-any-dir)
+			  ("e" . denote-org-extras-extract-org-subtree)
+			  ("h" . denote-org-extras-link-to-heading)
+			  ("K" . sej/denote-keywords-edit)
+			  ("C-k" . sej/denote-keywords-dump)
+			  ("l" . denote-link) ; "insert" mnemonic
+			  ("L" . denote-find-link)
+			  ("j" . denote-journal-extras-new-or-existing-entry)
+			  ("J" . denote-journal-extras-link-or-create-entry)
+			  ("n" . denote)
+			  ("N" . denote-open-or-create)
+			  ("r" . denote-rename-file)
+			  ("R" . denote-rename-file-using-front-matter)
+			  ("C-R" . denote-region)
+			  ("s" . denote-signature)
+			  ("S" . denote-subdirectory)
+			  ("C-s" . denote-silo-extras-open-or-create)
+			  ("t" . denote-type)
+			  ("T" . denote-template)
 			  ;; defined in consult-denote
 			  ;; ("n f f" . consult-denote-find)
 			  ;; ("n g" . consult-denote-grep)
 			  ;; ("n f g" . consult-denote-grep)
 			  ;; defined in denote menu
 			  ;; ("n m" . list-denotes)
-			  ("n C-d r" . denote-dired-rename-files)
-			  ("n C-d k" . denote-dired-rename-marked-files-with-keywords)
-			  ("n C-d f" . denote-dired-rename-marked-files-using-front-matter))
-		 :init
-  (which-key-add-keymap-based-replacements sej-C-q-map
-    "n"       "Denote"
-    "n f"     "Denote-find"
-    "n C-d"   "Denote dired")
+			  ("C-d r" . denote-dired-rename-files)
+			  ("C-d k" . denote-dired-rename-marked-files-with-keywords)
+			  ("C-d f" . denote-dired-rename-marked-files-using-front-matter))
+  :init
+  (which-key-add-keymap-based-replacements sej-denote-map
+    "f"     "Denote-find"
+    "C-d"   "Denote dired")
   (which-key-add-key-based-replacements
-    "C-q n j"     "Denote journal entry"
-    "C-q n J"     "Denote journal link"
-    "C-q n R"     "Denote ren w/front-matter"
-    "C-q n e"     "Denote extract org-tree"
-    "C-q n h"     "Denote link to heading"
-    "C-q n c"      "denote-colleagues-meet"
-    "C-q n C"     "denote-colleagues-edit"
-    "C-q n C-c"   "denote-colleagues-dump"
-    "C-q n C-k"   "denote-keywords-dump"
-    "C-q n C-d k" "Denote dired ren w/keywords"
-    "C-q n C-d f" "Denote dired ren w/front" )
+    "<C-m> n j"     "Denote journal entry"
+    "<C-m> n J"     "Denote journal link"
+    "<C-m> n R"     "Denote ren w/front-matter"
+    "<C-m> n e"     "Denote extract org-tree"
+    "<C-m> n h"     "Denote link to heading"
+    "<C-m> n c"      "denote-colleagues-meet"
+    "<C-m> n C"     "denote-colleagues-edit"
+    "<C-m> n C-c"   "denote-colleagues-dump"
+    "<C-m> n C-k"   "denote-keywords-dump"
+    "<C-m> n C-d k" "Denote dired ren w/keywords"
+    "<C-m> n C-d f" "Denote dired ren w/front" )
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
   ;; (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -4782,9 +5080,9 @@ Add this function to the `after-save-hook'."
 ;; integrate denote with consult
 ;; [[https://github.com/protesilaos/consult-denote]]
 (use-package consult-denote
-  :bind (:map sej-C-q-map
-                ("n f f" . consult-denote-find)
-                ("n f g" . consult-denote-grep) )
+  :bind (:map sej-denote-map
+                ("f f" . consult-denote-find)
+                ("f g" . consult-denote-grep) )
     :config
     (setq consult-denote-grep-command #'consult-ripgrep)
     (consult-denote-mode 1))
@@ -4808,8 +5106,8 @@ Add this function to the `after-save-hook'."
 ;; [[https://github.com/namilus/denote-menu]]
 (use-package denote-menu
   :hook (denote-menu-mode . sej/denote-menu-setup)
-  :bind (:map sej-C-q-map
-         ("n m" . sej/denote-menu-only-categories)
+  :bind (:map sej-denote-map
+         ("m" . sej/denote-menu-only-categories)
          :map denote-menu-mode-map
          ("c" . denote-menu-clear-filters)
          ("/ r" . denote-menu-filter)
@@ -5001,14 +5299,14 @@ Add this function to the `after-save-hook'."
 (use-package textile-mode
   :mode "\\.textile\\'")
 
-;;;;; adoc-mode
+;;;;; [[https://github.com/sensorflo/adoc-mode/wiki][adoc-mode]]
 ;; adoc-mode is an Emacs major mode for editing AsciiDoc files.
 ;; It emphasizes on the idea that the document is highlighted
 
 ;; so it pretty much looks like the final output.
-;; - https://github.com/sensorflo/adoc-mode/wiki
 (use-package adoc-mode
-  :mode "\\.txt\\'")
+  :mode ("\\.txt\\'"
+		 "\\.adoc\\'"))
 
 ;;;;; sej/number-rectangle
 ;; Let's say you have a list like:
@@ -5111,9 +5409,9 @@ Add this function to the `after-save-hook'."
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
     :bind (("C-;" . jinx-correct-nearest)
-           ("C-M-'" . jinx-languages)
            ("C-M-;" . jinx-correct-all))
     :config
+	(setq jinx-languages "en_US en_GB en_CA")
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
                  '(jinx grid (vertico-grid-annotate . 20)))))
@@ -5216,7 +5514,7 @@ Add this function to the `after-save-hook'."
                ("C-q ]" . annotate-goto-next-annotation)
                ("C-q [" . annotate-goto-previous-annotation)) )
   :config
-  (setq annotate-file (expand-file-name "annotations" user-emacs-directory))
+  (setq annotate-file (emacs-path "annotations"))
   (setq annotate-annotation-column 73)
   (setq annotate-diff-export-context 5)
   (setq annotate-use-messages nil)
@@ -5252,23 +5550,21 @@ function with the \\[universal-argument]."
         (sej/annotate-mode)
       (sej/annotate-annotate))))
 
-;;;; LaTex
-;;;;; AuCTeX
+;;;; LaTeX
+;;;;; [[[[https://www.gnu.org/software/auctex/download-for-macosx]].html][AuCTeX]]
 ;; GNU TeX in Emacs Auctex
-;; [[https://www.gnu.org/software/auctex/download-for-macosx.html]]
 (use-package auctex
+  :mode ("\\.tex\\'" . LaTeX-mode)
   :hook ((LaTeX-mode . TeX-fold-mode)
          (LaTeX-mode . flymake-mode)
          (LaTeX-mode . reftex-mode)))
 
-;;;;; LaTeX preview pane
+;;;;; [[https://www.emacswiki.org/emacs/LaTeXPreviewPane][LaTeX preview pane]]
 ;; side by side preview
-;; [[https://www.emacswiki.org/emacs/LaTeXPreviewPane][latex-preview-pane wiki]]
 (use-package latex-preview-pane)
 
-;;;;; auctex-latexmk
+;;;;; [[https://github.com/tom-tan/auctex-latexmk][auctex-latexmk]]
 ;; This library adds LatexMk support to AUCTeX.
-;; [[https://github.com/tom-tan/auctex-latexmk][auctex-latexmk]]
 (use-package auctex-latexmk
   :after tex
   :init
@@ -5276,29 +5572,25 @@ function with the \\[universal-argument]."
   :config
   (auctex-latexmk-setup))
 
-;;;;; bibtex
+;;;;; [[https://lucidmanager.org/productivity/emacs-bibtex-mode/][bibtex]]
 ;; built-in: bibliography editing
-;; [[https://lucidmanager.org/productivity/emacs-bibtex-mode/][bibtex]]
 (use-package bibtex
   :ensure nil
   :init
   (setq-default bibtex-dialect 'biblatex))
 
-;;;;; biblio
+;;;;; [[https://github.com/cpitclaudel/biblio.el][biblio]]
 ;; An extensible Emacs package for browsing and fetching references
-;; [[https://github.com/cpitclaudel/biblio.el][biblio]]
 (use-package biblio)
 
-;;;;; reftex
+;;;;; [[https://www.gnu.org/software/auctex/manual/reftex.html][reftex]]
 ;; RefTeX is a package for managing Labels, References, Citations and index entries with GNU Emacs.
-;; [[https://www.gnu.org/software/auctex/manual/reftex.html][reftex]]
 (use-package reftex
   :init
   (setq reftex-plug-into-AUCTeX t))
 
-;;;;; CDLaTex
+;;;;; [[https://github.com/cdominik/cdlatex][cdlatex]]
 ;; fast insertion of environment templates and math stuff in LaTeX
-;; [[https://github.com/cdominik/cdlatex][cdlatex]]
 (use-package cdlatex)
 
 ;;;; org
@@ -5315,6 +5607,7 @@ function with the \\[universal-argument]."
            ("C-c c" . org-capture)
            ("C-c a" . org-agenda) )
          (:map org-mode-map
+			   ("C-,")
                ("C-M-\\" . org-indent-region)
                ("S-<left>" . org-shiftleft)
                ("S-<right>" . org-shiftright)
