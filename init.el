@@ -4905,7 +4905,6 @@ one among them and operate therein."
     (with-current-buffer (find-file file)
       (goto-char (point-max))
 	  (org-insert-heading '(16) nil 1)
-      (denote-journal-extras-link-or-create-entry)
 	  (org-return)
       (org-insert-item)
       (end-of-line 0)
@@ -5917,8 +5916,11 @@ function with the \\[universal-argument]."
 (use-package org-agenda
   :ensure nil
   :bind (("C-c a" . org-agenda)
-		 :map org-agenda-mode-map
-		 ("2" . org-agenda-fortnight-view))
+		 (:map org-agenda-mode-map
+			   ("2" . org-agenda-fortnight-view))
+		 (:map sej-denote-map
+			   ("C-." . consult-org-agenda)
+			   ("C-," . sej/org-agenda-call)))
   :defines
   (org-agenda-span
   org-agenda-skip-scheduled-if-deadline-is-shown
@@ -5937,6 +5939,7 @@ function with the \\[universal-argument]."
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal-extras)
+  (require 'org-macs)
   
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
@@ -6039,7 +6042,20 @@ function with the \\[universal-argument]."
 		`((agenda . " %i %-12:c%?-12t%-6e% s%(sej/org-agenda-repeater)")
 		 (todo . " %i %-12:c %-6e")
 		 (tags . " %i %-12:c")
-		 (search . " %i %-12:c"))))
+		 (search . " %i %-12:c")))
+
+  (defun sej/org-agenda-call (&optional arg)
+	"Call org-agenda screen ARG, but default to `A'."
+	(interactive)
+	(if arg
+		(org-agenda nil arg)
+	  (org-agenda nil "A")))
+
+  (defun sej/beginning-of-buffer (&optional &arg &arg)
+	"Dummy to filter extra args."
+	(beginning-of-buffer))
+
+  (advice-add 'org-agenda :after #'sej/beginning-of-buffer) )  ; end of org-agenda
 
 ;;;;; org-src
 ;; built-in: org src block settings
@@ -6325,6 +6341,8 @@ function with the \\[universal-argument]."
   > "#+END_SRC" \n)
 
 ;;;;; sej/org-log-checklist-item
+
+;; **not currently used**
 ;; automatically log checklist items into :LOGBOOK:
 ;; https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode
 (defun sej/org-log-checklist-item (item)
@@ -6354,8 +6372,18 @@ function with the \\[universal-argument]."
     (forward-char)
     (buffer-substring-no-properties (point) (line-end-position))))
 
-(defun sej/org-checklist-change-advice-function (&rest _)
+;; **currently being used**
+(defun sej/org-checklist-date-insert (&rest _)
+  "Lock checkbox item by adding date time stamp to end of line."
+  (interactive)
+  (when (org-at-item-checkbox-p)
+	(save-excursion
+	  (end-of-visible-line)
+	  (org-insert-time-stamp (current-time) t t))))
+
+(defun sej/org-checklist-log (&rest _)
   "Advise function to get and log checkbox item when it is checked."
+  (interactive)
   (when (org-at-item-checkbox-p)
     (let ((checkedp (save-excursion
                       (beginning-of-line)
@@ -6364,7 +6392,7 @@ function with the \\[universal-argument]."
       (when checkedp
         (sej/org-log-checklist-item (sej/org-checkbox-item))))))
 
-(advice-add 'org-list-struct-apply-struct :after #'sej/org-checklist-change-advice-function)
+(advice-add 'org-list-struct-apply-struct :after #'sej/org-checklist-date-insert)
 ;; (advice-add 'org-toggle-checkbox :after #'org-checklist-change-advice-function)
 
 ;;; shell tools
