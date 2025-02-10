@@ -1920,11 +1920,18 @@ If FRAME is omitted or nil, use currently selected frame."
         (embark-act arg))))
 
 ;;;;;; vertico-multiform
+  ;; vertico forms, with below active to temporarily change them C-i sticky
+  ;; M-B -> vertico-multiform-buffer
+  ;; M-F -> vertico-multiform-flat
+  ;; M-G -> vertico-multiform-grid
+  ;; M-R -> vertico-multiform-reverse
+  ;; M-U -> vertico-multiform-unobtrusive
+  ;; M-V -> vertico-multiform-vertical
   (use-package vertico-multiform
 	:ensure nil
     :demand t
     :bind (:map vertico-map
-                ("C-i"   . vertico-multiform-vertical)
+                ("C-i"   . sej/vertico-multiform-toggle-ur)
                 ("<tab>" . vertico-insert))
     :custom
     (vertico-multiform-commands
@@ -1937,8 +1944,17 @@ If FRAME is omitted or nil, use currently selected frame."
        (embark-bindings buffer)
        (xref-find-references buffer)))
     (vertico-multiform-categories
-     '((t unobtrusive)))
+     '((t reverse)))
     :config
+	(defun sej/vertico-multiform-toggle-ur ()
+	  "Toggle sticky setting between reverse and unobtrusive."
+	  (interactive)
+	  (if (equal vertico-multiform-categories '((t unobtrusive)))
+		  (progn (setq vertico-multiform-categories '((t reverse)))
+				 (vertico-multiform-reverse))
+		(progn (setq vertico-multiform-categories '((t unobtrusive)))
+			   (vertico-multiform-unobtrusive))))
+	
     (vertico-multiform-mode 1))
 
 ;;;;;; vertico-directory
