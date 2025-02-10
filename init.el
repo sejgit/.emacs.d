@@ -6184,16 +6184,16 @@ function with the \\[universal-argument]."
   (defun sej/org-agenda-repeater ()
 	"The repeater shown in org-agenda-prefix for agenda."
 	(if (org-before-first-heading-p)
-		"-------"  ; fill the time grid
-      (format "%4s: " (or (org-get-repeat) ""))))
-
+		"┄┄┄┄┄"  ; fill the time grid
+	  (let ((rpt (org-get-repeat)))
+		(if rpt rpt ""))))
+  
   ;; Add `sej/org-agenda-repeater' to the agenda prefix.
   (setq org-agenda-prefix-format
-		`((agenda . " %i %-12:c%?-12t%-6e% s%(sej/org-agenda-repeater)")
-		 (todo . " %i %-12:c %-6e")
-		 (org-ql . " %i %-12:c %-6e")
-		 (tags . " %i %-12:c")
-		 (search . " %i %-12:c")))
+		`((agenda . " %i %-12c %?t  %-4e%?s%(sej/org-agenda-repeater)")
+		 (todo .    " %i %-12c %-4e")
+		 (tags .    " %i %-12c")
+		 (search .  " %i %-12c")))
 
   (defun sej/org-agenda-call (&optional arg)
 	"Call org-agenda screen ARG, but default to `A'."
