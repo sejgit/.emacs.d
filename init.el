@@ -3395,6 +3395,7 @@ If called with a prefix argument, query for word to search."
 ;; https://joaotavora.github.io/eglot/#Eglot-and-LSP-Servers
 (use-package eglot
   :ensure nil
+  :commands eglot
   :preface
   (defun mp-eglot-eldoc ()
     (setq eldoc-documentation-strategy
@@ -3406,8 +3407,10 @@ If called with a prefix argument, query for word to search."
   :bind (:map eglot-mode-map
               ("C-c r" . eglot-rename)
               ("C-c o" . eglot-code-action-organize-imports)
+			  ("C-c C-." . eglot-code-actions)
               ("C-c h" . eglot-help-at-point)
-              ("C-c x" . xref-find-definitions))
+              ("C-c x" . xref-find-definitions)
+			  ("M-^" . eglot-find-implementation))
   :custom
   (eglot-autoshutdown t)
   :config
@@ -3456,6 +3459,7 @@ If called with a prefix argument, query for word to search."
         tramp-verbose 10
         tramp-completion-reread-directory-timeout nil
         tramp-histfile-override "/tmp/tramp_history"
+		tramp-auto-save-directory "~/.cache/emacs/backups"
         remote-file-name-inhibit-cache nil
         tramp-default-remote-shell "/bin/bash"
         tramp-chunksize 500
@@ -3472,6 +3476,7 @@ If called with a prefix argument, query for word to search."
                     (when (stringp method)
                       (member method '("su" "sudo"))))))))
   :config
+  (put 'temporary-file-directory 'standard-value '("/tmp"))
   (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su")))
 
 (use-package tramp-sh
@@ -3652,14 +3657,14 @@ If called with a prefix argument, query for word to search."
       (transient-append-suffix 'magit-fetch
         "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
 
-(use-package magit-file-icons
-  :init
-  (magit-file-icons-mode 1)
-  :custom
-  ;; These are the default values:
-  (magit-file-icons-enable-diff-file-section-icons t)
-  (magit-file-icons-enable-untracked-icons t)
-  (magit-file-icons-enable-diffstat-icons t))
+;; (use-package magit-file-icons
+;;   :init
+;;   (magit-file-icons-mode 1)
+;;   :custom
+;;   ;; These are the default values:
+;;   ;;(magit-file-icons-enable-diff-file-section-icons t)
+;;   (magit-file-icons-enable-untracked-icons t)
+;;   (magit-file-icons-enable-diffstat-icons t))
 
 ;;;;; disproject
 ;; integration with project.el and allows for dispatching via transient menus
@@ -3791,30 +3796,49 @@ If called with a prefix argument, query for word to search."
             ("H-b" . sej/git-blame-line))
 
 ;;;; lisp
-;;;;; lisp settings
-;; - eval do what I mean
-;; - taken from here [[http://blog.shanderlam.com/][eval-dwim]]
-(defun sej/eval-dwim (arg)
-  "Call eval command you want (Do What I Mean).
-If the region is active and option `transient-mark-mode' is on, call
-`eval-region'. Else, call `eval-last-sexp' using (ARG)."
-  (interactive "P")
-  (if (and transient-mark-mode mark-active)
-	  (eval-region (region-beginning) (region-end))
-	(eval-last-sexp arg)))
-
-(bind-keys :map emacs-lisp-mode-map
-           ("C-<return>" . sej/eval-dwim)
-           ("C-x C-e" . sej/eval-dwim)
-           ("H-<return>" . eval-buffer))
-
-(bind-key* "C-q C-e" 'toggle-debug-on-error)
-
-;; use flymake
-(add-hook 'emacs-lisp-mode-hook 'flymake-mode)
-
-;; enable dash for Emacs lisp highlighting
-(eval-after-load "dash" '(dash-enable-font-lock))
+;;;;; lisp modes
+(use-package lisp-mode
+  :ensure nil
+  :hook (((emacs-lisp-mode lisp-mode) . (lambda () (add-hook 'after-save-hook #'check-parens nil t)))
+		 (emacs-lisp-mode-hook . flymake-mode))
+  :bind ((:map global-map
+			   ("C-q C-e" . toggle-debug-on-error))
+		 (:map emacs-lisp-mode-map
+			   ("C-<return>" . sej/eval-dwim)
+			   ("C-x C-e" . sej/eval-dwim)
+			   ("H-<return>" . eval-buffer)))
+  :custom
+  (parens-require-spaces t)
+  :init
+  (dolist (mode '(ielm-mode
+                  inferior-emacs-lisp-mode
+                  inferior-lisp-mode
+                  lisp-interaction-mode
+                  lisp-mode
+                  emacs-lisp-mode))
+    (font-lock-add-keywords
+     mode
+     '(("(\\(lambda\\)\\>"
+        (0 (ignore
+            (compose-region (match-beginning 1)
+                            (match-end 1) ?λ))))
+       ("(\\(ert-deftest\\)\\>[         '(]*\\(setf[    ]+\\sw+\\|\\sw+\\)?"
+        (1 font-lock-keyword-face)
+        (2 font-lock-function-name-face
+           nil t)))))
+  :config
+  ;; taken from here [[http://blog.shanderlam.com/][eval-dwim]]
+  (defun sej/eval-dwim (arg)
+	"Call eval command you want (Do What I Mean).
+     If the region is active and option `transient-mark-mode' is on, call
+     `eval-region'. Else, call `eval-last-sexp' using (ARG)."
+	(interactive "P")
+	(if (and transient-mark-mode mark-active)
+		(eval-region (region-beginning) (region-end))
+	  (eval-last-sexp arg)))
+  
+  ;; enable dash for Emacs lisp highlighting
+  (eval-after-load "dash" '(dash-enable-font-lock)))
 
 ;;;;; eldoc
 ;; built-in: we don't want this minor mode to be shown in the minibuffer, however
@@ -3832,10 +3856,28 @@ If the region is active and option `transient-mark-mode' is on, call
   ((prog-mode . turn-on-eldoc-mode))
   :init
   (setq eldoc-idle-delay 0.2
-        eldoc-echo-area-use-multiline-p nil)
+        eldoc-echo-area-use-multiline-p 3
+		eldoc-echo-area-display-truncation-message nil)
   :config
   (eldoc-add-command-completions "paredit-")
   (eldoc-add-command-completions "combobulate-"))
+
+;;;;; elint
+(use-package elint
+  :commands (elint-initialize elint-current-buffer)
+  :bind ("C-q e" . sej/elint-current-buffer)
+  :preface
+  (defun sej/elint-current-buffer ()
+    (interactive)
+    (elint-initialize)
+    (elint-current-buffer))
+  :config
+  (add-all-to-list 'elint-standard-variables
+                   'current-prefix-arg
+                   'command-line-args-left
+                   'buffer-file-coding-system
+                   'emacs-major-version
+                   'window-system))
 
 ;;;;; elisp-slime-nav
 ;; turn on elisp-slime-nav
@@ -3844,6 +3886,8 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; https://github.com/purcell/elisp-slime-nav
 (use-package elisp-slime-nav
   :blackout t
+  :commands (elisp-slime-nav-mode
+             elisp-slime-nav-find-elisp-thing-at-point)
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
 ;;;;; sly
@@ -3868,18 +3912,36 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; https://www.emacswiki.org/emacs/InferiorEmacsLispMode
 (use-package ielm
   :ensure nil
+  :commands ielm
   :bind (("s-i" . sej/ielm-other-window)
          :map sej-C-q-map
-         ("i" . sej/ielm-other-window))
+         ("i" . sej/ielm-other-window)
+		 :map ielm-map
+		 ("<return>" . sej/ielm-return))
+  :hook ((inferior-emacs-lisp-mode . hs-minor-mode)
+		 (ielm-indirect-setup . show-paren-mode)
+		 (ielm-indirect-setup . electric-pair-mode))
   :config
-  (add-hook 'inferior-emacs-lisp-mode-hook #'hs-minor-mode)
-
   (defun sej/ielm-other-window ()
     "Run ielm on other window."
     (interactive)
     (switch-to-buffer-other-window
      (get-buffer-create "*ielm*"))
-    (call-interactively 'ielm)))
+    (call-interactively 'ielm))
+
+  (defun sej/ielm-return ()
+    (interactive)
+    (let ((end-of-sexp (save-excursion
+                         (goto-char (point-max))
+                         (skip-chars-backward " \t\n\r")
+                         (point))))
+      (if (>= (point) end-of-sexp)
+          (progn
+            (goto-char (point-max))
+            (skip-chars-backward " \t\n\r")
+            (delete-region (point) (point-max))
+            (call-interactively #'ielm-return))
+        (call-interactively #'paredit-newline)))))
 
 ;;;;; sej/remove-elc-on-save
 ;; When saving an elisp file, remove its compiled version if
@@ -4038,7 +4100,14 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; Extends the builtin js-mode to add better syntax highlighting for JSON
 ;; and some nice editing keybindings.
 ;; https://github.com/joshwnj/json-mode
-(use-package json-mode)
+(use-package json-mode
+  :mode "\\.json\\'")
+
+;;;;; [[https://github.com/Sterlingg/json-snatcher][json-snatcher]]
+;; pull path to value in large JSON
+(use-package json-snatcher
+  :commands jsons-print-path
+  :after json-mode)
 
 ;;;;; js2-mode
 ;; Improved JavaScript editing mode
@@ -4134,7 +4203,8 @@ If the region is active and option `transient-mark-mode' is on, call
   ;; Set the default formatting styles for various C based modes
   (setq c-default-style
         '((awk-mode . "awk")
-          (other . "java"))))
+		  (java-mode . "gnu")
+          (other . "gnu"))))
 
 (use-package c-ts-mode
   :ensure nil
@@ -4458,7 +4528,7 @@ the children of class at point."
   "Ask to make directory for file if it does not exist."
   (let ((parent-directory (file-name-directory buffer-file-name)))
     (when (and (not (file-exists-p parent-directory))
-               (y-or-n-p? (format "Directory `%s' does not exist! Create it?" parent-directory)))
+               (y-or-n-p (format "Directory `%s' does not exist! Create it?" parent-directory)))
       (make-directory parent-directory t))))
 
 (add-to-list 'find-file-not-found-functions 'sej/create-non-existent-directory)
@@ -5305,7 +5375,8 @@ Add this function to the `after-save-hook'."
 ;; so it pretty much looks like the final output.
 (use-package adoc-mode
   :mode ("\\.txt\\'"
-		 "\\.adoc\\'"))
+		 "\\.adoc\\'")
+  :hook (adoc-mode . turn-on-auto-fill))
 
 ;;;;; sej/number-rectangle
 ;; Let's say you have a list like:
@@ -5475,9 +5546,9 @@ Add this function to the `after-save-hook'."
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
     :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
-    :defines pdf-annot-activate-created-annotations
-	:init (pdf-loader-install)
-	:config (pdf-tools-install))
+    :defines pdf-annot-activate-created-annotations)
+	;; :init (pdf-loader-install)
+	;; :config (pdf-tools-install))
 
 ;;;;; nov
 ;; Epub reader
@@ -5602,7 +5673,8 @@ function with the \\[universal-argument]."
   :hook ( (org-mode . visual-line-mode)
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
           (org-mode . variable-pitch-mode))
-  :bind (( ("C-c l" . org-store-link)
+  :bind (( ("C-c l" . org-insert-link)
+		   ("C-c S" . org-store-link)
            ("C-c c" . org-capture)
            ("C-c a" . org-agenda) )
          (:map org-mode-map
@@ -5619,7 +5691,8 @@ function with the \\[universal-argument]."
 			   ("<M-DEL>" . sej/kill-whole-word)
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
 			   ("C-c )" . org-fold-hide-drawer-all)
-			   ("C-c b" . org-switchb))
+			   ("C-c b" . org-switchb)
+			   ("C-c x" . org-todo))
 		 (:map dired-mode-map
 			   ("C-c C-a" . org-attach-dired-to-subtree))
 		 (:map goto-map
@@ -5629,7 +5702,7 @@ function with the \\[universal-argument]."
   (require 'denote)
   (require 'denote-journal-extras)
   (require 'denote-silo-extras)
-  
+    
   ;; reading man pages in org-mode
   (require 'ol-man)
 
@@ -5663,15 +5736,17 @@ function with the \\[universal-argument]."
         org-log-done 'note
 		org-log-into-drawer t
         org-todo-keywords '(
-							(sequence "MAYBE(m)" "TODO(t)" "WAITING(w@/!)" "|" "DONE(d!)")
+							(sequence "MAYBE(m)" "TODO(t@/!)" "INPROCESS(i!/!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-							(sequence "FIX(f)" "INPROCESS(i)" "|" "FIXED(F@)")
-							(sequence "|" "CANCELED(x@)")
+							(sequence "FIX(f@/!)" "INPROCESS(i!/!)" "|" "FIXED(F@/!)")
+							(sequence "|" "CANCELED(x@/!)")
 							)
+		;; `list-colors-display' for a buffer of colour names
         org-todo-keyword-faces '(
                                  ("MAYBE" . (:foreground  "#9ac8e0"))
-								 ("TODO" . (:foreground "pink"))
-                                 ("WAITING" . (:foreground "yellow"))
+								 ("TODO" . (:foreground "pink4"))
+								 ("DEFER" . (:foreground "pink"))
+                                 ("WAIT" . (:foreground "yellow"))
                                  ("DONE" . (:foreground "green"))
                                  ("DELIGATE" . (:foreground "blue"))
                                  ("CHECK" . (:foreground "yellow"))
@@ -5915,6 +5990,8 @@ function with the \\[universal-argument]."
 ;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
 (use-package org-agenda
   :ensure nil
+  :preface
+  (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
   :bind (("C-c a" . org-agenda)
 		 (:map org-agenda-mode-map
 			   ("2" . org-agenda-fortnight-view))
@@ -5939,8 +6016,7 @@ function with the \\[universal-argument]."
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal-extras)
-  (require 'org-macs)
-  
+    
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
 		org-agenda-files `(,org-directory ,denote-journal-extras-directory)
@@ -5959,31 +6035,31 @@ function with the \\[universal-argument]."
                                         ; if they are already shown as a deadline
         org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
         org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-		)
-
-  (defvar sej/org-custom-daily-agenda
+		org-agenda-sticky nil) ; FIX change later to t
+  
+  (defvar sej/org-custom-agenda-orig
 	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
 	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
 	`((tags-todo "*"
 				 ((org-agenda-skip-function
-				   `(org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp
+				   `(org-agenda-skip-entry-if 'scheduled 'deadline ;'timestamp
 											  'todo '("MAYBE" "CANCELED" "DONE" "VERIFIED" "FIXED")))
                   (org-agenda-block-separator 9472)
-                  (org-agenda-overriding-header "Tasks with action needed without a date\n")))
+                  (org-agenda-overriding-header "Tasks with action needed without a scheduled or deadline date")))
       (agenda "" ((org-agenda-span 1)
                   (org-deadline-warning-days 0)
                   (org-agenda-block-separator 9472)
                   (org-scheduled-past-days 0)
                   (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
                   (org-agenda-format-date "%A %-e %B %Y")
-                  (org-agenda-overriding-header "\nToday's agenda\n")))
+                  (org-agenda-overriding-header "Today's agenda")))
       (agenda "" ((org-agenda-start-on-weekday nil)
                   (org-agenda-start-day "+1d")
                   (org-agenda-span 3)
                   (org-deadline-warning-days 0)
                   (org-agenda-block-separator 9472)
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-                  (org-agenda-overriding-header "\nNext three days\n")))
+                  (org-agenda-overriding-header "Next three days")))
       (agenda "" ((org-agenda-time-grid nil)
                   (org-agenda-start-on-weekday nil)
                   (org-agenda-start-day "+4d")
@@ -5993,7 +6069,57 @@ function with the \\[universal-argument]."
                   (org-agenda-block-separator 9472)
                   (org-agenda-entry-types '(:deadline :scheduled))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-                  (org-agenda-overriding-header "\nUpcoming deadlines (+14d)\n"))))
+                  (org-agenda-overriding-header "Upcoming deadlines (+14d)"))))
+	"Custom agenda for use in `org-agenda-custom-commands'.")
+
+  (defvar sej/org-custom-agenda-ql
+	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
+	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
+	`((org-ql-block '(and (todo "TODO" "INPRODCESS" "WAIT" "DEFER" "DELEGATE" "CHECK" "FIX")
+						  (not (deadline))
+						  (not (planning))
+						  (not (scheduled))
+						  (category )
+						  )
+					((org-ql-block-header "Tasks with action needed without scheduled or deadline date")))
+      (agenda "" ((org-agenda-span 1)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator 9472)
+                  (org-scheduled-past-days 0)
+                  (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                  (org-agenda-format-date "%A %-e %B %Y")
+                  (org-agenda-overriding-header "Today's agenda")))
+      (agenda "" ((org-agenda-start-on-weekday nil)
+                  (org-agenda-start-day "+1d")
+                  (org-agenda-span 3)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator 9472)
+                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                  (org-agenda-overriding-header "Next three days")))
+      (agenda "" ((org-agenda-time-grid nil)
+                  (org-agenda-start-on-weekday nil)
+                  (org-agenda-start-day "+4d")
+                  (org-agenda-span 14)
+                  (org-agenda-show-all-dates nil)
+                  (org-deadline-warning-days 0)
+                  (org-agenda-block-separator 9472)
+                  (org-agenda-entry-types '(:deadline :scheduled))
+                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                  (org-agenda-overriding-header "Upcoming deadlines (+14d)")))
+	  ;; FIX stopped work on this as repeating appointments <timestamps> are not handled [[https://github.com/alphapapa/org-ql/issues/159][link]]
+	  ;; (org-ql-block '(or (ts :from +1 :to +3)
+	  ;; 					 (deadline :from +1 :to +3)
+	  ;; 					 (scheduled :from +1 :to +3)
+	  ;; 					 (planning :from +1 :to +3)
+	  ;; 					 (todo :from +1 :to +3)
+	  ;; 					 (habit))
+	  ;; 				((org-ql-block-header "Next three days (ql)")))
+	  ;; (org-ql-block '(or (deadline :from +4 :to +14)
+	  ;; 					 (scheduled :from +4 :to +14)
+	  ;; 					 (planning :from +4 :to +14)
+	  ;; 					 (habit))
+	  ;; 				((org-ql-block-header "Upcoming deadlines (+14d) (ql)")))
+	  )
 	"Custom agenda for use in `org-agenda-custom-commands'.")
 
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
@@ -6011,10 +6137,12 @@ function with the \\[universal-argument]."
 									   (org-agenda-entry-types '(:deadline :scheduled))
 									   (org-deadline-warning-days 7)
 									   (org-agenda-sorting-strategy '(priority-up effort-down))))
-									 ("A" "Daily agenda and top priority tasks"
-									  ,sej/org-custom-daily-agenda)
+									 ("A" "Agenda and top priority tasks"
+									  ,sej/org-custom-agenda-orig)
+									 ("z" "QL Agenda and top priority tasks"
+									  ,sej/org-custom-agenda-ql)
 									 ("P" "Plain text daily agenda and top priorities"
-									  ,sej/org-custom-daily-agenda
+									  ,sej/org-custom-agenda-orig
 									  ((org-agenda-with-colors nil)
 									   (org-agenda-prefix-format "%t %s")
 									   (org-agenda-current-time-string ,(car (last org-agenda-time-grid)))
@@ -6028,6 +6156,28 @@ function with the \\[universal-argument]."
 									 ("ww" tags "+CATEGORY=\"wine\"")
 									 ))
 
+  (defun sej/org-agenda-before-sorting-filter-function (element)
+	"Mod `org-ql-block' agenda string based on `org-agenda-prefix-format' (eventually).
+
+    Needed to add category to line as `org-ql-block' is hardwired to ignore `org-agenda-prefix-format'."
+	(if element
+		(let* (
+			   (category (plist-get (nth 2 (car (object-intervals element))) 'org-category))
+			   (type (plist-get (nth 2 (car (object-intervals element))) 'org-agenda-type))
+			   (std (plist-get (nth 2 (car (object-intervals element))) 'standard-properties))
+			   )
+		  (if (and category (equal type 'search))
+			  (progn
+				(setq element
+					  (concat
+					   ;;(propertize FIX use this to add properties to the category tag
+					   (substring element 0 2)
+					   (substring (concat category ":            ") 0 12)
+					   (substring element 2 nil)
+					   ))))))
+	element)
+  (setq org-agenda-before-sorting-filter-function #'sej/org-agenda-before-sorting-filter-function)
+					   
   ;; display repeaters for dates, scheduled, deadlines
   ;; [[https://whhone.com/posts/org-agenda-repeated-tasks/]]
 
@@ -6041,6 +6191,7 @@ function with the \\[universal-argument]."
   (setq org-agenda-prefix-format
 		`((agenda . " %i %-12:c%?-12t%-6e% s%(sej/org-agenda-repeater)")
 		 (todo . " %i %-12:c %-6e")
+		 (org-ql . " %i %-12:c %-6e")
 		 (tags . " %i %-12:c")
 		 (search . " %i %-12:c")))
 
@@ -6049,13 +6200,25 @@ function with the \\[universal-argument]."
 	(interactive)
 	(if arg
 		(org-agenda nil arg)
-	  (org-agenda nil "A")))
+	  (org-agenda nil "z")))
 
   (defun sej/beginning-of-buffer (&optional &arg &arg)
 	"Dummy to filter extra args."
 	(beginning-of-buffer))
 
-  (advice-add 'org-agenda :after #'sej/beginning-of-buffer) )  ; end of org-agenda
+  (advice-add 'org-agenda :after #'sej/beginning-of-buffer)
+
+  ;; defining below as a kludge, due to errors of not defined
+  (declare-function org-element-with-disabled-cache (&rest body))
+  
+  )  ; end of org-agenda
+
+;;;;; [[https://github.com/alphapapa/org-ql][org-ql]]
+;; This package provides a query language for Org files.
+;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
+(use-package org-ql
+  :vc (:url "http://github.com/alphapapa/org-ql"
+			:rev :newest))
 
 ;;;;; org-src
 ;; built-in: org src block settings
