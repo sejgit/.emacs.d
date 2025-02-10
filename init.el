@@ -6217,8 +6217,7 @@ function with the \\[universal-argument]."
 ;; This package provides a query language for Org files.
 ;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
 (use-package org-ql
-  :vc (:url "http://github.com/alphapapa/org-ql"
-			:rev :newest))
+  :demand t)
 
 ;;;;; org-src
 ;; built-in: org src block settings
