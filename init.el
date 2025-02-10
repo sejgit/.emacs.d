@@ -3934,9 +3934,8 @@ If called with a prefix argument, query for word to search."
          ("i" . sej/ielm-other-window)
 		 :map ielm-map
 		 ("<return>" . sej/ielm-return))
-  :hook ((inferior-emacs-lisp-mode . hs-minor-mode)
-		 (ielm-indirect-setup . show-paren-mode)
-		 (ielm-indirect-setup . electric-pair-mode))
+  :hook ((ielm-mode . show-paren-mode)
+		 (ielm-mode . electric-pair-mode))
   :config
   (defun sej/ielm-other-window ()
     "Run ielm on other window."
@@ -5751,12 +5750,13 @@ function with the \\[universal-argument]."
 		org-refile-allow-creating-parent-nodes 'confirm
         org-log-done 'note
 		org-log-into-drawer t
-        org-todo-keywords '(
-							(sequence "MAYBE(m)" "TODO(t@/!)" "INPROCESS(i!/!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
+		;; ! - timestamp , @ - note
+        org-todo-keywords '((sequence "TODO(t!/!)" "INPROCESS(i!/!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
+							(sequence "MAYBE(m@/!)" "|" "DONE(d@/!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
 							(sequence "FIX(f@/!)" "INPROCESS(i!/!)" "|" "FIXED(F@/!)")
-							(sequence "|" "CANCELED(x@/!)")
-							)
+							(sequence "|" "CANCELED(x@/!)"))
+		
 		;; `list-colors-display' for a buffer of colour names
         org-todo-keyword-faces '(
                                  ("MAYBE" . (:foreground  "#9ac8e0"))
@@ -6229,11 +6229,50 @@ function with the \\[universal-argument]."
   
   )  ; end of org-agenda
 
+;;;;; [[https://orgmode.org/manual/Tracking-your-habits.html][org-habit]]
+;; habit logging and tracking
+(use-package org-habit
+  :after org-agenda
+  :ensure nil
+  :custom
+  (org-habit-preceding-days 42)
+  (org-habit-today-glyph 45)
+  :custom-face
+  (org-habit-alert-face ((((background light)) (:background "#f5f946"))))
+  (org-habit-alert-future-face ((((background light)) (:background "#fafca9"))))
+  (org-habit-clear-face ((((background light)) (:background "#8270f9"))))
+  (org-habit-clear-future-face ((((background light)) (:background "#d6e4fc"))))
+  (org-habit-overdue-face ((((background light)) (:background "#f9372d"))))
+  (org-habit-overdue-future-face ((((background light)) (:background "#fc9590"))))
+  (org-habit-ready-face ((((background light)) (:background "#4df946"))))
+  (org-habit-ready-future-face ((((background light)) (:background "#acfca9")))))
+
 ;;;;; [[https://github.com/alphapapa/org-ql][org-ql]]
 ;; This package provides a query language for Org files.
 ;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
 (use-package org-ql
-  :demand t)
+  :after org
+  :demand t
+  :commands org-ql-search
+  :functions (org-ql-find--buffers
+              org-ql-search-directories-files
+              org-ql-find
+              org-ql-defpred)
+  :bind (:map org-mode-map
+		 ("C-c C-x o" . org-ql-open-link)
+		 :map sej-denote-map
+		 ("o /" . org-ql-sparse-tree)
+		 ("o a" . org-ql-view)
+		 ("o q" . org-ql-find-in-agenda)
+		 ("o w" . org-ql-refile-path)
+		 ("o W" . org-ql-refile))
+  :preface
+  (which-key-add-keymap-based-replacements sej-denote-map "o" "org-ql")
+  :config
+  (eval-when-compile
+    (require 'vertico-multiform))
+  (add-all-to-list 'vertico-multiform-commands
+                   '(org-ql-find)))
 
 ;;;;; org-src
 ;; built-in: org src block settings
