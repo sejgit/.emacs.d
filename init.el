@@ -5549,21 +5549,23 @@ Add this function to the `after-save-hook'."
       (message "Deleted %s" filename)
       (message "Wrote %s" (concat (file-name-sans-extension filename) ".pdf")))    ))
 
-;;;;; pdf-tools
+;;;;; [[https://github.com/vedang/pdf-tools][pdf-tools]]
 ;; PDF reader
-;; see github for install directions
-;; must be compiled
-;; [[https://github.com/vedang/pdf-tools]]
+;; NOTE tool will NOT work without manual compilation on first install with OSX!!!
+;; goto ~/.emacs.d/elpa/pdf-tools/
+
   (use-package pdf-tools
-	:if sys/mac-x-p
-	:vc (:url "https://github.com/vedang/pdf-tools"
-			  :branch "master")
-    :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
-    :blackout (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
-    :defines pdf-annot-activate-created-annotations)
+	:custom
+	(pdf-tools-handle-upgrades nil)
 	;; :init (pdf-loader-install)
-	;; :config (pdf-tools-install))
+	:config (pdf-tools-install)
+	(dolist
+      (pkg
+       '(pdf-annot pdf-cache pdf-dev pdf-history pdf-info pdf-isearch
+                   pdf-links pdf-misc pdf-occur pdf-outline pdf-sync
+                   pdf-util pdf-view pdf-virtual))
+    (require pkg)))
 
 ;;;;; nov
 ;; Epub reader
