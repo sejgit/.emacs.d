@@ -5551,8 +5551,11 @@ Add this function to the `after-save-hook'."
 
 ;;;;; [[https://github.com/vedang/pdf-tools][pdf-tools]]
 ;; PDF reader
-;; NOTE tool will NOT work without manual compilation on first install with OSX!!!
-;; goto ~/.emacs.d/elpa/pdf-tools/
+;; NOTE tool MAY NOT (sometimes does) work without manual compilation on first install with OSX!!!
+;; goto ~/.emacs.d/elpa/pdf-tools-20240429.407/build/server/
+;; ./autobuild
+;; ./install-sh
+;; sudo make install
 
   (use-package pdf-tools
     :magic ("%PDF" . pdf-view-mode)
