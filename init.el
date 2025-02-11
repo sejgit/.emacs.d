@@ -5689,9 +5689,7 @@ function with the \\[universal-argument]."
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
           (org-mode . variable-pitch-mode))
   :bind (( ("C-c l" . org-insert-link)
-		   ("C-c S" . org-store-link)
-           ("C-c c" . org-capture)
-           ("C-c a" . org-agenda) )
+		   ("C-c S" . org-store-link))
          (:map org-mode-map
 			   ("C-,")
                ("C-M-\\" . org-indent-region)
@@ -5707,11 +5705,7 @@ function with the \\[universal-argument]."
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
 			   ("C-c )" . org-fold-hide-drawer-all)
 			   ("C-c b" . org-switchb)
-			   ("C-c x" . org-todo))
-		 (:map dired-mode-map
-			   ("C-c C-a" . org-attach-dired-to-subtree))
-		 (:map goto-map
-			   ("M-o" . org-goto)))
+			   ("C-c x" . org-todo)))
   :config
   ;; get denote up and going
   (require 'denote)
@@ -5751,7 +5745,7 @@ function with the \\[universal-argument]."
         org-log-done 'note
 		org-log-into-drawer t
 		;; ! - timestamp , @ - note
-        org-todo-keywords '((sequence "TODO(t!/!)" "INPROCESS(i!/!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
+        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
 							(sequence "MAYBE(m@/!)" "|" "DONE(d@/!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
 							(sequence "FIX(f@/!)" "INPROCESS(i!/!)" "|" "FIXED(F@/!)")
@@ -5779,34 +5773,7 @@ function with the \\[universal-argument]."
         org-image-actual-width '(300)
         org-highlight-latex-and-related '(latex)
 		org-clock-sound t
-		org-id-method 'ts
-		org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
-
-  (defun sej/org-timer-done-alert ()
-	"Alert when timer is done."
-	(interactive)
-	(tmr "0s" "org timer done!"))
-  (add-hook 'org-timer-done-hook #'sej/org-timer-done-alert)
-  
-;;;;;; org-attach
-  ;; directory to store attachments in relative to file
-  ;; below is an absolute dir parallel to denote-directory
-  (setq org-attach-id-dir  (expand-file-name "../denote-attachments/" denote-directory) )
-
-  (add-to-list 'org-file-apps '("\\.xls\\'". default))
-
-  ;; Tell Org to use Emacs when opening files that end in .md
-  (add-to-list 'org-file-apps '("\\.md\\'" . emacs))
-
-  ;; Do the same for .html
-  (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
-
-  (defun sej/org-attach-save-file-list-to-property (dir)
-  "Save list of attachments to ORG_ATTACH_FILES property."
-  (when-let* ((files (org-attach-file-list dir)))
-    (org-set-property "ORG_ATTACH_FILES" (mapconcat #'identity files ", "))))
-  
-(add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property)
+		org-id-method 'ts)
 
 ;;;;;; tags
   ;; defined here for regular topics
@@ -5895,6 +5862,12 @@ function with the \\[universal-argument]."
    'append)
 
 ;;;;;; personal sej functions
+  (defun sej/org-timer-done-alert ()
+	"Alert when timer is done."
+	(interactive)
+	(tmr "0s" "org timer done!"))
+  (add-hook 'org-timer-done-hook #'sej/org-timer-done-alert)
+  
   (defun sej/get-open-org-file ()
     "Pull list of .org files which are open in buffers."
     (buffer-file-name
@@ -5935,77 +5908,12 @@ function with the \\[universal-argument]."
 
   ) ; end of use-pacakge for org
 
-;;;;; org-autolist
-;; make return and delete smarter in org lists
-;; [[https://github.com/calvinwyoung/org-autolist]]
-(use-package org-autolist
-  :hook (org-mode . org-autolist-mode))
-
-;;;;; org-protocol
-(use-package org-protocol
-  :ensure nil
-  :after org
-  :init
-  (defvar load-language-list '((emacs-lisp . t)
-                               (ein . t)
-                               (perl . t)
-                               (python . t)
-                               (ein . t)
-                               (ruby . t)
-                               (js . t)
-                               (css . t)
-                               (sass . t)
-                               (C . t)
-                               (java . t)
-                               (shell . t)
-                               ))
-
-  (org-babel-do-load-languages 'org-babel-load-languages
-                               load-language-list)
-  (setq org-confirm-babel-evaluate nil))
-
-;;;;; org-capture
-;; Bookmarks in Safari
-;;
-;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
-;;                               +'&url='+encodeURIComponent(window.location.href)
-;;                               +'&title='+encodeURIComponent(document.title)
-;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
-;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
-;;                               +'url='+encodeURIComponent(location.href)
-;;                               +'&title='+encodeURIComponent(document.title) ;
-(use-package org-capture
-  :ensure nil
-  :after org
-  :bind ("C-c c" . org-capture)
-  :config
-  (defun sej/new-org-capture-file()
-    "Function to allow new FILE in 'org-capture'."
-    (interactive)
-    (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
-      (let* ((expanded (expand-file-name file))
-             (try expanded)
-             (dir (directory-file-name (file-name-directory expanded)))
-             new)
-        (if (file-exists-p expanded)
-            (error "Cannot create file %s: file exists" expanded))
-        ;; Find the topmost nonexistent parent dir (variable `new')
-        (while (and try (not (file-exists-p try)) (not (equal new try)))
-          (setq new try
-                try (directory-file-name (file-name-directory try))))
-        (when (not (file-exists-p dir))
-          (make-directory dir t))
-        (write-region "" nil expanded t)
-        (when new
-          (dired-add-file new)
-          (message new)
-          )))))
-
 ;;;;; org-agenda
 ;; built-in: agenda for todo & calendar items
 ;; [[https://orgmode.org/manual/Agenda-Views.html][org-agenda manual]]
 (use-package org-agenda
   :ensure nil
+  :after org
   :preface
   (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
   :bind (("C-c a" . org-agenda)
@@ -6229,6 +6137,102 @@ function with the \\[universal-argument]."
   
   )  ; end of org-agenda
 
+;;;;; org-appear
+;; make invisible parts of org-mode visible
+;; https://github.com/awth13/org-appear
+(use-package org-appear
+    :hook
+    (org-mode . org-appear-mode))
+
+;;;;; org-attach
+  ;; directory to store attachments in relative to file
+;; below is an absolute dir parallel to denote-directory
+(use-package org-attach
+  :after (org dired)
+  :ensure nil
+  :bind (:map dired-mode-map
+			  ("C-c C-a" . org-attach-dired-to-subtree))
+  :init
+  (setq org-attach-id-dir  (expand-file-name "../denote-attachments/" denote-directory)
+		org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
+
+  (add-to-list 'org-file-apps '("\\.xls\\'". default))
+
+  ;; Tell Org to use Emacs when opening files that end in .md
+  (add-to-list 'org-file-apps '("\\.md\\'" . emacs))
+
+  ;; Do the same for .html
+  (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
+
+  (defun sej/org-attach-save-file-list-to-property (dir)
+	"Save list of attachments to ORG_ATTACH_FILES property."
+	(when-let* ((files (org-attach-file-list dir)))
+      (org-set-property "ORG_ATTACH_FILES" (mapconcat #'identity files ", "))))
+  
+  (add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property))
+
+;;;;; [[https://github.com/bzg/org-mode/blob/main/lisp/org-attach-git.el][org-attach-git]]
+  ;; An extension to org-attach.  If `org-attach-id-dir' is initialized
+  ;; as a Git repository, then `org-attach-git' will automatically commit
+  ;; changes when it sees them.  Requires git-annex.
+(use-package org-attach-git
+  :after org
+  :ensure nil)
+
+;;;;; [[https://github.com/calvinwyoung/org-autolist][org-autolist]]
+;; make return and delete smarter in org lists
+(use-package org-autolist
+  :hook (org-mode . org-autolist-mode))
+
+;;;;; [[https://github.com/alphapapa/org-bookmark-heading][org-bookmark-heading]]
+;; allows headings in org files to be bookmarked and jumped to with standard bookmark commands
+(use-package org-bookmark-heading
+  :after org)
+
+;;;;; org-capture
+;; Bookmarks in Safari
+;;
+;; Org Capture Journal  javascript:location.href='org-protocol://capture?template=x'
+;;                               +'&url='+encodeURIComponent(window.location.href)
+;;                               +'&title='+encodeURIComponent(document.title)
+;;                               +'&body='+encodeURIComponent(window.getSelection()) ;
+;; Org Capture Link  javascript:window.location.href='org-protocol://store-link?'
+;;                               +'url='+encodeURIComponent(location.href)
+;;                               +'&title='+encodeURIComponent(document.title) ;
+(use-package org-capture
+  :ensure nil
+  :after org
+  :bind ("C-c c" . org-capture)
+  :config
+  (defun sej/new-org-capture-file()
+    "Function to allow new FILE in 'org-capture'."
+    (interactive)
+    (let ((file (read-file-name "File name: " (concat sej-org-directory "/"))))
+      (let* ((expanded (expand-file-name file))
+             (try expanded)
+             (dir (directory-file-name (file-name-directory expanded)))
+             new)
+        (if (file-exists-p expanded)
+            (error "Cannot create file %s: file exists" expanded))
+        ;; Find the topmost nonexistent parent dir (variable `new')
+        (while (and try (not (file-exists-p try)) (not (equal new try)))
+          (setq new try
+                try (directory-file-name (file-name-directory try))))
+        (when (not (file-exists-p dir))
+          (make-directory dir t))
+        (write-region "" nil expanded t)
+        (when new
+          (dired-add-file new)
+          (message new)
+          )))))
+
+;;;;; [[https://github.com/abo-abo/org-download][org-download]]
+;; facilitates moving images by drag-drop, clipboard, kill-ring
+;; to attach or specified directory
+(use-package org-download
+  :hook ((emacs-startup . org-download-enable)
+		 (dired-mode . org-download-enable)))
+
 ;;;;; [[https://orgmode.org/manual/Tracking-your-habits.html][org-habit]]
 ;; habit logging and tracking
 (use-package org-habit
@@ -6246,120 +6250,6 @@ function with the \\[universal-argument]."
   (org-habit-overdue-future-face ((((background light)) (:background "#fc9590"))))
   (org-habit-ready-face ((((background light)) (:background "#4df946"))))
   (org-habit-ready-future-face ((((background light)) (:background "#acfca9")))))
-
-;;;;; [[https://github.com/alphapapa/org-ql][org-ql]]
-;; This package provides a query language for Org files.
-;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
-(use-package org-ql
-  :after org
-  :demand t
-  :commands org-ql-search
-  :functions (org-ql-find--buffers
-              org-ql-search-directories-files
-              org-ql-find
-              org-ql-defpred)
-  :bind (:map org-mode-map
-		 ("C-c C-x o" . org-ql-open-link)
-		 :map sej-denote-map
-		 ("o /" . org-ql-sparse-tree)
-		 ("o a" . org-ql-view)
-		 ("o q" . org-ql-find-in-agenda)
-		 ("o w" . org-ql-refile-path)
-		 ("o W" . org-ql-refile))
-  :preface
-  (which-key-add-keymap-based-replacements sej-denote-map "o" "org-ql")
-  :config
-  (eval-when-compile
-    (require 'vertico-multiform))
-  (add-all-to-list 'vertico-multiform-commands
-                   '(org-ql-find)))
-
-;;;;; org-src
-;; built-in: org src block settings
-;; [[https://orgmode.org/manual/Working-with-Source-Code.html][working with source code]]
-(use-package org-src
-  :ensure nil
-  :config
-  (setq org-src-window-setup 'current-window
-        org-src-fontify-natively t
-        org-src-preserve-indentation t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 0))
-
-;;;;; org-Ox
-;; built-in: org mode exporter framework
-;; [[https://orgmode.org/worg/exporters/ox-overview.html][org-exporter manual]]
-(use-package ox
-  :ensure nil
-  :config
-  (setq org-export-with-toc nil
-        org-export-headline-levels 8
-        org-export-backends '(ascii html latex md)
-        org-export-dispatch-use-expert-ui nil
-        org-export-coding-system 'utf-8
-        org-export-exclude-tags '("noexport" "no_export" "ignore")
-        org-export-with-author t
-        org-export-with-drawers t
-        org-export-with-email t
-        org-export-with-footnotes t
-        org-export-with-latex t
-        org-export-with-properties t
-        org-export-with-smart-quotes t
-        org-html-html5-fancy t
-        org-html-postamble nil))
-
-;;;;; ox-latex
-;; built-in: latex exporter
-;; https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export
-(use-package ox-latex
-  :ensure nil
-  :config
-  ;; LaTeX Settings
-  (setq org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f")
-        org-latex-remove-logfiles t
-        org-latex-prefer-user-labels t
-        bibtex-dialect 'biblatex))
-
-;;;;; ox-gfm
-;; github flavoured markdown exporter for Org mode
-;; https://github.com/larstvei/ox-gfm
-(use-package ox-gfm)
-
-;;;;; ox-jdf-report
-;; exporter for the jdf style report
-;; https://github.com/dylanjm/ox-jdf
-(use-package ox-jdf-report
-  :vc (:url "https://github.com/dylanjm/ox-jdf"
-            :rev :newest
-            :branch "master"))
-
-;;;;; ox-report
-;; meeting report exporter
-;; https://github.com/DarkBuffalo/ox-report
-(use-package ox-report)
-
-;;;;; ob-go
-;; org-bable functions for go evaluations
-;; https://github.com/pope/ob-go
-(use-package ob-go)
-
-;;;;; ob-rust
-;; org-babel functions for rust evaluation
-;; https://github.com/zweifisch/ob-rust
-(use-package ob-rust)
-
-;;;;; ob-ipython
-;; library that allows Org mode to evaluate code blocks using a Jupyter kernel
-;; (Python by default)
-;; https://github.com/gregsexton/ob-ipython
-(use-package ob-ipython)
-
-;;;;; org-appear
-;; make invisible parts of org-mode visible
-;; https://github.com/awth13/org-appear
-(use-package org-appear
-    :hook
-    (org-mode . org-appear-mode))
 
 ;;;;; org-fragtog
 ;; LaTeX previews
@@ -6434,26 +6324,172 @@ function with the \\[universal-argument]."
 	(org-modern-radio-target '(" ⛯ " t " "))
 	(org-modern-horizontal-rule nil))
 
-;;;;; org-rich-yank
-;; Rich text clipboard when yanking code into org buffer
-;; consider demand t as lazy loading may not work
-;; https://github.com/unhammer/org-rich-yank
-(use-package org-rich-yank
-  :defer 2
-  :bind (:map org-mode-map
-              ("C-M-y" . org-rich-yank)))
+;;;;; [[https://github.com/org-noter/org-noter][org-noter]]
+;; create notes that are kept in sync as you scroll through the document
+(use-package org-noter
+  :after (org pdf-view)
+  :commands org-noter
+  :bind (:map org-noter-notes-mode-map
+              ("C-M-i" . org-noter-insert-dynamic-block))
+  :custom
+  (org-noter-notes-search-path (list org-directory))
+  (org-noter-supported-modes '(doc-view-mode pdf-view-mode))
+  (org-noter-max-short-selected-text-length 10)
+  (org-noter-separate-notes-from-heading t)
+  :config
+  (use-package org-noter-pdf)
 
-;;;;; toc-org
-;; Table of contents updated at save to header with TOC tag
-;; https://github.com/snosov1/toc-org
-(use-package toc-org
-  :blackout t
-  :hook ((org-mode . toc-org-mode)
-         (markdown-mode . toc-org-mode))
-  :bind (:map org-mode-map
-              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)
-			  :map org-mode-map
-              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)))
+  (require 'pdf-macs)
+  (defun org-noter-pdf--show-arrow ()
+    ;; From `pdf-util-tooltip-arrow'.
+    (pdf-util-assert-pdf-window)
+    (let* (x-gtk-use-system-tooltips
+           (arrow-top  (aref org-noter--arrow-location 2)) ; % of page
+           (arrow-left (aref org-noter--arrow-location 3))
+           (image-top  (if (floatp arrow-top)
+                           (round (* arrow-top  (cdr (pdf-view-image-size)))))) ; pixel location on page (magnification-dependent)
+           (image-left (if (floatp arrow-left)
+                           (floor (* arrow-left (car (pdf-view-image-size))))))
+           (dx (or image-left
+                   (+ (or (car (window-margins)) 0)
+                      (car (window-fringes)))))
+           (dy (or image-top 0))
+           (pos (list dx dy dx (+ dy (* 2 (frame-char-height)))))
+           (vscroll (pdf-util-required-vscroll pos))
+           (tooltip-frame-parameters
+            `((border-width . 0)
+              (internal-border-width . 0)
+              ,@tooltip-frame-parameters))
+           (tooltip-hide-delay 3))
+
+      (when vscroll
+        (image-set-window-vscroll vscroll))
+      (setq dy (max 0 (- dy
+                         (cdr (pdf-view-image-offset))
+                         (window-vscroll nil t)
+                         (frame-char-height))))
+      (when (overlay-get (pdf-view-current-overlay) 'before-string)
+        (let* ((e (window-inside-pixel-edges))
+               (xw (pdf-util-with-edges (e) e-width))
+               (display-left-margin (/ (- xw (car (pdf-view-image-size t))) 2)))
+          (cl-incf dx display-left-margin)))
+      (setq dx (max 0 (+ dx org-noter-arrow-horizontal-offset)))
+      (pdf-util-tooltip-in-window
+       (propertize
+        " " 'display (propertize
+                      "\u2192" ;; right arrow
+                      'display '(height 2)
+                      'face `(:foreground
+                              ,org-noter-arrow-foreground-color
+                              :background
+                              ,(if (bound-and-true-p pdf-view-midnight-minor-mode)
+                                   (cdr pdf-view-midnight-colors)
+                                 org-noter-arrow-background-color))))
+       dx dy))))
+
+;;;;; org-pdftools
+(use-package org-pdftools
+  :hook (org-mode . org-pdftools-setup-link))
+
+;;;;; org-(ob)babel
+(use-package ob
+  :after (org ob-go ob-ipython ob-rust ob-restclient)
+  :ensure nil
+  :demand t
+  :config
+  (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp . t)
+														   (python     . t)
+														   (calc       . t)
+														   (shell      . t)
+														   (latex      . t)
+														   (C          . t)
+														   (sql        . t)
+														   (makefile   . t)
+														   (ein        . t)
+														   (perl       . t)
+														   (ruby       . t)
+														   (js         . t)
+														   (css        . t)
+														   (restclient . t)
+														   (java       . t)))
+
+  (setq org-confirm-babel-evaluate nil))
+
+;;;;; [[https://github.com/pope/ob-go][ob-go]]
+;; org-bable functions for go evaluations
+(use-package ob-go
+  :after org)
+
+;;;;; [[https://github.com/gregsexton/ob-ipython][ob-ipython]]
+;; library that allows Org mode to evaluate code blocks using a Jupyter kernel
+;; (Python by default)
+(use-package ob-ipython
+  :after org)
+
+;;;;; [[https://github.com/zweifisch/ob-rust][ob-rust]]
+;; org-babel functions for rust evaluation
+(use-package ob-rust
+  :after org)
+
+;;;;; [[https://github.com/alf/ob-restclient.el][ob-restclient]]
+;; #+BEGIN_SRC restclient
+;;   GET http://example.com
+;; #+END_SRC
+;; provides restclient support
+(use-package ob-restclient
+  :after org)
+
+;;;;; org-Ox
+;; built-in: org mode exporter framework
+;; [[https://orgmode.org/worg/exporters/ox-overview.html][org-exporter manual]]
+(use-package ox
+  :ensure nil
+  :config
+  (setq org-export-with-toc nil
+        org-export-headline-levels 8
+        org-export-backends '(ascii html latex md)
+        org-export-dispatch-use-expert-ui nil
+        org-export-coding-system 'utf-8
+        org-export-exclude-tags '("noexport" "no_export" "ignore")
+        org-export-with-author t
+        org-export-with-drawers t
+        org-export-with-email t
+        org-export-with-footnotes t
+        org-export-with-latex t
+        org-export-with-properties t
+        org-export-with-smart-quotes t
+        org-html-html5-fancy t
+        org-html-postamble nil))
+
+;;;;; ox-latex
+;; built-in: latex exporter
+;; https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export
+(use-package ox-latex
+  :ensure nil
+  :config
+  ;; LaTeX Settings
+  (setq org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f")
+        org-latex-remove-logfiles t
+        org-latex-prefer-user-labels t
+        bibtex-dialect 'biblatex))
+
+;;;;; ox-gfm
+;; github flavoured markdown exporter for Org mode
+;; https://github.com/larstvei/ox-gfm
+(use-package ox-gfm)
+
+;;;;; ox-jdf-report
+;; exporter for the jdf style report
+;; https://github.com/dylanjm/ox-jdf
+(use-package ox-jdf-report
+  :vc (:url "https://github.com/dylanjm/ox-jdf"
+            :rev :newest
+            :branch "master"))
+
+;;;;; ox-report
+;; meeting report exporter
+;; https://github.com/DarkBuffalo/ox-report
+(use-package ox-report)
 
 ;;;;; org-pretty-tags
 ;; Display text or image surrogates for Org mode tags.
@@ -6514,13 +6550,48 @@ function with the \\[universal-argument]."
 		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
 		  )) )
 
-;;;;; org-download
-;; facilitates moving images by drag-drop, clipboard, kill-ring
-;; to attach or specified directory
-;; [[https://github.com/abo-abo/org-download]]
-(use-package org-download
-  :hook ((emacs-startup . org-download-enable)
-		 (dired-mode . org-download-enable)))
+;;;;; org-protocol
+(use-package org-protocol
+  :ensure nil
+  :after org
+  :custom
+  (org-protocol-default-template-key "l"))
+
+;;;;; [[https://github.com/alphapapa/org-ql][org-ql]]
+;; This package provides a query language for Org files.
+;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
+(use-package org-ql
+  :after org
+  :demand t
+  :commands org-ql-search
+  :functions (org-ql-find--buffers
+              org-ql-search-directories-files
+              org-ql-find
+              org-ql-defpred)
+  :bind (:map org-mode-map
+		 ("C-c C-x o" . org-ql-open-link)
+		 :map sej-denote-map
+		 ("o /" . org-ql-sparse-tree)
+		 ("o a" . org-ql-view)
+		 ("o q" . org-ql-find-in-agenda)
+		 ("o w" . org-ql-refile-path)
+		 ("o W" . org-ql-refile))
+  :preface
+  (which-key-add-keymap-based-replacements sej-denote-map "o" "org-ql")
+  :config
+  (eval-when-compile
+    (require 'vertico-multiform))
+  (add-all-to-list 'vertico-multiform-commands
+                   '(org-ql-find)))
+
+;;;;; org-rich-yank
+;; Rich text clipboard when yanking code into org buffer
+;; consider demand t as lazy loading may not work
+;; https://github.com/unhammer/org-rich-yank
+(use-package org-rich-yank
+  :defer 2
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
 
 ;;;;; org-skeleton
 ;; skeleton template for new org file
@@ -6556,6 +6627,19 @@ function with the \\[universal-argument]."
   > "#+BEGIN_SRC " str \n
   > _ \n
   > "#+END_SRC" \n)
+
+;;;;; org-src
+;; built-in: org src block settings
+;; [[https://orgmode.org/manual/Working-with-Source-Code.html][working with source code]]
+(use-package org-src
+  :ensure nil
+  :config
+  (setq org-src-window-setup 'current-window
+        org-src-fontify-natively t
+        org-src-preserve-indentation t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 0))
+
 
 ;;;;; sej/org-log-checklist-item
 
@@ -6611,6 +6695,20 @@ function with the \\[universal-argument]."
 
 (advice-add 'org-list-struct-apply-struct :after #'sej/org-checklist-date-insert)
 ;; (advice-add 'org-toggle-checkbox :after #'org-checklist-change-advice-function)
+
+
+;;;;; toc-org
+;; Table of contents updated at save to header with TOC tag
+;; https://github.com/snosov1/toc-org
+(use-package toc-org
+  :blackout t
+  :hook ((org-mode . toc-org-mode)
+         (markdown-mode . toc-org-mode))
+  :bind (:map org-mode-map
+              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)
+			  :map org-mode-map
+              ("C-c C-o" . toc-org-markdown-follow-thing-at-point)))
+
 
 ;;; shell tools
 ;;;;; sh-script
