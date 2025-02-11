@@ -4995,13 +4995,22 @@ one among them and operate therein."
       (end-of-line 0)
       (org-move-to-column 2))))
 
+(defun sej/filter-journal-lines-from-list (lines)
+  "Filter out lines containing '/journal/' from a cons cell LINES and return the titles."
+  (let ((filtered-lines '()))
+    (while lines
+      (let ((line (car lines)))
+        (unless (string-match-p (rx "journal") line)
+          (push (concat (denote-retrieve-filename-title line) "\n" ) filtered-lines)))
+      (setq lines (cdr lines)))
+    (sort filtered-lines)))
+
 (defun sej/denote-colleagues-dump ()
   "Dump current used colleagues in denote directory for refactor purposes."
   (interactive)
-  (let ((value nil) (element1 nil) (element2 nil))
-    (setq value (denote-directory-files "__[^journal]"))
+  (let ((value (sej/filter-journal-lines-from-list (denote-directory-files) )))
     (dolist (element value)
-      (insert (concat (denote-retrieve-filename-title element) "\n" )))))
+      (insert element))))
 
 ;;;;;; silos
   (require 'denote-silo-extras)
@@ -6244,7 +6253,7 @@ function with the \\[universal-argument]."
   :after org-agenda
   :ensure nil
   :custom
-  (org-habit-preceding-days 42)
+  (org-habit-preceding-days 1000)
   (org-habit-today-glyph 45)
   :custom-face
   (org-habit-alert-face ((((background light)) (:background "#f5f946"))))
@@ -6254,7 +6263,9 @@ function with the \\[universal-argument]."
   (org-habit-overdue-face ((((background light)) (:background "#f9372d"))))
   (org-habit-overdue-future-face ((((background light)) (:background "#fc9590"))))
   (org-habit-ready-face ((((background light)) (:background "#4df946"))))
-  (org-habit-ready-future-face ((((background light)) (:background "#acfca9")))))
+  (org-habit-ready-future-face ((((background light)) (:background "#acfca9"))))
+  :config
+  (setq org-habit-graph-column 70))
 
 ;;;;; org-fragtog
 ;; LaTeX previews
