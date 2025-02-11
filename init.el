@@ -6339,7 +6339,8 @@ function with the \\[universal-argument]."
   (org-noter-max-short-selected-text-length 10)
   (org-noter-separate-notes-from-heading t)
   :config
-  (use-package org-noter-pdf)
+  (use-package org-noter-pdf
+	:ensure nil)
 
   (require 'pdf-macs)
   (defun org-noter-pdf--show-arrow ()
