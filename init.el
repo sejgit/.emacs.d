@@ -1500,9 +1500,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (bind-key* "C-q C-S" 'sej/create-scratch-buffer)
 (bind-key* "C-q C-s" 'scratch-buffer)
 
-;;;;; persistent-scratch
+;;;;; [[https://github.com/Fanael/persistent-scratch][persistent-scratch]]
 ;; keep the scratch buffer from session to session
-;; https://github.com/Fanael/persistent-scratch
 (use-package persistent-scratch
   :commands persistent-scratch-setup-default
   :hook (emacs-startup . persistent-scratch-setup-default)
@@ -5577,7 +5576,14 @@ Add this function to the `after-save-hook'."
        '(pdf-annot pdf-cache pdf-dev pdf-history pdf-info pdf-isearch
                    pdf-links pdf-misc pdf-occur pdf-outline pdf-sync
                    pdf-util pdf-view pdf-virtual))
-    (require pkg)))
+      (require pkg)))
+
+;;;;; [[https://github.com/jeremy-compostella/pdfgrep][pdfgrep]]
+;; grep service and highlighting for pdf
+(use-package pdfgrep
+  :commands pdfgrep
+  :config
+  (pdfgrep-mode))
 
 ;;;;; nov
 ;; Epub reader
