@@ -3670,16 +3670,8 @@ If called with a prefix argument, query for word to search."
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
-        "-p" '("-t" "Fetch all tags" ("-t" "--tags")))))
-
-;; (use-package magit-file-icons
-;;   :init
-;;   (magit-file-icons-mode 1)
-;;   :custom
-;;   ;; These are the default values:
-;;   ;;(magit-file-icons-enable-diff-file-section-icons t)
-;;   (magit-file-icons-enable-untracked-icons t)
-;;   (magit-file-icons-enable-diffstat-icons t))
+        "-p" '("-t" "Fetch all tags" ("-t" "--tags"))))
+  (setopt magit-format-file-function #'magit-format-file-nerd-icons))
 
 ;;;;; disproject
 ;; integration with project.el and allows for dispatching via transient menus
