@@ -1698,6 +1698,15 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Remember to add an entry for `t', the library uses that as default.
   )
 
+;;;;; sf.el
+;; [[https://lmno.lol/alvaro/emacs-insert-and-render-sf-symbols][Insert and render SF symbols]]
+;; note needs apple SF fonts
+;; [[https://developer.apple.com/sf-symbols/][see SF Symbols 6]]
+;; commands: (sf-symbol-insert) & (sf-symbol-insert-name)
+(when (memq system-type '(darwin))
+  (set-fontset-font t nil "SF Pro Display" nil 'append)
+  (load "~/.emacs.d/lisp/sf.el"))
+
 ;;; text manipulation
 ;;;; text manipulation settings
 ;;;;; saveplace
