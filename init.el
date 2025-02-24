@@ -1504,12 +1504,19 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; keep the scratch buffer from session to session
 (use-package persistent-scratch
   :commands persistent-scratch-setup-default
-  :hook (emacs-startup . persistent-scratch-setup-default)
+  :hook (emacs-startup . sej/persistent-scratch-setup-default)
   :custom
   (persistent-scratch-autosave-interval 30)
   (persistent-scratch-backup-directory nil)
+  :init
   :config
-  (persistent-scratch-autosave-mode)
+  (defun sej/persistent-scratch-setup-default ()
+	"Set up persistent scratch and make it `trusted-content'."
+	(add-to-list 'trusted-content persistent-scratch-save-file)
+	(persistent-scratch-setup-default))
+  
+	(persistent-scratch-autosave-mode)
+  
   (with-demoted-errors "Error: %S"
     (persistent-scratch-setup-default)))
 
@@ -1549,12 +1556,12 @@ If FRAME is omitted or nil, use currently selected frame."
       (quit-window)))
 
   (defun sej/scroll-up-one()
-    "Scroll up one to avoid lambda."
+    "Scroll screen up one while keeping point in place."
     (interactive)
     (scroll-up 1))
 
   (defun sej/scroll-down-one()
-    "Scroll down one to avoid lambda."
+    "Scroll screen down one while keeping point in place."
     (interactive)
     (scroll-down 1)))
 
@@ -2106,7 +2113,7 @@ If FRAME is omitted or nil, use currently selected frame."
          )
 
   :custom (cape-dabbrev-min-length 3)
-  :init
+  :config
   (add-all-to-list 'completion-at-point-functions
 				   #'cape-dabbrev
 				   #'cape-file
@@ -2133,8 +2140,7 @@ If FRAME is omitted or nil, use currently selected frame."
                 `(,(cape-capf-super
                     #'elisp-completion-at-point
                     #'cape-dabbrev)
-                  cape-file)
-                cape-dabbrev-min-length 5))
+                  cape-file)))
 
   ;; Org
   (defun sej/cape-capf-setup-org ()
@@ -2145,8 +2151,7 @@ If FRAME is omitted or nil, use currently selected frame."
 					#'cape-dabbrev
 					#'cape-history
 					#'cape-abbrev)
-				  cape-file)
-				cape-dabbrev-min-length 3))
+				  cape-file)))
 
 ;;git-commit
   (defun sej/cape-capf-setup-git-commit ()
@@ -2157,19 +2162,17 @@ If FRAME is omitted or nil, use currently selected frame."
 					#'cape-dabbrev
 					#'cape-history
 					#'cape-abbrev)
-				  cape-file)
-				cape-dabbrev-min-length 3))
+				  cape-file)))
 
   ;; Eshell
   (defun sej/cape-capf-setup-eshell ()
     "Set completion at point in eshell."
     (setq-local completion-at-point-functions
-                `( #'pcomplete-completions-at-point
-				   #'cape-file
-				   #'cape-dabbrev
-				   #'cape-history
-				   #'cape-abbrev
-				cape-dabbrev-min-length 3)))
+                `( pcomplete-completions-at-point
+				   cape-file
+				   cape-dabbrev
+				   cape-history
+				   cape-abbrev)))
 
   :config
   ;; For pcomplete. For now these two advices are strongly recommended to
@@ -2553,6 +2556,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; [[https://github.com/abo-abo/avy][avy]]
 ;; Jump to things in Emacs tree-style
+;; https://karthinks.com/software/avy-can-do-anything
 (use-package avy
   :bind (("H-'" . avy-goto-char-timer)
           ("M-g l" . avy-goto-line)
@@ -2566,8 +2570,9 @@ If FRAME is omitted or nil, use currently selected frame."
           :map isearch-mode-map
           ("H-s" . avy-isearch))
   :config
-  ;; Code used in the demos at https://karthinks.com/software/avy-can-do-anything
-  ;; Tweak as desired.
+  (add-to-list 'savehist-additional-variables 'avy-ring)
+  (advice-add 'avy-pop-mark :after #'(lambda () (recenter-top-bottom nil)))
+  
   (setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
                       ?a ?s ?d ?f ?g ?h ?j
                       ?k ?l ?' ?x ?c ?v ?b
@@ -2731,7 +2736,9 @@ If called with a prefix argument, query for word to search."
 ;; goto the last changes made in buffer
 ;; https://github.com/camdez/goto-last-change.el
 (use-package goto-last-change
-  :bind ("H-." . goto-last-change))
+  :bind ("H-." . goto-last-change-with-auto-marks)
+  :config
+  (advice-add 'goto-last-change-with-auto-marks :after #'recenter-top-bottom))
 
 ;;;;; beginend
 ;; smart moves redefining M-< and M-> for some modes
@@ -3708,8 +3715,13 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/emacsorphanage/git-gutter-fringe][git-gutter-fringe]]
 (use-package git-gutter-fringe
   :blackout t
-  :hook (prog-mode . global-git-gutter-mode)
-  :init (setq git-gutter:lighter ""))
+  :bind (:map global-map
+		 ("C-H-]" . git-gutter:next-hunk)
+		 ("C-H-[" . git-gutter:previous-hunk))
+  :hook (emacs-startup . global-git-gutter-mode)
+  :init (setq git-gutter:lighter "")
+  :config
+  (advice-add 'git-gutter:next-hunk :after #'(lambda () (recenter-top-bottom nil))))
 
 ;;;;; magit-todos
 ;; Show tasks from commit files
@@ -3904,7 +3916,9 @@ If called with a prefix argument, query for word to search."
   :blackout t
   :commands (elisp-slime-nav-mode
              elisp-slime-nav-find-elisp-thing-at-point)
-  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
+  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
+  :custom
+  (find-function-C-source-directory (expand-file-name "~/src/emacs-dev/src")))
 
 ;;;;; sly
 ;; replacement repla for slime
@@ -6020,7 +6034,7 @@ function with the \\[universal-argument]."
   (defvar sej/org-custom-agenda-ql
 	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
 	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
-	`((org-ql-block '(and (todo "TODO" "INPRODCESS" "WAIT" "DEFER" "DELEGATE" "CHECK" "FIX")
+	`((org-ql-block '(and (todo "TODO" "INPRODCESS" "DELEGATE" "CHECK" "FIX")
 						  (not (deadline))
 						  (not (planning))
 						  (not (scheduled))
@@ -6134,8 +6148,29 @@ function with the \\[universal-argument]."
 		(if rpt rpt ""))))
   
   ;; Add `sej/org-agenda-repeater' to the agenda prefix.
-  (setq org-agenda-prefix-format
-		`((agenda . " %i %-12c %?t  %-4e%?s%(sej/org-agenda-repeater)")
+;;   This format works similar to a printf format, with the following meaning:
+;; 
+;;   %c   the category of the item, \"Diary\" for entries from the diary,
+;;        or as given by the CATEGORY keyword or derived from the file name
+;;   %e   the effort required by the item
+;;   %l   the level of the item (insert X space(s) if item is of level X)
+;;   %i   the icon category of the item, see `org-agenda-category-icon-alist'
+;;   %T   the last tag of the item (ignore inherited tags, which come first)
+;;   %t   the HH:MM time-of-day specification if one applies to the entry
+;;   %s   Scheduling/Deadline information, a short string
+;;   %b   show breadcrumbs, i.e., the names of the higher levels
+;;   %(expression) Eval EXPRESSION and replace the control string
+;;                 by the result
+;; 
+;; If the first character after `%' is a question mark, the entire field
+;; will only be included if the corresponding value applies to the current
+;; entry.
+;; 
+;; If there is punctuation or whitespace character just before the
+;; final format letter, this character will be appended to the field
+;; value if the value is not empty.
+(setq org-agenda-prefix-format
+		`((agenda . " %i %-12c %?t  %-4e%?s%:(sej/org-agenda-repeater)")
 		 (todo .    " %i %-12c %-4e")
 		 (tags .    " %i %-12c")
 		 (search .  " %i %-12c")))
@@ -6145,17 +6180,19 @@ function with the \\[universal-argument]."
 	(interactive)
 	(if arg
 		(org-agenda nil arg)
-	  (org-agenda nil "z")))
+	  (org-agenda nil "A")))
 
-  (defun sej/beginning-of-buffer (&optional &arg &arg)
-	"Dummy to filter extra args."
+  (defun sej/beginning-of-buffer-point (&optional &arg &arg)
+	"Move point to top of agenda buffer after generate. Dummy to filter extra args."
 	(beginning-of-buffer))
+  (advice-add 'org-agenda :after #'sej/beginning-of-buffer-point)
 
-  (advice-add 'org-agenda :after #'sej/beginning-of-buffer)
+  (defun sej/beginning-of-buffer-view (&optional &arg)
+	"Move view to top of agenda buffer after regen. Dummy to filter extra args."
+	(scroll-down-command))
 
-  ;; defining below as a kludge, due to errors of not defined
-  (declare-function org-element-with-disabled-cache (&rest body))
-  
+  (advice-add 'org-agenda-redo-all :after #'sej/beginning-of-buffer-view)
+
   )  ; end of org-agenda
 
 ;;;;; org-appear
@@ -7086,10 +7123,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 (use-package shell
   :ensure nil
   :commands shell-command
-  :hook ((shell-mode . n-shell-mode-hook)
-         (shell-mode . ansi-color-for-comint-mode-on)
-         (comint-output-filter-functions . comint-strip-ctrl-m)
-         (comint-output-filter-functions . comint-truncate-buffer))
+  ;; :hook ((shell-mode . n-shell-mode-hook)
+  ;;        (shell-mode . ansi-color-for-comint-mode-on)
+  ;;        (comint-output-filter-functions . comint-strip-ctrl-m)
+  ;;        (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-C-q-map
                ("S s" . shell))
   :config
