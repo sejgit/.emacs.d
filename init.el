@@ -1524,16 +1524,23 @@ If FRAME is omitted or nil, use currently selected frame."
   (with-demoted-errors "Error: %S"
     (persistent-scratch-setup-default)))
 
-;;;;; persistent notes (like persistent-scratch but built-in)
+;;;;; Remember ; persistent notes (like persistent-scratch but built-in)
 ;; using persistent-scratch for lisp & this for notes
-(setq remember-notes-initial-major-mode 'org-mode
-	  remember-in-new-frame t)
+(use-package remember
+  :ensure nil
+  :bind (:map global-map
+			  ("C-, M-r" . remember)
+			  ("C-, M-n" . remember-notes))
+  :init  
+  (setq remember-notes-initial-major-mode 'org-mode
+		; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
+		remember-in-new-frame t)
 
-(defun sej/switch-to-remember-buffer (f)
-  (with-selected-frame f
-    (remember-notes t)))
-	
-(add-hook 'after-make-frame-functions #'sej/switch-to-remember-buffer)
+  (defun sej/switch-to-remember-buffer (f)
+	(with-selected-frame f
+      (remember-notes t)))
+  
+  (add-hook 'after-make-frame-functions #'sej/switch-to-remember-buffer))
 
 ;;;; windows
 ;;;;; window key-bindings
