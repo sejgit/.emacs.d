@@ -30,9 +30,13 @@
 ;;
 ;; a long journey to here...
 ;;
-;; using Emacs 30
-;; on macos installing emacs-plus@30
+;; using Emacs 31
+;; on macos installing emacs-plus@31
 ;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-imagemagick --with-dbus
+;; or
+;; emacs-head@31
+;; brew install emacs-head@31 --with-cocoa --with-crash-debug --with-ctags --with-dbus --with-imagemagick --with-mailutils --with-native-comp --with-native-full-aot --with-tree-sitter --with-mps --with-xwidgets
+;;
 
 ;;; Code:
 (message "Emacs start")
