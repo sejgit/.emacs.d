@@ -5744,7 +5744,8 @@ function with the \\[universal-argument]."
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
-          (org-mode . variable-pitch-mode))
+          (org-mode . variable-pitch-mode)
+		  (org-mode . org-list-checkbox-radio-mode))
   :bind (( ("C-c l" . org-insert-link)
 		   ("C-c S" . org-store-link))
          (:map org-mode-map
@@ -5762,7 +5763,8 @@ function with the \\[universal-argument]."
 			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
 			   ("C-c )" . org-fold-hide-drawer-all)
 			   ("C-c b" . org-switchb)
-			   ("C-c x" . org-todo)))
+			   ("C-c x" . org-todo)
+			   ("C-c H-t" . org-todo-yesterday)))
   :config
   ;; get denote up and going
   (require 'denote)
@@ -6776,8 +6778,8 @@ function with the \\[universal-argument]."
       (when checkedp
         (sej/org-log-checklist-item (sej/org-checkbox-item))))))
 
-(advice-add 'org-list-struct-apply-struct :after #'sej/org-checklist-date-insert)
-;; (advice-add 'org-toggle-checkbox :after #'org-checklist-change-advice-function)
+;; need to have org-list-checkbox-radio-mode
+(advice-add 'org-toggle-radio-button :after #'sej/org-checklist-date-insert)
 
 
 ;;;;; toc-org
