@@ -4765,14 +4765,10 @@ the children of class at point."
 			  ("C-c" . sej/denote-colleagues-dump)
 			  ("d" . denote-date)
 			  ("D" . denote-create-any-dir)
-			  ("e" . denote-org-extras-extract-org-subtree)
-			  ("h" . denote-org-extras-link-to-heading)
 			  ("K" . sej/denote-keywords-edit)
 			  ("C-k" . sej/denote-keywords-dump)
 			  ("l" . denote-link) ; "insert" mnemonic
 			  ("L" . denote-find-link)
-			  ("j" . denote-journal-extras-new-or-existing-entry)
-			  ("J" . denote-journal-extras-link-or-create-entry)
 			  ("n" . denote)
 			  ("N" . denote-open-or-create)
 			  ("r" . denote-rename-file)
@@ -4780,15 +4776,8 @@ the children of class at point."
 			  ("C-R" . denote-region)
 			  ("s" . denote-signature)
 			  ("S" . denote-subdirectory)
-			  ("C-s" . denote-silo-extras-open-or-create)
 			  ("t" . denote-type)
 			  ("T" . denote-template)
-			  ;; defined in consult-denote
-			  ;; ("n f f" . consult-denote-find)
-			  ;; ("n g" . consult-denote-grep)
-			  ;; ("n f g" . consult-denote-grep)
-			  ;; defined in denote menu
-			  ;; ("n m" . list-denotes)
 			  ("C-d r" . denote-dired-rename-files)
 			  ("C-d k" . denote-dired-rename-marked-files-with-keywords)
 			  ("C-d f" . denote-dired-rename-marked-files-using-front-matter))
@@ -4831,7 +4820,6 @@ the children of class at point."
 
   :custom
   (denote-directory sej-org-directory)
-  (denote-journal-extras-directory (expand-file-name "journal" denote-directory))
   (denote-save-buffers t)
   (denote-known-keywords nil)
   (denote-infer-keywords t)
@@ -4841,7 +4829,6 @@ the children of class at point."
   (denote-excluded-directories-regexp nil)
   (denote-excluded-keywords-regexp nil)
   (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
-  (denote-journal-extras-title-format "%y-%m")
 
   ;; Pick dates, where relevant, with Org's advanced interface:
   (denote-date-prompt-use-org-read-date t)
@@ -4879,23 +4866,6 @@ the children of class at point."
                                            denote-component-history )))
 
   :config
-;;;;;; denote-journal-extras mods
-  ;; replacement function to only use year and month for journal title yy-mm.
-  (defun sej/denote-journal-extras--entry-today (&optional date)
-	"Return list of files matching a journal for today or optional DATE.
-     DATE has the same format as that returned by `denote-parse-date'."
-  (interactive)
-  (let* ((identifier (format "%s"(format-time-string "%y-%m" date)))
-         (files (denote-directory-files identifier))
-         (keyword (concat "_" (regexp-quote denote-journal-extras-keyword))))
-    (seq-filter
-     (lambda (file)
-       (string-match-p keyword file))
-     files)))
-
-  ;; (denote-journal-extras--entry-today)
-  (advice-add 'denote-journal-extras--entry-today :override #'sej/denote-journal-extras--entry-today)
-  
 ;;;;;; play nice with diredfl
   (defun sej/denote-dired-mode-hook()
 	"Function to switch off between diredfl-mode and denote-dired-mode."
@@ -5048,69 +5018,6 @@ one among them and operate therein."
     (dolist (element value)
       (insert element))))
 
-;;;;;; silos
-  (require 'denote-silo-extras)
-  (add-to-list 'denote-silo-extras-directories "~/Documents/denote-personal" :APPEND)
-
-  ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
-  (denote-rename-buffer-mode 1)
-
-  (defun sej/denote-silo-update (&rest _arg)
-	"Function to update silo & critical variables based on current buffer/file.
-Chooses silo based on file being in one of the extras-directories any history since.
-Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
-	(interactive)
-	(let ((file buffer-file-name) existin)
-	  (if file
-		  (dolist (elem (-union denote-silo-extras-directories denote-silo-extras-directory-history) )
-			(if (file-in-directory-p file elem)
-				(setq existin elem))
-			(if (and existin (not (equal existin denote-directory)))
-				(setq denote-directory existi n)))
-		(sej/denote-keywords-update)
-		(sej/denote-colleagues-update)
-		(setq denote-journal-extras-directory (expand-file-name "journal" denote-directory)))
-	  (setq org-refile-targets `((org-agenda-files . (:maxlevel 3))))))
-
-  (advice-add 'denote-silo-extras-select-silo-then-command :after #'sej/denote-silo-update)
-  (advice-add 'denote-silo-extras-open-or-create :after #'sej/denote-silo-update)
-  (advice-add 'denote-silo-extras-create-note :after #'sej/denote-silo-update)
-
-  (defvar sej/switch-buffer-functions
-	nil
-	"A list of functions to be called when the current buffer has been changed.
-Each is passed two arguments, the previous buffer and the current buffer.")
-
-  (defvar sej/switch-buffer-functions--last-buffer
-	nil
-	"The last current buffer.")
-
-  (defun sej/switch-buffer-functions-run ()
-	"Run `sej/switch-buffer-functions' if needed.
-
-This function checks the result of `current-buffer', and run
-`sej/switch-buffer-functions' when it has been changed from
-the last buffer.
-
-This function should be hooked to `post-command-hook'."
-	(unless (eq (current-buffer)
-				sej/switch-buffer-functions--last-buffer)
-      (let ((current (current-buffer))
-			(previous sej/switch-buffer-functions--last-buffer))
-		(setq sej/switch-buffer-functions--last-buffer current)
-		(run-hook-with-args 'sej/switch-buffer-functions previous current))))
-
-  (add-hook 'post-command-hook
-			'sej/switch-buffer-functions-run)
-
-  (defun sej/denote-check-for-denote-buffer-switch (_prev curr)
-	"Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
-	(interactive)
-	(if (string-match "\\[D\\].*" (buffer-name curr))
-			   (sej/denote-silo-update)))
-
-  (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch)
-
 ;;;;;; org-capture setups
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
@@ -5136,7 +5043,7 @@ This function should be hooked to `post-command-hook'."
                     :kill-buffer t
                     :jump-to-captured t)
                    ("J" "Journal note (>= 3.2 denote.el)" entry
-                    (file denote-journal-extras-path-to-new-or-existing-entry)
+                    (file denote-journal-path-to-new-or-existing-entry)
                     "* %U %?\n%i\n %a"
                    :kill-buffer t
                    :empty-lines 1)
@@ -5204,6 +5111,106 @@ Add this function to the `after-save-hook'."
       (message "Buffer saved; Denote file renamed"))))
 
 (add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)) ;end of denote use-package
+
+;;;;;; [[https://github.com/protesilaos/denote-journal][denote-journal]]
+(use-package denote-journal
+  :commands ( denote-journal-new-entry
+              denote-journal-new-or-existing-entry
+              denote-journal-link-or-create-entry )
+  :hook (calendar-mode . denote-journal-calendar-mode)
+  :bind (:map sej-denote-map
+			  ("j" . denote-journal-new-or-existing-entry)
+			  ("J" . denote-journal-link-or-create-entry))
+  :custom
+  (denote-journal-directory (expand-file-name "journal" denote-directory))
+  (denote-journal-title-format "%y-%m")
+  :config
+  ;; replacement function to only use year and month for journal title yy-mm.
+  (defun sej/denote-journal--entry-today (&optional date)
+	"Return list of files matching a journal for today or optional DATE.
+     DATE has the same format as that returned by `denote-parse-date'."
+	(interactive)
+	(let* ((identifier (format "%s"(format-time-string "%y-%m" date)))
+           (files (denote-directory-files identifier))
+           (keyword (concat "_" (regexp-quote denote-journal-keyword))))
+      (seq-filter
+       (lambda (file)
+		 (string-match-p keyword file))
+       files)))
+
+  ;; (denote-journal--entry-today)
+  (advice-add 'denote-journal--entry-today :override #'sej/denote-journal--entry-today))
+  
+;;;;;; [[https://github.com/protesilaos/denote-silo][denote-silo]]
+(use-package denote-silo
+  :commands ( denote-silo-create-note
+              denote-silo-open-or-create
+              denote-silo-select-silo-then-command
+              denote-silo-dired
+              denote-silo-cd )
+  :bind (:map sej-denote-map
+			  ("C-s" . denote-silo-open-or-create))
+  :config
+  (add-to-list 'denote-silo-directories "~/Documents/denote-personal" :APPEND)
+
+  ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
+  (denote-rename-buffer-mode 1)
+
+  (defun sej/denote-silo-update (&rest _arg)
+	"Function to update silo & critical variables based on current buffer/file.
+Chooses silo based on file being in one of the extras-directories any history since.
+Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
+	(interactive)
+	(let ((file buffer-file-name) existin)
+	  (if file
+		  (dolist (elem (-union denote-silo-directories denote-silo-directory-history) )
+			(if (file-in-directory-p file elem)
+				(setq existin elem))
+			(if (and existin (not (equal existin denote-directory)))
+				(setq denote-directory existin)))
+		(sej/denote-keywords-update)
+		(sej/denote-colleagues-update)
+		(setq denote-journal-directory (expand-file-name "journal" denote-directory)))
+	  (setq org-refile-targets `((org-agenda-files . (:maxlevel 3))))))
+
+  (advice-add 'denote-silo-select-silo-then-command :after #'sej/denote-silo-update)
+  (advice-add 'denote-silo-open-or-create :after #'sej/denote-silo-update)
+  (advice-add 'denote-silo-create-note :after #'sej/denote-silo-update)
+
+  (defvar sej/switch-buffer-functions
+	nil
+	"A list of functions to be called when the current buffer has been changed.
+Each is passed two arguments, the previous buffer and the current buffer.")
+
+  (defvar sej/switch-buffer-functions--last-buffer
+	nil
+	"The last current buffer.")
+
+  (defun sej/switch-buffer-functions-run ()
+	"Run `sej/switch-buffer-functions' if needed.
+
+This function checks the result of `current-buffer', and run
+`sej/switch-buffer-functions' when it has been changed from
+the last buffer.
+
+This function should be hooked to `post-command-hook'."
+	(unless (eq (current-buffer)
+				sej/switch-buffer-functions--last-buffer)
+      (let ((current (current-buffer))
+			(previous sej/switch-buffer-functions--last-buffer))
+		(setq sej/switch-buffer-functions--last-buffer current)
+		(run-hook-with-args 'sej/switch-buffer-functions previous current))))
+
+  (add-hook 'post-command-hook
+			'sej/switch-buffer-functions-run)
+
+  (defun sej/denote-check-for-denote-buffer-switch (_prev curr)
+	"Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
+	(interactive)
+	(if (string-match "\\[D\\].*" (buffer-name curr))
+		(sej/denote-silo-update)))
+
+  (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch))
 
 ;;;;;; consult-denote
 ;; integrate denote with consult
@@ -5533,6 +5540,9 @@ Add this function to the `after-save-hook'."
 (when (eval 'sys/macp)
   (use-package jinx
     :after vertico
+	:vc (:url "https://github.com/minad/jinx"
+            :rev :newest
+            :branch "main")
     :ensure-system-package ((enchant-2 . "brew install enchant")
                             (pkg-config . "brew install pkg-config"))
     :init
@@ -5693,7 +5703,7 @@ function with the \\[universal-argument]."
       (sej/annotate-annotate))))
 
 ;;;; LaTeX
-;;;;; [[[[https://www.gnu.org/software/auctex/download-for-macosx]].html][AuCTeX]]
+;;;;; [[[[https://www.gnu.org/software/auctex/download-for-macosx.html]]][AuCTeX]] 
 ;; GNU TeX in Emacs Auctex
 (use-package auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
@@ -5768,8 +5778,8 @@ function with the \\[universal-argument]."
   :config
   ;; get denote up and going
   (require 'denote)
-  (require 'denote-journal-extras)
-  (require 'denote-silo-extras)
+  (require 'denote-journal)
+  (require 'denote-silo)
     
   ;; reading man pages in org-mode
   (require 'ol-man)
@@ -5998,11 +6008,11 @@ function with the \\[universal-argument]."
   :config
   ;; get denote up and running
   (require 'denote)
-  (require 'denote-journal-extras)
+  (require 'denote-journal)
     
   (setq org-agenda-block-separator nil
         org-agenda-diary-file (concat org-directory "/diary.org")
-		org-agenda-files `(,org-directory ,denote-journal-extras-directory)
+		org-agenda-files `(,org-directory ,denote-journal-directory)
         org-agenda-dim-blocked-tasks t ; other option is 'invisible
         org-agenda-inhibit-startup nil
         org-agenda-show-all-dates t
