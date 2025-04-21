@@ -2297,7 +2297,6 @@ If FRAME is omitted or nil, use currently selected frame."
           ("b" . consult-buffer)                    ;; orig. switch-to-buffer
           ("4 b" . consult-buffer-other-window)     ;; orig. switch-to-buffer-other-window
           ("r b" . consult-bookmark)                ;; orig. bookmark-jump
-          ("4 r" . consult-bookmark-other-window) ;; orig. find-file-read-only-other-window
           ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
           ("5 b" . consult-buffer-other-frame)      ;; orig. switch-to-buffer-other-frame
           ;; Custom sej bindings for fast register access
@@ -2350,33 +2349,6 @@ If FRAME is omitted or nil, use currently selected frame."
   :custom-face
   (consult-file ((t (:inherit font-lock-string-face))))
 
-  :preface
-  (defun consult-bookmark-other-window (name)
-    "If bookmark NAME exists, open it, otherwise create a new bookmark with NAME.
-
-  The command supports preview of file bookmarks and narrowing.  See the
-  variable `consult-bookmark-narrow' for the narrowing configuration."
-    (interactive
-     (list
-      (let* ((consult--buffer-display #'switch-to-buffer-other-window)
-             (narrow (cl-loop for (x y . _) in consult-bookmark-narrow collect (cons x y))))
-        (consult--read
-         (consult--bookmark-candidates)
-         :prompt "Bookmark: "
-         :state (consult--bookmark-preview)
-         :category 'bookmark
-         :history 'bookmark-history
-         ;; Add default names to future history.
-         ;; Ignore errors such that `consult-bookmark' can be used in
-         ;; buffers which are not backed by a file.
-         :add-history (ignore-errors (bookmark-prop-get (bookmark-make-record) 'defaults))
-         :group (consult--type-group narrow)
-         :narrow (consult--type-narrow narrow)))))
-    (bookmark-maybe-load-default-file)
-    (if (assoc name bookmark-alist)
-        (bookmark-jump name #'switch-to-buffer-other-window)
-      (bookmark-set name)))
-  
   :init
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
@@ -5017,76 +4989,6 @@ one among them and operate therein."
   (let ((value (sej/filter-journal-lines-from-list (denote-directory-files) )))
     (dolist (element value)
       (insert element))))
-
-;;;;;; org-capture setups
-  (with-eval-after-load 'org-capture
-    (setq denote-org-capture-specifiers "%l\n%i\n%?")
-    (setq org-capture-templates
-                 '(("d" "New note (with denote.el)" plain
-                    (file denote-last-path)
-                    #'denote-org-capture
-                    :no-save t
-                    :immediate-finish nil
-                    :kill-buffer t
-                    :jump-to-captured t)
-                   ("j" "Journal note (with denote.el)" plain
-                    (file denote-last-path)
-                    (function
-                    (lambda ()
-                    ;; The "journal" subdirectory of the `denote-directory'---this must exist!
-                    (let* ((denote-use-directory (expand-file-name "journal" (denote-directory)))
-                           ;; Use the existing `denote-prompts' as well as the one for a date.
-                           (denote-prompts (denote-add-prompts '(date))))
-                      (denote-org-capture))))
-                    :no-save t
-                    :immediate-finish nil
-                    :kill-buffer t
-                    :jump-to-captured t)
-                   ("J" "Journal note (>= 3.2 denote.el)" entry
-                    (file denote-journal-path-to-new-or-existing-entry)
-                    "* %U %?\n%i\n %a"
-                   :kill-buffer t
-                   :empty-lines 1)
-                   ("t" "TODO entry" entry
-                   (file+headline org-file-gtd "Todo")
-                   "* TODO %?\n %i\n %a"
-                   :no-save t
-                   :immediate-finish nil
-                   :kill-buffer t
-                   :jump-to-captured t)
-                   ) ) )
-
-(defun timu-func-make-capture-frame ()
-  "Create a new frame and run `org-capture'."
-  (interactive)
-  (make-frame '((name . "capture")
-                (top . 300)
-                (left . 700)
-                (width . 80)
-                (height . 25)))
-  (select-frame-by-name "capture")
-  (delete-other-windows)
-  (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-    (org-capture)))
-
-(defun sej/org-capture-delete-frame-abnormal (orig-fun &rest args)
-  "Advise 'org-capture-select-template' with ORIG-FUN to close the frame on abort, passing ARGS."
-  (let ((res
-         (ignore-errors
-             (apply orig-fun args))) )
-  (if (or (equal "q" res) (equal nil res))
-      (sej/org-capture-delete-frame-normal))
-  res))
-
-(advice-add 'org-capture-select-template :around #'sej/org-capture-delete-frame-abnormal)
-
-(defun sej/org-capture-delete-frame-normal ()
-  "Advise capture-finalize to close the frame."
-  (interactive)
-  (if (equal "capture" (frame-parameter nil 'name))
-      (delete-frame)))
-
-(advice-add 'org-capture-finalize :after #'sej/org-capture-delete-frame-normal)
 
 ;;;;;; create denote files in any directory
 (defun denote-create-any-dir ()
