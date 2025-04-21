@@ -253,6 +253,10 @@
 ;;;;; OSX System specific environment setting
 (when sys/macp
   (message "Mac OSX")
+  ;; fix path on M1 macs
+  (when sys/mac-AA64-p
+	(setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
+	(setq exec-path (append exec-path '("/opt/homebrew/bin"))))
   (unless (find-font (font-spec :name "Iosevka"))
 	(shell-command-to-string "brew install font-iosevka"))
   (if (find-font (font-spec :name "Iosevka"))
