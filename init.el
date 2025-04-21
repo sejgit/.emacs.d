@@ -3667,6 +3667,8 @@ If called with a prefix argument, query for word to search."
 ;; https://magit.vc/
 (use-package magit
   :bind (("C-x g" . magit-status))
+  :custom
+  (magit-log-section-commit-count 30)
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
