@@ -1535,7 +1535,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :bind (:map global-map
 			  ("C-, M-r" . remember)
 			  ("C-, M-n" . remember-notes))
-  :init  
+  :init
   (setq remember-notes-initial-major-mode 'org-mode
 		; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
 		remember-in-new-frame t)
@@ -5722,10 +5722,10 @@ function with the \\[universal-argument]."
         org-log-done 'note
 		org-log-into-drawer t
 		;; ! - timestamp , @ - note
-        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i!)" "WAIT(w@/!)" "DEFER(r!/!)" "|" "DONE(d@/!)")
+        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d@/!)")
 							(sequence "MAYBE(m@/!)" "|" "DONE(d@/!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-							(sequence "FIX(f@/!)" "INPROCESS(i!/!)" "|" "FIXED(F@/!)")
+							(sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F@/!)")
 							(sequence "|" "CANCELED(x@/!)"))
 		
 		;; `list-colors-display' for a buffer of colour names
