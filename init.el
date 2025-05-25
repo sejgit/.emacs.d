@@ -1083,6 +1083,10 @@ Return its absolute path.  Otherwise, return nil."
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/help-mode.el
 (use-package help
   :ensure nil
+  :bind (:map help-map
+			  ("=" . describe-char)
+			  ("j" . describe-face)
+			  ("-" . describe-keymap))
   :init
   (add-hook 'help-mode-hook #'visual-line-mode)
   (setq help-window-select 'always
