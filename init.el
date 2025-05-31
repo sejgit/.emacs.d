@@ -5032,7 +5032,8 @@ Add this function to the `after-save-hook'."
   :hook (calendar-mode . denote-journal-calendar-mode)
   :bind (:map sej-denote-map
 			  ("j" . denote-journal-new-or-existing-entry)
-			  ("J" . denote-journal-link-or-create-entry))
+			  ("J" . denote-journal-link-or-create-entry)
+			  ("C-j" . sej/journelly-open))
   :custom
   (denote-journal-directory (expand-file-name "journal" denote-directory))
   (denote-journal-title-format "%y-%m")
@@ -5051,7 +5052,14 @@ Add this function to the `after-save-hook'."
        files)))
 
   ;; (denote-journal--entry-today)
-  (advice-add 'denote-journal--entry-today :override #'sej/denote-journal--entry-today))
+  (advice-add 'denote-journal--entry-today :override #'sej/denote-journal--entry-today)
+
+  (defun sej/journelly-open ()
+	"Open Journelly shared file.
+
+      Journelly is an IOS app written by xenodium.com allowing simple journelling in text/org file format."
+	(interactive)
+	(find-file-other-window (expand-file-name "Journelly.org" denote-journal-directory))))
   
 ;;;;;; [[https://github.com/protesilaos/denote-silo][denote-silo]]
 (use-package denote-silo
@@ -5726,11 +5734,13 @@ function with the \\[universal-argument]."
         org-log-done 'note
 		org-log-into-drawer t
 		;; ! - timestamp , @ - note
-        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d@/!)")
-							(sequence "MAYBE(m@/!)" "|" "DONE(d@/!)")
+		;; use C-u in front to add note
+		;; C-c C-z to add note
+        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d!)")
+							(sequence "MAYBE(m@/!)" "|" "DONE(d!)")
                             (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-							(sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F@/!)")
-							(sequence "|" "CANCELED(x@/!)"))
+							(sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F!)")
+							(sequence "|" "CANCELED(x!)"))
 		
 		;; `list-colors-display' for a buffer of colour names
         org-todo-keyword-faces '(
