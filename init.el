@@ -277,26 +277,34 @@
     ( progn
       (message "Mac-port")
       ;; for emacs-mac-port
-      (setq mac-right-command-modifier 'left) ;right command, plus Karabiner
-      (setq mac-right-option-modifier 'none) ;Stays as alt key (like å∫ç∂)
-      (setq mac-function-modifier 'hyper) ;hyper is function & held tab key (Karabiner)
-      (setq mac-control-modifier 'control) ;Karabiner swapped & caps_lock
-      (setq mac-right-control-modifier 'super) ; actually left control
-      (setq mac-option-modifier 'alt) ; left option is A-alt key
-      (setq mac-command-modifier 'meta)) ;left command is meta
+      (setq mac-right-command-modifier 'left)  ;right command, plus Karabiner
+      (setq mac-right-option-modifier 'none)   ;Stays as alt key (like å∫ç∂)
+      (setq mac-function-modifier 'hyper)      ;hyper is function & held tab key (Karabiner)
+      (setq mac-control-modifier 'control)     ;Karabiner swapped & caps_lock
+      (setq mac-right-control-modifier 'super) ;actually left control
+      (setq mac-option-modifier 'alt)          ;left option is A-alt key
+      (setq mac-command-modifier 'meta))       ;left command is meta
   ( progn
     (message "ns-port")
     ;; for regular Emacs port
-    (setq ns-right-command-modifier 'left)
-    (setq ns-right-option-modifier 'none)
-    (setq ns-function-modifier 'hyper)
-    (setq ns-control-modifier 'control)
-    (setq ns-right-control-modifier 'super)
-    (setq ns-option-modifier 'alt)
-    (setq ns-command-modifier 'meta)
+    ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner                
+    ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)                 
+    ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
+    ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
+    ;; (setq ns-right-control-modifier 'super)  ;actually left control                        
+    ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key                     
+    ;; (setq ns-command-modifier 'meta)		 ;left command is meta
+	
+    (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner                
+    (setq ns-right-option-modifier 'meta)	 ;right option as meta
+    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
+    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
+    (setq ns-right-control-modifier 'alt)    ;actually left control                        
+    (setq ns-option-modifier 'meta)			 ;left option as meta
+    (setq ns-command-modifier 'super)		 ;left command is super
     ))
-(global-set-key (kbd "M-`") 'ns-next-frame)
-(global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+;; (global-set-key (kbd "M-`") 'ns-next-frame)
+;; (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
 (setq insert-directory-program "gls")
 
 (if (not (getenv "TERM_PROGRAM"))
@@ -1270,27 +1278,42 @@ The DWIM behaviour of this command is as follows:
           ("s-4" . dired-other-frame)
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
-          ("s-w" . delete-frame)
-          ;; C-x combo
-          ("C-x w" . delete-frame)
           ;; A-M combo
           ("A-M-s-k" . toggle-frame-fullscreen)
-          ("A-M-k" . sej/frame-resize-full)
-          ("A-M-h" . sej/frame-resize-l)
-          ("A-M-l" . sej/frame-resize-r)
+          ("M-s-k" . sej/frame-resize-full)
+          ("M-s-h" . sej/frame-resize-l)
+          ("M-s-l" . sej/frame-resize-r)
           ("A-M-s-h" . sej/frame-resize-l2)
           ("A-M-s-l" . sej/frame-resize-r2)
-          ("A-M-H" . sej/frame-resize-l3)
-          ("A-M-L" . sej/frame-resize-r3)
-          ;; A-M h-j-k-l combo
+          ("M-s-H" . sej/frame-resize-l3)
+          ("M-s-L" . sej/frame-resize-r3)
+          ;; A-M cursor combo
           ("A-M-s-<up>" . toggle-frame-fullscreen)
-          ("A-M-<up>" . sej/frame-resize-full)
-          ("A-M-<left>" . sej/frame-resize-l)
-          ("A-M-<right>" . sej/frame-resize-r)
+          ("M-s-<up>" . sej/frame-resize-full)
+          ("M-s-<left>" . sej/frame-resize-l)
+          ("M-s-<right>" . sej/frame-resize-r)
           ("A-M-s-<left>" . sej/frame-resize-l2)
           ("A-M-s-<right>" . sej/frame-resize-r2)
-          ("A-M-<S-left>" . sej/frame-resize-l3)
-          ("A-M-<S-right>" . sej/frame-resize-r3)
+          ("M-s-<S-left>" . sej/frame-resize-l3)
+          ("M-s-<S-right>" . sej/frame-resize-r3)
+          ;; A-M combo
+          ;; ("A-M-s-k" . toggle-frame-fullscreen)
+          ;; ("A-M-k" . sej/frame-resize-full)
+          ;; ("A-M-h" . sej/frame-resize-l)
+          ;; ("A-M-l" . sej/frame-resize-r)
+          ;; ("A-M-s-h" . sej/frame-resize-l2)
+          ;; ("A-M-s-l" . sej/frame-resize-r2)
+          ;; ("A-M-H" . sej/frame-resize-l3)
+          ;; ("A-M-L" . sej/frame-resize-r3)
+          ;; A-M h-j-k-l combo
+          ;; ("A-M-s-<up>" . toggle-frame-fullscreen)
+          ;; ("A-M-<up>" . sej/frame-resize-full)
+          ;; ("A-M-<left>" . sej/frame-resize-l)
+          ;; ("A-M-<right>" . sej/frame-resize-r)
+          ;; ("A-M-s-<left>" . sej/frame-resize-l2)
+          ;; ("A-M-s-<right>" . sej/frame-resize-r2)
+          ;; ("A-M-<S-left>" . sej/frame-resize-l3)
+          ;; ("A-M-<S-right>" . sej/frame-resize-r3)
           ;; C-q combo
           :map sej-C-q-map
           ("m" . sej/frame-recentre)
@@ -1443,13 +1466,14 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; buffer key-bindngs
 (bind-keys*
  ("C-<return>" . save-buffer)
- ("s-y" . bury-buffer)
+ ;; ("s-y" . bury-buffer)
  ("C-c y" . bury-buffer)
  ("C-c r" . revert-buffer)
  ("s-r" . revert-buffer)
  ("C-x k" . kill-current-buffer)
- ("s-n" . bs-cycle-next) ; buffer cycle next
- ("s-p" . bs-cycle-previous))
+ ;; ("s-n" . bs-cycle-next) ; buffer cycle next
+ ;; ("s-p" . bs-cycle-previous)
+ )
 
 (setq-default bs-default-configuration "all-intern-last")
 
@@ -1794,7 +1818,7 @@ If FRAME is omitted or nil, use currently selected frame."
            ("C-c C-<"       . mc/mark-all-like-this)
            ("C-M->"         . mc/skip-to-next-like-this)
            ("C-M-<"         . mc/skip-to-previous-like-this)
-           ("s-<mouse-1>"   . mc/add-cursor-on-click)
+           ("A-<mouse-1>"   . mc/add-cursor-on-click)
 		   ("<C-m> a"         . mc/edit-beginings-of-lines)
 		   ("<C-m> e"         . mc/edit-ends-of-lines)
 		   ("<C-m> s"         . mc/mark-next-like-this-symbol)
@@ -3973,7 +3997,7 @@ If called with a prefix argument, query for word to search."
 (use-package ielm
   :ensure nil
   :commands ielm
-  :bind (("s-i" . sej/ielm-other-window)
+  :bind (("A-i" . sej/ielm-other-window)
          :map sej-C-q-map
          ("i" . sej/ielm-other-window)
 		 :map ielm-map
