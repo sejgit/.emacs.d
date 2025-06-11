@@ -265,11 +265,11 @@
 ;;;;;; OSX Apple keyboard
 ;; caps lock is control (through karabiner)
 ;; Fn key do Hyper
-;; LControl key do RControl (karabiner) which is Super (emacs)
-;; left opt/alt key do emacs Alt modifier
+;; LControl key do RControl (Karabiner) which is Super (Emacs)
+;; left opt/alt key do Emacs Alt modifier
 ;; right opt/alt key do regular alt key
 ;; left and right command(apple) key do Meta
-;; spacebar acts as super key with other key
+;; space bar acts as super key with other key
 ;; karabiner.json backup files in dotfiles under .config directory
 ;; https://github.com/pqrs-org/Karabiner-Elements
 
@@ -278,15 +278,24 @@
       (message "Mac-port")
       ;; for emacs-mac-port
       (setq mac-right-command-modifier 'left)  ;right command, plus Karabiner
-      (setq mac-right-option-modifier 'none)   ;Stays as alt key (like å∫ç∂)
+      (setq mac-right-option-modifier 'meta)   ;right option as meta
       (setq mac-function-modifier 'hyper)      ;hyper is function & held tab key (Karabiner)
       (setq mac-control-modifier 'control)     ;Karabiner swapped & caps_lock
-      (setq mac-right-control-modifier 'super) ;actually left control
-      (setq mac-option-modifier 'alt)          ;left option is A-alt key
-      (setq mac-command-modifier 'meta))       ;left command is meta
+      (setq mac-right-control-modifier 'alt)   ;actually left control
+      (setq mac-option-modifier 'meta)         ;left option is meta
+      (setq mac-command-modifier 'super))      ;left command is super
   ( progn
     (message "ns-port")
     ;; for regular Emacs port
+	(setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
+    (setq ns-right-option-modifier 'meta)	 ;right option as meta
+    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
+    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
+    (setq ns-right-control-modifier 'alt)    ;actually left control                        
+    (setq ns-option-modifier 'meta)			 ;left option is meta
+    (setq ns-command-modifier 'super)		 ;left command is super
+
+	;; old version w/command as meta, control as super, option as Alt
     ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner                
     ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)                 
     ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
@@ -294,17 +303,11 @@
     ;; (setq ns-right-control-modifier 'super)  ;actually left control                        
     ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key                     
     ;; (setq ns-command-modifier 'meta)		 ;left command is meta
-	
-    (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner                
-    (setq ns-right-option-modifier 'meta)	 ;right option as meta
-    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
-    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
-    (setq ns-right-control-modifier 'alt)    ;actually left control                        
-    (setq ns-option-modifier 'meta)			 ;left option as meta
-    (setq ns-command-modifier 'super)		 ;left command is super
     ))
+;; only needed with old version
 ;; (global-set-key (kbd "M-`") 'ns-next-frame)
 ;; (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+
 (setq insert-directory-program "gls")
 
 (if (not (getenv "TERM_PROGRAM"))
@@ -831,6 +834,29 @@
          uniquify-strip-common-suffix t
          uniquify-after-kill-buffer-p t
          uniquify-separator "/"))
+
+;;;;; repeat
+;; built-in: bindings to allow easier keys when repeating functions
+(use-package repeat
+  :ensure nil
+  :hook (emacs-startup . repeat-mode)
+  :bind (:map ctl-x-map
+              :repeat-map window-repeat-map
+              ("o" . other-window)
+              ("w" . window-configuration-to-register)
+              ("0" . delete-window)
+              ("1" . zygospore-toggle-delete-other-windows)
+              ("2" . split-window-below)
+              ("3" . split-window-right)
+              ("C-3" . split-only-this-window-horizontally)
+              ("M-2" . resplit-windows-vertically)
+              ("M-3" . resplit-windows-horizontally)
+              ("+" . balance-windows)
+              ("-" . shrink-window-if-larger-than-buffer)
+              ("^" . enlarge-window)
+              ("{" . shrink-window-horizontally)
+              ("}" . enlarge-window-horizontally))
+  )
 
 ;;;; history packages
 ;;;;; savehist
@@ -3319,7 +3345,6 @@ If called with a prefix argument, query for word to search."
 				      parenthesized_expression subscript)))  )
 
 ;;;;; indentation & outline settings
-(setq outline-minor-mode-prefix (kbd "C-'"))
 (bind-keys* ("C-S-n" . outline-next-visible-heading)
             ("C-S-p" . outline-previous-visible-heading)
             ("C-n" . next-line)
@@ -5518,7 +5543,8 @@ This function should be hooked to `post-command-hook'."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-;" . jinx-correct-nearest)
+    :bind (("s-:" . jinx-correct-all)
+		   ("C-;" . jinx-correct-nearest)
            ("C-M-;" . jinx-correct-all))
     :config
 	(setq jinx-languages "en_US en_GB en_CA")
