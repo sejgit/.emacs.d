@@ -46,6 +46,9 @@
 ;; only turned on when needed
 (setq debug-on-error nil)
 (setq debug-on-event nil)
+(setq source-directory (expand-file-name "~/src/emacs-dev"))
+(setq find-function-C-source-directory (expand-file-name "~/src/emacs-dev/src"))
+
 
 ;;;;; should i even be here
 (defconst emacs/>=30p
@@ -1149,8 +1152,7 @@ The DWIM behaviour of this command is as follows:
 			  ("-" . describe-keymap))
   :init
   (add-hook 'help-mode-hook #'visual-line-mode)
-  (setq help-window-select 'always
-		find-function-C-source-directory "~/src/emacs/src/") ; where I typically have source
+  (setq help-window-select 'always)
   (advice-add 'help-window-display-message :override #'ignore))
 
 ;;;;; which-key
@@ -2894,8 +2896,8 @@ If called with a prefix argument, query for word to search."
 (use-package drag-stuff
   :blackout
   :hook (emacs-startup . drag-stuff-global-mode)
-  :bind (("M-<down>" . sej/drag-stuff-down)
-         ("M-<up>" . sej/drag-stuff-up))
+  :bind (("s-<down>" . sej/drag-stuff-down) ; with Karabiner becomes R-command-n
+         ("s-<up>" . sej/drag-stuff-up)) ; with Karabiner becomes R-command-p
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
   (defun sej/drag-stuff-up ()
@@ -3995,9 +3997,7 @@ If called with a prefix argument, query for word to search."
   :blackout t
   :commands (elisp-slime-nav-mode
              elisp-slime-nav-find-elisp-thing-at-point)
-  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode)
-  :custom
-  (find-function-C-source-directory (expand-file-name "~/src/emacs-dev/src")))
+  :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
 ;;;;; sly
 ;; replacement repla for slime
