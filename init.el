@@ -7483,7 +7483,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
     :config
     (elfeed-org)
     :custom
-    (rmh-elfeed-org-files '("~/Documents/orgtodo/20250124T203443--elfeed.org"))))
+    (rmh-elfeed-org-files '("~/Documents/orgtodo/20250124T203443--elfeed__emacs.org"))))
 
 ;;;;; elfeed-webkit
 ;; render in webkit [[https://github.com/fritzgrabo/elfeed-webkit][link]]
