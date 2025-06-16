@@ -4790,11 +4790,11 @@ the children of class at point."
 ;; [[https://github.com/jorgenschaefer/typoel][typo-mode]] is a buffer-specific minor mode that will change a number of normal keys to make them insert
 ;; typographically useful unicode characters. Some of those keys can be used repeatedly to cycle through
 ;; variations. This includes in particular quotation marks and dashes.
-(use-package typo
+(use-package typoel
   :diminish
-  :bind
-  (:map typo-mode-map
-        ("-" . self-insert-command))
+  :vc (:url "https://github.com/jorgenschaefer/typoel"
+            :rev :newest
+            :branch "master")
   :hook
   ((org-mode markdown-mode gnus-message-setup) . typo-mode)
   :config
@@ -6063,56 +6063,6 @@ function with the \\[universal-argument]."
                   (org-agenda-overriding-header "Upcoming deadlines (+14d)"))))
 	"Custom agenda for use in `org-agenda-custom-commands'.")
 
-  (defvar sej/org-custom-agenda-ql
-	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
-	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
-	`((org-ql-block '(and (todo "TODO" "INPRODCESS" "DELEGATE" "CHECK" "FIX")
-						  (not (deadline))
-						  (not (planning))
-						  (not (scheduled))
-						  (category )
-						  )
-					((org-ql-block-header "Tasks with action needed without scheduled or deadline date")))
-      (agenda "" ((org-agenda-span 1)
-                  (org-deadline-warning-days 0)
-                  (org-agenda-block-separator 9472)
-                  (org-scheduled-past-days 0)
-                  (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
-                  (org-agenda-format-date "%A %-e %B %Y")
-                  (org-agenda-overriding-header "Today's agenda")))
-      (agenda "" ((org-agenda-start-on-weekday nil)
-                  (org-agenda-start-day "+1d")
-                  (org-agenda-span 3)
-                  (org-deadline-warning-days 0)
-                  (org-agenda-block-separator 9472)
-                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-                  (org-agenda-overriding-header "Next three days")))
-      (agenda "" ((org-agenda-time-grid nil)
-                  (org-agenda-start-on-weekday nil)
-                  (org-agenda-start-day "+4d")
-                  (org-agenda-span 14)
-                  (org-agenda-show-all-dates nil)
-                  (org-deadline-warning-days 0)
-                  (org-agenda-block-separator 9472)
-                  (org-agenda-entry-types '(:deadline :scheduled))
-                  (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-                  (org-agenda-overriding-header "Upcoming deadlines (+14d)")))
-	  ;; FIX stopped work on this as repeating appointments <timestamps> are not handled [[https://github.com/alphapapa/org-ql/issues/159][link]]
-	  ;; (org-ql-block '(or (ts :from +1 :to +3)
-	  ;; 					 (deadline :from +1 :to +3)
-	  ;; 					 (scheduled :from +1 :to +3)
-	  ;; 					 (planning :from +1 :to +3)
-	  ;; 					 (todo :from +1 :to +3)
-	  ;; 					 (habit))
-	  ;; 				((org-ql-block-header "Next three days (ql)")))
-	  ;; (org-ql-block '(or (deadline :from +4 :to +14)
-	  ;; 					 (scheduled :from +4 :to +14)
-	  ;; 					 (planning :from +4 :to +14)
-	  ;; 					 (habit))
-	  ;; 				((org-ql-block-header "Upcoming deadlines (+14d) (ql)")))
-	  )
-	"Custom agenda for use in `org-agenda-custom-commands'.")
-
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
 									 ("d" "Deadlines & scheduled" agenda ""
 									  ((org-agenda-span 'month)
@@ -6130,8 +6080,6 @@ function with the \\[universal-argument]."
 									   (org-agenda-sorting-strategy '(priority-up effort-down))))
 									 ("A" "Agenda and top priority tasks"
 									  ,sej/org-custom-agenda-orig)
-									 ("z" "QL Agenda and top priority tasks"
-									  ,sej/org-custom-agenda-ql)
 									 ("P" "Plain text daily agenda and top priorities"
 									  ,sej/org-custom-agenda-orig
 									  ((org-agenda-with-colors nil)
@@ -6146,28 +6094,6 @@ function with the \\[universal-argument]."
 									 ("ws" tags "+Spanish+CATEGORY=\"wine\"")
 									 ("ww" tags "+CATEGORY=\"wine\"")
 									 ))
-
-  (defun sej/org-agenda-before-sorting-filter-function (element)
-	"Mod `org-ql-block' agenda string based on `org-agenda-prefix-format' (eventually).
-
-    Needed to add category to line as `org-ql-block' is hardwired to ignore `org-agenda-prefix-format'."
-	(if element
-		(let* (
-			   (category (plist-get (nth 2 (car (object-intervals element))) 'org-category))
-			   (type (plist-get (nth 2 (car (object-intervals element))) 'org-agenda-type))
-			   (std (plist-get (nth 2 (car (object-intervals element))) 'standard-properties))
-			   )
-		  (if (and category (equal type 'search))
-			  (progn
-				(setq element
-					  (concat
-					   ;;(propertize FIX use this to add properties to the category tag
-					   (substring element 0 2)
-					   (substring (concat category ":            ") 0 12)
-					   (substring element 2 nil)
-					   ))))))
-	element)
-  (setq org-agenda-before-sorting-filter-function #'sej/org-agenda-before-sorting-filter-function)
 					   
   ;; display repeaters for dates, scheduled, deadlines
   ;; [[https://whhone.com/posts/org-agenda-repeated-tasks/]]
@@ -6649,33 +6575,6 @@ function with the \\[universal-argument]."
   :after org
   :custom
   (org-protocol-default-template-key "l"))
-
-;;;;; [[https://github.com/alphapapa/org-ql][org-ql]]
-;; This package provides a query language for Org files.
-;; It offers two syntax styles: Lisp-like sexps and search engine-like keywords.
-(use-package org-ql
-  :after org
-  :demand t
-  :commands org-ql-search
-  :functions (org-ql-find--buffers
-              org-ql-search-directories-files
-              org-ql-find
-              org-ql-defpred)
-  :bind (:map org-mode-map
-		 ("C-c C-x o" . org-ql-open-link)
-		 :map sej-denote-map
-		 ("o /" . org-ql-sparse-tree)
-		 ("o a" . org-ql-view)
-		 ("o q" . org-ql-find-in-agenda)
-		 ("o w" . org-ql-refile-path)
-		 ("o W" . org-ql-refile))
-  :preface
-  (which-key-add-keymap-based-replacements sej-denote-map "o" "org-ql")
-  :config
-  (eval-when-compile
-    (require 'vertico-multiform))
-  (add-all-to-list 'vertico-multiform-commands
-                   '(org-ql-find)))
 
 ;;;;; org-rich-yank
 ;; Rich text clipboard when yanking code into org buffer
