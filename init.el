@@ -292,7 +292,7 @@
     ;; for regular Emacs port
 	(setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
     (setq ns-right-option-modifier 'meta)	 ;right option as meta
-    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
+    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
     (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
     (setq ns-right-control-modifier 'alt)    ;actually left control                        
     (setq ns-option-modifier 'meta)			 ;left option is meta
@@ -1306,43 +1306,27 @@ The DWIM behaviour of this command is as follows:
           ("s-4" . dired-other-frame)
           ("s-5" . make-frame-command)
           ("s-6" . delete-other-frames)
-          ;; A-M combo
-          ("A-M-s-k" . toggle-frame-fullscreen)
-          ("M-s-k" . sej/frame-resize-full)
-          ("M-s-h" . sej/frame-resize-l)
-          ("M-s-l" . sej/frame-resize-r)
-          ("A-M-s-h" . sej/frame-resize-l2)
-          ("A-M-s-l" . sej/frame-resize-r2)
-          ("M-s-H" . sej/frame-resize-l3)
-          ("M-s-L" . sej/frame-resize-r3)
-          ;; A-M cursor combo
-          ("A-M-s-<up>" . toggle-frame-fullscreen)
-          ("M-s-<up>" . sej/frame-resize-full)
-          ("M-s-<left>" . sej/frame-resize-l)
-          ("M-s-<right>" . sej/frame-resize-r)
-          ("A-M-s-<left>" . sej/frame-resize-l2)
-          ("A-M-s-<right>" . sej/frame-resize-r2)
-          ("M-s-<S-left>" . sej/frame-resize-l3)
-          ("M-s-<S-right>" . sej/frame-resize-r3)
-          ;; A-M combo
-          ;; ("A-M-s-k" . toggle-frame-fullscreen)
-          ;; ("A-M-k" . sej/frame-resize-full)
-          ;; ("A-M-h" . sej/frame-resize-l)
-          ;; ("A-M-l" . sej/frame-resize-r)
-          ;; ("A-M-s-h" . sej/frame-resize-l2)
-          ;; ("A-M-s-l" . sej/frame-resize-r2)
-          ;; ("A-M-H" . sej/frame-resize-l3)
-          ;; ("A-M-L" . sej/frame-resize-r3)
-          ;; A-M h-j-k-l combo
-          ;; ("A-M-s-<up>" . toggle-frame-fullscreen)
-          ;; ("A-M-<up>" . sej/frame-resize-full)
-          ;; ("A-M-<left>" . sej/frame-resize-l)
-          ;; ("A-M-<right>" . sej/frame-resize-r)
-          ;; ("A-M-s-<left>" . sej/frame-resize-l2)
-          ;; ("A-M-s-<right>" . sej/frame-resize-r2)
-          ;; ("A-M-<S-left>" . sej/frame-resize-l3)
-          ;; ("A-M-<S-right>" . sej/frame-resize-r3)
-          ;; C-q combo
+		  ;; below are meant to match default OSX and my BTT settings in other apps
+          ;; full-half-1/3-2/3 w/hjkl combo
+          ("H-A-k" . sej/frame-resize-full)
+          ("H-A-h" . sej/frame-resize-l)
+          ("H-A-l" . sej/frame-resize-r)
+          ("H-A-M-s-h" . sej/frame-resize-l2)
+          ("H-A-M-s-l" . sej/frame-resize-r2)
+          ("H-A-M-h" . sej/frame-resize-l3)
+          ("H-A-M-l" . sej/frame-resize-r3)
+          ;; full-half-1/3-2/3 cursor combo
+          ("H-A-<up>" . sej/frame-resize-full)
+          ("H-A-<left>" . sej/frame-resize-l)
+          ("H-A-<right>" . sej/frame-resize-r)
+          ("H-A-M-s-<left>" . sej/frame-resize-l2)
+          ("H-A-M-s-<right>" . sej/frame-resize-r2)
+          ("H-A-M-<left>" . sej/frame-resize-l3)
+          ("H-A-M-<right>" . sej/frame-resize-r3)
+		  ;; additional
+          ("H-A-c" . sej/frame-recentre)
+          ("H-A-f" . toggle-frame-fullscreen)
+          ;; C-q combo if above are not available
           :map sej-C-q-map
           ("m" . sej/frame-recentre)
           ("F" . toggle-frame-fullscreen)
