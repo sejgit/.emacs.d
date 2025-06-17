@@ -1399,11 +1399,11 @@ The DWIM behaviour of this command is as follows:
 					1))
 
   (defun sej/frame-resize-l2 ()
-    "Set frame full height and 1/2 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
+    "Set frame full height and 1/3 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 4)) 0)
+					(- (truncate (/ (display-pixel-width) 3)) 0)
 					(- (display-pixel-height)
 					   (- (frame-outer-height)
 						  (frame-inner-height) sej/menu-height))
@@ -1433,13 +1433,13 @@ The DWIM behaviour of this command is as follows:
 					1))
 
   (defun sej/frame-resize-r2 ()
-    "Set frame full height and 1/2 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
+    "Set frame full height and 1/3 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame)
-                        (truncate (* (/ (display-pixel-width) 4) 3))
+                        (truncate (* (/ (display-pixel-width) 3) 2))
 						0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 4)) 0)
+					(- (truncate (/ (display-pixel-width) 3)) 0)
 					(- (display-pixel-height)
 					   (- (frame-outer-height)
 						  (frame-inner-height) sej/menu-height))
