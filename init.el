@@ -247,9 +247,9 @@
 (use-package ultra-scroll
   :demand t
   :vc (:url "https://github.com/jdtsmith/ultra-scroll")
-  :init
-  (setq scroll-conservatively 101 ; important!
-        scroll-margin 0)
+  :custom
+  (scroll-conservatively 101) ; important!
+  (scroll-margin 0)
   :config
   (ultra-scroll-mode 1))
 
@@ -444,43 +444,35 @@
 (use-package pcre2el
   :hook (emacs-lisp-mode . rxt-mode))
 
-;;;;; no-littering feature
+;;;;; no-littering & backups
 ;; set the default paths for configuration files & persistent data
 ;; https://github.com/emacscollective/no-littering
 (use-package no-littering
   :demand t
-  :init
-  (setq no-littering-etc-directory (expand-file-name "~/.local/share/emacs/")
-        no-littering-var-directory (expand-file-name "~/.cache/emacs/")
-        temporary-file-directory (expand-file-name "~/.cache/emacs/tmp/")
-		create-lockfiles nil)
-  (make-directory temporary-file-directory :parents)
-  (defalias 'nl-var-expand #'no-littering-expand-var-file-name)
-  (defalias 'nl-etc-expand #'no-littering-expand-etc-file-name)
-
-;;;;;; backups
-;; Put backup files neatly away
-(let ((backup-dir (nl-var-expand "backups/"))
-      (auto-saves-dir (nl-var-expand "auto-save/")))
-  (dolist (dir (list backup-dir auto-saves-dir))
-    (when (not (file-directory-p dir))
-      (make-directory dir t)))
-  (setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
-                                 auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
-                                 auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
-        tramp-backup-directory-alist `((".*" . ,backup-dir))
-        tramp-auto-save-directory auto-saves-dir))
-
-(setq backup-by-copying t    ; Don't delink hardlinks
-      delete-old-versions t  ; Clean up the backups
-      version-control t      ; Use version numbers on backups,
-      kept-new-versions 5    ; keep some new versions
-      kept-old-versions 2   ; and some old ones, too
-      vc-make-backup-files t
-      backup-by-copying t
-      version-control t
-	  auto-save-interval 64
-	  auto-save-timeout 2))
+  :custom
+  (create-lockfiles nil)
+  (backup-by-copying t)    ; Don't delink hardlinks
+  (delete-old-versions t)  ; Clean up the backups
+  (version-control t)      ; Use version numbers on backups,
+  (kept-new-versions 5)    ; keep some new versions
+  (kept-old-versions 2)    ; and some old ones, too
+  (vc-make-backup-files t)
+  (backup-by-copying t)
+  (version-control t)
+  (auto-save-interval 64)
+  (auto-save-timeout 2)
+  :config
+  ;; Put backup files neatly away
+  (let ((backup-dir (concat no-littering-var-directory "backups/"))
+		(auto-saves-dir (concat no-littering-var-directory "auto-save/")))
+	(dolist (dir (list backup-dir auto-saves-dir))
+      (when (not (file-directory-p dir))
+		(make-directory dir t)))
+	(setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
+                                   auto-save-list-file-prefix ,(concat auto-saves-dir ".saves-")
+                                   auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
+          tramp-backup-directory-alist `((".*" . ,backup-dir))
+          tramp-auto-save-directory auto-saves-dir)))
 
 ;;;;; Emacs internal settings
 ;; a use-package friendly place to put settings
@@ -771,27 +763,28 @@
 ;; built-in: simple settings
 ;;
 (use-package simple
+  :demand t
   :blackout ((visual-line-mode . "")
              (auto-fill-mode . ""))
   :ensure nil
-  :init
-  (setq blink-matching-paren 'jump-offscreen
-        column-number-mode t
-        delete-trailing-lines t
-        eval-expression-print-length nil
-        eval-expression-print-level nil
-        idle-update-delay 1
-        kill-do-not-save-duplicates t
-        kill-ring-max 300
-        kill-ring-deindent-mode t
-        track-eol t
-        line-move-visual nil
-        line-number-mode t
-        save-interprogram-paste-before-kill t
-        kill-read-only-ok t
-        shift-select-mode nil
-        set-mark-command-repeat-pop t
-        backward-delete-char-untabify-method nil))
+  :custom
+  (blink-matching-paren 'jump-offscreen)
+  (column-number-mode t)
+  (delete-trailing-lines t)
+  (eval-expression-print-length nil)
+  (eval-expression-print-level nil)
+  (idle-update-delay 1)
+  (kill-do-not-save-duplicates t)
+  (kill-ring-max 300)
+  (kill-ring-deindent-mode t)
+  (track-eol t)
+  (line-move-visual nil)
+  (line-number-mode t)
+  (save-interprogram-paste-before-kill t)
+  (kill-read-only-ok t)
+  (shift-select-mode nil)
+  (set-mark-command-repeat-pop t)
+  (backward-delete-char-untabify-method nil))
 
 ;;;;; minibuffer
 ;; built-in: minibuffer settings
@@ -1935,7 +1928,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook ((emacs-startup org-mode) . abbrev-mode)
   :config
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
-        (nl-var-expand "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+        (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
   (setq save-abbrevs 'silently)
 
   (define-abbrev-table
@@ -3999,7 +3992,7 @@ If called with a prefix argument, query for word to search."
   :hook (lisp-mode . sly-mode)
   :config
   (setq inferior-lisp-program "/usr/local/bin/sbcl"
-        sly-mrepl-history-file-name (nl-var-expand "sly-mrepl-history")))
+        sly-mrepl-history-file-name (concat no-littering-etc-directory "sly-mrepl-history")))
 
 ;;;;; eros
 ;; eros-mode will show you the result of evaluating an elisp command
@@ -4606,7 +4599,7 @@ the children of class at point."
   (setq auto-insert-directory "~/.emacs.d/templates/")
   :config
   (setq auto-insert 'other
-        auto-insert-directory (nl-etc-expand "autoinsert/")))
+        auto-insert-directory (concat no-littering-etc-directory "autoinsert/")))
 
 ;;;;; autorevert
 ;; built-in: watch for changes in files on disk
