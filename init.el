@@ -1315,14 +1315,14 @@ The DWIM behaviour of this command is as follows:
           ("H-A-M-s-l" . sej/frame-resize-r2)
           ("H-A-M-h" . sej/frame-resize-l3)
           ("H-A-M-l" . sej/frame-resize-r3)
-          ;; full-half-1/3-2/3 cursor combo
+          ;; full-half-1/3-2/3 cursor combo ; fn changes cursor to home / end 
           ("H-A-<up>" . sej/frame-resize-full)
-          ("H-A-<left>" . sej/frame-resize-l)
-          ("H-A-<right>" . sej/frame-resize-r)
-          ("H-A-M-s-<left>" . sej/frame-resize-l2)
-          ("H-A-M-s-<right>" . sej/frame-resize-r2)
-          ("H-A-M-<left>" . sej/frame-resize-l3)
-          ("H-A-M-<right>" . sej/frame-resize-r3)
+          ("A-<home>" . sej/frame-resize-l)
+          ("A-<end>" . sej/frame-resize-r)
+          ("A-M-s-<home>" . sej/frame-resize-l2)
+          ("A-M-s-<end>" . sej/frame-resize-r2)
+          ("A-M-<home>" . sej/frame-resize-l3)
+          ("A-M-<end>" . sej/frame-resize-r3)
 		  ;; additional
           ("H-A-c" . sej/frame-recentre)
           ("H-A-f" . toggle-frame-fullscreen)
@@ -1663,17 +1663,26 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; C-u C-u prefex to delete window
 ;; https://github.com/abo-abo/ace-window
 (use-package ace-window
-  :bind (("C-x o" . ace-window)
+  :bind (("C-x o" . sej/ace-two-window)
          ("M-o" . ace-window))
   :hook (emacs-startup . ace-window-display-mode)
-  :custom ((aw-dispatch-always t)
-		   (aw-frame-offset '(100 . 0)))
+  :custom ((aw-dispatch-always nil)
+		   (aw-frame-offset '(100 . 0))
+		   (aw-minibuffer-flag t))
   :config
   (defun sej/hide-frame (window)
 	"Hide frame containing window."
 	(lower-frame (window-frame window)))
 
-  (add-to-list 'aw-dispatch-alist '(?h sej/hide-frame "Hide Frame")))
+  (add-to-list 'aw-dispatch-alist '(?h sej/hide-frame "Hide Frame"))
+
+  (defun sej/ace-two-window (arg)
+	"Run full ace windows with two windows."
+	(interactive "P")
+	(let (dispatch (eval aw-dispatch-always))
+	  (setq aw-dispatch-always t)
+	  (ace-window arg)
+	  (setq aw-dispatch-always dispatch))))
 
 ;;;;; winner
 ;; built-in: Restore old window configurations
