@@ -293,18 +293,18 @@
 	(setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
     (setq ns-right-option-modifier 'meta)	 ;right option as meta
     (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
-    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
-    (setq ns-right-control-modifier 'alt)    ;actually left control                        
+    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
+    (setq ns-right-control-modifier 'alt)    ;actually left control
     (setq ns-option-modifier 'meta)			 ;left option is meta
     (setq ns-command-modifier 'super)		 ;left command is super
 
 	;; old version w/command as meta, control as super, option as Alt
-    ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner                
-    ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)                 
-    ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner) 
-    ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock                
-    ;; (setq ns-right-control-modifier 'super)  ;actually left control                        
-    ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key                     
+    ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
+    ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)
+    ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
+    ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
+    ;; (setq ns-right-control-modifier 'super)  ;actually left control
+    ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key
     ;; (setq ns-command-modifier 'meta)		 ;left command is meta
     ))
 ;; only needed with old version
@@ -1315,7 +1315,7 @@ The DWIM behaviour of this command is as follows:
           ("H-A-M-s-l" . sej/frame-resize-r2)
           ("H-A-M-h" . sej/frame-resize-l3)
           ("H-A-M-l" . sej/frame-resize-r3)
-          ;; full-half-1/3-2/3 cursor combo ; fn changes cursor to home / end 
+          ;; full-half-1/3-2/3 cursor combo ; fn changes cursor to home / end
           ("H-A-<up>" . sej/frame-resize-full)
           ("A-<home>" . sej/frame-resize-l)
           ("A-<end>" . sej/frame-resize-r)
@@ -5692,7 +5692,7 @@ function with the \\[universal-argument]."
       (sej/annotate-annotate))))
 
 ;;;; LaTeX
-;;;;; [[[[https://www.gnu.org/software/auctex/download-for-macosx.html]]][AuCTeX]] 
+;;;;; [[[[https://www.gnu.org/software/auctex/download-for-macosx.html]]][AuCTeX]]
 ;; GNU TeX in Emacs Auctex
 (use-package auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
