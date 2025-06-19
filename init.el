@@ -6398,27 +6398,31 @@ function with the \\[universal-argument]."
 
 ;;;;; org-(ob)babel
 (use-package ob
-  :after (org ob-go ob-ipython ob-rust ob-restclient)
+  :after org
+  :hook (org-mode . sej/ob-start)
   :ensure nil
-  :demand t
+  :custom
+  (org-confirm-babel-evaluate nil)
   :config
-  (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp . t)
-														   (python     . t)
-														   (calc       . t)
-														   (shell      . t)
-														   (latex      . t)
-														   (C          . t)
-														   (sql        . t)
-														   (makefile   . t)
-														   (ein        . t)
-														   (perl       . t)
-														   (ruby       . t)
-														   (js         . t)
-														   (css        . t)
-														   (restclient . t)
-														   (java       . t)))
-
-  (setq org-confirm-babel-evaluate nil))
+  (require 'ob)
+  (defun sej/ob-start ()
+	"Echo Bable languages available."
+  (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp  . t)
+														   (python      . t)
+														   (calc        . t)
+														   (shell       . t)
+														   (latex       . t)
+														   (C           . t)
+														   (sql         . t)
+														   (makefile    . t)
+														   (ein         . t)
+														   (perl        . t)
+														   (ruby        . t)
+														   (js          . t)
+														   (css         . t)
+														   (restclient  . t)
+														   (java        . t)
+														   (applescript . t)))))
 
 ;;;;; [[https://github.com/pope/ob-go][ob-go]]
 ;; org-bable functions for go evaluations
@@ -6444,39 +6448,53 @@ function with the \\[universal-argument]."
 (use-package ob-restclient
   :after org)
 
+;;;;; [[https://github.com/stig/ob-applescript.el][ob-applescript]]
+;; [[https://plrj.org/2025/06/18/org-babel-and-applescript-with-a-little-vc-use-package/][Org Babel and AppleScript with a little vc-use-package]]
+;; example script
+;; #+begin_src applescript
+  ;; -- AppleScript goes here; this is a comment
+  ;; display dialog “Hello World”
+;; #+end_src
+(use-package ob-applescript
+  :after org
+  :vc (:url "https://github.com/stig/ob-applescript.el"
+			:rev :newest
+			:branch "trunk")
+  :init
+  (require 'apples-mode))
+
 ;;;;; org-Ox
 ;; built-in: org mode exporter framework
 ;; [[https://orgmode.org/worg/exporters/ox-overview.html][org-exporter manual]]
 (use-package ox
   :ensure nil
-  :config
-  (setq org-export-with-toc nil
-        org-export-headline-levels 8
-        org-export-backends '(ascii html latex md)
-        org-export-dispatch-use-expert-ui nil
-        org-export-coding-system 'utf-8
-        org-export-exclude-tags '("noexport" "no_export" "ignore")
-        org-export-with-author t
-        org-export-with-drawers t
-        org-export-with-email t
-        org-export-with-footnotes t
-        org-export-with-latex t
-        org-export-with-properties t
-        org-export-with-smart-quotes t
-        org-html-html5-fancy t
-        org-html-postamble nil))
+  :custom
+  (org-export-with-toc nil)
+  (org-export-headline-levels 8)
+  (org-export-backends '(ascii html latex md))
+  (org-export-dispatch-use-expert-ui nil)
+  (org-export-coding-system 'utf-8)
+  (org-export-exclude-tags '("noexport" "no_export" "ignore"))
+  (org-export-with-author t)
+  (org-export-with-drawers t)
+  (org-export-with-email t)
+  (org-export-with-footnotes t)
+  (org-export-with-latex t)
+  (org-export-with-properties t)
+  (org-export-with-smart-quotes t)
+  (org-html-html5-fancy t)
+  (org-html-postamble nil))
 
 ;;;;; ox-latex
 ;; built-in: latex exporter
 ;; https://orgmode.org/manual/LaTeX-Export.html#LaTeX-Export
 (use-package ox-latex
   :ensure nil
-  :config
-  ;; LaTeX Settings
-  (setq org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f")
-        org-latex-remove-logfiles t
-        org-latex-prefer-user-labels t
-        bibtex-dialect 'biblatex))
+  :custom
+  (org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f"))
+  (org-latex-remove-logfiles t)
+  (org-latex-prefer-user-labels t)
+  (bibtex-dialect 'biblatex))
 
 ;;;;; ox-gfm
 ;; github flavoured markdown exporter for Org mode
@@ -6501,59 +6519,59 @@ function with the \\[universal-argument]."
 ;; https://gitlab.com/marcowahl/org-pretty-tags
 (use-package org-pretty-tags
   :hook (org-mode . org-pretty-tags-global-mode)
-  :config
-  (setq org-pretty-tags-surrogate-strings
-        `(;; generic tags
-		  ("topic" . "☆")
-          ("idea" . "💡")
-		  ("log" . "📋")
-		  ("done" . "✅")
-		  ("closed". "🔒")
-          ("service" . "✍")
-          ("Blog" . "✍")
-          ("security" . "🔥")
-		  ;; denotes generic togs
-		  ("ATTACH" . "📎")
-		  ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹🔁")
-		  ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛🔧")
-		  ("read" . "👀")
-		  ("debug" . "🐞")
-		  ("family" . "👨‍👩‍👧‍👦")
-		  ("kids" . "👶🏻")
-		  ("friends" . "🍻")
-		  ("travel" . "✈️")
-		  ("home" . "🏠")
-		  ("emacs" . "ℇ") ("Emacs" . "ℇ")
-		  ("computer" . "🖥️")
-		  ("financial" . "💰")
-		  ("automation" . "⚙️")
-		  ("plugin" . "🔌")
+  :custom
+  (org-pretty-tags-surrogate-strings
+   `(;; generic tags
+	 ("topic" . "☆")
+     ("idea" . "💡")
+	 ("log" . "📋")
+	 ("done" . "✅")
+	 ("closed". "🔒")
+     ("service" . "✍")
+     ("Blog" . "✍")
+     ("security" . "🔥")
+	 ;; denotes generic togs
+	 ("ATTACH" . "📎")
+	 ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹🔁")
+	 ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛🔧")
+	 ("read" . "👀")
+	 ("debug" . "🐞")
+	 ("family" . "👨‍👩‍👧‍👦")
+	 ("kids" . "👶🏻")
+	 ("friends" . "🍻")
+	 ("travel" . "✈️")
+	 ("home" . "🏠")
+	 ("emacs" . "ℇ") ("Emacs" . "ℇ")
+	 ("computer" . "🖥️")
+	 ("financial" . "💰")
+	 ("automation" . "⚙️")
+	 ("plugin" . "🔌")
+	 
+	 ;; media & specific tags
+     ("media" . "💿")
+	 ("music" . "🎶")
 
-		  ;; media & specific tags
-          ("media" . "💿")
-		  ("music" . "🎶")
-
-		  ;; sports
-		  ("hockey" . "🏒")
-		  ("swimming" . "🏊‍♀️")
+	 ;; sports
+	 ("hockey" . "🏒")
+	 ("swimming" . "🏊‍♀️")
+	 
+	 ;; wine & specific tags
+	 ("wine" . "🍷")
+	 ("Red" . "🍷") ("Rose" . "🌹") ("White" . "🥂")
+	 ("Champagne" "🍾") ("Prosecco" "🍾") ("Cava" "🍾") ("Sparkling" "🍾")
+	 ("Liquor" . "🫒🍸")
+	 ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
+	 ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
+	 ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
+	 ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
 		  
-		  ;; wine & specific tags
-		  ("wine" . "🍷")
-		  ("Red" . "🍷") ("Rose" . "🌹") ("White" . "🥂")
-		  ("Champagne" "🍾") ("Prosecco" "🍾") ("Cava" "🍾") ("Sparkling" "🍾")
-		  ("Liquor" . "🫒🍸")
-		  ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
-		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
-		  ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
-		  ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
-		  
-		  ;; electronics & specific tags
-		  ("electronics" . "electronics")
-		  ("stereo" . "🎧")
-		  ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
-		  ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
-		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
-		  )) )
+	 ;; electronics & specific tags
+	 ("electronics" . "electronics")
+	 ("stereo" . "🎧")
+	 ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
+	 ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
+	 ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
+	 )) )
 
 ;;;;; org-protocol
 (use-package org-protocol
