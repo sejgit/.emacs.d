@@ -1791,15 +1791,15 @@ If FRAME is omitted or nil, use currently selected frame."
            ("C-M->"         . mc/skip-to-next-like-this)
            ("C-M-<"         . mc/skip-to-previous-like-this)
            ("A-<mouse-1>"   . mc/add-cursor-on-click)
-		   ("<C-m> a"         . mc/edit-beginings-of-lines)
-		   ("<C-m> e"         . mc/edit-ends-of-lines)
-		   ("<C-m> s"         . mc/mark-next-like-this-symbol)
-		   ("<C-m> S"         . mc/mark-all-symbols-like-this)
-		   ("<C-m> D"         . mc/mark-all-like-this-in-defun)
-		   ("<C-m> d"         . mc/mark-all-dwim)
-		   ("<C-m> r"         . mc/mark-all-in-region)
-		   ("<C-m> w"         . mc/mark-next-like-this-word)
-		   ("<C-m> W"         . mc/mark-all-words-like-this)
+		   ("A-a"         . mc/edit-beginings-of-lines)
+		   ("A-e"         . mc/edit-ends-of-lines)
+		   ("A-s"         . mc/mark-next-like-this-symbol)
+		   ("A-S"         . mc/mark-all-symbols-like-this)
+		   ("A-D"         . mc/mark-all-like-this-in-defun)
+		   ("A-d"         . mc/mark-all-dwim)
+		   ("A-r"         . mc/mark-all-in-region)
+		   ("A-w"         . mc/mark-next-like-this-word)
+		   ("A-W"         . mc/mark-all-words-like-this)
            :map mc/keymap
 		   ("C-m v"         . mc/vertical-align)
            ("C-|" . mc/vertical-align-with-space)))
@@ -1815,24 +1815,23 @@ If FRAME is omitted or nil, use currently selected frame."
           :map isearch-mode-map
           ("C-g" . isearch-cancel) ;instead of `isearch-abort'
           ("M-/" . isearch-complete))
-  :init
-  (setq search-highlight t
-        search-whitespace-regexp ".*?"
-        isearch-lax-whitespace t
-        isearch-regexp-lax-whitespace nil
-        isearch-lazy-highlight t
-        isearch-lazy-count t
-        isearch-yank-on-move t
-        lazy-count-prefix-format "(%s/%s) "
-        lazy-count-suffix-format nil
-        isearch-yank-on-move 'shift
-        isearch-allow-scroll 'unlimited
-        isearch-repeat-on-direction-change t
-        lazy-highlight-initial-delay 0.5
-        lazy-highlight-no-delay-length 3
-        search-ring-max 30
-        regexp-search-ring-max 30
-        isearch-wrap-pause t))
+  :custom ((search-highlight t)
+		   (search-whitespace-regexp ".*?")
+		   (isearch-lax-whitespace t)
+		   (isearch-regexp-lax-whitespace nil)
+		   (isearch-lazy-highlight t)
+		   (isearch-lazy-count t)
+		   (isearch-yank-on-move t)
+		   (lazy-count-prefix-format "(%s/%s) ")
+		   (lazy-count-suffix-format nil)
+		   (isearch-yank-on-move 'shift)
+		   (isearch-allow-scroll 'unlimited)
+		   (isearch-repeat-on-direction-change t)
+		   (lazy-highlight-initial-delay 0.5)
+		   (lazy-highlight-no-delay-length 3)
+		   (search-ring-max 30)
+		   (regexp-search-ring-max 30)
+		   (isearch-wrap-pause t)))
 
 ;;;;; Anzu
 ;; good query replace search
@@ -1843,8 +1842,7 @@ If FRAME is omitted or nil, use currently selected frame."
            ("C-H-S-r" . anzu-query-replace-at-cursor)
            :map isearch-mode-map
            ("C-H-r" . anzu-isearch-query-replace))
-  :config
-  (global-anzu-mode))
+  :config (global-anzu-mode))
 
 ;;;;; consult-ag
 ;; searching with the silver searcher, consult style
@@ -1869,13 +1867,11 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package bookmark
   :ensure nil
   :demand t
-  :init
-  (setq bookmark-use-annotations t)
-  (setq bookmark-automatically-show-annotations t)
-  (setq bookmark-set-fringe-mark t) ; Emacs28
-  (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
-  :config
-  (setq bookmark-save-flag +1))
+  :custom ((bookmark-use-annotations t)
+		   (bookmark-automatically-show-annotations t)
+		   (bookmark-set-fringe-mark t)) ; Emacs28
+  :init (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
+  :config (setq bookmark-save-flag +1))
 
 ;;;; completion
 ;;;;; abbrev
@@ -1884,11 +1880,10 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package abbrev
   :ensure nil
   :hook ((emacs-startup org-mode) . abbrev-mode)
+  :custom ((abbrev-file-name             ;; tell emacs where to read abbrev
+				 (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+		   (save-abbrevs 'silently))
   :config
-  (setq abbrev-file-name             ;; tell emacs where to read abbrev
-        (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
-  (setq save-abbrevs 'silently)
-
   (define-abbrev-table
     'org-mode-abbrev-table
     '(("orgh" "" sej/org-header 0)
@@ -1905,16 +1900,15 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Use Dabbrev with Corfu!
   ;; Swap M-/ and C-M-/
   :bind ("C-M-/" . dabbrev-expand)
-  :init
-  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
-        dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|="
-        dabbrev-backward-only nil
-        dabbrev-case-distinction 'case-replace
-        dabbrev-case-fold-search t
-        dabbrev-case-replace 'case-replace
-        dabbrev-check-other-buffers t
-        dabbrev-eliminate-newlines t
-        dabbrev-upcase-means-case-search t)
+  :custom ((dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
+		   (dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|=")
+		   (dabbrev-backward-o nly nil)
+		   (dabbrev-case-distinction 'case-replace)
+		   (dabbrev-case-fold-search t)
+		   (dabbrev-case-replace 'case-replace)
+		   (dabbrev-check-other-buffers t)
+		   (dabbrev-eliminate-newlines t)
+		   (dabbrev-upcase-means-case-search t))
   :config
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
   ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
@@ -1929,20 +1923,18 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package hippie-expand
   :ensure nil
   :bind ("M-/" . hippie-expand)
-  :init
-  (setq hippie-expand-try-functions-list
-        '(try-expand-dabbrev-visible
-          try-complete-file-name
-          try-complete-file-name-partially
-          try-expand-all-abbrevs
-          try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-expand-list
-          try-expand-line
-          cape-elisp-symbol
-          try-expand-list-all-buffers
-          try-expand-line-all-buffers)))
+  :custom (hippie-expand-try-functions-list '(try-expand-dabbrev-visible
+											  try-complete-file-name
+											  try-complete-file-name-partially
+											  try-expand-all-abbrevs
+											  try-expand-dabbrev
+											  try-expand-dabbrev-all-buffers
+											  try-expand-dabbrev-from-kill
+											  try-expand-list
+											  try-expand-line
+											  cape-elisp-symbol
+											  try-expand-list-all-buffers
+											  try-expand-line-all-buffers)))
 
 ;;;;; [[https://github.com/minad/vertico][vertico]]
 ;; alternative to ivy, ido, helm
@@ -1954,23 +1946,21 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-M-p" . vertico-previous-group))
   :hook ((emacs-startup . vertico-mode)
 		 (minibuffer-setup . vertico-repeat-save))
-  :config
-  (setq vertico-scroll-margin 0) ;; Different scroll margin
-  (setq vertico-count 20)        ;; Show more candidates
-  (setq vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
-  (setq vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  :custom ((vertico-scroll-margin 0) ;; Different scroll margin
+		   (vertico-count 20)        ;; Show more candidates
+		   (vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
+		   (vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
 
-  ;; Hide commands in M-x which do not work in the current mode. Vertico
-  ;; commands are hidden in normal buffers.
-  (setq read-extended-command-predicate
-        #'command-completion-default-include-p)
+		   ;; Hide commands in M-x which do not work in the current mode. Vertico
+		   ;; commands are hidden in normal buffers.
+		   (read-extended-command-predicate #'command-completion-default-include-p))
+  :config
 
 ;;;;;; vertico-repeat
   (use-package vertico-repeat
 	:ensure nil
 	:demand t
-	:config
-	(add-to-list 'savehist-additional-variables 'vertico-repeat-history))
+	:config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
 ;;;;;; vertico-quick
   (use-package vertico-quick
@@ -2023,20 +2013,19 @@ If FRAME is omitted or nil, use currently selected frame."
     (vertico-multiform-mode 1))
 
 ;;;;;; vertico-directory
-;; Configure directory extension.
-(use-package vertico-directory
-  :after vertico
-  :ensure nil
-  :demand t
-  ;; More convenient directory navigation commands
-  :bind (:map vertico-map
-              ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
-              ("C-<backspace>" . vertico-directory-delete-word)
-              ("C-w" . vertico-directory-delete-word)
-			  )
-  ;; Tidy shadowed file names
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
+  ;; Configure directory extension.
+  (use-package vertico-directory
+	:after vertico
+	:ensure nil
+	:demand t
+	;; More convenient directory navigation commands
+	:bind (:map vertico-map
+				("RET" . vertico-directory-enter)
+				("DEL" . vertico-directory-delete-char)
+				("C-<backspace>" . vertico-directory-delete-word)
+				("C-w" . vertico-directory-delete-word))
+	;; Tidy shadowed file names
+	:hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
 
 ;;;;; [[https://github.com/minad/corfu][corfu]]
 ;; small completion program similar to company
@@ -2143,7 +2132,7 @@ If FRAME is omitted or nil, use currently selected frame."
     :unless (display-graphic-p)
     :demand t
     :init
-    (corfu-doc-terminal-mode +1) ) )
+    (corfu-doc-terminal-mode +1) ) ) ; end of corfu
 
 ;;;;; [[https://github.com/minad/cape][cape]]
 ;; completion at point extensions
@@ -2158,9 +2147,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook ((emacs-lisp-mode .  sej/cape-capf-setup-elisp)
          (org-mode . sej/cape-capf-setup-org)
          (eshell-mode . sej/cape-capf-setup-eshell)
-         (git-commit-mode . sej/cape-capf-setup-git-commit)
-         )
-
+         (git-commit-mode . sej/cape-capf-setup-git-commit))
   :custom (cape-dabbrev-min-length 3)
   :config
   (sej/add-all-to-list 'completion-at-point-functions
@@ -2242,8 +2229,7 @@ If FRAME is omitted or nil, use currently selected frame."
               ("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
-  :init
-  (marginalia-mode))
+  :init (marginalia-mode))
 
 ;;;;; [[https://github.com/oantolin/orderless][orderless]]
 ;; provides an orderless completion style that divides the pattern into space-separated components,
@@ -2257,8 +2243,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; sorts and filters lists of candidates
 (use-package prescient
   :hook (emacs-startup . prescient-persist-mode)
-  :init
-  (add-to-list 'completion-styles 'prescient))
+  :init (add-to-list 'completion-styles 'prescient))
 
 (use-package vertico-prescient
   :after prescient
@@ -2311,6 +2296,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; completing read
 (use-package consult
   :bind (("H-M-," . consult-recent-xref)
+		 ("H-q" . consult-register-load)
           ;; C-c bindings (mode-specific-map)
           ("C-c k" . consult-kmacro)
           ("C-c h" . consult-history)
@@ -2320,11 +2306,15 @@ If FRAME is omitted or nil, use currently selected frame."
           ;; C-x bindings (ctl-x-map)
           :map ctl-x-map
           ("C-r" . consult-recent-file)
+		  ("M-:" . consult-complex-command)     ;; orig. repeat-complex-command
           ("b" . consult-buffer)                    ;; orig. switch-to-buffer
-          ("4 b" . consult-buffer-other-window)     ;; orig. switch-to-buffer-other-window
-          ("r b" . consult-bookmark)                ;; orig. bookmark-jump
           ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
-          ("5 b" . consult-buffer-other-frame)      ;; orig. switch-to-buffer-other-frame
+          ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+          ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+          ("t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+          ("r b" . consult-bookmark)            ;; orig. bookmark-jump
+          ("r i" . consult-register-load)
+          ;("p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
           ;; Custom sej bindings for fast register access
           :map sej-C-q-map
           ("C-y" . consult-register-load)
@@ -2352,6 +2342,7 @@ If FRAME is omitted or nil, use currently selected frame."
           ("G" . consult-git-grep)
           ("r" . consult-ripgrep)
           ("l" . consult-line)
+		  ("L" . consult-line-multi)            ;; needed by consult-line to detect isearch
           ("k" . consult-keep-lines)
           ("u" . consult-focus-lines)
           ;; isearch integration
@@ -2367,55 +2358,49 @@ If FRAME is omitted or nil, use currently selected frame."
           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
           ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-  ;; Enable automatic preview at point in the *Completions* buffer.
-  ;; This is relevant when you use the default completion UI,
-  ;; and not necessary for Vertico, Selectrum, etc.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
+    ;; Enable automatic preview at point in the *Completions* buffer.
+    ;; This is relevant when you use the default completion UI,
+    :hook (completion-list-mode . consult-preview-at-point-mode)
 
-  :custom-face
-  (consult-file ((t (:inherit font-lock-string-face))))
+    :init
+    ;; Tweak the register preview for `consult-register-load',
+    ;; `consult-register-store' and the built-in commands.  This improves the
+    ;; register formatting, adds thin separator lines, register sorting and hides
+    ;; the window mode line.
+	(advice-add #'register-preview :override #'consult-register-window)
+	(setq register-preview-delay 0.5)
 
-  :init
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format)
+    ;; Use Consult to select xref locations with preview `C-M-.'
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
 
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
-  (advice-add #'register-preview :override #'consult-register-window)
-
-  ;; Use Consult to select xref locations with preview `C-M-.'
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
-
-  ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
-(setq xref-search-program
-      (cond
-       ((or (executable-find "ripgrep")
-            (executable-find "rg"))
-        'ripgrep)
-       ((executable-find "ugrep")
-        'ugrep)
-       (t
-        'grep)))
+    ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
+	(setq xref-search-program
+		  (cond
+		   ((or (executable-find "ripgrep")
+				(executable-find "rg"))
+			'ripgrep)
+		   ((executable-find "ugrep")
+			'ugrep)
+		   (t
+			'grep)))
 
 :config
-(require 'consult-xref)
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key (kbd "M-."))
-  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; (setq consult-preview-key "M-.")
+  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
-   consult-theme
-   :preview-key '(:debounce 0.2 any)
-   consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep consult-man
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -2423,7 +2408,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+  (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
 
   (defun consult-info-emacs ()
     "Search through Emacs info pages."
@@ -2588,14 +2573,13 @@ If FRAME is omitted or nil, use currently selected frame."
           ("C-M-r" . isearch-backward-other-window)
           :map isearch-mode-map
           ("H-s" . avy-isearch))
+  :custom  (avy-keys '(?q ?e ?r ?y ?u ?o ?p
+						  ?a ?s ?d ?f ?g ?h ?j
+						  ?k ?l ?' ?x ?c ?v ?b
+						  ?n ?, ?/))
   :config
   (add-to-list 'savehist-additional-variables 'avy-ring)
   (advice-add 'avy-pop-mark :after #'(lambda () (recenter-top-bottom nil)))
-
-  (setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
-                      ?a ?s ?d ?f ?g ?h ?j
-                      ?k ?l ?' ?x ?c ?v ?b
-                      ?n ?, ?/))
 
   (defun avy-show-dispatch-help ()
      "Display help for Avy dispatch."
@@ -2756,8 +2740,7 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/camdez/goto-last-change.el
 (use-package goto-last-change
   :bind ("H-." . goto-last-change-with-auto-marks)
-  :config
-  (advice-add 'goto-last-change-with-auto-marks :after #'recenter-top-bottom))
+  :config (advice-add 'goto-last-change-with-auto-marks :after #'recenter-top-bottom))
 
 ;;;;; beginend
 ;; smart moves redefining M-< and M-> for some modes
@@ -2799,22 +2782,21 @@ If called with a prefix argument, query for word to search."
           ("M-@" . easy-mark-word) ; M-@
           ("H-<SPC>" . easy-mark) ; H-<SPC>
           ("M-z" . easy-mark-to-char)) ; M-z
-  :init
-  (setq easy-kill-alist '((?w word           " ")
-                          (?s sexp           "\n")
-                          (?l list           "\n")
-                          (?d defun          "\n\n")
-                          (?D defun-name     " ")
-                          (?e line           "\n")
-                          (?b buffer "")
-                          (?^ backward-line-edge "")
-                          (?$ forward-line-edge "")
-                          (?< buffer-before-point "")
-                          (?> buffer-after-point "")
-                          (?f string-to-char-forward "")
-                          (?F string-up-to-char-forward "")
-                          (?t string-to-char-backward "")
-                          (?T string-up-to-char-backward ""))))
+  :custom (easy-kill-alist '((?w word           " ")
+							 (?s sexp           "\n")
+							 (?l list           "\n")
+							 (?d defun          "\n\n")
+							 (?D defun-name     " ")
+							 (?e line           "\n")
+							 (?b buffer "")
+							 (?^ backward-line-edge "")
+							 (?$ forward-line-edge "")
+							 (?< buffer-before-point "")
+							 (?> buffer-after-point "")
+							 (?f string-to-char-forward "")
+							 (?F string-up-to-char-forward "")
+							 (?t string-to-char-backward "")
+							 (?T string-up-to-char-backward ""))))
 
 ;;;;; delsel
 ;; built-in: Do not delete selection if you insert
@@ -3136,9 +3118,8 @@ If called with a prefix argument, query for word to search."
 		 (conf-space-mode . rainbow-mode))
   :bind (:map sej-C-q-map
 			  ("R" . rainbow-mode))
-  :config
-  (setq rainbow-ansi-colors t
-        rainbow-x-colors t))
+  :custom ((rainbow-ansi-colors t)
+		   (rainbow-x-colors t)))
 
 ;;;;; hl-todo
 ;; Highlight TODO and similar keywords in comments and strings
@@ -3157,26 +3138,19 @@ If called with a prefix argument, query for word to search."
   :hook ((emacs-startup . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
-  :init
-  (which-key-add-key-based-replacements
-    "C-q T" "hl-todo")
-  :config
-  (setq hl-todo-keyword-faces
-        '(
-          ("DEBUG" . "#7cb8bb")
-          ("FIX" . "#ff9393")
-          ("HELP" . "#ff0000")
-          ("KLUDGE" . "#cc9999")
-          ("LATER" . "#2c5353")
-          ("MAYBE" . "#d1bf8f")
-          ("NOTE" . "#5f6000")
-          ("OKAY" . "#5f9000")
-          ("TRY" . "#5f7f5f")
-          ("TODO" . "#cc9393")
-          ("TEST" . "#ff7700")
-          ))
-
-  (push 'org-mode hl-todo-include-modes))
+  :init (which-key-add-key-based-replacements "C-q T" "hl-todo")
+  :custom (hl-todo-keyword-faces '(("DEBUG" . "#7cb8bb")
+								   ("FIX" . "#ff9393")
+								   ("HELP" . "#ff0000")
+								   ("KLUDGE" . "#cc9999")
+								   ("LATER" . "#2c5353")
+								   ("MAYBE" . "#d1bf8f")
+								   ("NOTE" . "#5f6000")
+								   ("OKAY" . "#5f9000")
+								   ("TRY" . "#5f7f5f")
+								   ("TODO" . "#cc9393")
+								   ("TEST" . "#ff7700")))
+  :config (push 'org-mode hl-todo-include-modes))
 
 ;;;;; consult-todo
 ;; search and jump hl-todo keywords in buffers with consult
@@ -3216,9 +3190,8 @@ If called with a prefix argument, query for word to search."
 ;; additional to built-in pulse
 ;; https://protesilaos.com/emacs/pulsar
 (use-package pulsar
-  :bind (:map sej-C-q-map
-               ("P p" . pulsar-pulse-line)
-               ("P h" . pulsar-highlight-line))
+  :bind (("C-H-p" . pulsar-pulse-line)
+		 ("C-H-h" . pulsar-highlight-dwim))
   :hook ((emacs-startup . pulsar-global-mode)
          ((consult-after-jump
            bookmark-after-jump
@@ -3226,21 +3199,19 @@ If called with a prefix argument, query for word to search."
          ((consult-after-jump
            imenu-after-jump) . pulsar-reveal-entry)
          (next-error . pulsar-pulse-line-red))
-  :init
-  (which-key-add-keymap-based-replacements sej-C-q-map "P" "Pulsar")
+  :custom ((pulsar-pulse t)
+		   (pulsar-delay 0.055)
+		   (pulsar-iterations 10)
+		   (pulsar-face 'pulsar-magenta)
+		   (pulsar-highlight-face 'pulsar-yellow))
   :config
   ;; Check the default value of `pulsar-pulse-functions'.  That is where
   ;; you add more commands that should cause a pulse after they are
   ;; invoked
   (setq pulsar-pulse-functions (-union pulsar-pulse-functions '(pop-to-mark-command
-                                                                flymake-goto-next-error
-                                                                flymake-goto-prev-error
-                                                                recenter-top-bottom)))
-  (setq pulsar-pulse t)
-  (setq pulsar-delay 0.055)
-  (setq pulsar-iterations 10)
-  (setq pulsar-face 'pulsar-magenta)
-  (setq pulsar-highlight-face 'pulsar-yellow))
+														 flymake-goto-next-error
+														 flymake-goto-prev-error
+														 recenter-top-bottom))))
 
 ;;;;; paren
 ;; built-in: show paren mode
@@ -3248,12 +3219,11 @@ If called with a prefix argument, query for word to search."
 (use-package paren
   :ensure nil
   :hook (emacs-startup . show-paren-mode)
-  :config
-  (setq show-paren-delay 0
-        show-paren-style 'parenthesis ; parenthesis, expression, mixed
-        show-paren-when-point-in-periphery t
-        show-paren-when-point-inside-paren t
-        show-paren-context-when-offscreen 'child-frame))
+  :custom ((show-paren-delay 0)
+           (show-paren-style 'parenthesis) ; parenthesis, expression, mixed
+           (show-paren-when-point-in-periphery t)
+           (show-paren-when-point-inside-paren t)
+           (show-paren-context-when-offscreen 'child-frame)))
 
 ;;;; indentation
 ;;;;; outli
@@ -3264,8 +3234,7 @@ If called with a prefix argument, query for word to search."
             :rev :newest
             :branch "main")
   :hook ((prog-mode text-mode) . outli-mode) ; or whichever modes you prefer
-  :config
-  (setq outli-speed-commands nil))
+  :custom (outli-speed-commands nil))
 
 ;;;;; indent-bars
 ;; Highlight indentations
@@ -3385,8 +3354,11 @@ If called with a prefix argument, query for word to search."
 ;; You will need to install external programs to do the formatting
 ;; https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
-  :bind (:map sej-C-q-map
-              ("f" . format-all-buffer)))
+  :bind (:prefix-map format-all-map
+					 :prefix "C-q f"
+					 :prefix-docstring "format-all-menu"
+					 ("b" . format-all-buffer)
+					 ("r" . format-all-region)))
 
 ;;;; server tools
 ;;;;; tree-sitter
@@ -3416,25 +3388,8 @@ If called with a prefix argument, query for word to search."
   :vc (:url "https://github.com/mickeynp/combobulate"
             :rev :newest
             :branch "master")
-  :preface
-  ;; You can customize Combobulate's key prefix here.
-  ;; Note that you may have to restart Emacs for this to take effect!
-  (setq combobulate-key-prefix "C-c o")
-
-  ;; Optional, but recommended.
-  ;;
-  ;; You can manually enable Combobulate with `M-x
-  ;; combobulate-mode'.
-  :hook
-  ((python-ts-mode . combobulate-mode)
-   (js-ts-mode . combobulate-mode)
-   (html-ts-mode . combobulate-mode)
-   (css-ts-mode . combobulate-mode)
-   (c++-ts-mode . combobulate-mode)
-   (yaml-ts-mode . combobulate-mode)
-   (typescript-ts-mode . combobulate-mode)
-   (json-ts-mode . combobulate-mode)
-   (tsx-ts-mode . combobulate-mode)))
+  :custom (combobulate-key-prefix "C-c o")
+  :hook (prog-mode . combobulate-mode))
 
 ;;;;; eglot
 ;; built-in: simple client for Language Server Protocol servers
@@ -3458,7 +3413,10 @@ If called with a prefix argument, query for word to search."
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions)
 			  ("M-^" . eglot-find-implementation))
-  :custom (eglot-autoshutdown t)
+  :custom ((eglot-autoshutdown t)
+		   (read-process-output-max (* 1024 1024))
+		   (help-at-pt-display-when-idle t)
+		   (completion-category-defaults nil))
   :config
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
@@ -3471,7 +3429,6 @@ If called with a prefix argument, query for word to search."
                `((c-or-c++-mode objc-mode cuda-mode) . ,(eglot-alternatives
                                                          '(("ccls" )
                                                            ("clangd")))))
-(setq read-process-output-max (* 1024 1024))
 
   (add-hook 'eglot-managed-mode-hook
             #'(lambda ()
@@ -3488,8 +3445,6 @@ If called with a prefix argument, query for word to search."
 			   '((python-mode python-ts-mode)
                "basedpyright-langserver" "--stdio"))
 
-  (setq help-at-pt-display-when-idle t)
-  (setq completion-category-defaults nil)
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
@@ -3499,28 +3454,26 @@ If called with a prefix argument, query for word to search."
 ;; https://www.gnu.org/software/tramp/
 (use-package tramp
   :ensure nil
-  :init
-  (setq tramp-default-method "ssh" ; or scp
-        tramp-terminal-type "dumb"
-        tramp-verbose 10
-        tramp-completion-reread-directory-timeout nil
-        tramp-histfile-override "/tmp/tramp_history"
-		tramp-auto-save-directory "~/.cache/emacs/backups"
-        remote-file-name-inhibit-cache nil
-        tramp-default-remote-shell "/bin/bash"
-        tramp-chunksize 500
-        vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
-                                     vc-ignore-dir-regexp
-                                     tramp-file-name-regexp)
-        ;; use the settings in ~/.ssh/config instead of Tramp's
-        tramp-use-ssh-controlmaster-options nil
-        ;; don't generate backups for remote files opened as root (security hazard)
-        backup-enable-predicate
-        (lambda (name)
-          (and (normal-backup-enable-predicate name)
-               (not (let ((method (file-remote-p name 'method)))
-                    (when (stringp method)
-                      (member method '("su" "sudo"))))))))
+  :custom ((tramp-default-method "ssh") ; or scp
+		   (tramp-terminal-type "dumb")
+		   (tramp-verb ose 10)
+		   (tramp-completion-reread-directory-timeout nil)
+		   (tramp-histfile-override "/tmp/tramp_history")
+		   (tramp-auto-save-directory "~/.cache/emacs/backups")
+		   (remote-file-name-inhibit-cache nil)
+		   (tramp-default-remote-shell "/bin/bash")
+		   (tramp-chunksize 500)
+		   (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+									  vc-ignore-dir-regexp
+									  tramp-file-name-regexp))
+		   ;; use the settings in ~/.ssh/config instead of Tramp's
+		   (tramp-use-ssh-controlmaster-options nil)
+		   ;; don't generate backups for remote files opened as root (security hazard)
+		   (backup-enable-predicate (lambda (name)
+									  (and (normal-backup-enable-predicate name)
+										   (not (let ((method (file-remote-p name 'method)))
+												  (when (stringp method)
+													(member method '("su" "sudo")))))))))
   :config
   (put 'temporary-file-directory 'standard-value '("/tmp"))
   (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su")))
@@ -3562,11 +3515,10 @@ If called with a prefix argument, query for word to search."
         (ediff-prepare-buffer . outline-show-all)
         ;; restore window layout when done
         (ediff-quit . winner-undo))
-  :config
-  (setq ediff-diff-options "-w")
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-shell (getenv "$SHELL")))
+  :custom ((ediff-diff-options "-w")
+		   (ediff-window-setup-function 'ediff-setup-windows-plain)
+		   (ediff-split-window-function 'split-window-horizontally)
+		   (ediff-shell (getenv "$SHELL"))))
 
 ;;;; paren management
 ;;;;; electric
@@ -3576,18 +3528,17 @@ If called with a prefix argument, query for word to search."
   :hook ('prog-mode . electric-indent-mode)
   :bind (("C-j". sej/open-new-line)
 		 ("C-S-J" . sej/open-line-above-and-indent))
-  :init
-  (setq-default electric-indent-chars '(?\n ?\^?))
-  (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit
-        electirc-pair-preserve-balance t
-        electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187))
-        electric-pair-skip-self 'electric-pair-default-skip-self
-        electric-pair-skip-whitespace nil
-        electric-pair-skip-whitespace-chars '(9 10 32)
-        electric-quote-context-sensitive t
-        electric-quote-paragraph t
-        electric-quote-string nil
-        electric-quote-replace-double t))
+  :custom ((electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+		   (electirc-pair-preserve-balance t)
+		   (electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187)))
+		   (electric-pair-skip-self 'electric-pair-default-skip-self)
+		   (electric-pair-skip-whitespace nil)
+		   (electric-pair-skip-whitespace-chars '(9 10 32))
+		   (electric-quote-context-sensitive t)
+		   (electric-quote-paragraph t)
+		   (electric-quote-string nil)
+		   (electric-quote-replace-double t))
+   :init (setq-default electric-indent-chars '(?\n ?\^?)))
 
 ;;;;; elec-pair
 ;; built-in: Automatic parenthesis pairing
@@ -3604,9 +3555,7 @@ If called with a prefix argument, query for word to search."
 ;; minor mode for dealing with pairs in Emacs
 ;; [[https://github.com/Fuco1/smartparens][smartparens]]
 (use-package smartparens
-  :init
-  (which-key-add-key-based-replacements
-    "C-q C-q" "Smartparens")
+  :init (which-key-add-key-based-replacements "C-q C-q" "Smartparens")
   :blackout t
   :bind-keymap ("C-q C-q" . smartparens-mode-map)
   :hook (prog-mode . smartparens-mode)
@@ -3628,11 +3577,10 @@ If called with a prefix argument, query for word to search."
     (when (eq major-mode 'compilation-mode)
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   :hook (compilation-filter . my-colorize-compilation-buffer)
-  :init
-  (setq compilation-message-face 'compilation-base-face
-        compilation-always-kill t
-        compilation-ask-about-save nil
-        compilation-scroll-output 'first-error))
+  :custom ((compilation-message-face 'compilation-base-face)
+           (compilation-always-kill t)
+           (compilation-ask-about-save nil)
+           (compilation-scroll-output 'first-error)))
 
 ;;;;; make-mode
 ;; built-in: Major mode for editing standard Makefiles
@@ -3651,24 +3599,17 @@ If called with a prefix argument, query for word to search."
 (use-package flymake
   :ensure nil
   :hook (emacs-startup . flymake-mode)
-  :bind (:map flymake-mode-map
-              ("C-c ! s" . flymake-start)
-              ("C-c ! p" . flymake-goto-prev-error)
-              ("C-c ! n" . flymake-goto-next-error)
-              ("C-c ! l" . flymake-show-buffer-diagnostics)
-              ("C-c ! d" . flymake-show-project-diagnostics))
-  ("H-[" . flymake-goto-prev-error)
-  ("H-]" . flymake-goto-next-error)
-  ("H-\\" . flymake-show-buffer-diagnostics)
-  :init
-  (setq flymake-show-diagnostics-at-end-of-line nil)
-  (setq flymake-fringe-indicator-position 'right-fringe)
-  (setq flymake-suppress-zero-counters t)
-  (setq flymake-start-on-flymake-mode t)
-  (setq flymake-no-changes-timeout nil)
-  (setq flymake-start-on-save-buffer t)
-  (setq flymake-proc-compilation-prevents-syntax-check t)
-  (setq flymake-wrap-around nil)  )
+  :bind (("H-[" . flymake-goto-prev-error)
+		 ("H-]" . flymake-goto-next-error)
+		 ("H-\\" . flymake-show-buffer-diagnostics))
+  :custom ((flymake-show-diagnostics-at-end-of-line nil)
+		   (flymake-fringe-indicator-position 'right-fringe)
+		   (flymake-suppress-zero-counters t)
+		   (flymake-start-on-flymake-mode t)
+		   (flymake-no-changes-timeout nil)
+		   (flymake-start-on-save-buffer t)
+		   (flymake-proc-compilation-prevents-syntax-check t)
+		   (flymake-wrap-around nil)))
 
 ;;;; vcs
 ;;;;; Project
@@ -3676,29 +3617,23 @@ If called with a prefix argument, query for word to search."
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html]]
 (use-package project
   :ensure nil
-  :config
-  (setq project-file-history-behavior 'relativize))
+  :custom (project-file-history-behavior 'relativize))
 
 ;;;;; magit
 ;; interface to the version control system Git
 ;; https://magit.vc/
 (use-package magit
   :bind (("C-x g" . magit-status))
-  :custom (magit-log-section-commit-count 30)
+  :custom ((magit-log-section-commit-count 30)
+		   (magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
+		   (magit-diff-refine-hunk t)
+		   (magit-repository-directories '(("~/Projects" . 1) ("~/src" . 1)))
+		   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+		   (magit-bury-buffer-function #'magit-restore-window-configuration))
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
-  (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     ")
-        magit-diff-refine-hunk t
-        magit-repository-directories '(("~/Projects" . 1)))
-
-                                        ; enter magit full frame
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-fullframe-status-v1)
-                                        ; exit magit restoring frame config
-  (setq magit-bury-buffer-function
-        #'magit-restore-window-configuration)
   (if (fboundp 'transient-append-suffix)
       ;; Add switch: --tags
       (transient-append-suffix 'magit-fetch
@@ -3789,15 +3724,6 @@ If called with a prefix argument, query for word to search."
              smerge-combine-with-next
              smerge-resolve
              smerge-kill-current)  )
-
-;;;;; browse-at-remote
-;; Open github/gitlab/bitbucket page
-;; https://github.com/rmuslimov/browse-at-remote
-(use-package browse-at-remote
-  :bind (:map sej-C-q-map
-          ("B" . browse-at-remote)
-          :map vc-prefix-map
-          ("B" . browse-at-remote)))
 
 ;;;;; gist
 ;; gist client
@@ -3897,10 +3823,9 @@ If called with a prefix argument, query for word to search."
   (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   :hook
   ((prog-mode . turn-on-eldoc-mode))
-  :init
-  (setq eldoc-idle-delay 0.2
-        eldoc-echo-area-use-multiline-p 3
-		eldoc-echo-area-display-truncation-message nil)
+  :custom ((eldoc-idle-delay 0.2)
+		   (eldoc-echo-area-use-multiline-p 3)
+		   (eldoc-echo-area-display-truncation-message nil))
   :config
   (eldoc-add-command-completions "paredit-")
   (eldoc-add-command-completions "combobulate-"))
@@ -3909,12 +3834,11 @@ If called with a prefix argument, query for word to search."
 (use-package elint
   :commands (elint-initialize elint-current-buffer)
   :bind ("C-q e" . sej/elint-current-buffer)
-  :preface
+  :config
   (defun sej/elint-current-buffer ()
     (interactive)
     (elint-initialize)
     (elint-current-buffer))
-  :config
   (sej/add-all-to-list 'elint-standard-variables
                        'current-prefix-arg
 					   'command-line-args-left
@@ -4125,10 +4049,9 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/fxbois/web-mode
 (use-package web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
-  :config
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
+  :custom ((web-mode-markup-indent-offset 2)
+		   (web-mode-css-indent-offset 2)
+		   (web-mode-code-indent-offset 2)))
 
 ;;;;; css-eldoc
 ;; eldoc-mode plugin for CSS
@@ -4479,7 +4402,6 @@ the children of class at point."
 (set-register ?d '(file . "~/.dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
 (set-register ?i '(file . "~/.emacs.d/init.el"))
-(global-set-key (kbd "H-r") `jump-to-register)
 
 ;;;;; dashboard
 ;; all-in-one start-up screen with current files / projects
