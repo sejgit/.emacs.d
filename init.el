@@ -2820,11 +2820,10 @@ If called with a prefix argument, query for word to search."
   :bind (("s-<down>" . sej/drag-stuff-down) ; with Karabiner becomes R-command-n
          ("s-<up>" . sej/drag-stuff-up)) ; with Karabiner becomes R-command-p
   :config
-  (add-to-list 'drag-stuff-except-modes 'org-mode)
   (defun sej/drag-stuff-up ()
 	"Mod of drag-stuff-up which works in org-mode."
     (interactive)
-	(if (equal major-mode "org-mode")
+	(if (equal major-mode #'org-mode)
     (call-interactively
      (if (org-at-heading-p)
          'org-metaup
@@ -2834,7 +2833,7 @@ If called with a prefix argument, query for word to search."
   (defun sej/drag-stuff-down ()
 	"Mod of drag-stuff-down which works in org-mode."
     (interactive)
-	(if (equal major-mode "org-mode")
+	(if (equal major-mode #'org-mode)
     (call-interactively
      (if (org-at-heading-p)
          'org-metadown
@@ -4413,18 +4412,17 @@ the children of class at point."
   :hook (emacs-startup . sej/open-dashboard-only)
   :bind (("<f6>" . sej/open-dashboard)
          :map sej-C-q-map
-          ("d" . sej/open-dashboard))
+         ("d" . sej/open-dashboard))
+  :custom ((dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
+		   (dashboard-set-init-info t)
+		   (dashboard-projects-backend 'project-el) ; use projectile if using
+		   (dashboard-items '((recents  . 15)
+							  (bookmarks . 15)
+							  (projects . 10)
+							  (registers . 10)))
+		   (dashboard-set-heading-icons t)
+		   (dashboard-set-file-icons t))
   :config
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-  (setq dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
-  (setq dashboard-set-init-info t)
-  (setq dashboard-projects-backend 'project-el) ; use projectile if using
-  (setq dashboard-items '((recents  . 15)
-                          (bookmarks . 15)
-                          (projects . 10)
-                          (registers . 10)))
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
   (dashboard-setup-startup-hook)
   (dashboard-insert-startupify-lists)
 
@@ -4465,11 +4463,9 @@ the children of class at point."
   (defun sej/autoinsert-yas-expand()
     "Replace text in yasnippet template."
     (yas/expand-snippet (buffer-string) (point-min) (point-max)))
-  :init
-  (setq auto-insert-directory "~/.emacs.d/templates/")
-  :config
-  (setq auto-insert 'other
-        auto-insert-directory (concat no-littering-etc-directory "autoinsert/")))
+  :custom ((auto-insert-directory "~/.emacs.d/templates/")
+		   (auto-insert 'other)
+		   (auto-insert-directory (concat no-littering-etc-directory "autoinsert/"))))
 
 ;;;;; autorevert
 ;; built-in: watch for changes in files on disk
@@ -4477,12 +4473,11 @@ the children of class at point."
 (use-package autorevert
   :hook ((emacs-startup . global-auto-revert-mode)
 		 (dired-mode . auto-revert-mode))
-  :init
-  (setq auto-revert-use-notify t
-        auto-revert-avoid-polling t
-        auto-revert-verbose nil
-        global-auto-revert-non-file-buffers t
-        revert-without-query '(".*")))
+  :custom ((auto-revert-use-notify t)
+           (auto-revert-avoid-polling t)
+           (auto-revert-verbose nil)
+           (global-auto-revert-non-file-buffers t)
+           (revert-without-query '(".*"))))
 
 ;;;;; sej/create-non-existent-directory
 ;; Offer to create parent directories if they do not exist
@@ -4515,25 +4510,17 @@ the children of class at point."
               ("C-c C-p" . wdired-change-to-wdired-mode)
               ("C-u D" . sej/dired-do-delete-skip-trash)
 			  ("z" . sej/dired-get-size))
+  :custom ((dired-recursive-deletes 'always) ;; Always delete and copy recursively
+		   (dired-recursive-copies 'always)
+		   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
+		   (dired-dwim-target t)
+		   (dired-auto-revert-buffer #'dired-directory-changed-p)
+		   (dired-free-space nil)
+		   (dired-mouse-drag-files t)
+		   (dired-isearch-filenames 'dwim)
+		   (dired-create-destination-dirs 'ask)
+		   (dired-vc-rename-file t))
   :config
-  ;; Always delete and copy recursively
-  (setq dired-recursive-deletes 'always)
-  (setq dired-recursive-copies 'always)
-
-  ;; Show directory first
-  (setq dired-listing-switches "-AFGhlv --group-directories-first")
-
-  ;; ls-lisp settings
-  (require 'ls-lisp)
-  (setq ls-lisp-use-insert-directory-program nil)
-  (setq ls-lisp-ignore-case 't)
-  (setq ls-lisp-use-string-collate nil)
-
-  (setq dired-dwim-target t
-        dired-auto-revert-buffer #'dired-directory-changed-p
-        dired-free-space nil
-        dired-mouse-drag-files t)
-
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
     (interactive "P")
@@ -4552,63 +4539,52 @@ the children of class at point."
          (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]+\\).*total$")
          (match-string 1)))))))
 
+;;;;; ls-lisp
+(use-package ls-lisp
+  :ensure nil
+  :custom ((ls-lisp-use-insert-directory-program nil)
+		   (ls-lisp-ignore-case 't)
+		   (ls-lisp-use-string-collate nil)))
+
 ;;;;; dired-aux
 ;; built-in: auxiliary functionality of dired
 ;; https://github.com/jwiegley/emacs-release/blob/master/lisp/dired-aux.el
 (use-package dired-aux
   :ensure nil
-  :config
-  (setq dired-isearch-filenames 'dwim)
-  (setq dired-create-destination-dirs 'ask)
-  (setq dired-vc-rename-file t)  )
+  :commands (dired-diff
+			 dirred-backup-diff
+			 dired-compare-directories
+			 dired-do-chmod
+			 dired-do-chgrp
+			 dired-do-chown
+			 dired-do-print
+			 dired-do-shell-command
+			 dired-compress))
 
 ;;;;; dired-x
 ;; built-in: Extra Dired functionality
 ;; https://www.gnu.org/software/emacs/manual/html_node/dired-x/
 (use-package dired-x
   :ensure nil
-  :demand t
-  :config
-  (let ((cmd (cond
-              (sys/mac-x-p "open")
-              (sys/linux-x-p "xdg-open")
-              (sys/win32p "start")
-              (t ""))))
-    (setq dired-guess-shell-alist-user
-          `(("\\.pdf\\'" ,cmd)
-            ("\\.docx\\'" ,cmd)
-            ("\\.\\(?:djvu\\|eps\\)\\'" ,cmd)
-            ("\\.\\(?:jpg\\|jpeg\\|png\\|gif\\|xpm\\)\\'" ,cmd)
-            ("\\.\\(?:xcf\\)\\'" ,cmd)
-            ("\\.csv\\'" ,cmd)
-            ("\\.tex\\'" ,cmd)
-            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
-            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
-            ("\\.html?\\'" ,cmd)
-            ("\\.md\\'" ,cmd))))
-
-  (setq dired-omit-files
-        (concat dired-omit-files
-                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
+  :commands (dired-x-find-file
+			 dired-x-find-file-other-window)
+  :custom (dired-x-hands-off-my-keys nil))
 
 ;;;;; diredfl
 ;; Extra font-lock rules for a more Colourful dired
 ;; https://github.com/purcell/diredfl
 (use-package diredfl)
-  ;; :init (diredfl-global-mode 1))
 
 ;;;;; dired-subtree
 ;; The dired-subtree package provides commands to quickly view the contents of a folder with the TAB key.
 (use-package dired-subtree
   :after dired
-  :bind
-  ( :map dired-mode-map
-    ("<tab>" . dired-subtree-toggle)
-    ("TAB" . dired-subtree-toggle)
-    ("<backtab>" . dired-subtree-remove)
-    ("S-TAB" . dired-subtree-remove))
-  :config
-  (setq dired-subtree-use-backgrounds nil))
+  :bind (:map dired-mode-map
+			  ("<tab>" . dired-subtree-toggle)
+			  ("TAB" . dired-subtree-toggle)
+			  ("<backtab>" . dired-subtree-remove)
+			  ("S-TAB" . dired-subtree-remove))
+  :custom (dired-subtree-use-backgrounds nil))
 
 ;;;;; dwim-shell-command
 ;; define functions that apply command-line utilities to current buffer or dired files
@@ -4651,17 +4627,15 @@ the children of class at point."
   :vc (:url "https://github.com/jorgenschaefer/typoel"
             :rev :newest
             :branch "master")
-  :hook
-  ((org-mode markdown-mode gnus-message-setup) . typo-mode)
-  :config
-  (typo-global-mode 1))
+  :hook ((org-mode markdown-mode gnus-message-setup) . typo-mode)
+  :config (typo-global-mode 1))
 
 ;;;;; denote
 ;; note organization tools
 ;; https://protesilaos.com/emacs/denote#h:d99de1fb-b1b7-4a74-8667-575636a4d6a4
 ;; https://github.com/protesilaos/denote?tab=readme-ov-file
 ;;
-;; populate denote main directory `~/Documents/orgtodo' in my case with `.gitignore'
+;; populate denote main directory `~/Documents/orgtodo' in my case, with `.gitignore'
 ;;  /.DS_Store
 ;;  /.saves/
 ;;  /logs/
@@ -5020,7 +4994,9 @@ Then proceeds to update keywords, colleagues, journal directory & finally refile
 		(sej/denote-keywords-update)
 		(sej/denote-colleagues-update)
 		(setq denote-journal-directory (expand-file-name "journal" denote-directory)))
-	  (setq org-refile-targets `((org-agenda-files . (:maxlevel 3))))))
+	  (setq org-refile-targets '((nil :maxlevel . 9)
+								 (org-agenda-files :maxlevel . 5)
+								 (org-buffer-list :maxlevel . 2)))))
 
   (advice-add 'denote-silo-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-open-or-create :after #'sej/denote-silo-update)
@@ -5068,9 +5044,8 @@ This function should be hooked to `post-command-hook'."
   :bind (:map sej-denote-map
                 ("f f" . consult-denote-find)
                 ("f g" . consult-denote-grep) )
-    :config
-    (setq consult-denote-grep-command #'consult-ripgrep)
-    (consult-denote-mode 1))
+  :config (consult-denote-grep-command #'consult-ripgrep)
+  :config (consult-denote-mode 1))
 
 ;;;;;; denote-refs
 ;; puts links and back-links after header in denote files
@@ -5079,7 +5054,7 @@ This function should be hooked to `post-command-hook'."
 ;; FIX DEBUG PROBLEM seems to be causing org-parse lock-ups
 (use-package denote-refs
   :disabled t
-  :vc (     :url "https://codeberg.org/akib/emacs-denote-refs.git"
+  :vc (:url "https://codeberg.org/akib/emacs-denote-refs.git"
             :rev :newest
             :branch "master")
   :hook (org-mode . denote-refs-mode)
@@ -5332,7 +5307,7 @@ This function should be hooked to `post-command-hook'."
             ("C-x r N" . sej/number-rectangle))
 
 ;;;;; flyspell
-;; standard spelling package
+;; FIX standard spelling package
 ;; use jinx now but this set-up is here in case I move back
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
 ;; (use-package flyspell
@@ -5623,6 +5598,93 @@ function with the \\[universal-argument]."
 			   ("C-c b" . org-switchb)
 			   ("C-c x" . org-todo)
 			   ("C-c H-t" . org-todo-yesterday)))
+  :custom
+;; set headline numbering face to something more subtle
+  (org-num-face 'org-modern-date-inactive)
+
+  ;; archive location setting
+  ;; based on year of archive, under heading of file it comes from
+  ;; in denote format eg. 20250101T00000000--ARCHIVE.org for 2025
+  (org-archive-location (concat org-directory (format-time-string "/%Y") "0101T000000--archive.org::* %s"))
+
+  (org-ellipsis "⤵")
+  (org-directory sej-org-directory)
+  (org-insert-heading-respect-content t)
+  (org-replace-disputed-keys t)
+  (org-hide-emphasis-markers t)
+  (org-adapt-indentation nil)
+  (org-special-ctrl-a/e t)
+  (org-special-ctrl-k t)
+  (org-ctrl-k-protect-subtree t)
+  (org-M-RET-may-split-line '((default . nil)))
+  (org-return-follows-link t)
+  (org-fontify-done-headline t)
+  (org-hide-leading-stars t)
+  (org-pretty-entities t)
+  (org-use-sub-superscripts "{}")
+  (org-capture-bookmark t)
+  (org-refile-use-outline-path 'file)
+  (org-outline-path-complete-in-steps nil)
+  (org-refile-allow-creating-parent-nodes 'confirm)
+  (org-log-done 'note)
+  (org-log-into-drawer t)
+  ;; ! - timestamp , @ - note
+  ;; use C-u in front to add note
+  ;; C-c C-z to add note
+  (org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d!)")
+					   (sequence "MAYBE(m@/!)" "|" "DONE(d!)")
+                       (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
+					   (sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F!)")
+					   (sequence "MAINT" "|" "MAINTd(M!)")
+					   (sequence "|" "CANCELED(x!)")))
+
+  ;; `list-colors-display' for a buffer of colour names
+  (org-todo-keyword-faces '(
+							("DEFER" . (:foreground "pink"))
+							("TODO" . (:foreground "pink4"))
+                            ("CANCELED" . (:foreground "grey"))
+                            ("CHECK" . (:foreground "yellow"))
+                            ("DELIGATE" . (:foreground "blue"))
+                            ("DONE" . (:foreground "green"))
+                            ("FIX" . (:foreground "red"))
+                            ("FIXED" . (:foreground "forest green"))
+                            ("INPROCESS" . (:foreground "yellow"))
+                            ("MAINT" . (:foreground "turquoise"))
+                            ("MAYBE" . (:foreground  "#9ac8e0"))
+                            ("VERIFIED" . (:foreground "green"))
+                            ("WAIT" . (:foreground "yellow"))
+							))
+  (org-startup-folded 'content)
+  (org-startup-indented t)
+  (org-tags-column -100)
+  (org-startup-with-inline-images t)
+  (org-image-actual-width '(300))
+  (org-highlight-latex-and-related '(latex))
+  (org-clock-sound t)
+  (org-id-method 'ts)
+  (org-refile-targets '((nil :maxlevel . 9)
+						(org-agenda-files :maxlevel . 5)
+						(org-buffer-list :maxlevel . 2)))
+  
+;;;;;; tags
+  ;; defined here for regular topics
+  ;; `org-tag-persistent-alist' defined in denote section from current note list
+  (org-tag-alist '(("meeting")
+				   ("admin")
+				   ("emacs")
+				   ("home")
+				   ("home-routines")
+				   ("kids")
+				   ("purchase")
+				   ("home-automation")
+				   ("financial")
+				   ("electronics")
+				   ("computer")
+				   ("projects")
+				   ("3d-printer")
+				   ("other")))
+
+;;;;;; org-requires
   :config
   ;; get denote up and going
   (require 'denote)
@@ -5632,142 +5694,61 @@ function with the \\[universal-argument]."
   ;; reading man pages in org-mode
   (require 'ol-man)
 
-;; set headline numbering face to something more subtle
-  (setq org-num-face 'org-modern-date-inactive)
-
-  ;; archive location setting
-  ;; based on year of archive, under heading of file it comes from
-  ;; in denote format eg. 20250101T00000000--ARCHIVE.org for 2025
-  (setq org-archive-location (concat org-directory (format-time-string "/%Y") "0101T000000--archive.org::* %s"))
-
-  (setq org-ellipsis "⤵"
-        org-directory sej-org-directory
-        org-insert-heading-respect-content t
-        org-replace-disputed-keys t
-        org-hide-emphasis-markers t
-        org-adapt-indentation nil
-        org-special-ctrl-a/e t
-        org-special-ctrl-k t
-		org-ctrl-k-protect-subtree t
-        org-M-RET-may-split-line '((default . nil))
-        org-return-follows-link t
-        org-fontify-done-headline t
-        org-hide-leading-stars t
-        org-pretty-entities t
-        org-use-sub-superscripts "{}"
-        org-capture-bookmark t
-        org-refile-use-outline-path 'file
-		org-outline-path-complete-in-steps nil
-		org-refile-allow-creating-parent-nodes 'confirm
-        org-log-done 'note
-		org-log-into-drawer t
-		;; ! - timestamp , @ - note
-		;; use C-u in front to add note
-		;; C-c C-z to add note
-        org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d!)")
-							(sequence "MAYBE(m@/!)" "|" "DONE(d!)")
-                            (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-							(sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F!)")
-							(sequence "|" "CANCELED(x!)"))
-
-		;; `list-colors-display' for a buffer of colour names
-        org-todo-keyword-faces '(
-                                 ("MAYBE" . (:foreground  "#9ac8e0"))
-								 ("TODO" . (:foreground "pink4"))
-								 ("DEFER" . (:foreground "pink"))
-                                 ("WAIT" . (:foreground "yellow"))
-                                 ("DONE" . (:foreground "green"))
-                                 ("DELIGATE" . (:foreground "blue"))
-                                 ("CHECK" . (:foreground "yellow"))
-                                 ("VERIFIED" . (:foreground "green"))
-                                 ("FIX" . (:foreground "pink"))
-                                 ("INPROCESS" . (:foreground "yellow"))
-                                 ("FIXED" . (:foreground "green"))
-                                 ("CANCELED" . (:foreground "grey"))
-								 )
-        org-startup-folded 'content
-        org-startup-indented t
-        org-tags-column -100
-        org-startup-with-inline-images t
-        org-image-actual-width '(300)
-        org-highlight-latex-and-related '(latex)
-		org-clock-sound t
-		org-id-method 'ts)
-
-;;;;;; tags
-  ;; defined here for regular topics
-  ;; `org-tag-persistent-alist' defined in denote section from current note list
-  (setq org-tag-alist
-        '(("meeting")
-          ("admin")
-          ("emacs")
-          ("home")
-          ("home-routines")
-          ("kids")
-          ("purchase")
-          ("home-automation")
-          ("financial")
-          ("electronics")
-          ("computer")
-          ("projects")
-          ("3d-printer")
-          ("other")))
-
 ;;;;;; buffer-face-modes
-(let* ((variable-tuple
-        (cond ((x-list-fonts "Atkinson Hyperlegible") '(:family "Atkinson Hyperlegible"))
-              ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
-              ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
-              ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-              ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-              ((x-list-fonts "Verdana")         '(:font "Verdana"))
-              ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-       (fixed-tuple
-        (cond    ((x-list-fonts "Iosevka Fixed")   '(:family "Iosevka Fixed"))
-              ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
-              ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
-              ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-              ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-              ((x-list-fonts "Verdana")         '(:font "Verdana"))
-              ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-       (base-font-color     (face-foreground 'default nil 'default))
-       (headline           `(:inherit default :weight regular :foreground ,base-font-color))
-       )
+  (let* ((variable-tuple
+          (cond ((x-list-fonts "Atkinson Hyperlegible") '(:family "Atkinson Hyperlegible"))
+				((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+				((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+				((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+				((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+				((x-list-fonts "Verdana")         '(:font "Verdana"))
+				((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+				(nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+		 (fixed-tuple
+          (cond    ((x-list-fonts "Iosevka Fixed")   '(:family "Iosevka Fixed"))
+				   ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+				   ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+				   ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+				   ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+				   ((x-list-fonts "Verdana")         '(:font "Verdana"))
+				   ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+				   (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+		 (base-font-color     (face-foreground 'default nil 'default))
+		 (headline           `(:inherit default :weight regular :foreground ,base-font-color))
+		 )
 
-  (custom-theme-set-faces
-   'user
-   `(variable-pitch ((t (,@variable-tuple :weight normal))))
-   `(fixed-pitch ((t (,@fixed-tuple))))
+	(custom-theme-set-faces
+	 'user
+	 `(variable-pitch ((t (,@variable-tuple :weight normal))))
+	 `(fixed-pitch ((t (,@fixed-tuple))))
 
-   `(org-level-8 ((t (,@headline ,@variable-tuple))))
-   `(org-level-7 ((t (,@headline ,@variable-tuple))))
-   `(org-level-6 ((t (,@headline ,@variable-tuple))))
-   `(org-level-5 ((t (,@headline ,@variable-tuple :height 1.0 :foreground "#ff9580"))))
-   `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1 :foreground "#caa6df"))))
-   `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2 :foreground "#82b0ec"))))
-   `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
-   `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
+	 `(org-level-8 ((t (,@headline ,@variable-tuple))))
+	 `(org-level-7 ((t (,@headline ,@variable-tuple))))
+	 `(org-level-6 ((t (,@headline ,@variable-tuple))))
+	 `(org-level-5 ((t (,@headline ,@variable-tuple :height 1.0 :foreground "#ff9580"))))
+	 `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1 :foreground "#caa6df"))))
+	 `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2 :foreground "#82b0ec"))))
+	 `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
+	 `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
 
-   `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
-   `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through nil :foreground "#71696A"))))
+	 `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
+	 `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through nil :italic t :foreground "#71696A"))))
 
-   `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
-   `(org-block ((t (:inherit fixed-pitch))))
-   `(org-code ((t (:inherit (shadow fixed-pitch)))))
-   `(org-document-info ((t (:foreground "dark orange"))))
-   `(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-   `(org-indent ((t (:inherit (org-hide variable-pitch)))))
-   `(org-link ((t (:foreground "royal blue" :underline t))))
-   `(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   `(org-property-value ((t (:inherit fixed-pitch))) t)
-   `(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-   `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-   `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
-   `(org-done ((t (:foreground "#71696A" :strike-through nil))))
-   ) )
+	 `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
+	 `(org-block ((t (:inherit fixed-pitch))))
+	 `(org-code ((t (:inherit (shadow fixed-pitch)))))
+	 `(org-document-info ((t (:foreground "dark orange"))))
+	 `(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+	 `(org-indent ((t (:inherit (org-hide variable-pitch)))))
+	 `(org-link ((t (:foreground "royal blue" :underline t))))
+	 `(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+	 `(org-property-value ((t (:inherit fixed-pitch))) t)
+	 `(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+	 `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+	 `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+	 `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
+	 `(org-done ((t (:foreground "#71696A" :strike-through nil))))
+	 ) )
 
 ;;;;;; prettify org checkboxes with unicode characters
   (defface org-checkbox-done-text
@@ -6005,9 +5986,8 @@ function with the \\[universal-argument]."
 
   )  ; end of org-agenda
 
-;;;;; org-appear
+;;;;; [[https://github.com/awth13/org-appear][org-appear]]
 ;; make invisible parts of org-mode visible
-;; https://github.com/awth13/org-appear
 (use-package org-appear
     :hook
     (org-mode . org-appear-mode))
@@ -6100,25 +6080,6 @@ function with the \\[universal-argument]."
 (use-package org-download
   :hook ((emacs-startup . org-download-enable)
 		 (dired-mode . org-download-enable)))
-
-;;;;; [[https://orgmode.org/manual/Tracking-your-habits.html][org-habit]]
-;; habit logging and tracking
-(use-package org-habit
-  :after org-agenda
-  :ensure nil
-  :custom ((org-habit-preceding-days 1000)
-		   (org-habit-today-glyph 45))
-  :custom-face
-  (org-habit-alert-face ((((background light)) (:background "#f5f946"))))
-  (org-habit-alert-future-face ((((background light)) (:background "#fafca9"))))
-  (org-habit-clear-face ((((background light)) (:background "#8270f9"))))
-  (org-habit-clear-future-face ((((background light)) (:background "#d6e4fc"))))
-  (org-habit-overdue-face ((((background light)) (:background "#f9372d"))))
-  (org-habit-overdue-future-face ((((background light)) (:background "#fc9590"))))
-  (org-habit-ready-face ((((background light)) (:background "#4df946"))))
-  (org-habit-ready-future-face ((((background light)) (:background "#acfca9"))))
-  :config
-  (setq org-habit-graph-column 70))
 
 ;;;;; org-fragtog
 ;; LaTeX previews
@@ -6387,8 +6348,9 @@ function with the \\[universal-argument]."
 			 ("security" . "🔥")
 			 ;; denotes generic togs
 			 ("ATTACH" . "📎")
-			 ("journal" . "✒️") ("knowledge" . "🤓") ("project" . "👷🛠️") ("routine" . "🧹🔁")
-			 ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🪛🔧")
+			 ("journal" . "✒️") ("knowledge" . "🤓")
+			 ("project" . "👷") ("maintenance" . "🛠️") ("routine" . "🧹")
+			 ("manual" . "📚") ("datasheet" . "📈") ("tutorial" . "👨‍🎓") ("tool" . "🔧")
 			 ("read" . "👀")
 			 ("debug" . "🐞")
 			 ("family" . "👨‍👩‍👧‍👦")
