@@ -716,7 +716,7 @@
   :bind (:prefix-map sej-denote-map
 					 :prefix "C-,"
 					 :prefix-docstring "SeJ Denote key bindings"
-					 ("."   . org-time-stamp))
+					 ("."   . org-timestamp))
 
   :bind (:map override-global-map
                ("s-." . pop-to-mark-command)
@@ -7204,27 +7204,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 ;; click "Add Shortcut" and key a shortcut. (I use control-option-command-space)
 ;; [[https://github.com/tecosaur/emacs-everywhere][emacs-everywhere]]
 (use-package emacs-everywhere)
-
-;;; calendar
-;;;;; calendar
-;; built-in: calendar
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html]]
-(use-package calendar
-  :ensure nil
-  :bind (:map sej-C-q-map
-              ("C" . calendar))
-  :custom ((calendar-mark-diary-entries-flag t)
-		   (calendar-time-display-form
-			'(24-hours ":" minutes
-					   (when time-zone
-						 (concat " (" time-zone ")"))))
-		   (calendar-week-start-day 1)      ; Monday
-		   (calendar-date-style 'iso)
-		   (calendar-christian-all-holidays-flag t)
-		   (calendar-holidays
-			(append holiday-local-holidays  ; TODO set local holidays
-					holiday-solar-holidays)))
-  :hook (calendar-today-visible-hook . calendar-mark-today))
 
 ;;;;; TMR (timer)
 ;; facilities for setting timers using a convenient notation
