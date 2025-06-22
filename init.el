@@ -5044,7 +5044,7 @@ This function should be hooked to `post-command-hook'."
   :bind (:map sej-denote-map
                 ("f f" . consult-denote-find)
                 ("f g" . consult-denote-grep) )
-  :config (consult-denote-grep-command #'consult-ripgrep)
+  :custom (consult-denote-grep-command #'consult-ripgrep)
   :config (consult-denote-mode 1))
 
 ;;;;;; denote-refs
@@ -5075,8 +5075,9 @@ This function should be hooked to `post-command-hook'."
          ("e" . denote-menu-export-to-dired)
 		 ("s" . tabulated-list-sort)
 		 ("t" . sej/denote-menu-cycle))
-  :config (setq denote-menu-title-column-width 45
-				denote-menu-keywords-column-width 35)
+  :custom (( denote-menu-title-column-width 45)
+		   (denote-menu-keywords-column-width 35))
+  :config
   (defun sej/denote-menu-setup ()
 	"Change the denote menu mode to my liking."
 	(interactive)
@@ -5158,16 +5159,14 @@ This function should be hooked to `post-command-hook'."
            ("github\\.com.*\\.txt\\'" . gfm-mode)
            ("\\.md\\'"          . markdown-mode)
            ("\\.markdown\\'"    . markdown-mode))
-  :init
-  (setq markdown-command "multimarkdown")
-  :config
-  (setq markdown-enable-wiki-links t
-        markdown-italic-underscore t
-        markdown-fontify-code-blocks-natively t
-        markdown-make-gfm-checkboxes-buttons t
-        markdown-gfm-additional-languages '("sh")
-        markdown-header-scaling t)
-  ;; (setq markdown-command "pandoc -f markdown -t html")
+  :custom ((markdown-command "multimarkdown")
+		   (markdown-enable-wiki-links t)
+		   (markdown-italic-underscore t)
+		   (markdown-fontify-code-blocks-natively t)
+		   (markdown-make-gfm-checkboxes-buttons t)
+		   (markdown-gfm-additional-languages '("sh"))
+		   ;; (markdown-command "pandoc -f markdown -t html")
+		   (markdown-header-scaling t)))
 
 ;;;;; flymake-markdownlint
   (use-package flymake-markdownlint
@@ -5181,7 +5180,7 @@ This function should be hooked to `post-command-hook'."
   ;; place yourself where you want to insert the TOC:
   ;; M-x markdown-toc-generate-toc
   ;; https://github.com/ardumont/markdown-toc
-  (use-package markdown-toc))
+  (use-package markdown-toc)
 
 ;;;;; markdown-soma
 ;; realtime preview by eww
@@ -5210,15 +5209,13 @@ This function should be hooked to `post-command-hook'."
   ;; add to path
   (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 
+  :custom ( ;; select css theme
+		   (markdown-soma-custom-css
+				 (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark"))
+		   ;; Change "theme name" to the selected highlightjs theme.
+		   (markdown-soma-highlightjs-theme "github-dark")
+		   (sej/markdown-soma-mod-var 0))
   :config
-  ;; select css theme
-  (setq markdown-soma-custom-css
-        (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark"))
-  ;; Change "theme name" to the selected highlightjs theme.
-  (setq markdown-soma-highlightjs-theme "github-dark")
-
-  (setq sej/markdown-soma-mod-var 0)
-
   (defun sej/markdown-soma-mod (x)
     "Calibrate  markdown-soma display by X."
     (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
@@ -5374,8 +5371,8 @@ This function should be hooked to `post-command-hook'."
     :bind (("s-:" . jinx-correct-all)
 		   ("C-;" . jinx-correct-nearest)
            ("C-M-;" . jinx-correct-all))
+	:custom	(jinx-languages "en_US en_GB en_CA")
     :config
-	(setq jinx-languages "en_US en_GB en_CA")
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
                  '(jinx grid (vertico-grid-annotate . 20)))))
@@ -5452,8 +5449,7 @@ This function should be hooked to `post-command-hook'."
 ;; grep service and highlighting for pdf
 (use-package pdfgrep
   :commands pdfgrep
-  :config
-  (pdfgrep-mode))
+  :config (pdfgrep-mode))
 
 ;;;;; nov
 ;; Epub reader
@@ -5488,21 +5484,19 @@ This function should be hooked to `post-command-hook'."
                ("C-q C-S-a" . annotate-show-annotation-summary)
                ("C-q ]" . annotate-goto-next-annotation)
                ("C-q [" . annotate-goto-previous-annotation)) )
+  :custom ((annotate-file (emacs-path "annotations"))
+		   (annotate-annotation-column 73)
+		   (annotate-diff-export-context 5)
+		   (annotate-use-messages nil)
+		   (annotate-integrate-marker "")
+		   (annotate-integrate-higlight ?^)
+		   (annotate-fallback-comment "#")
+		   (annotate-blacklist-major-mode '())
+		   (annotate-annotation-max-size-not-place-new-line 50)
+		   (annotate-search-region-lines-delta 4)
+		   (annotate-annotation-position-policy :by-length)
+		   (annotate-summary-ask-query nil))
   :config
-  (setq annotate-file (emacs-path "annotations"))
-  (setq annotate-annotation-column 73)
-  (setq annotate-diff-export-context 5)
-  (setq annotate-use-messages nil)
-  (setq annotate-integrate-marker "")
-  (setq annotate-integrate-higlight ?^)
-  (setq annotate-fallback-comment "#")
-  (setq annotate-blacklist-major-mode '())
-  (setq annotate-annotation-max-size-not-place-new-line 50)
-  (setq annotate-search-region-lines-delta 4)
-  (setq annotate-annotation-position-policy :by-length)
-  (setq annotate-summary-ask-query nil)
-
-
   (defun sej/annotate-mode ()
     "Toggles `annotate-mode' for the current buffer."
     (interactive)
@@ -5542,17 +5536,14 @@ function with the \\[universal-argument]."
 ;; This library adds LatexMk support to AUCTeX.
 (use-package auctex-latexmk
   :after tex
-  :init
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-  :config
-  (auctex-latexmk-setup))
+  :custom (auctex-latexmk-inherit-TeX-PDF-mode t)
+  :config (auctex-latexmk-setup))
 
 ;;;;; [[https://lucidmanager.org/productivity/emacs-bibtex-mode/][bibtex]]
 ;; built-in: bibliography editing
 (use-package bibtex
   :ensure nil
-  :init
-  (setq-default bibtex-dialect 'biblatex))
+  :custom (bibtex-dialect 'biblatex))
 
 ;;;;; [[https://github.com/cpitclaudel/biblio.el][biblio]]
 ;; An extensible Emacs package for browsing and fetching references
@@ -5561,8 +5552,7 @@ function with the \\[universal-argument]."
 ;;;;; [[https://www.gnu.org/software/auctex/manual/reftex.html][reftex]]
 ;; RefTeX is a package for managing Labels, References, Citations and index entries with GNU Emacs.
 (use-package reftex
-  :init
-  (setq reftex-plug-into-AUCTeX t))
+  :custom (reftex-plug-into-AUCTeX t))
 
 ;;;;; [[https://github.com/cdominik/cdlatex][cdlatex]]
 ;; fast insertion of environment templates and math stuff in LaTeX
@@ -5665,7 +5655,7 @@ function with the \\[universal-argument]."
   (org-refile-targets '((nil :maxlevel . 9)
 						(org-agenda-files :maxlevel . 5)
 						(org-buffer-list :maxlevel . 2)))
-  
+
 ;;;;;; tags
   ;; defined here for regular topics
   ;; `org-tag-persistent-alist' defined in denote section from current note list
@@ -5836,30 +5826,28 @@ function with the \\[universal-argument]."
   (org-upcoming-distant-deadline ((t (:foreground "chocolate4"))))
   (org-agenda-date ((t (:bold nil :foreground "medium sea green"))))
   (org-agenda-date-weekend ((t (:bold nil :foreground "medium aquamarine"))))
+  :custom ((org-agenda-block-separator nil)
+           (org-agenda-diary-file (concat org-directory "/diary.org"))
+		   (org-agenda-files `(,org-directory ,denote-journal-directory))
+           (org-agenda-dim-blocked-ta sks t) ; other option is 'invisible
+           (org-agenda-inhibit-star tup nil)
+           (org-agenda-show-all-da tes t)
+           (org-agenda-skip-scheduled-if-d one t)
+           (org-agenda-start-on-week day 1) ; Monday
+           (org-agenda-start-with-log-m ode nil)
+           (org-agenda-use-time-g rid t)
+           (org-agenda-include-di ary t)
+           (org-agenda-window-se tup (quote current-window)) ;open agenda in current window
+           (org-agenda-s pan (quote fortnight)) ;show me tasks scheduled or due in next fortnight
+           (org-agenda-skip-scheduled-if-deadline-is-sh own t) ;don't show tasks as scheduled if shown as deadline
+           (org-agenda-skip-deadline-prewarning-if-schedu led (quote pre-scheduled))
+           (org-deadline-warning-d ays 7) ;warn me of any deadlines in next 7 days
+		   (org-agenda-sti cky nil)) ; FIX change later to t
   :config
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal)
 
-  (setq org-agenda-block-separator nil
-        org-agenda-diary-file (concat org-directory "/diary.org")
-		org-agenda-files `(,org-directory ,denote-journal-directory)
-        org-agenda-dim-blocked-tasks t ; other option is 'invisible
-        org-agenda-inhibit-startup nil
-        org-agenda-show-all-dates t
-        org-agenda-skip-scheduled-if-done t
-        org-agenda-start-on-weekday 1 ; Monday
-        org-agenda-start-with-log-mode nil
-        org-agenda-tags-column -100
-        org-agenda-use-time-grid t
-        org-agenda-include-diary t
-        org-agenda-window-setup (quote current-window) ;open agenda in current window
-        org-agenda-span (quote fortnight) ;show me tasks scheduled or due in next fortnight
-        org-agenda-skip-scheduled-if-deadline-is-shown t ;don't show tasks as scheduled
-                                        ; if they are already shown as a deadline
-        org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled)
-        org-deadline-warning-days 7 ;warn me of any deadlines in next 7 days
-		org-agenda-sticky nil) ; FIX change later to t
 
   (defvar sej/org-custom-agenda-orig
 	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
@@ -5961,10 +5949,10 @@ function with the \\[universal-argument]."
 ;; final format letter, this character will be appended to the field
 ;; value if the value is not empty.
 (setq org-agenda-prefix-format
-		`((agenda . " %i %-12c %?t  %-4e%?s%:(sej/org-agenda-repeater)")
-		 (todo .    " %i %-12c %-4e")
-		 (tags .    " %i %-12c")
-		 (search .  " %i %-12c")))
+		`((agenda . "%i %-10c %?t%?-4e%?10s%?-5(sej/org-agenda-repeater)")
+		 (todo .    "%i %-10c %-4e")
+		 (tags .    "%i %-10c")
+		 (search .  "%i %-10c")))
 
   (defun sej/org-agenda-call (&optional arg)
 	"Call org-agenda screen ARG, but default to `A'."
@@ -5989,8 +5977,7 @@ function with the \\[universal-argument]."
 ;;;;; [[https://github.com/awth13/org-appear][org-appear]]
 ;; make invisible parts of org-mode visible
 (use-package org-appear
-    :hook
-    (org-mode . org-appear-mode))
+    :hook (org-mode . org-appear-mode))
 
 ;;;;; org-attach
   ;; directory to store attachments in relative to file
@@ -6225,7 +6212,7 @@ function with the \\[universal-argument]."
   :config
   (require 'ob)
   (defun sej/ob-start ()
-	"Echo Bable languages available."
+	"Bable languages available."
   (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp  . t)
 														   (python      . t)
 														   (calc        . t)
@@ -6445,13 +6432,11 @@ function with the \\[universal-argument]."
 ;; [[https://orgmode.org/manual/Working-with-Source-Code.html][working with source code]]
 (use-package org-src
   :ensure nil
-  :config
-  (setq org-src-window-setup 'current-window
-        org-src-fontify-natively t
-        org-src-preserve-indentation t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 0))
-
+  :custom ((org-src-window-setup 'current-window)
+           (org-src-fontify-natively t)
+           (org-src-preserve-indentation t)
+           (org-src-tab-acts-natively t)
+           (org-edit-src-content-indentation 0)))
 
 ;;;;; sej/org-log-checklist-item
 
@@ -6613,35 +6598,33 @@ function with the \\[universal-argument]."
   (defvar eshell-visual-options '("git" "--help" "--paginate"))
   (defvar eshell-visual-subcommands '("git" "log" "diff" "show"))
 
+  :custom ((eshell-glob-case-insensitive nil)
+           (eshell-error-if-no-glob nil)
+           (eshell-scroll-to-bottom-on-input nil)
+           (eshell-where-to-jump 'begin)
+           (eshell-review-quick-commands nil)
+           (eshell-smart-space-goes-to-end t)
+           (eshell-cmpl-cycle-completions nil)
+           ;; auto truncate after 12k lines
+           (eshell-buffer-maximum-lines 12000)
+           (eshell-history-append t)
+           ;; history size
+           (eshell-history-size 1000)
+           ;; buffer shorthand -> echo foo > #'buffer
+           (eshell-buffer-shorthand t)
+           ;; my prompt is easy enough to see
+           (eshell-highlight-prompt nil)
+           ;; treat 'echo' like shell echo
+           (eshell-plain-echo-behavior t)
+           (eshell-hist-ignoredups t)
+           (eshell-save-history-on-exit t)
+           (eshell-prefer-lisp-functions nil)
+           (eshell-destroy-buffer-when-process-dies t)
+		   ;; turn off semantic-mode in eshell buffers
+		   (semantic-mode -1))
+
   :config
   (setenv "PAGER" "cat")
-
-  ;; Visual commands
-  (setq eshell-glob-case-insensitive nil
-        eshell-error-if-no-glob nil
-        eshell-scroll-to-bottom-on-input nil
-        eshell-where-to-jump 'begin
-        eshell-review-quick-commands nil
-        eshell-smart-space-goes-to-end t
-        eshell-cmpl-cycle-completions nil
-        ;; auto truncate after 12k lines
-        eshell-buffer-maximum-lines 12000
-        eshell-history-append t
-        ;; history size
-        eshell-history-size 1000
-        ;; buffer shorthand -> echo foo > #'buffer
-        eshell-buffer-shorthand t
-        ;; my prompt is easy enough to see
-        eshell-highlight-prompt nil
-        ;; treat 'echo' like shell echo
-        eshell-plain-echo-behavior t
-        eshell-hist-ignoredups t
-        eshell-save-history-on-exit t
-        eshell-prefer-lisp-functions nil
-        eshell-destroy-buffer-when-process-dies t)
-
-  ;; turn off semantic-mode in eshell buffers
-  (semantic-mode -1)
 
   ;; NOTE by Prot 2020-06-16: the following two advice-add snippets
   ;; will need to be reviewed to make sure they do not produce
@@ -6700,42 +6683,38 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
 (use-package esh-module
   :ensure nil
-  :config
-  (setq eshell-modules-list             ; Needs review
-        '(eshell-smart
-          eshell-alias
-          eshell-basic
-          eshell-cmpl
-          eshell-dirs
-          eshell-glob
-          eshell-hist
-          eshell-ls
-          eshell-pred
-          eshell-prompt
-          eshell-script
-          eshell-term
-          eshell-tramp
-          eshell-unix)))
+  :custom (eshell-modules-list             ; Needs review
+           '(eshell-smart
+			 eshell-alias
+			 eshell-basic
+			 eshell-cmpl
+			 eshell-dirs
+			 eshell-glob
+			 eshell-hist
+			 eshell-ls
+			 eshell-pred
+			 eshell-prompt
+			 eshell-script
+			 eshell-term
+			 eshell-tramp
+			 eshell-unix)))
 
 (use-package em-dirs
   :ensure nil
   :after esh-mode
-  :config
-  (setq eshell-cd-on-directory t))
+  :custom (eshell-cd-on-directory t))
 
 (use-package em-tramp
   :ensure nil
   :after esh-mode
-  :config
-  (setq password-cache t)
-  (setq password-cache-expiry 600))
+  :custom ((password-cache t)
+		   (password-cache-expiry 600)))
 
 (use-package em-hist
   :ensure nil
   :after esh-mode
-  :config
-  (setq eshell-hist-ignoredups t)
-  (setq eshell-save-history-on-exit t))
+  :custom ((eustom (st-ignoredups t))
+		   (eshell-save-history-on-exit t)))
 
 ;;;;; eshell-prompt-extras
 ;; Display extra information for prompt
@@ -6744,12 +6723,11 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :after esh-opt
   :defines eshell-highlight-prompt
   :commands (epe-theme-lambda epe-theme-dakrone epe-theme-pipeline)
+  :custom ((eshell-highlight-prompt nil)
+		   (eshell-prompt-function 'epe-theme-lambda)
+		   (eshell-prompt-funct ion 'epe-theme-dakrone)
+		   (epe-git-dirty-char " Ϟ"))
   :init
-  (setq eshell-highlight-prompt nil
-        eshell-prompt-function 'epe-theme-lambda
-        eshell-prompt-function 'epe-theme-dakrone
-        epe-git-dirty-char " Ϟ"
-        )
   (autoload 'epe-theme-lambda "eshell-prompt-extras")
   ;; epe-git-dirty-char "*"
   )
@@ -6880,6 +6858,21 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   ;;        (comint-output-filter-functions . comint-truncate-buffer))
   :bind  (:map sej-C-q-map
                ("S s" . shell))
+  :custom ((system-uses-terminfo t)
+		   (ansi-color-for-comint-mode t)
+		   (comint-use-prompt-reg exp t)
+		   (shell-command-prompt-show-cwd nil)
+           (comint-scroll-to-bottom-on-input t) ;; always insert at the bottom
+		   ;; always add output at the bottom
+		   (comint-scroll-to-bottom-on-output nil)
+		   ;; scroll to show max possible output
+		   (comint-scroll-show-maximum-output t)
+		   ;; no duplicates in command history
+		   (comint-input-ignoredups t)
+		   ;; insert space/slash after file completion
+		   (comint-completion-addsuffix t)
+		   ;; if this is t, it breaks shell-command
+		   (comint-prompt-read-only nil))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -6903,24 +6896,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
     (local-set-key '[up] 'comint-previous-input)
     (local-set-key '[down] 'comint-next-input)
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
-    (setq comint-input-sender 'n-shell-simple-send))
-
-  (setq system-uses-terminfo t
-        ansi-color-for-comint-mode t
-        comint-use-prompt-regexp t
-        shell-command-prompt-show-cwd nil)
-
-  (setq comint-scroll-to-bottom-on-input t ;; always insert at the bottom
-        ;; always add output at the bottom
-        comint-scroll-to-bottom-on-output nil
-        ;; scroll to show max possible output
-        comint-scroll-show-maximum-output t
-        ;; no duplicates in command history
-        comint-input-ignoredups t
-        ;; insert space/slash after file completion
-        comint-completion-addsuffix t
-        ;; if this is t, it breaks shell-command
-        comint-prompt-read-only nil))
+    (setq comint-input-sender 'n-shell-simple-send)))
 
 ;;;;; shell-pop
 ;; pop-up shell
@@ -6963,14 +6939,13 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; faster shell integration
 ;; [[https://codeberg.org/akib/emacs-eat][eat]]
 (use-package eat
+  :custom (;; Close the terminal buffer when the shell terminates.
+		   (eat-kill-buffer-on-exit t)
+		   ;; Enable mouse-support.
+		   (eat-enable-mouse t)
+		   ;; fixing editing
+		   (eat-term-name "xterm-256color"))
   :config
-  ;; Close the terminal buffer when the shell terminates.
-  (setq eat-kill-buffer-on-exit t)
-  ;; Enable mouse-support.
-  (setq eat-enable-mouse t)
-  ;; fixing editing
-  (setq eat-term-name "xterm-256color")
-
   (when (eq system-type 'darwin)
     (define-key eat-semi-char-mode-map (kbd "C-h") #'eat-self-input)
     (define-key eat-semi-char-mode-map (kbd "<backspace>") #'eat-self-input)))
@@ -6993,11 +6968,10 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
               ("S a" . ansi-term)
               ("S S" . serial-term)
               ("S t" . term))
-  :config
-  (setq term-buffer-maximum-size 9999)
-  (setq term-completion-autolist t)
-  (setq term-completion-recexact t)
-  (setq term-scroll-to-bottom-on-output nil))
+  :custom ((term-buffer-maximum-size 9999)
+		   (term-completion-autolist t)
+		   (term-completion-recexact t)
+		   (term-scroll-to-bottom-on-output nil)))
 
 ;;;;; vterm
 ;; fully-fledged terminal emulator inside GNU Emacs
@@ -7006,18 +6980,16 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :commands vterm
   :bind (:map sej-C-q-map
               ("S v" . vterm))
-  :preface
-  (setq vterm-install t
-        vterm-always-compile-module t)
-  :config
-  (setq vterm-disable-bold-font nil
-        vterm-disable-inverse-video nil
-        vterm-use-vterm-prompt-detection-method t
-        vterm-disable-underline nil
-        vterm-kill-buffer-on-exit t
-        vterm-max-scrollback 9999
-        vterm-shell "/bin/zsh"
-        vterm-term-environment-variable "xterm-256color"))
+  :custom ((vterm-install t)
+		   (vterm-always-compile-module t)
+		   (vterm-disable-bold-font nil)
+		   (vterm-disable-inverse-video nil)
+		   (vterm-use-vterm-prompt-detection-met hod t)
+		   (vterm-disable-underline nil)
+		   (vterm-kill-buffer-on-exit t)
+		   (vterm-max-scrollback 9999)
+		   (vterm-shell "/bin/zsh")
+		   (vterm-term-environment-variable "xterm-256color")))
 
 ;;;;; ERC IRC client
 ;; built-in: irc client
@@ -7026,8 +6998,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :ensure nil
   :bind (:map sej-C-q-map
               ("I" . sej/erc-start-or-switch))
+  :custom ((auth-source-debug t)
+		   (erc-prompt-for-password nil))
   :config
-  (setq auth-source-debug t)
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
   ;; erc hack for gnutls for client cert.
   (defvar *uconf/erc-certs* nil
@@ -7066,8 +7039,6 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 
   (advice-add 'open-gnutls-stream :override #'uconf/open-gnutls-stream)
   (advice-add 'erc-open-tls-stream :override #'uconf/erc-open-tls-stream)
-
-  (setq erc-prompt-for-password nil)
 
   (defun sej/erc-buffer-connected-p (buffer)
 	"Check if ERC BUFFER is connected."
@@ -7157,12 +7128,11 @@ This function serves multiple purposes:
 (use-package shr
   :ensure nil
   :commands (eww eww-browse-url)
-  :config
-  (setq shr-use-fonts t)
-  (setq shr-use-colors t)
-  (setq shr-max-image-proportion 0.2)
-  (setq shr-image-animate t)
-  (setq shr-width (current-fill-column)))
+  :custom ((shr-use-fonts t)
+		   (shr-use-colors t)
+		   (shr-max-image-proportion 0.2)
+		   (shr-image-animate t)
+		   (shr-width (current-fill-column))))
 
 ;; Support the HTML pre tag with proper syntax highlighting.
 (use-package shr-tag-pre-highlight
@@ -7179,23 +7149,22 @@ This function serves multiple purposes:
   :ensure nil
   :bind (:map sej-C-q-map
               ("W" . eww))
+  :custom ((eww-restore-desktop nil)
+		   (eww-desktop-remove-duplicates t)
+		   (eww-header-line-format "%u")
+		   (eww-search-prefix "https://duckduckgo.com/html/?q=")
+		   (eww-download-directory "~/Downloads/")
+		   (eww-suggest-uris
+			'(eww-links-at-point
+			  thing-at-point-url-at-point))
+		   (eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
+		   (eww-history-limit 150)
+		   (eww-use-external-browser-for-content-type
+			"\\`\\(video/\\|audio/\\|application/pdf\\)")
+		   (eww-browse-url-new-window-is-tab nil)
+		   (eww-form-checkbox-selected-symbol "[X]")
+		   (eww-form-checkbox-symbol "[ ]"))
   :config
-  (setq eww-restore-desktop nil)
-  (setq eww-desktop-remove-duplicates t)
-  (setq eww-header-line-format "%u")
-  (setq eww-search-prefix "https://duckduckgo.com/html/?q=")
-  (setq eww-download-directory "~/Downloads/")
-  (setq eww-suggest-uris
-        '(eww-links-at-point
-          thing-at-point-url-at-point))
-  (setq eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
-  (setq eww-history-limit 150)
-  (setq eww-use-external-browser-for-content-type
-        "\\`\\(video/\\|audio/\\|application/pdf\\)")
-  (setq eww-browse-url-new-window-is-tab nil)
-  (setq eww-form-checkbox-selected-symbol "[X]")
-  (setq eww-form-checkbox-symbol "[ ]")
-
   (defun sej/eww-visit-history (&optional arg)
     "Revisit a URL from `eww-prompt-history' using completion.
 With \\[universal-argument] produce a new buffer."
@@ -7244,18 +7213,17 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :ensure nil
   :bind (:map sej-C-q-map
               ("C" . calendar))
-  :config
-  (setq calendar-mark-diary-entries-flag t)
-  (setq calendar-time-display-form
-        '(24-hours ":" minutes
-                   (when time-zone
-                     (concat " (" time-zone ")"))))
-  (setq calendar-week-start-day 1)      ; Monday
-  (setq calendar-date-style 'iso)
-  (setq calendar-christian-all-holidays-flag t)
-  (setq calendar-holidays
-        (append holiday-local-holidays  ; TODO set local holidays
-                holiday-solar-holidays))
+  :custom ((calendar-mark-diary-entries-flag t)
+		   (calendar-time-display-form
+			'(24-hours ":" minutes
+					   (when time-zone
+						 (concat " (" time-zone ")"))))
+		   (calendar-week-start-day 1)      ; Monday
+		   (calendar-date-style 'iso)
+		   (calendar-christian-all-holidays-flag t)
+		   (calendar-holidays
+			(append holiday-local-holidays  ; TODO set local holidays
+					holiday-solar-holidays)))
   :hook (calendar-today-visible-hook . calendar-mark-today))
 
 ;;;;; TMR (timer)
@@ -7265,10 +7233,9 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :bind (:map sej-C-q-map
               ("t" . tmr-prefix-map))
   :ensure-system-package ffmpeg
+  :custom (;; Read the `tmr-descriptions-list' doc string
+		   (tmr-descriptions-list 'tmr-description-history))
   :config
-  ;; Read the `tmr-descriptions-list' doc string
-  (setq tmr-descriptions-list 'tmr-description-history)
-
   (if sys/macp
       (progn
         (defun sej/osx-alert-tmr (timer)
