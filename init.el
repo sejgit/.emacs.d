@@ -5600,7 +5600,6 @@ function with the \\[universal-argument]."
   (org-ellipsis "⤵")
   (org-directory sej-org-directory)
   (org-insert-heading-respect-content t)
-  (org-replace-disputed-keys t)
   (org-hide-emphasis-markers t)
   (org-adapt-indentation nil)
   (org-special-ctrl-a/e t)
