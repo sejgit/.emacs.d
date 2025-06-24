@@ -6895,19 +6895,6 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
     (setq comint-input-sender 'n-shell-simple-send)))
 
-;;;;; shell-pop
-;; pop-up shell
-;; https://github.com/kyagi/shell-pop-el
-(use-package shell-pop
-  :bind (:map sej-C-q-map
-              ("p" . shell-pop))
-  :init (let ((val
-               (if sys/win32p
-                   '("eshell" "*eshell*" (lambda () (eshell)))
-                 '("ansi-term" "*ansi-term*"
-                   (lambda () (ansi-term shell-pop-term-shell))))))
-          (setq shell-pop-shell-type val)))
-
 ;;;;; sej/shell-kill-buffers
 ;; kill shell buffer upon exit
 (defun sej/shell-kill-buffer-sentinel (process event)
