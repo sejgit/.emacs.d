@@ -1272,15 +1272,17 @@ The DWIM behaviour of this command is as follows:
           ("s-6" . delete-other-frames)
 		  ;; below are meant to match default OSX and my BTT settings in other apps
           ;; full-half-1/3-2/3 w/hjkl combo
-          ("H-A-k" . sej/frame-resize-full)
+          ("A-k" . sej/frame-resize-full)
+		  ("A-M-k" . toggle-frame-fullscreen)
           ("H-A-h" . sej/frame-resize-l)
           ("H-A-l" . sej/frame-resize-r)
           ("H-A-M-s-h" . sej/frame-resize-l2)
           ("H-A-M-s-l" . sej/frame-resize-r2)
           ("H-A-M-h" . sej/frame-resize-l3)
           ("H-A-M-l" . sej/frame-resize-r3)
-          ;; full-half-1/3-2/3 cursor combo ; fn changes cursor to home / end
-          ("H-A-<up>" . sej/frame-resize-full)
+          ;; full-half-1/3-2/3 cursor combo ; fn(hyper) changes cursor to home / end / prior / next
+          ("A-<prior>" . sej/frame-resize-full)
+		  ("A-M-<prior>" . toggle-frame-fullscreen)
           ("A-<home>" . sej/frame-resize-l)
           ("A-<end>" . sej/frame-resize-r)
           ("A-M-s-<home>" . sej/frame-resize-l2)
@@ -1290,17 +1292,12 @@ The DWIM behaviour of this command is as follows:
 		  ;; additional
           ("H-A-c" . sej/frame-recentre)
           ("H-A-f" . toggle-frame-fullscreen)
-          ;; C-q combo if above are not available
-          :map sej-C-q-map
-          ("m" . sej/frame-recentre)
-          ("F" . toggle-frame-fullscreen)
-          ("<up>" . sej/frame-resize-full)
-          ("<left>" . sej/frame-resize-l)
-          ("<right>" . sej/frame-resize-r)
-          ("<s-left>" . sej/frame-resize-l2)
-          ("<s-right>" . sej/frame-resize-r2)
-          ("<S-left>" . sej/frame-resize-l3)
-          ("<S-right>" . sej/frame-resize-r3)
+          ;; combo if above are not available
+          ("s-C" . sej/frame-recentre)
+          ("s-F" . toggle-frame-fullscreen)
+          ("<S-s-up>" . sej/frame-resize-full)
+          ("<S-s-left>" . sej/frame-resize-l)
+          ("<S-s-right>" . sej/frame-resize-r)
 		  )
   :custom ((window-divider-default-places t)
 		   (window-divider-default-bottom-width 1)
