@@ -1553,13 +1553,14 @@ If FRAME is omitted or nil, use currently selected frame."
   (with-demoted-errors "Error: %S"
     (persistent-scratch-setup-default)))
 
-;;;;; Remember ; persistent notes (like persistent-scratch but built-in)
+;;;;; Remember ; persistent notes
 ;; using persistent-scratch for lisp & this for notes
+;; also add a register to the remember note document
 (use-package remember
   :ensure nil
   :bind (:map global-map
-			  ("C-, M-r" . remember)
-			  ("C-, M-n" . remember-notes))
+			  ("H-r" . remember) ; add single note, like capture
+			  ("C-, C-n" . remember-notes)) ; go to notes document
   :custom ((remember-notes-initial-major-mode 'org-mode)
 		   (remember-in-new-frame t))
   ;; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
