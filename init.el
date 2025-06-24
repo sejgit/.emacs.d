@@ -1579,7 +1579,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :bind (:map global-map
 			  ("H-r" . remember) ; add single note, like capture
-			  ("C-, C-n" . remember-notes)) ; go to notes document
+			  ("C-, C-n" . remember-notes) ; go to notes document
+			  ("H-C-r" . remember-notes)) ; go to notes document
   :custom ((remember-notes-initial-major-mode 'org-mode)
 		   (remember-in-new-frame t))
   ;; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
