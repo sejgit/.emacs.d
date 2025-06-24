@@ -1775,7 +1775,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package saveplace
   :ensure nil
   :hook (emacs-startup . save-place-mode)
-  :custom (save-place-forget-unreadable-files t))
+  :custom ((save-place-forget-unreadable-files t)
+		   (save-place-limit nil)))
 
 ;;;; multi-edit
 ;;;;; multiple cursors
@@ -1842,17 +1843,6 @@ If FRAME is omitted or nil, use currently selected frame."
            :map isearch-mode-map
            ("C-H-r" . anzu-isearch-query-replace))
   :config (global-anzu-mode))
-
-;;;;; consult-ag
-;; searching with the silver searcher, consult style
-;; https://github.com/yadex205/consult-ag
-(use-package consult-ag
-  :after consult
-  :ensure-system-package ag
-  :commands consult-ag
-  :bind (("C-S-s" . consult-ag)
-         :map search-map
-              ("a" . consult-ag)))
 
 ;;;;; re-builder
 ;; built-in: regex helper to string format
@@ -2334,7 +2324,6 @@ If FRAME is omitted or nil, use currently selected frame."
           ("I" . consult-imenu-multi)
           ;; M-s bindings (search-map)
           :map search-map
-          ("a" . consult-ag)                        ;; if executable ag "Silver-Searcher" exists
           ("f" . consult-find)
           ("L" . consult-locate)
           ("g" . consult-grep)
