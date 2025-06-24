@@ -722,7 +722,26 @@
                ("s-." . pop-to-mark-command)
 	           ("M-j" . join-line)
                ("C-x j" . duplicate-dwim)
-			   ("M-\\" . cycle-spacing)))  ;; end of emacs
+			   ("M-\\" . cycle-spacing)
+			   ;; movement complementary to windmove / windswap
+			   ("A-h" . left-char)
+			   ("A-j" . next-line)
+			   ("A-k" . previous-line)
+			   ("A-l" . right-char)
+			   ;;scroll window up/down by one line
+			   ("A-n" . sej/scroll-up-one)
+			   ("A-p" . sej/scroll-down-one))
+  :init
+    (defun sej/scroll-up-one()
+	"Scroll screen up one while keeping point in place."
+	(interactive)
+	(scroll-up 1))
+
+  (defun sej/scroll-down-one()
+	"Scroll screen down one while keeping point in place."
+	(interactive)
+	(scroll-down 1))
+)  ;; end of emacs
 
 ;;;;; sej constants
 
@@ -1582,37 +1601,18 @@ If FRAME is omitted or nil, use currently selected frame."
           ("C-x K" . sej/quit-other)
 
           ;; wind move to multifram window
-          ("M-'" . next-multiframe-window)
+          ("M-'" . next-multiframe-window))
 
-          ;; movement complementary to windmove / windswap
-          ("A-h" . left-char)
-          ("A-j" . next-line)
-          ("A-k" . previous-line)
-          ("A-l" . right-char)
-
-          ;;scroll window up/down by one line
-          ("A-n" . sej/scroll-up-one)
-          ("A-p" . sej/scroll-down-one) )
   :custom ((window-combination-resize t)
 		   (even-window-sizes 'height-only)
 		   (window-sides-vertical nil))
   :init
   (defun sej/quit-other()
-    "Quit other window."
-    (interactive)
-    (save-excursion
-      (other-window 1)
-      (quit-window)))
-
-  (defun sej/scroll-up-one()
-    "Scroll screen up one while keeping point in place."
-    (interactive)
-    (scroll-up 1))
-
-  (defun sej/scroll-down-one()
-    "Scroll screen down one while keeping point in place."
-    (interactive)
-    (scroll-down 1)))
+	"Quit other window."
+	(interactive)
+	(save-excursion
+	  (other-window 1)
+	  (quit-window))))
 
 ;;;;; ace-window
 ;; quickly selecting a window to switch to
