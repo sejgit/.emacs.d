@@ -505,8 +505,8 @@
   (require-final-newline nil)
 
 ;;;;;; tabs, indentation and the TAB key
-  (tab-always-indent 'complete)
-  (tab-first-completion 'word-or-paren-or-punct)
+  (tab-always-indent t) ; was 'complete)
+  (tab-first-completion nil) ; was 'word-or-paren-or-punct)
   (tab-width 4)
   (indent-tabs-mode t)
   (fill-column 78)
@@ -1928,11 +1928,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; [[https://github.com/minad/vertico][vertico]]
 ;; alternative to ivy, ido, helm
 (use-package vertico
-  :bind (("C-H-v" . vertico-repeat)
-         :map vertico-map
-         ("C-j"   . vertico-exit-input)
-         ("C-M-n" . vertico-next-group)
-         ("C-M-p" . vertico-previous-group))
+  :bind (("C-H-v" . vertico-repeat))
   :hook ((emacs-startup . vertico-mode)
 		 (minibuffer-setup . vertico-repeat-save))
   :custom ((vertico-scroll-margin 0) ;; Different scroll margin
@@ -2011,8 +2007,7 @@ If FRAME is omitted or nil, use currently selected frame."
 	:bind (:map vertico-map
 				("RET" . vertico-directory-enter)
 				("DEL" . vertico-directory-delete-char)
-				("C-<backspace>" . vertico-directory-delete-word)
-				("C-w" . vertico-directory-delete-word))
+				("M-DEL" . vertico-directory-delete-word))
 	;; Tidy shadowed file names
 	:hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
 
@@ -2486,22 +2481,16 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; [[https://github.com/karthink/consult-dir][consult-dir]]
 ;; Think of it like the shell tools autojump, fasd or z but for Emacs.
 (use-package consult-dir
+  :after vertico
   :bind (("C-x C-d" . consult-dir)
          :map minibuffer-local-completion-map
          ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file)))
-
-;;;;; consult-dir-vertico
-;;
-(use-package consult-dir-vertico
-  :no-require t
-  :ensure nil
-  :after (consult-dir vertico)
-  :defines (vertico-map)
-  :bind (:map vertico-map
-              ("C-x C-j" . consult-dir)
-              ("M-g d"   . consult-dir)
-              ("M-s f"   . consult-dir-jump-file)))
+         ("C-x C-j" . consult-dir-jump-file)
+		 :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("M-g d"   . consult-dir)
+         ("M-s f"   . consult-dir-jump-file))
+  :custom (consult-dir-default-command #'dired))
 
 ;;;;; [[https://github.com/joaotavora/yasnippet][yasnippet]]
 ;; YASnippet is a template system for Emacs.
@@ -2509,26 +2498,21 @@ If FRAME is omitted or nil, use currently selected frame."
   :demand t
   :diminish yas-minor-mode
   :commands yas-minor-mode-on
-  :init
-  (which-key-add-keymap-based-replacements sej-C-q-map "y" "yasnippet")
-  :bind ((:map sej-C-q-map
-			   ("y d" . yas-load-directory)
-			   ("y f" . yas-visit-snippet-file)
-			   ("y n" . yas-new-snippet)
-			   ("y t" . yas-tryout-snippet)
-			   ("y l" . yas-describe-tables)
-			   ("y g" . yas-global-mode)
-			   ("y m" . yas-minor-mode)
-			   ("y r" . yas-reload-all)
-			   ("y x" . yas-expand))
-		 (:map yas-keymap
-			   ("C-i" . yas-next-field-or-maybe-expand)))
-   :hook (prog-mode . yas-minor-mode-on)
+  :bind (:map sej-C-q-map
+			  ("y d" . yas-load-directory)
+			  ("y f" . yas-visit-snippet-file)
+			  ("y n" . yas-new-snippet)
+			  ("y t" . yas-tryout-snippet)
+			  ("y l" . yas-describe-tables)
+			  ("y g" . yas-global-mode)
+			  ("y m" . yas-minor-mode)
+			  ("y r" . yas-reload-all)
+			  ("y x" . yas-expand))
+  :hook (prog-mode . yas-minor-mode-on)
   :custom ((yas-prompt-functions '(yas-completing-prompt yas-no-prompt))
-		   (yas-triggers-in-field t)
-		   (yas-wrap-around-region t))
-  :custom-face
-  (yas-field-highlight-face ((t (:background "grey30"))))
+		   (yas-wrap-around-region t)
+		   (which-key-add-keymap-based-replacements sej-C-q-map "y" "yasnippet"))
+  :custom-face (yas-field-highlight-face ((t (:background "grey30"))))
   :init
   (use-package yasnippet-snippets))
 
@@ -2878,47 +2862,6 @@ If called with a prefix argument, query for word to search."
 
   (bind-key* "C-H-i" 'sej/url-insert-edge))
 
-;;;;; sej/url-git-clone-from-clipboard
-;; from Alvaro Ramirez function to git clone from url in clipboard mods by me
-;; http://xenodium.com/emacs-clone-git-repo-from-clipboard/
-(when sys/macp
-  (defun sej/url-git-clone-from-clipboard ()
-    "Clone git URL in clipboard asynchronously and open in Dired when finished."
-    (interactive)
-    (cl-assert (string-match-p "^\\(http\\|https\\|ssh\\)://" (current-kill 0)) nil "No URL in clipboard")
-    (let* ((url (current-kill 0))
-           (download-dir (expand-file-name "~/Projects/"))
-           (project-dir (concat (file-name-as-directory download-dir)
-                                (file-name-base url)))
-           (default-directory download-dir)
-           (command (format "git clone %s" url))
-           (buffer (generate-new-buffer (format "*%s*" command)))
-           (proc))
-      (when (file-exists-p project-dir)
-        (if (y-or-n-p (format "%s exists, delete? " (file-name-base url)))
-            (delete-directory project-dir t)
-          (user-error "Bailed")))
-      (switch-to-buffer buffer)
-      (setq proc (start-process-shell-command (nth 0 (split-string command)) buffer command))
-      (with-current-buffer buffer
-        (setq default-directory download-dir)
-        (shell-command-save-pos-or-erase)
-        (require 'shell)
-        (shell-mode)
-        (view-mode +1))
-      (set-process-sentinel proc (lambda (process state)
-                                   (let ((output (with-current-buffer (process-buffer process)
-                                                   (buffer-string))))
-                                     (kill-buffer (process-buffer process))
-                                     (if (= (process-exit-status process) 0)
-                                         (progn
-                                           (message "finished: %s" command)
-                                           (dired project-dir))
-                                       (user-error (format "%s\n%s" command output))))))
-      (set-process-filter proc #'comint-output-filter)))
-
-  (bind-key "C-H-c" 'sej/url-git-clone-from-clipboard))
-
 ;;;;; org-mac-link
 (use-package org-mac-link
   ;; pull link from many osx apps
@@ -2946,7 +2889,6 @@ If called with a prefix argument, query for word to search."
 ;; then use C-c to execute (check examples directory for more)
 ;; https://github.com/pashky/restclient.el
 (use-package restclient)
-
 
 ;;;; highlighting faces fonts
 ;;;;; fontaine
