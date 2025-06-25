@@ -643,12 +643,6 @@
   (setq find-file-visit-truename t)
   (setq vc-follow-symlinks t)
 
-;;;;;; Smooth scrolling in Emacs29
-  (if (version< emacs-version "29.0")
-      (pixel-scroll-mode)
-    (pixel-scroll-precision-mode 1)
-    (setq pixel-scroll-precision-large-scroll-height 35.0))
-
 ;;;;;; shorthand for interactive lambdas
   (defmacro λ (&rest body)
     "Shorthand for interactive lambdas (BODY)."
