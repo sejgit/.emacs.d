@@ -5752,26 +5752,25 @@ function with the \\[universal-argument]."
   :custom ((org-agenda-block-separator nil)
            (org-agenda-diary-file (concat org-directory "/diary.org"))
 		   (org-agenda-files `(,org-directory ,denote-journal-directory))
-           (org-agenda-dim-blocked-ta sks t) ; other option is 'invisible
-           (org-agenda-inhibit-star tup nil)
-           (org-agenda-show-all-da tes t)
-           (org-agenda-skip-scheduled-if-d one t)
-           (org-agenda-start-on-week day 1) ; Monday
-           (org-agenda-start-with-log-m ode nil)
-           (org-agenda-use-time-g rid t)
-           (org-agenda-include-di ary t)
-           (org-agenda-window-se tup (quote current-window)) ;open agenda in current window
-           (org-agenda-s pan (quote fortnight)) ;show me tasks scheduled or due in next fortnight
-           (org-agenda-skip-scheduled-if-deadline-is-sh own t) ;don't show tasks as scheduled if shown as deadline
-           (org-agenda-skip-deadline-prewarning-if-schedu led (quote pre-scheduled))
-           (org-deadline-warning-d ays 7) ;warn me of any deadlines in next 7 days
-		   (org-agenda-sti cky nil)) ; FIX change later to t
+           (org-agenda-dim-blocked-tasks t) ; other option is 'invisible
+           (org-agenda-inhibit-startup nil)
+           (org-agenda-show-all-dates t)
+           (org-agenda-skip-scheduled-if-done t)
+           (org-agenda-start-on-weekday 1) ; Monday
+		   (org-agenda-log-mode-items '(closed clock state))
+           (org-agenda-start-with-log-mode t)
+           (org-agenda-use-time-grid t)
+           (org-agenda-include-diary t)
+           (org-agenda-window-setup (quote current-window)) ;open agenda in current window
+           (org-agenda-span-name (quote fortnight)) ;show me tasks scheduled or due in next fortnight
+           (org-agenda-skip-scheduled-if-deadline-is-shown t) ;don't show tasks as scheduled if shown as deadline
+           (org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled))
+           (org-deadline-warning-days 7) ;warn me of any deadlines in next 7 days
+		   (org-agenda-sticky nil)) ; FIX change later to t
   :config
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal)
-
-
   (defvar sej/org-custom-agenda-orig
 	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
 	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
