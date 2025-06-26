@@ -5569,7 +5569,7 @@ function with the \\[universal-argument]."
 							))
   (org-startup-folded 'content)
   (org-startup-indented t)
-  (org-tags-column -100)
+  (org-tags-column -115)
   (org-startup-with-inline-images t)
   (org-image-actual-width '(300))
   (org-highlight-latex-and-related '(latex))
@@ -5719,7 +5719,13 @@ function with the \\[universal-argument]."
 	  (re-search-forward org-drawer-regexp nil 'noerror)
 	  (org-fold-hide-drawer-toggle nil 'noerror)))
 
-  ) ; end of use-pacakge for org
+  (add-to-list 'font-lock-extra-managed-props 'display)
+  (font-lock-add-keywords 'org-mode
+                          `(("^.*?\\( \\)\\(:[[:alnum:]_@#%:]+:\\)$"
+							 (1 `(face nil
+                                       display (space :align-to (- right ,(org-string-width (match-string 2)) 3)))
+								prepend))) t)
+) ; end of use-pacakge for org
 
 ;;;;; org-agenda
 ;; built-in: agenda for todo & calendar items
@@ -5757,10 +5763,11 @@ function with the \\[universal-argument]."
            (org-agenda-show-all-dates t)
            (org-agenda-skip-scheduled-if-done t)
            (org-agenda-start-on-weekday 1) ; Monday
-		   (org-agenda-log-mode-items '(closed clock state))
+		   (org-agenda-log-mode-items '(closed clock))
            (org-agenda-start-with-log-mode t)
            (org-agenda-use-time-grid t)
            (org-agenda-include-diary t)
+		   (org-agenda-tags-column 'auto)
            (org-agenda-window-setup (quote current-window)) ;open agenda in current window
            (org-agenda-span-name (quote fortnight)) ;show me tasks scheduled or due in next fortnight
            (org-agenda-skip-scheduled-if-deadline-is-shown t) ;don't show tasks as scheduled if shown as deadline
@@ -5841,14 +5848,14 @@ function with the \\[universal-argument]."
   ;; display repeaters for dates, scheduled, deadlines
   ;; [[https://whhone.com/posts/org-agenda-repeated-tasks/]]
 
+  ;; Add `sej/org-agenda-repeater' to the agenda prefix.
   (defun sej/org-agenda-repeater ()
 	"The repeater shown in org-agenda-prefix for agenda."
 	(if (org-before-first-heading-p)
 		"┄┄┄┄┄"  ; fill the time grid
 	  (let ((rpt (org-get-repeat)))
-		(if rpt rpt ""))))
+		(if rpt rpt nil))))
 
-  ;; Add `sej/org-agenda-repeater' to the agenda prefix.
 ;;   This format works similar to a printf format, with the following meaning:
 ;;
 ;;   %c   the category of the item, \"Diary\" for entries from the diary,
@@ -5871,8 +5878,8 @@ function with the \\[universal-argument]."
 ;; final format letter, this character will be appended to the field
 ;; value if the value is not empty.
 (setq org-agenda-prefix-format
-		`((agenda . "%i %-10c %?t%?-4e%?10s%?-5(sej/org-agenda-repeater)")
-		 (todo .    "%i %-10c %-4e")
+	  `((agenda . "%i %-10c%?t%?-4e%?s%?-5(sej/org-agenda-repeater)")
+		 (todo .    "%i %-10c %?-4e")
 		 (tags .    "%i %-10c")
 		 (search .  "%i %-10c")))
 
@@ -5885,13 +5892,12 @@ function with the \\[universal-argument]."
 
   (defun sej/beginning-of-buffer-point (&optional &arg &arg)
 	"Move point to top of agenda buffer after generate. Dummy to filter extra args."
-	(beginning-of-buffer))
+	(goto-char (point-min)))
   (advice-add 'org-agenda :after #'sej/beginning-of-buffer-point)
 
   (defun sej/beginning-of-buffer-view (&optional &arg)
 	"Move view to top of agenda buffer after regen. Dummy to filter extra args."
-	(scroll-down-command))
-
+	(goto-char (point-min)))
   (advice-add 'org-agenda-redo-all :after #'sej/beginning-of-buffer-view)
 
   )  ; end of org-agenda
@@ -5926,25 +5932,26 @@ function with the \\[universal-argument]."
 	(when-let* ((files (org-attach-file-list dir)))
       (org-set-property "ORG_ATTACH_FILES" (mapconcat #'identity files ", "))))
 
-  (add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property))
-
-;;;;; [[https://github.com/bzg/org-mode/blob/main/lisp/org-attach-git.el][org-attach-git]]
+  (add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property)
+  :config
+  ;;;;;; [[https://github.com/bzg/org-mode/blob/main/lisp/org-attach-git.el][org-attach-git]]
   ;; An extension to org-attach.  If `org-attach-id-dir' is initialized
   ;; as a Git repository, then `org-attach-git' will automatically commit
   ;; changes when it sees them.  Requires git-annex.
-(use-package org-attach-git
-  :after org
-  :ensure nil)
+  (require 'org-attach-git))
+
 
 ;;;;; [[https://github.com/calvinwyoung/org-autolist][org-autolist]]
 ;; make return and delete smarter in org lists
 (use-package org-autolist
+  :after org
   :hook (org-mode . org-autolist-mode))
 
 ;;;;; [[https://github.com/alphapapa/org-bookmark-heading][org-bookmark-heading]]
 ;; allows headings in org files to be bookmarked and jumped to with standard bookmark commands
 (use-package org-bookmark-heading
-  :after org)
+  :demand t
+  :custom (org-bookmark-heading-jump-indirect t))
 
 ;;;;; org-capture
 ;; Bookmarks in Safari
@@ -6056,7 +6063,37 @@ function with the \\[universal-argument]."
 			 (org-modern-footnote nil)
 			 (org-modern-internal-target '(" ↪ " t " "))
 			 (org-modern-radio-target '(" ⛯ " t " "))
-			 (org-modern-horizontal-rule nil)))
+			 (org-modern-horizontal-rule nil))
+	:config
+	;; copy of org-modern--tag with spaces around ":" removed to allow right justify to work properly
+	(defun sej/org-modern--tag ()
+	  "Prettify headline tags."
+	  (save-excursion
+		(let* ((default-face (get-text-property (match-beginning 1) 'face))
+		   (colon-props `(display #(":" 0 1 (face org-hide)) face ,default-face))
+		   (beg (match-beginning 2))
+		   (end (match-end 2))
+		   colon-beg colon-end)
+	  (goto-char beg)
+	  (while (re-search-forward "::?" end 'noerror)
+		(let ((cbeg (match-beginning 0))
+			  (cend (match-end 0)))
+		  (when colon-beg
+			;;(put-text-property colon-end (1+ colon-end) 'display
+			;;				   (format #(" %c" 1 3 (cursor t)) (char-after colon-end)))
+			;;(put-text-property (1- cbeg) cbeg 'display
+			;;				   (string (char-before cbeg) ?\s))
+			(put-text-property
+			 colon-end cbeg 'face
+			 (if-let ((faces org-modern-tag-faces)
+					  (face (or (cdr (assoc (buffer-substring-no-properties colon-end cbeg) faces))
+								(cdr (assq t faces)))))
+				 `(:inherit (,face org-modern-tag))
+			   'org-modern-tag)))
+		  (add-text-properties cbeg cend colon-props)
+		  (setq colon-beg cbeg colon-end cend))))))
+
+	(advice-add 'org-modern--tag :override #'sej/org-modern--tag))
 
 ;;;;; [[https://github.com/org-noter/org-noter][org-noter]]
 ;; create notes that are kept in sync as you scroll through the document
