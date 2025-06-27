@@ -1163,9 +1163,12 @@ The DWIM behaviour of this command is as follows:
 ;;;;; casual
 ;; triansient based jump screens
 ;; https://github.com/kickingvegas?tab=repositories
-(use-package casual
-  :demand t)
+(use-package casual-suite
+  :demand t
+  :config
+  (require 'casual-lib))
 
+;below are part of casual main package
 (use-package casual-agenda
   :ensure nil
   :after org-agenda
@@ -1185,21 +1188,41 @@ The DWIM behaviour of this command is as follows:
 (use-package casual-calc
   :ensure nil
   :after calc
-  :bind (:map calc-mode-map ("C-o" . 'casual-calc-tmenu)))
+  :bind (:map calc-mode-map
+			  ("C-o" . casual-calc-tmenu)
+			  :map calc-alg-map
+			  ("C-o" . casual-calc-tmenu)))
 
 (use-package casual-calendar
   :ensure nil
   :after calendar
-  :bind (:map calendar-mode-map ("C-o" . 'casual-calendar)))
+  :bind (:map calendar-mode-map
+			  ("C-o" . casual-calendar)))
 
 (use-package casual-dired
   :ensure nil
   :after dired
-  :bind (:map dired-mode-map ("C-o" . 'casual-dired-tmenu)))
+  :bind (:map dired-mode-map
+			  ("C-o" . casual-dired-tmenu)
+			  ("s" . casual-dired-sort-by-tmenu)
+			  ("/" . casual-dired-search-replace-tmenu)))
 
 (use-package casual-editkit
   :ensure nil
-  :bind (:map global-map ("C-o" . 'casual-editkit-main-tmenu)))
+  :bind (:map global-map ("C-o" . casual-editkit-main-tmenu)))
+
+(use-package casual-help
+  :ensure nil
+  :bind (:map help-mode-map
+			  ("C-o" . casual-help-tmenu)
+			  ("M-[" . help-go-back)
+			  ("M-]" . help-go-forward)
+			  ("p" . casual-lib-browse-backward-paragraph)
+			  ("n" . casual-lib-browse-forward-paragraph)
+			  ("P" . help-goto-previous-page)
+			  ("N" . help-goto-next-page)
+			  ("j" . forward-button)
+			  ("k" . backward-button)))
 
 (use-package casual-ibuffer
   :ensure nil
@@ -1208,28 +1231,16 @@ The DWIM behaviour of this command is as follows:
          ("C-o" . casual-ibuffer-tmenu)
          ("F" . casual-ibuffer-filter-tmenu)
          ("s" . casual-ibuffer-sortby-tmenu)
-         ("<double-mouse-1>" . ibuffer-visit-buffer) ; optional
-         ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window) ; optional
          ("{" . ibuffer-backwards-next-marked)
          ("}" . ibuffer-forward-next-marked)
          ("[" . ibuffer-backward-filter-group)
          ("]" . ibuffer-forward-filter-group)
-         ("$" . ibuffer-toggle-filter-group)))
-
-(use-package casual-info
-  :ensure nil
-  :bind (:map Info-mode-map ("C-o" . 'casual-info-tmenu)))
-
-(use-package casual-isearch
-  :ensure nil
-  :after isearch
-  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
-
-(use-package casual-re-builder
-  :ensure nil
-  :after re-builder
-  :bind (:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-			  :map reb-lisp-mode-map ("C-o" . casual-re-builder-tmenu)))
+         ("$" . ibuffer-toggle-filter-group)
+		 ("<double-mouse-1>" . ibuffer-visit-buffer)
+         ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window))
+  :config
+  (require 'hl-line)
+  (require 'mouse))
 
 (use-package casual-image
   :ensure nil
@@ -1237,6 +1248,57 @@ The DWIM behaviour of this command is as follows:
   :bind (:map image-mode-map
 			  ("C-o" . casual-image-tmenu)))
 
+(use-package casual-info
+  :ensure nil
+  :bind (:map Info-mode-map
+			  ("C-o" . casual-info-tmenu)
+			  ;; # Info
+			  ;; Use web-browser history navigation bindings
+			  ("M-[" . Info-history-back)
+			  ("M-]" . Info-history-forward)
+			  ;; Bind p and n to paragraph navigation
+			  ("p" . casual-info-browse-backward-paragraph)
+			  ("n" . casual-info-browse-forward-paragraph)
+			  ;; Bind h and l to navigate to previous and next nodes
+			  ;; Bind j and k to navigate to next and previous references
+			  ("h" . Info-prev)
+			  ("j" . Info-next-reference)
+			  ("k" . Info-prev-reference)
+			  ("l" . Info-next)
+			  ;; Bind / to search
+			  ("/" . Info-search)
+			  ;; Set Bookmark
+			  ("B" . bookmark-set))
+  :hook ((Info-mode . hl-line-mode)
+		 (Info-mode . scroll-lock-mode)))
+
+(use-package casual-isearch
+  :ensure nil
+  :after isearch
+  :bind (:map isearch-mode-map ("C-o" . casual-isearch-tmenu)))
+
+(use-package casual-man
+  :ensure nil
+  :bind (:map man-mode-map
+			  ("C-o" . casual-man-tmenu)
+			  ("n" . casual-lib-browse-forward-paragraph)
+			  ("p" . casual-lib-browse-backward-paragraph)
+			  ("[" . Man-previous-section)
+			  ("]" . Man-next-section)
+			  ("j" . next-line)
+			  ("k" . previous-line)
+			  ("K" . Man-kill)
+			  ("o" . casual-man-occur-options)))
+
+(use-package casual-re-builder
+  :ensure nil
+  :after re-builder
+  :bind (:map reb-mode-map
+			  ("C-o" . casual-re-builder-tmenu)
+			  :map reb-lisp-mode-map
+			  ("C-o" . casual-re-builder-tmenu)))
+
+; separate casual packages
 (use-package casual-avy
   :ensure t ; separate package from casual
   :after avy
@@ -6897,7 +6959,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
     (define-key eat-semi-char-mode-map (kbd "<backspace>") #'eat-self-input)))
 
 ;;;;; tldr.el
-;; connection to the tldr shell command for man pages
+;; connection to the tldr shell command for summary of man pages
 ;; [[https://github.com/kuanyui/tldr.el]]
 (use-package tldr
   :ensure-system-package (tldr . "brew install tlrc")) ; rust version of tldr
