@@ -5854,7 +5854,7 @@ function with the \\[universal-argument]."
 	(if (org-before-first-heading-p)
 		"┄┄┄┄┄"  ; fill the time grid
 	  (let ((rpt (org-get-repeat)))
-		(if rpt rpt nil))))
+		(if rpt rpt ""))))
 
 ;;   This format works similar to a printf format, with the following meaning:
 ;;
@@ -5878,7 +5878,7 @@ function with the \\[universal-argument]."
 ;; final format letter, this character will be appended to the field
 ;; value if the value is not empty.
 (setq org-agenda-prefix-format
-	  `((agenda . "%i %-10c%?t%?-4e%?s%?-5(sej/org-agenda-repeater)")
+	  `((agenda . "%i %-10c%?t%?-4e%?s%(sej/org-agenda-repeater)")
 		 (todo .    "%i %-10c %?-4e")
 		 (tags .    "%i %-10c")
 		 (search .  "%i %-10c")))
