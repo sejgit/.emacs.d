@@ -3318,8 +3318,8 @@ If called with a prefix argument, query for word to search."
 ;; ("ruff" "check" "--quiet" "--stdin-filename=stdin" "-")
 (use-package flymake-ruff
   :ensure-system-package ruff
-  :hook (python-base-mode . flymake-ruff-load)
-  ;; :hook (eglot-managed-mode-hook , flymake-ruff-load)
+  ;; :hook (python-base-mode . flymake-ruff-load)
+  :hook (eglot-managed-mode-hook , flymake-ruff-load)
   )
 
 ;;;;; reformatter
@@ -3429,7 +3429,17 @@ If called with a prefix argument, query for word to search."
   (add-to-list 'eglot-server-programs
 			   '((python-mode python-ts-mode)
                "basedpyright-langserver" "--stdio"))
-
+  (setq-default eglot-workspace-configuration
+				'(:basedpyright (
+								 :typeCheckingMode "standard"
+								)
+								:basedpyright.analysis (
+														:diagnosticSeverityOverrides (
+																					  :reportUnusedCallResult "none"
+																					  )
+														:inlayHints (
+																	 :callArgumentNames :json-false
+												   ))))
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
@@ -3439,37 +3449,48 @@ If called with a prefix argument, query for word to search."
 ;; https://www.gnu.org/software/tramp/
 (use-package tramp
   :ensure nil
+  :demand t
   :custom ((tramp-default-method "ssh") ; or scp
 		   (tramp-terminal-type "dumb")
-		   (tramp-verb ose 10)
+		   (tramp-verbose 10)
 		   (tramp-completion-reread-directory-timeout nil)
 		   (tramp-histfile-override "/tmp/tramp_history")
 		   (tramp-auto-save-directory "~/.cache/emacs/backups")
-		   (remote-file-name-inhibit-cache nil)
-		   (tramp-default-remote-shell "/bin/bash")
+		   (tramp-inhibit-errors-if-setting-file-attributes-fail t)
+  ;; 		   (remote-file-name-inhibit-cache nil)
+  ;; 		   (remote-file-name-inhibit-locks t)
+		   (tramp-use-scp-direct-remote-copying t)
+  ;; 		   (remote-file-name-inhibit-auto-save-visited t)
+		   (tramp-copy-size-limit (* 1024 1024))
+  ;; 		   (connection-local-set-profile-variables 'remote-direct-async-process
+  ;; 												   '((tramp-direct-async-process . t)))
+  ;; 		   (connection-local-set-profiles '(:application tramp :protocol "scp")
+  ;; 										  'remote-direct-async-process)
+  ;; 		   (magit-tramp-pipe-stty-settings 'pty)
+  ;; 		   (tramp-default-remote-shell "/bin/bash")
 		   (tramp-chunksize 500)
-		   (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
-									  vc-ignore-dir-regexp
-									  tramp-file-name-regexp))
+  ;; 		   (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+  ;; 									  vc-ignore-dir-regexp
+  ;; 									  tramp-file-name-regexp))
 		   ;; use the settings in ~/.ssh/config instead of Tramp's
-		   (tramp-use-ssh-controlmaster-options nil)
+		   ;; (tramp-use-ssh-controlmaster-options nil)
 		   ;; don't generate backups for remote files opened as root (security hazard)
-		   (backup-enable-predicate (lambda (name)
-									  (and (normal-backup-enable-predicate name)
-										   (not (let ((method (file-remote-p name 'method)))
-												  (when (stringp method)
-													(member method '("su" "sudo")))))))))
+		   ;; (backup-enable-predicate (lambda (name)
+		   ;; 							  (and (normal-backup-enable-predicate name)
+		   ;; 								   (not (let ((method (file-remote-p name 'method)))
+		   ;; 										  (when (stringp method)
+		   ;; 											(member method '("su" "sudo")))))))))
+		   )
   :config
   (put 'temporary-file-directory 'standard-value '("/tmp"))
-  (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su")))
-
-(use-package tramp-sh
-  :ensure nil
-  :config
-  (add-to-list 'tramp-remote-path "/usr/local/sbin")
-  (add-to-list 'tramp-remote-path "/opt/java/current/bin")
-  (add-to-list 'tramp-remote-path "/opt/gradle/current/bin")
-  (add-to-list 'tramp-remote-path "~/bin"))
+  (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su"))
+  (with-eval-after-load 'tramp
+	(with-eval-after-load 'compile
+	  (remove-hook 'compile-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+  (remove-hook 'find-file-hook #'doom-modeline-update-buffer-file-name)
+  (remove-hook 'find-file-hook 'forge-bug-reference-setup)
+  ;(require 'tramp-sh)
+  )
 
 ;;;;; ssh-config-mode
 ;; A mode to edit SSH config files.
@@ -3587,14 +3608,14 @@ If called with a prefix argument, query for word to search."
   :bind (("H-[" . flymake-goto-prev-error)
 		 ("H-]" . flymake-goto-next-error)
 		 ("H-\\" . flymake-show-buffer-diagnostics))
-  :custom ((flymake-show-diagnostics-at-end-of-line nil)
+  :custom ((flymake-show-diagnostics-at-end-of-line t)
 		   (flymake-fringe-indicator-position 'right-fringe)
 		   (flymake-suppress-zero-counters t)
 		   (flymake-start-on-flymake-mode t)
-		   (flymake-no-changes-timeout nil)
+		   (flymake-no-changes-timeout .5)
 		   (flymake-start-on-save-buffer t)
 		   (flymake-proc-compilation-prevents-syntax-check t)
-		   (flymake-wrap-around nil)))
+		   (flymake-wrap-around t)))
 
 ;;;; vcs
 ;;;;; Project
@@ -3624,6 +3645,12 @@ If called with a prefix argument, query for word to search."
       (transient-append-suffix 'magit-fetch
         "-p" '("-t" "Fetch all tags" ("-t" "--tags"))))
   (setopt magit-format-file-function #'magit-format-file-nerd-icons))
+
+;;;;; [[https://github.com/dandavison/magit-delta][magit-delta]]
+(use-package magit-delta
+  :if sys/macp
+	:ensure-system-package (delta . "brew install git-delta")
+  :hook (magit-mode . magit-delta-mode))
 
 ;;;;; disproject
 ;; integration with project.el and allows for dispatching via transient menus
