@@ -5856,7 +5856,7 @@ function with the \\[universal-argument]."
            (org-agenda-start-with-log-mode t)
            (org-agenda-use-time-grid t)
            (org-agenda-include-diary t)
-		   (org-agenda-tags-column 'auto)
+		   (org-agenda-tags-column -115) ; still not ideal but works for half screen
            (org-agenda-window-setup (quote current-window)) ;open agenda in current window
            (org-agenda-span-name (quote fortnight)) ;show me tasks scheduled or due in next fortnight
            (org-agenda-skip-scheduled-if-deadline-is-shown t) ;don't show tasks as scheduled if shown as deadline
