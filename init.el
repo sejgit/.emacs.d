@@ -1982,7 +1982,7 @@ If FRAME is omitted or nil, use currently selected frame."
 											  try-expand-line-all-buffers)))
 
 ;;;;; [[https://github.com/minad/vertico][vertico]]
-;; alternative to ivy, ido, helm
+;; alternative selection visual to ivy, ido, helm
 (use-package vertico
   :bind (("C-H-v" . vertico-repeat))
   :hook ((emacs-startup . vertico-mode)
@@ -1998,12 +1998,14 @@ If FRAME is omitted or nil, use currently selected frame."
   :config
 
 ;;;;;; vertico-repeat
+  ;; repeat last vertico session C-H-v
   (use-package vertico-repeat
 	:ensure nil
 	:demand t
 	:config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
 ;;;;;; vertico-quick
+  ;; quick jump to items in vertico list ala Avy
   (use-package vertico-quick
 	:ensure nil
     :demand t
@@ -2079,10 +2081,10 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Optional customizations
   :custom ((corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
-		   (corfu-auto t)                    ;; Enable auto completion
+		   (corfu-auto nil)                    ;; Enable auto completion
 		   (corfu-separator ?\s)             ;; Orderless field separator
-		   (corfu-quit-at-boundary t)        ;; Never quit at completion boundary
-		   (corfu-quit-no-match t)           ;; t, 'separator, nil Never quit
+		   (corfu-quit-at-boundary nil)        ;; Never quit at completion boundary
+		   (corfu-quit-no-match nil)           ;; t, 'separator, nil Never quit
 		   (corfu-preview-current nil)       ;; Disable current candidate preview
 		   (corfu-preselect 'directory)      ;; Preselect the prompt
 		   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
@@ -6084,7 +6086,17 @@ function with the \\[universal-argument]."
 ;; to attach or specified directory
 (use-package org-download
   :hook ((emacs-startup . org-download-enable)
-		 (dired-mode . org-download-enable)))
+		 (dired-mode . org-download-enable))
+  :custom ((org-download-method 'directory)
+		   (org-download-image-dir "images")
+		   (org-download-heading-lvl nil)
+		   (org-download-timestamp "%Y%m%d-%H%M%S_")
+		   (org-image-actual-width 300)
+		   (org-download-screenshot-method "/usr/local/bin/pngpaste %s"))
+  :bind
+    ("C-M-y" . org-download-screenshot)
+    :config
+    (require 'org-download))
 
 ;;;;; org-fragtog
 ;; LaTeX previews
@@ -6436,7 +6448,7 @@ function with the \\[universal-argument]."
 (use-package org-rich-yank
   :defer 2
   :bind (:map org-mode-map
-              ("C-M-y" . org-rich-yank)))
+              ("C-S-y" . org-rich-yank)))
 
 ;;;;; org-skeleton
 ;; skeleton template for new org file
