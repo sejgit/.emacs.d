@@ -94,6 +94,7 @@
 (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
 (setq warning-suppress-log-types (quote ((cl) (org-element))))
 (setq byte-compile-warnings (quote ((cl-functions))))
+(setq native-comp-async-report-warnings-errors 'silent)
 
 ;; prevent warnings buffer from poping up during package compile
 ;; still available in the buffer list
