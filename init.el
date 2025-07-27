@@ -2949,6 +2949,14 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/pashky/restclient.el
 (use-package restclient)
 
+;;;;; [[https://github.com/federicotdn/verb?tab=readme-ov-file][verb]]
+;; HTTP client for Emacs using org format to document
+;; develops on the idea of restclient for files you are going to keep as notes
+(use-package verb
+  :after org
+  :init
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
+
 ;;;; highlighting faces fonts
 ;;;;; fontaine
 ;; font management
@@ -5213,25 +5221,26 @@ This function should be hooked to `post-command-hook'."
 ;; [[https://github.com/jasonm23/markdown-soma][markdown-soma]]
 (use-package markdown-soma
   :ensure-system-package (rustup . "brew install rustup")
-  :vc (:url "https://github.com/jasonm23/markdown-soma")
+  :vc (:url "https://github.com/jasonm23/markdown-soma"
+			:rev :newest
+			:branch "master")
+  :commands markdown-soma-mode
   ;; :hook (markdown-mode . markdown-soma-mode)
-  :bind (:map markdown-mode-command-map
-              ("p" . markdown-soma-mode)
-              ("r" . markdown-soma-restart)
-              ("+" . sej/markdown-soma-mod-plus)
-              ("=" . sej/markdown-soma-mod-plus)
-              ("-" . sej/markdown-soma-mod-minus) )
-  :init
+  ;; :bind (:map markdown-mode-command-map
+  ;;             ("p" . markdown-soma-mode)
+  ;;             ("r" . markdown-soma-restart)
+  ;;             ("+" . sej/markdown-soma-mod-plus)
+  ;;             ("=" . sej/markdown-soma-mod-plus)
+  ;;             ("-" . sej/markdown-soma-mod-minus) )
+  :config
   ;; add to path
   (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 
-  :custom ( ;; select css theme
-		   (markdown-soma-custom-css
-				 (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark"))
-		   ;; Change "theme name" to the selected highlightjs theme.
-		   (markdown-soma-highlightjs-theme "github-dark")
-		   (sej/markdown-soma-mod-var 0))
-  :config
+  (setq markdown-soma-custom-css
+				 (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark")) ;; select css theme
+  (setq markdown-soma-highlightjs-theme "github-dark") ;; Change "theme name" to the selected highlightjs theme.
+  (setq	sej/markdown-soma-mod-var 0)
+  
   (defun sej/markdown-soma-mod (x)
     "Calibrate  markdown-soma display by X."
     (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
