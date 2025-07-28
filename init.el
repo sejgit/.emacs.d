@@ -4417,14 +4417,15 @@ the children of class at point."
                                     " " (mode 16 16 :left :elide) " " filename-and-process)
                               (mark " " (name 16 -1) " " filename)))))  )
 
-;;;;; registers
+;;;;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html][registers]]
 ;; :built-in: Registers allow you to jump to a file or other location quickly.
 ;; (i for init.el, r for this file) to jump to it.
-;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html
+;; below are basic register settings, more are in register-alist which is in save-hist
 (set-register ?t '(file . "~/Documents/orgtodo/"))
-(set-register ?d '(file . "~/.dotfiles/"))
+(set-register ?d '(file . "~/dotfiles/"))
 (set-register ?e '(file . "~/.emacs.d/"))
 (set-register ?i '(file . "~/.emacs.d/init.el"))
+(add-to-list 'savehist-additional-variables 'register-alist)
 
 ;;;;; dashboard
 ;; all-in-one start-up screen with current files / projects
@@ -6418,7 +6419,7 @@ function with the \\[universal-argument]."
 			 ("financial" . "💰")
 			 ("automation" . "⚙️")
 			 ("plugin" . "🔌")
-
+			 ("battery" . "🔋🪫") ("batteries" . "🔋🪫")
 			 ;; media & specific tags
 			 ("media" . "💿")
 			 ("music" . "🎶")
