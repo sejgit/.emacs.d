@@ -104,6 +104,7 @@
                (allow-no-window . t)))
 
 ;;;;; during loading clear file-name-handler-alist
+;; avoids loader files polluting the file history list
 (defvar file-name-handler-alist-old file-name-handler-alist)
 
 (setq file-name-handler-alist nil)
@@ -867,7 +868,7 @@
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/savehist.el
 (use-package savehist
   :ensure nil
-  :hook (emacs-startup . savehist-mode)
+  :hook (after-init . savehist-mode) ;; earlier in startup so available to dashboard
   :custom ((history-delete-duplicates t)
 		   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
 		   (history-length 10000)
@@ -4427,12 +4428,10 @@ the children of class at point."
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 (add-to-list 'savehist-additional-variables 'register-alist)
 
-;;;;; dashboard
+;;;;; [[https://github.com/emacs-dashboard/emacs-dashboard][dashboard]]
 ;; all-in-one start-up screen with current files / projects
-;; https://github.com/emacs-dashboard/emacs-dashboard
 (use-package dashboard
   :if (eq sej-dashboard t)
-  :blackout (dashboard-mode)
   :commands sej/open-dashboard
   :hook (emacs-startup . sej/open-dashboard-only)
   :bind (("<f6>" . sej/open-dashboard)
@@ -4440,7 +4439,7 @@ the children of class at point."
          ("d" . sej/open-dashboard))
   :custom ((dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
 		   (dashboard-set-init-info t)
-		   (dashboard-projects-backend 'project-el) ; use projectile if using
+		   (dashboard-projects-backend 'project-el) ; alt option: projectile
 		   (dashboard-items '((recents  . 15)
 							  (bookmarks . 15)
 							  (projects . 10)
@@ -4449,11 +4448,12 @@ the children of class at point."
 		   (dashboard-set-file-icons t))
   :config
   (dashboard-setup-startup-hook)
-  (dashboard-insert-startupify-lists)
 
 (defun sej/open-dashboard-only ()
     "Move to the dashboard package buffer and make only window in frame."
     (interactive)
+	(dashboard-insert-startupify-lists)
+	(dashboard-initialize)
     (switch-to-buffer "*dashboard*")
     (hl-line-mode t)
     (delete-other-windows))
