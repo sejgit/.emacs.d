@@ -1673,11 +1673,10 @@ If FRAME is omitted or nil, use currently selected frame."
 	  (other-window 1)
 	  (quit-window))))
 
-;;;;; ace-window
+;;;;; [[https://github.com/abo-abo/ace-window][ace-window]]
 ;; quickly selecting a window to switch to
 ;; C-u prefex to move window
 ;; C-u C-u prefex to delete window
-;; https://github.com/abo-abo/ace-window
 (use-package ace-window
   :bind (("C-x o" . sej/ace-two-window)
          ("M-o" . ace-window))
@@ -1700,9 +1699,8 @@ If FRAME is omitted or nil, use currently selected frame."
 	  (ace-window arg)
 	  (setq aw-dispatch-always dispatch))))
 
-;;;;; winner
+;;;;; [[info:emacs#Window Convenience][winner-mode]]
 ;; built-in: Restore old window configurations
-;; https://www.emacswiki.org/emacs/WinnerMode
 (use-package winner
   :ensure nil
   :hook (emacs-startup . winner-mode)
@@ -2301,7 +2299,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; acting on targets
 (use-package embark
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
-           ("M-." . embark-dwim)        ;; good alternative: M-.
+           ("C-'" . embark-dwim)        ;; good alternative: M-.
            ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
            ("C-s-e" . embark-export)
            ("H-e" . embark-export)
@@ -3662,11 +3660,15 @@ If called with a prefix argument, query for word to search."
 (use-package magit-delta
   :if sys/macp
 	:ensure-system-package (delta . "brew install git-delta")
-  :hook (magit-mode . magit-delta-mode))
+	:hook (magit-mode . magit-delta-mode)
+	:custom ((magit-delta-default-dark-theme "ansi")
+			 (magit-delta-delta-args `("--max-line-distance" "0.6"
+									   "--true-color" "always"
+									   "--color-only"
+									   ))))
 
-;;;;; disproject
+;;;;; [[https://github.com/aurtzy/disproject][disproject]]
 ;; integration with project.el and allows for dispatching via transient menus
-;; [[https://github.com/aurtzy/disproject]]
 (use-package disproject
   ;; Replace `project-prefix-map' with `disproject-dispatch'.
   :bind ( :map ctl-x-map
@@ -3675,19 +3677,17 @@ If called with a prefix argument, query for word to search."
   (require 'magit nil 'noerror)
   (require 'magit-todos nil 'noerror))
 
-;;;;; forge
+;;;;; [[https://github.com/magit/forge][forge]]
 ;; Access Git forges from Magit
 ;; To start using Forge in a certain repository visit the Magit status buffer
 ;; for that repository and type N f f (forge-pull). Alternatively you can use M-x
 ;; forge-add-repostiory, which makes it possible to add a forge repository without
 ;; pulling all topics and even without having to clone the respective Git repository.
-;; https://github.com/magit/forge
 (use-package forge
   :after magit)
 
-;;;;; git-gutter-fringe
+;;;;; [[https://github.com/emacsorphanage/git-gutter-fringe][git-gutter-fringe]]
 ;; git fringe
-;; [[https://github.com/emacsorphanage/git-gutter-fringe][git-gutter-fringe]]
 (use-package git-gutter-fringe
   :blackout t
   :bind (:map global-map
@@ -3698,9 +3698,8 @@ If called with a prefix argument, query for word to search."
   :config
   (advice-add 'git-gutter:next-hunk :after #'(lambda () (recenter-top-bottom nil))))
 
-;;;;; magit-todos
+;;;;; [[https://github.com/alphapapa/magit-todo][magit-todos]]
 ;; Show tasks from commit files
-;; https://github.com/alphapapa/magit-todos
 (use-package magit-todos
   :after magit
   :commands (disproject-dispatch magit-status-mode)
@@ -3714,9 +3713,8 @@ If called with a prefix argument, query for word to search."
    '(magit-todos-ignore-file-suffixes '("todo"))
    '(magit-todos-exclude-globs '("*.map" "*.html"))))
 
-;;;;; git-timemachine
+;;;;; [[https://github.com/emacsmirror/git-timemachine][ git-timemachine]]
 ;; Walk through git revisions of a file
-;; https://github.com/emacsmirror/git-timemachine
 (use-package git-timemachine
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit font-lock-string-face))))
@@ -3724,9 +3722,8 @@ If called with a prefix argument, query for word to search."
   :bind (:map vc-prefix-map
               ("t" . git-timemachine)))
 
-;;;;; smerge-mode
+;;;;; [[http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el][smerge-mode]]
 ;; built-in: Resolve diff3 conflicts
-;; http://web.mit.edu/Emacs/source/emacs/lisp/smerge-mode.el
 (use-package smerge-mode
   :ensure nil
   :blackout
@@ -3749,18 +3746,16 @@ If called with a prefix argument, query for word to search."
              smerge-resolve
              smerge-kill-current)  )
 
-;;;;; gist
+;;;;; [[https://github.com/KarimAziev/igist][gist]]
 ;; gist client
 ;; built-in self help
-;; [[https://github.com/KarimAziev/igist]]
 (use-package igist
   :bind (:map sej-C-q-map
               ("G" . igist-dispatch)))
 
-;;;;; git-modes
+;;;;; [[https://github.com/magit/git-modes][git-modes]]
 ;; Emacs major modes for various Git configuration files.
 ;; gitattributes-mode , gitconfig-mode , gitignore-mode
-;; https://github.com/magit/git-modes
 (use-package git-modes)
 
 ;;;;; sej/git-blame-line
@@ -3833,10 +3828,8 @@ If called with a prefix argument, query for word to search."
   ;; enable dash for Emacs lisp highlighting
   (eval-after-load "dash" '(dash-enable-font-lock)))
 
-;;;;; eldoc
-;; built-in: we don't want this minor mode to be shown in the minibuffer, however
-;; we use eldoc to show the signature of the function at point in the minibuffer
-;; https://www.emacswiki.org/emacs/ElDoc
+;;;;; [[https://www.emacswiki.org/emacs/ElDoc][eldoc]]
+;; built-in: show the signature of the function at point in the minibuffer
 (use-package eldoc
   :blackout t
   :ensure nil
@@ -3870,37 +3863,33 @@ If called with a prefix argument, query for word to search."
 					   'emacs-major-version
 					   'window-system))
 
-;;;;; elisp-slime-nav
+;;;;; [[https://github.com/purcell/elisp-slime-nav][elisp-slime-nav]]
 ;; turn on elisp-slime-nav
 ;; M-. works to jump to function definitions
 ;; M-, to jump back
-;; https://github.com/purcell/elisp-slime-nav
 (use-package elisp-slime-nav
   :blackout t
   :commands (elisp-slime-nav-mode
              elisp-slime-nav-find-elisp-thing-at-point)
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
-;;;;; sly
+;;;;; [[https://github.com/joaotavora/sly][sly]]
 ;; replacement repla for slime
-;; [[https://github.com/joaotavora/sly][sly]]
 (use-package sly
   :hook (lisp-mode . sly-mode)
   :config
   (setq inferior-lisp-program "/usr/local/bin/sbcl"
         sly-mrepl-history-file-name (concat no-littering-etc-directory "sly-mrepl-history")))
 
-;;;;; eros
+;;;;; [[https://github.com/xiongtx/eros][eros]]
 ;; eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
-;; https://github.com/xiongtx/eros
 (use-package eros
   :commands eros-mode
   :hook (emacs-lisp-mode . eros-mode))
 
-;;;;; ielm
+;;;;; [[https://www.emacswiki.org/emacs/InferiorEmacsLispMode][ielm]]
 ;; built-in: add a nice popup for ielm
-;; https://www.emacswiki.org/emacs/InferiorEmacsLispMode
 (use-package ielm
   :ensure nil
   :commands ielm
@@ -3953,13 +3942,12 @@ If called with a prefix argument, query for word to search."
 (use-package geiser)
 
 ;;;; python
-;;;;; python
+;;;;; [[http://wikemacs.org/wiki/Python][python]]
 ;; Install:
 ;; pip3 install -U setuptools
 ;; brew install pyright
 ;; optional install basedpyright
 ;; YAPF or Black
-;; http://wikemacs.org/wiki/Python
 ;; (require 'python)
 (setq python-indent-guess-ident-offset-verbose nil
       python-indent-offset 4
@@ -3984,14 +3972,13 @@ If called with a prefix argument, query for word to search."
   "This string is ignored!"
   "\"\"\"" - "\n\n    \"\"\"")
 
-;;;;; inferior-python-mode
+;;;;; [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 ;; built-in: runs a python interpreter as a subprocess of Emacs
-;; [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 (use-package inferior-pyton-mode
 :ensure nil  )
 
-;;;;; pipenv
-;; a [[https://github.com/pwalsh/pipenv.el][pipenv]] integration
+;;;;; [[https://github.com/pwalsh/pipenv.el][pipenv]]
+;; integration with pipenv
 (use-package pipenv
   :hook (python-base-mode . pipenv-mode)
   :init
@@ -4005,24 +3992,21 @@ If called with a prefix argument, query for word to search."
     (setq pipenv-with-flycheck nil
           pipenv-with-projectile nil)))
 
-;;;;; pyenv-mode
+;;;;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
 ;; integration with the pyenv tool
-;; [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]
 (use-package pyenv-mode
   :hook (python-base-mode . pyenv-mode))
 
-;;;;; pyenv-mode-auto
+;;;;; [[https://github.com/emacsattic/pyenv-mode-auto][pyenv-mode-auto]]
 ;; pyenv automatically based on .python-mode
-;; https://github.com/emacsattic/pyenv-mode-auto
 (use-package pyenv-mode-auto
   :vc (:url "https://github.com/emacsattic/pyenv-mode-auto"
             :rev :newest
             :branch "master"))
 
-;;;;; envrc
+;;;;; [[https://github.com/purcell/envrc][envrc]]
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
 ;; environment variables and then set those environment variables on a per-buffer basis.
-;; https://github.com/purcell/envrc
 (use-package envrc
   :hook (after-init . envrc-global-mode))
 
@@ -4035,15 +4019,14 @@ If called with a prefix argument, query for word to search."
  ((executable-find "yapf")
   (use-package yapfify  )))
 
-;;;;; live-py-mode
+;;;;; [[https://github.com/donkirkby/live-py-plugin][live-py-mode]]
 ;; Live Coding in Python
 ;; Open any Python file, and activate live-py-mode with M-x live-py-mode.
 ;; You should see an extra window on the right that shows the results of
 ;; running your code.
-;; https://github.com/donkirkby/live-py-plugin
 (use-package live-py-mode)
 
-;;;;; ein
+;;;;; [[https://github.com/millejoh/emacs-ipython-notebook][ein]]
 ;; Emacs IPython Notebook
 ;; #BEGIN_SRC ein-python :session localhost :results raw drawer
 ;; import numpy, math, matplotlib.pyplot as plt
@@ -4056,39 +4039,35 @@ If called with a prefix argument, query for word to search."
 ;; buffer to a running jupyter kernel
 ;; M-x ein:run launches a jupyter process from emacs
 ;; M-x ein:login to a running jupyter server
-;; https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
   :blackout t)
 
-;;;;; pip-requirements
+;;;;; [[https://github.com/Wilfred/pip-requirements.el][pip-requirements]]
 ;; major mode for editing pip requirement files
-;; https://github.com/Wilfred/pip-requirements.el
 (use-package pip-requirements)
 
 
 ;;;; web modes
-;;;;; web-mode
+;;;;; [[https://github.com/fxbois/web-mode][web-mode]]
 ;; Major mode for editing web templates
 ;; http://web-mode.org/
-;; https://github.com/fxbois/web-mode
+
 (use-package web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
   :custom ((web-mode-markup-indent-offset 2)
 		   (web-mode-css-indent-offset 2)
 		   (web-mode-code-indent-offset 2)))
 
-;;;;; css-eldoc
+;;;;; [[https://github.com/zenozeng/css-eldoc][css-eldoc]]
 ;; eldoc-mode plugin for CSS
-;; https://github.com/zenozeng/css-eldoc
 (use-package css-eldoc
   :commands turn-on-css-eldoc
   :hook ((css-mode scss-mode less-css-mode) . turn-on-css-eldoc))
 
-;;;;; json-mode
+;;;;; [[https://github.com/joshwnj/json-mode][json-mode]]
 ;; Major mode for editing JSON files.
 ;; Extends the builtin js-mode to add better syntax highlighting for JSON
 ;; and some nice editing keybindings.
-;; https://github.com/joshwnj/json-mode
 (use-package json-mode
   :mode "\\.json\\'")
 
@@ -4098,9 +4077,8 @@ If called with a prefix argument, query for word to search."
   :commands jsons-print-path
   :after json-mode)
 
-;;;;; js2-mode
+;;;;; [[https://github.com/mooz/js2-mode][js2-mode]]
 ;; Improved JavaScript editing mode
-;; https://github.com/mooz/js2-mode
 (use-package js2-mode
   :mode (("\\.js\\'" . js2-mode)
          ("\\.jsx\\'" . js2-jsx-mode))
@@ -4109,25 +4087,22 @@ If called with a prefix argument, query for word to search."
   :hook ((js2-mode . js2-imenu-extras-mode)
          (js2-mode . js2-highlight-unused-variables-mode)))
 
-;;;;; js2-refactor
+;;;;; [[https://github.com/magnars/js2-refactor.el][js2-refactor]]
 ;; JavaScript refactoring library for Emacs
-;; https://github.com/magnars/js2-refactor.el
 (use-package js2-refactor
   :after js2-mode
   :blackout t
   :hook (js2-mode . js2-refactor-mode)
   :config (js2r-add-keybindings-with-prefix "C-c C-m"))
 
-;;;;; mocha
+;;;;; [[https://github.com/scottaj/mocha.el][mocha]]
 ;; Run Mocha or Jasmine tests
-;; https://github.com/scottaj/mocha.el
 (use-package mocha
   :config (use-package mocha-snippets))
 
-;;;;; web-beautify
+;;;;; [[https://github.com/yasuyk/web-beautify][web-beautify]]
 ;; Format HTML, CSS and JavaScript/JSON by js-beautify
 ;; Insta;; npm -g install js-beautify
-;; https://github.com/yasuyk/web-beautify
 (use-package web-beautify
   :init
   (with-eval-after-load 'js-mode
@@ -4146,14 +4121,12 @@ If called with a prefix argument, query for word to search."
   ;; Set indent size to 2
   (setq web-beautify-args '("-s" "2" "-f" "-")))
 
-;;;;; haml-mode
+;;;;; [[https://github.com/nex3/haml-mode][haml-mode]]
 ;; major mode for the haml mark-up language
-;; https://github.com/nex3/haml-mode
 (use-package haml-mode)
 
-;;;;; php-mode
+;;;;; [[https://github.com/emacs-php/php-mode][php-mode]]
 ;; major mode for editing PHP code
-;; https://github.com/emacs-php/php-mode
 (use-package php-mode
   :mode (("\\.module$" . php-mode)
          ("\\.inc$" . php-mode)
@@ -4161,26 +4134,23 @@ If called with a prefix argument, query for word to search."
          ("\\.engine$" . php-mode)
          ("\\.\\(?:php\\|phtml\\)\\'" . php-mode)))
 
-;;;;; yaml-mode
+;;;;; [[https://www.emacswiki.org/emacs/YamlMode][yaml-mode]]
 ;; YAML major mode support
-;; https://www.emacswiki.org/emacs/YamlMode
 (use-package yaml-mode
   :mode
   (("\\.yml$" . yaml-mode)
    ("\\.yaml$" . yaml-mode)))
 
-;;;;; nxml-mode
+;;;;; [[https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html][nxml-mode]]
 ;; built-in: major mode for editing XML
-;; https://www.gnu.org/software/emacs/manual/html_node/nxml-mode/Introduction.html
 (use-package nxml-mode
   :ensure nil
   :mode (("\\.xaml$" . xml-mode)))
 
 
 ;;;; c program modes
-;;;;; c-mode
+;;;;; [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][c-mode]]
 ;; built-in: C/C++ Mode
-;; https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html
 (use-package cc-mode
   :ensure nil
   :bind (:map c-mode-base-map
@@ -4202,12 +4172,10 @@ If called with a prefix argument, query for word to search."
   :init
   ;; Set the default formatting styles for various C based modes
   (setq c-ts-mode-set-global-style 'gnu)
-  (setq c-ts-mode-indent-style 'gnu)
-  )
+  (setq c-ts-mode-indent-style 'gnu))
 
-;;;;; ccls
+;;;;; [[https://github.com/MaskRay/ccls/wiki/lsp-mode][ccls]]
 ;; c++-mode, objc-mode, cuda-mode
-;; https://github.com/MaskRay/ccls/wiki/lsp-mode
 (use-package ccls
 
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
@@ -4262,9 +4230,8 @@ the children of class at point."
                            do (push (cons (1+ depth) child) tree)))))))
       (eglot--error "Hierarchy unavailable"))))
 
-;;;;; eglot-ccls
+;;;;; [[https://codeberg.org/akib/emacs-eglot-ccls][eglot-ccls]]
 ;; specific extensions for Eglot
-;; https://codeberg.org/akib/emacs-eglot-ccls
 (use-package eglot-ccls
   :vc (:url "https://codeberg.org/akib/emacs-eglot-ccls"
             :rev :newest
@@ -4277,9 +4244,8 @@ the children of class at point."
     (interactive)
     (eglot-ccls-semhl-use-default-rainbow-highlight)) )
 
-;;;;; clang-format
+;;;;; [[https://github.com/sonatard/clang-format][clang-format]]
 ;; Clang-format emacs integration for use with C/Objective-C/C++.
-;; https://github.com/sonatard/clang-format
 (use-package clang-format
   :bind (:map c-mode-base-map
               ("C-c v" . clang-format-region)
@@ -4287,20 +4253,17 @@ the children of class at point."
   :config
   (setq clang-format-style-option "llvm"))
 
-;;;;; modern-cpp-font-lock
+;;;;; [[https://github.com/ludwigpacifici/modern-cpp-font-lock][modern-cpp-font-lock]]
 ;; Syntax highlighting support for "Modern C++" - until C++20 and Technical Specification
-;; https://github.com/ludwigpacifici/modern-cpp-font-lock
 (use-package modern-cpp-font-lock
   :hook (c++-mode . modern-c++-font-lock-mode))
 
-;;;;; csharp-mode
+;;;;; [[https://github.com/josteink/csharp-mode][csharp-mode]]
 ;; mode for editing C# in emacs. It’s based on cc-mode
-;; https://github.com/josteink/csharp-mode
 (use-package csharp-mode)
 
-;;;;; arduino-mode
+;;;;; [[https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288][arduino-mode]]
 ;; mode for .ino files only
-;; https://github.com/stardiviner/arduino-mode/tree/16955f579c5caca223c0ba825075e3573dcf2288
 (use-package arduino-mode
   :hook (arduino-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
@@ -4310,9 +4273,8 @@ the children of class at point."
 
 ;;(remove-hook 'c++mode-hook #'arduino-mode-cli)
 
-;;;;; arduino-cli-mode
+;;;;; [[https://github.com/motform/arduino-cli-mode][arduino-cli-mode]]
 ;; minor mode for using the excellent new arduino command line interface
-;; https://github.com/motform/arduino-cli-mode
 (use-package arduino-cli-mode
   :hook (c++-mode . arduino-cli-mode)
   :ensure-system-package arduino-cli
@@ -4322,14 +4284,13 @@ the children of class at point."
         arduino-cli-default-fqbn "esp8266:esp8266:d1"
         arduino-cli-default-port "/dev/cu.wchusbserial1430"))
 
-;;;;; platformio-mode
+;;;;; [[https://github.com/ZachMassia/platformio-mode][platformio-mode]]
 ;; minor mode which allows quick building and uploading of PlatformIO projects
 ;;   with a few short key sequences.
 ;; Code completion can be provided by installing any package compatible with .clang_complete files,
 ;;   such as irony-mode.
 ;; To keep the index up to date, run platformio-init-update-workspace (C-c i i)
 ;;   after installing any libraries.
-;; https://github.com/ZachMassia/platformio-mode
 (use-package platformio-mode
   :hook ((c-mode c++-mode objc-mode cuda-mode c-or-c++-mode
                  c-ts-mode c++-ts-mode c-or-c++-ts-mode) . platformio-conditionally-enable))
