@@ -1594,41 +1594,62 @@ If FRAME is omitted or nil, use currently selected frame."
 
 ;;;;; sej/create-scratch-buffer
 ;; as name suggests
-(defun sej/create-scratch-buffer nil
-  "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
-  (interactive)
-  (let ((n 0)
-        bufname)
-    (while (progn
-             (setq bufname (concat "*scratch"
-                                   (if (= n 0) "" (int-to-string n))
-                                   "*"))
-             (setq n (1+ n))
-             (get-buffer bufname)))
-    (switch-to-buffer (get-buffer-create bufname))
-    (emacs-lisp-mode)
-    ))
-(defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-(bind-key* "C-q C-S" 'sej/create-scratch-buffer)
-(bind-key* "C-q C-s" 'scratch-buffer)
+;; (defun sej/create-scratch-buffer nil
+;;   "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
+;;   (interactive)
+;;   (let ((n 0)
+;;         bufname)
+;;     (while (progn
+;;              (setq bufname (concat "*scratch"
+;;                                    (if (= n 0) "" (int-to-string n))
+;;                                    "*"))
+;;              (setq n (1+ n))
+;;              (get-buffer bufname)))
+;;     (switch-to-buffer (get-buffer-create bufname))
+;;     (emacs-lisp-mode)
+;;     ))
+;; (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
+;; (bind-key* "C-q C-S" 'sej/create-scratch-buffer)
+;; (bind-key* "C-q C-s" 'scratch-buffer)
 
 ;;;;; [[https://github.com/Fanael/persistent-scratch][persistent-scratch]]
 ;; keep the scratch buffer from session to session
-(use-package persistent-scratch
-  :commands persistent-scratch-setup-default
-  :hook (emacs-startup . sej/persistent-scratch-setup-default)
-  :custom ((persistent-scratch-autosave-interval 30)
-		   (persistent-scratch-backup-directory nil))
-  :config
-  (defun sej/persistent-scratch-setup-default ()
-	"Set up persistent scratch and make it `trusted-content'."
-	(add-to-list 'trusted-content persistent-scratch-save-file)
-	(persistent-scratch-setup-default))
+;; (use-package persistent-scratch
+;;   :commands persistent-scratch-setup-default
+;;   :hook (emacs-startup . sej/persistent-scratch-setup-default)
+;;   :custom ((persistent-scratch-autosave-interval 30)
+;; 		   (persistent-scratch-backup-directory nil))
+;;   :config
+;;   (defun sej/persistent-scratch-setup-default ()
+;; 	"Set up persistent scratch and make it `trusted-content'."
+;; 	(add-to-list 'trusted-content persistent-scratch-save-file)
+;; 	(persistent-scratch-setup-default))
+;; 
+;; 	(persistent-scratch-autosave-mode)
+;; 
+;;   (with-demoted-errors "Error: %S"
+;;     (persistent-scratch-setup-default)))
 
-	(persistent-scratch-autosave-mode)
-
-  (with-demoted-errors "Error: %S"
-    (persistent-scratch-setup-default)))
+;;;;; [[https://git.sr.ht/~swflint/scratch-plus][scratch-plus]]
+;; better persistent scratch
+;; by mode & by product
+(use-package scratch-plus
+  :hook (after-init . scratch-plus-mode)
+  :bind (:map scratch-plus-mode-map
+			  ("C-q C-s" . scratch-plus-switch)
+			  ("C-q C-H-s" . scratch-plus-switch-project))
+  :custom ((scratch-plus-restore-type 'demand)
+		   (scratch-plus-force-restore 'initial)
+		   (scratch-plus-save-directory (expand-file-name (concat user-emacs-directory "var")))
+		   (scratch-plus-project-subdir "temp")
+		   (scratch-plus-idle-save 5)
+		   (scratch-plus-prevent-kill 'bury)
+		   (scratch-plus-initial-message 'sej/initial-scratch-message)
+		   (scratch-plus-display-action nil))
+  :init
+  (defun sej/initial-scratch-message (majormode)
+	"Take MAJORMODE and return message for scratch-plus initial message."
+	(format "persistent scratch-plus for %s" majormode)))
 
 ;;;;; Remember ; persistent notes
 ;; using persistent-scratch for lisp & this for notes
@@ -3142,6 +3163,7 @@ If called with a prefix argument, query for word to search."
 								   ("MAYBE" . "#d1bf8f")
 								   ("NOTE" . "#5f6000")
 								   ("OKAY" . "#5f9000")
+								   ("DONE" . "#5f9000")
 								   ("TRY" . "#5f7f5f")
 								   ("TODO" . "#cc9393")
 								   ("TEST" . "#ff7700")))
