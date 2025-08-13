@@ -2399,20 +2399,22 @@ If FRAME is omitted or nil, use currently selected frame."
           ;; M-s bindings (search-map)
           :map search-map
           ("f" . consult-find)
-          ("L" . consult-locate)
           ("g" . consult-grep)
           ("G" . consult-git-grep)
-          ("r" . consult-ripgrep)
-          ("l" . consult-line)
-		  ("L" . consult-line-multi)            ;; needed by consult-line to detect isearch
           ("k" . consult-keep-lines)
+          ("l" . consult-line)
+          ("L" . consult-locate)
+		  ("m" . consult-line-multi)            ;; needed by consult-line to detect isearch
+		  ("p" . sej/consult-project-search)
+          ("r" . consult-ripgrep)
           ("u" . consult-focus-lines)
           ;; isearch integration
           :map isearch-mode-map
           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-          ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+          ("M-s m" . consult-line-multi)            ;; needed by consult-line to detect isearch
+		  ("M-s p" . sej/consult-project-search)
           :map consult-narrow-map
           ("?" . consult-narrow-help)
           ;; Minibuffer history
@@ -2555,7 +2557,12 @@ If FRAME is omitted or nil, use currently selected frame."
           (lambda ()
 			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair :filter t :include "\\[D\\].*"))))
 
-  (add-to-list 'consult-buffer-sources 'denote-source 'append)) ;; end of consult
+  (add-to-list 'consult-buffer-sources 'denote-source 'append)
+
+  (defun sej/consult-project-search ()
+  "Search current project files using `consult-ripgrep`."
+  (interactive)
+  (consult-ripgrep (project-root (project-current t)))) ) ;; end of consult
 
 ;;;;; [[https://github.com/karthink/consult-dir][consult-dir]]
 ;; Think of it like the shell tools autojump, fasd or z but for Emacs.
@@ -4675,7 +4682,11 @@ the children of class at point."
 			  ("T" . denote-template)
 			  ("C-d r" . denote-dired-rename-files)
 			  ("C-d k" . denote-dired-rename-marked-files-with-keywords)
-			  ("C-d f" . denote-dired-rename-marked-files-using-front-matter))
+			  ("C-d f" . denote-dired-rename-marked-files-using-front-matter)
+			  :map search-map
+			  ("d" . sej/denote-consult-search)
+			  :map isearch-mode-map
+			  ("M-s d" . sej/denote-consult-search))
   :init
   (which-key-add-keymap-based-replacements sej-denote-map
     "f"     "Denote-find"
@@ -4934,9 +4945,16 @@ Add this function to the `after-save-hook'."
       (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
       (message "Buffer saved; Denote file renamed"))))
 
-(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)) ;end of denote use-package
+(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
 
-;;;;;; [[https://github.com/protesilaos/denote-journal][denote-journal]]
+;;;;;; search denote files
+;; bind to M-s d ; d for denote
+(defun sej/denote-consult-search ()
+  "Search all my Denote files using `consult-ripgrep`."
+  (interactive)
+  (consult-ripgrep denote-directory)) );end of denote use-package
+
+;;;;; [[https://github.com/protesilaos/denote-journal][denote-journal]]
 (use-package denote-journal
   :commands ( denote-journal-new-entry
               denote-journal-new-or-existing-entry
@@ -4972,7 +4990,7 @@ Add this function to the `after-save-hook'."
 	(interactive)
 	(find-file-other-window (expand-file-name "Journelly.org" denote-journal-directory))))
 
-;;;;;; [[https://github.com/protesilaos/denote-silo][denote-silo]]
+;;;;; [[https://github.com/protesilaos/denote-silo][denote-silo]]
 (use-package denote-silo
   :commands ( denote-silo-create-note
               denote-silo-open-or-create
@@ -5045,17 +5063,7 @@ This function should be hooked to `post-command-hook'."
 
   (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch))
 
-;;;;;; consult-denote
-;; integrate denote with consult
-;; [[https://github.com/protesilaos/consult-denote]]
-(use-package consult-denote
-  :bind (:map sej-denote-map
-                ("f f" . consult-denote-find)
-                ("f g" . consult-denote-grep) )
-  :custom (consult-denote-grep-command #'consult-ripgrep)
-  :config (consult-denote-mode 1))
-
-;;;;;; denote-refs
+;;;;; denote-refs
 ;; puts links and back-links after header in denote files
 ;; put below in .dir-locals.el in denote-directory
 ;; ((org-mode . ((eval . (denote-refs-mode)))))
@@ -5068,7 +5076,7 @@ This function should be hooked to `post-command-hook'."
   :hook (org-mode . denote-refs-mode)
   :custom (denote-refs-update-delay '(2 1 60))) ; needed to allow time for buffer set-up
 
-;;;;;; denote-menu
+;;;;; denote-menu
 ;; tabed list of denote notes
 ;; [[https://github.com/namilus/denote-menu]]
 (use-package denote-menu
