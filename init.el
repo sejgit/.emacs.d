@@ -5584,8 +5584,7 @@ function with the \\[universal-argument]."
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
-          (org-mode . variable-pitch-mode)
-		  (org-mode . org-list-checkbox-radio-mode))
+          (org-mode . variable-pitch-mode))
   :bind (( ("C-c l" . org-insert-link)
 		   ("C-c S" . org-store-link))
          (:map org-mode-map
@@ -6519,62 +6518,6 @@ function with the \\[universal-argument]."
            (org-src-preserve-indentation t)
            (org-src-tab-acts-natively t)
            (org-edit-src-content-indentation 0)))
-
-;;;;; sej/org-log-checklist-item
-
-;; **not currently used**
-;; automatically log checklist items into :LOGBOOK:
-;; https://emacs.stackexchange.com/questions/75441/how-to-log-changes-to-checklists-in-org-mode
-(defun sej/org-log-checklist-item (item)
-"Insert clocked ITEM into logbook drawer. Create drawer if it does not exist yet."
-  (save-excursion
-    (org-previous-visible-heading 1)
-    (while (not (= (org-current-level) 1))
-      (org-previous-visible-heading 1))
-    (forward-line)
-    (let* ((element (org-element-at-point))
-           (logbookp (string= (org-element-property :drawer-name element)
-                              "LOGBOOK")))
-      (if logbookp
-          (goto-char (org-element-property :contents-end element))
-        (org-insert-drawer nil "LOGBOOK"))
-
-	  (insert "- " item " ")
-      (org-insert-time-stamp (current-time) t t)
-      (when logbookp
-        (insert "\n")))))
-
-(defun sej/org-checkbox-item ()
-"Retrieve the contents (text) of the item."
-  (save-excursion
-    (beginning-of-line)
-    (search-forward "]")
-    (forward-char)
-    (buffer-substring-no-properties (point) (line-end-position))))
-
-;; **currently being used**
-(defun sej/org-checklist-date-insert (&rest _)
-  "Lock checkbox item by adding date time stamp to end of line."
-  (interactive)
-  (when (org-at-item-checkbox-p)
-	(save-excursion
-	  (end-of-visible-line)
-	  (org-insert-time-stamp (current-time) t t))))
-
-(defun sej/org-checklist-log (&rest _)
-  "Advise function to get and log checkbox item when it is checked."
-  (interactive)
-  (when (org-at-item-checkbox-p)
-    (let ((checkedp (save-excursion
-                      (beginning-of-line)
-                      (search-forward "[")
-                      (looking-at-p "X"))))
-      (when checkedp
-        (sej/org-log-checklist-item (sej/org-checkbox-item))))))
-
-;; need to have org-list-checkbox-radio-mode
-;;(advice-add 'org-toggle-radio-button :after #'sej/org-checklist-date-insert)
-
 
 ;;;;; toc-org
 ;; Table of contents updated at save to header with TOC tag
