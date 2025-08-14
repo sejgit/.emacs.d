@@ -6573,7 +6573,7 @@ function with the \\[universal-argument]."
         (sej/org-log-checklist-item (sej/org-checkbox-item))))))
 
 ;; need to have org-list-checkbox-radio-mode
-(advice-add 'org-toggle-radio-button :after #'sej/org-checklist-date-insert)
+;;(advice-add 'org-toggle-radio-button :after #'sej/org-checklist-date-insert)
 
 
 ;;;;; toc-org

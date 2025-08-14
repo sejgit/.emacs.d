@@ -102,6 +102,7 @@ session*
 src/
 straight/
 test/
+temp/
 thumbs/
 tldr/
 tmp*
