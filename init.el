@@ -4033,6 +4033,11 @@ If called with a prefix argument, query for word to search."
             :rev :newest
             :branch "master"))
 
+;;;;; [[https://github.com/wbolster/emacs-python-pytest][python-pytest]]
+(use-package python-pytest
+  :bind (:map python-base-mode-map
+			  ("C-c t" . python-pytest-dispatch)))
+
 ;;;;; [[https://github.com/purcell/envrc][envrc]]
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
 ;; environment variables and then set those environment variables on a per-buffer basis.
