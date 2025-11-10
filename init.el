@@ -3683,13 +3683,18 @@ If called with a prefix argument, query for word to search."
 	   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
 	   (magit-bury-buffer-function #'magit-restore-window-configuration))
   :config
+  (require 'gh-auth-switch)
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
   (if (fboundp 'transient-append-suffix)
-      ;; Add switch: --tags
-      (transient-append-suffix 'magit-fetch
-        "-p" '("-t" "Fetch all tags" ("-t" "--tags"))))
+      (progn
+        ;; Add switch: --tags
+        (transient-append-suffix 'magit-fetch
+          "-p" '("-t" "Fetch all tags" ("-t" "--tags")))
+        ;; Add gh auth switch to push menu
+        (transient-append-suffix 'magit-push
+          "p" '("@" "Switch GitHub account" gh-auth-switch))))
   (setopt magit-format-file-function #'magit-format-file-nerd-icons))
 
 ;;;;; [[https://github.com/dandavison/magit-delta][magit-delta]]
@@ -3745,7 +3750,7 @@ If called with a prefix argument, query for word to search."
   (setq magit-todos-recursive t
         magit-todos-depth 100)
   (custom-set-variables
-   '(magit-todos-keywords (list "TODO(SeJ)"))
+   '(magit-todos-keywords (list "TODO" "FIX" ))
    '(magit-todos-ignore-file-suffixes '("todo"))
    '(magit-todos-exclude-globs '("*.map" "*.html"))))
 
