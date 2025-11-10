@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: elisp-lint
+        name: Lint Emacs Lisp files
+        entry: make lint
+        language: system
+        files: \.el$
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: ^(elpa/|eln-cache/|var/|etc/)
+      - id: trailing-whitespace
+        exclude: ^(elpa/|eln-cache/|var/|etc/)
