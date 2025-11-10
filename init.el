@@ -93,8 +93,25 @@
 ;; remove warnings for cl depreciated and server already running
 (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
 (setq warning-suppress-log-types (quote ((cl) (org-element))))
-(setq byte-compile-warnings (quote ((cl-functions))))
+(setq byte-compile-warnings '(not obsolete cl-functions))
 (setq native-comp-async-report-warnings-errors 'silent)
+;; Suppress native-comp warnings for obsolete functions
+(setq native-comp-warning-on-missing-source nil)
+(when (boundp 'native-comp-async-report-warnings-errors)
+  (setq native-comp-async-report-warnings-errors nil))
+
+;; Filter obsolete warnings from being displayed
+(defun filter-obsolete-warnings (msg &rest args)
+  "Don't display obsolete/deprecated warnings in *Messages*."
+  (unless (string-match-p "\\(obsolete\\|deprecated\\)" msg)
+    (apply #'message-original msg args)))
+
+(unless (advice-member-p #'filter-obsolete-warnings 'message)
+  (advice-add 'message :around
+              (lambda (orig-fun format-string &rest args)
+                (unless (and (stringp format-string)
+                             (string-match-p "\\(obsolete\\|deprecated\\)" format-string))
+                  (apply orig-fun format-string args)))))
 
 ;; prevent warnings buffer from poping up during package compile
 ;; still available in the buffer list
@@ -3898,14 +3915,6 @@ If called with a prefix argument, query for word to search."
              elisp-slime-nav-find-elisp-thing-at-point)
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
-;;;;; [[https://github.com/joaotavora/sly][sly]]
-;; replacement repla for slime
-(use-package sly
-  :hook (lisp-mode . sly-mode)
-  :config
-  (setq inferior-lisp-program "/usr/local/bin/sbcl"
-        sly-mrepl-history-file-name (concat no-littering-etc-directory "sly-mrepl-history")))
-
 ;;;;; [[https://github.com/xiongtx/eros][eros]]
 ;; eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
@@ -3959,12 +3968,6 @@ If called with a prefix argument, query for word to search."
               (if (file-exists-p (concat buffer-file-name "c"))
                   (delete-file (concat buffer-file-name "c"))))))
 (add-hook 'emacs-lisp-mode-hook 'sej/remove-elc-on-save)
-
-;;;;; geiser ( guile ) ( closure )
-;; Emacs for guile
-;; [[https://www.nongnu.org/geiser/geiser_2.html#Installation][geiser]]
-;; [[https://jeko.frama.io/en/emacs.html][guile hacking manual]]
-(use-package geiser)
 
 ;;;; python
 ;;;;; [[http://wikemacs.org/wiki/Python][python]]
@@ -4124,11 +4127,6 @@ If called with a prefix argument, query for word to search."
   :blackout t
   :hook (js2-mode . js2-refactor-mode)
   :config (js2r-add-keybindings-with-prefix "C-c C-m"))
-
-;;;;; [[https://github.com/scottaj/mocha.el][mocha]]
-;; Run Mocha or Jasmine tests
-(use-package mocha
-  :config (use-package mocha-snippets))
 
 ;;;;; [[https://github.com/yasuyk/web-beautify][web-beautify]]
 ;; Format HTML, CSS and JavaScript/JSON by js-beautify

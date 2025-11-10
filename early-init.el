@@ -46,7 +46,11 @@
 ;; Native Compilation Vars
 (setq-default native-comp-speed 2
               native-comp-deferred-compilation t
-              native-comp-async-report-warnings-errors 'silent)
+              native-comp-async-report-warnings-errors 'silent
+              native-comp-warning-on-missing-source nil)
+;; Suppress specific obsolete warnings during native compilation
+(setq native-comp-compiler-options
+      '("-O2" "-Wno-deprecated-declarations"))
 
 ;;;;; frame settings early to prevent clutter
 (modify-all-frames-parameters '((width . 80)
