@@ -7268,10 +7268,6 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :after elfeed
   :bind (:map elfeed-show-mode-map
               ("'" . elfeed-webkit-toggle)))
-;; :init
-;; (setq elfeed-webkit-auto-enable-tags '(webkit comics))
-;; :config
-;; ;;(elfeed-webkit-auto-toggle-by-tag)
 
 ;;; init.el --- end
 (message "init.el ends here")
