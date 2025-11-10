@@ -3618,16 +3618,13 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :preface
   ;; ANSI Coloring
-  ;; @see https://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
-  (defun my-colorize-compilation-buffer ()
-    "ANSI coloring in compilation buffers."
-    (when (eq major-mode 'compilation-mode)
-      (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  :hook (compilation-filter . my-colorize-compilation-buffer)
+  (with-eval-after-load 'compile
+  (require 'ansi-color)
+  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter nil t))
   :custom ((compilation-message-face 'compilation-base-face)
-           (compilation-always-kill t)
-           (compilation-ask-about-save nil)
-           (compilation-scroll-output 'first-error)))
+		   (compilation-always-kill t)
+		   (compilation-ask-about-save nil)
+		   (compilation-scroll-output 'first-error)) )
 
 ;;;;; make-mode
 ;; built-in: Major mode for editing standard Makefiles
