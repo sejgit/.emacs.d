@@ -3401,6 +3401,14 @@ If called with a prefix argument, query for word to search."
   :demand t
   :custom (treesit-auto-install 'prompt)
   :config
+  (setq treesit-language-source-alist
+		'((markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+					   "split_parser" "tree-sitter-markdown/src"))
+		  (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+							  "split_parser" "tree-sitter-markdown-inline/src"))))
+  ;;(treesit-install-language-grammar 'markdown)
+  ;;(treesit-install-language-grammar 'markdown-inline)
+
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
