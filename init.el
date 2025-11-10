@@ -1746,8 +1746,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :bind (("C-`" . popper-toggle)
          ("C-~" . popper-cycle)
          ("H-`" . popper-toggle-type))
-  :custom (popper-reference-buffers '("\\*Messages\\*"
-									  "Output\\*$"
+  :custom (popper-reference-buffers '("Output\\*$"
 									  "\\*Async Shell Command\\*"
 									  help-mode
 									  special-mode
@@ -3878,22 +3877,6 @@ If called with a prefix argument, query for word to search."
   :config
   (eldoc-add-command-completions "paredit-")
   (eldoc-add-command-completions "combobulate-"))
-
-;;;;; elint
-(use-package elint
-  :commands (elint-initialize elint-current-buffer)
-  :bind ("C-q e" . sej/elint-current-buffer)
-  :config
-  (defun sej/elint-current-buffer ()
-    (interactive)
-    (elint-initialize)
-    (elint-current-buffer))
-  (sej/add-all-to-list 'elint-standard-variables
-                       'current-prefix-arg
-					   'command-line-args-left
-					   'buffer-file-coding-system
-					   'emacs-major-version
-					   'window-system))
 
 ;;;;; [[https://github.com/purcell/elisp-slime-nav][elisp-slime-nav]]
 ;; turn on elisp-slime-nav
