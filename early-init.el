@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-;;;;; Package-enable prevent early 
+;;;;; Package-enable prevent early
 ;; Package initialize occurs automatically, before `user-init-file' is
 ;; loaded, but after `early-init-file'. We handle package
 ;; initialization, so we must prevent Emacs from doing it early!

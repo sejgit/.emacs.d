@@ -14,17 +14,6 @@ default frame settings
 
 main settings
 
-## init-mini.el
-
-NOT complete & currently out-of-date...
-An alternate init.el
-For embedded controllers / smaller machines which require less packages\
-Use a soft link to it from .emacs in your home directory
-
-````sh
-ln -s ~/.emacs.d/init-mini.el ~/.emacs
-````
-
 ## Emacs install
 
 ### macos
@@ -39,4 +28,17 @@ brew install emacs-plus@30 --with-xwidgets --with-no-frame-refocus --with-native
 
 ### system install of some packages
 
-- many packages will install automatically but some will need some help
+- most packages will install automatically but some will need some help
+- M-x package-vc-upgrade-all
+- M-x package-upgrade-all
+
+## init-mini.el
+
+NOT complete, future project.
+An alternate init.el
+For embedded controllers / smaller machines which require less packages\
+Use a soft link to it from .emacs in your home directory
+
+````sh
+ln -s ~/.emacs.d/init-mini.el ~/.emacs
+````

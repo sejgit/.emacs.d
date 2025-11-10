@@ -74,7 +74,7 @@
 
   (setq package-enable-at-startup nil
         load-path (append (list (emacs-path "lisp"))
-						  (delete-dups load-path))))
+			  (delete-dups load-path))))
 
 ;; part of Emacs built-in as of Emacs29
 (eval-when-compile
@@ -249,7 +249,7 @@
   :demand t
   :vc (:url "https://github.com/jdtsmith/ultra-scroll")
   :custom ((scroll-conservatively 101) ; important!
-		   (scroll-margin 0))
+	   (scroll-margin 0))
   :config
   (ultra-scroll-mode 1))
 
@@ -258,65 +258,65 @@
   (message "Mac OSX")
   ;; fix path on M1 macs
   (when sys/mac-AA64-p
-	(setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
-	(setq exec-path (append exec-path '("/opt/homebrew/bin"))))
+    (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
+    (setq exec-path (append exec-path '("/opt/homebrew/bin"))))
   (unless (find-font (font-spec :name "Iosevka"))
-	(shell-command-to-string "brew install font-iosevka"))
+    (shell-command-to-string "brew install font-iosevka"))
   (if (find-font (font-spec :name "Iosevka"))
-	  (add-to-list 'default-frame-alist '(font . "iosevka-14")))
+      (add-to-list 'default-frame-alist '(font . "iosevka-14")))
 
 ;;;;;; OSX Apple keyboard
-;; caps lock is control (through karabiner)
-;; Fn key do Hyper
-;; LControl key do RControl (Karabiner) which is Super (Emacs)
-;; left opt/alt key do Emacs Alt modifier
-;; right opt/alt key do regular alt key
-;; left and right command(apple) key do Meta
-;; space bar acts as super key with other key
-;; karabiner.json backup files in dotfiles under .config directory
-;; https://github.com/pqrs-org/Karabiner-Elements
+  ;; caps lock is control (through karabiner)
+  ;; Fn key do Hyper
+  ;; LControl key do RControl (Karabiner) which is Super (Emacs)
+  ;; left opt/alt key do Emacs Alt modifier
+  ;; right opt/alt key do regular alt key
+  ;; left and right command(apple) key do Meta
+  ;; space bar acts as super key with other key
+  ;; karabiner.json backup files in dotfiles under .config directory
+  ;; https://github.com/pqrs-org/Karabiner-Elements
 
-(if (boundp 'mac-carbon-version-string) ;; using mac-port?
+  (if (boundp 'mac-carbon-version-string) ;; using mac-port?
+      ( progn
+        (message "Mac-port")
+        ;; for emacs-mac-port
+        (setq mac-right-command-modifier 'left)  ;right command, plus Karabiner
+        (setq mac-right-option-modifier 'meta)   ;right option as meta
+        (setq mac-function-modifier 'hyper)      ;hyper is function & held tab key (Karabiner)
+        (setq mac-control-modifier 'control)     ;Karabiner swapped & caps_lock
+        (setq mac-right-control-modifier 'alt)   ;actually left control
+        (setq mac-option-modifier 'meta)         ;left option is meta
+        (setq mac-command-modifier 'super))      ;left command is super
     ( progn
-      (message "Mac-port")
-      ;; for emacs-mac-port
-      (setq mac-right-command-modifier 'left)  ;right command, plus Karabiner
-      (setq mac-right-option-modifier 'meta)   ;right option as meta
-      (setq mac-function-modifier 'hyper)      ;hyper is function & held tab key (Karabiner)
-      (setq mac-control-modifier 'control)     ;Karabiner swapped & caps_lock
-      (setq mac-right-control-modifier 'alt)   ;actually left control
-      (setq mac-option-modifier 'meta)         ;left option is meta
-      (setq mac-command-modifier 'super))      ;left command is super
-  ( progn
-    (message "ns-port")
-    ;; for regular Emacs port
-	(setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
-    (setq ns-right-option-modifier 'meta)	 ;right option as meta
-    (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
-    (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
-    (setq ns-right-control-modifier 'alt)    ;actually left control
-    (setq ns-option-modifier 'meta)			 ;left option is meta
-    (setq ns-command-modifier 'super)		 ;left command is super
+      (message "ns-port")
+      ;; for regular Emacs port
+      (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
+      (setq ns-right-option-modifier 'meta)	 ;right option as meta
+      (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
+      (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
+      (setq ns-right-control-modifier 'alt)    ;actually left control
+      (setq ns-option-modifier 'meta)			 ;left option is meta
+      (setq ns-command-modifier 'super)		 ;left command is super
 
-	;; old version w/command as meta, control as super, option as Alt
-    ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
-    ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)
-    ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
-    ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
-    ;; (setq ns-right-control-modifier 'super)  ;actually left control
-    ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key
-    ;; (setq ns-command-modifier 'meta)		 ;left command is meta
-    ))
-;; only needed with old version
-;; (global-set-key (kbd "M-`") 'ns-next-frame)
-;; (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
+      ;; old version w/command as meta, control as super, option as Alt
+      ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
+      ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)
+      ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
+      ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
+      ;; (setq ns-right-control-modifier 'super)  ;actually left control
+      ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key
+      ;; (setq ns-command-modifier 'meta)		 ;left command is meta
+      ))
+  ;; only needed with old version
+  ;; (global-set-key (kbd "M-`") 'ns-next-frame)
+  ;; (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
 
-(setq insert-directory-program "gls")
+  (setq insert-directory-program "gls")
 
-(if (not (getenv "TERM_PROGRAM"))
-    (setenv "PATH"
-            (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-(setq exec-path (split-string (getenv "PATH") ":")))
+  (if (not (getenv "TERM_PROGRAM"))
+      (setenv "PATH"
+              (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
+  (setq exec-path (split-string (getenv "PATH") ":")))
 
 ;;;;; Linux System specific environment setting
 (when sys/linuxp
@@ -450,24 +450,24 @@
 (use-package no-littering
   :demand t
   :custom ((create-lockfiles nil)
-		   (backup-by-copying t)    ; Don't delink hardlinks
-		   (delete-old-versions t)  ; Clean up the backups
-		   (version-control t)      ; Use version numbers on backups,
-		   (kept-new-versions 5)    ; keep some new versions
-		   (kept-old-versions 2)    ; and some old ones, too
-		   (vc-make-backup-files t)
-		   (backup-by-copying t)
-		   (version-control t)
-		   (auto-save-interval 64)
-		   (auto-save-timeout 2))
+	   (backup-by-copying t)    ; Don't delink hardlinks
+	   (delete-old-versions t)  ; Clean up the backups
+	   (version-control t)      ; Use version numbers on backups,
+	   (kept-new-versions 5)    ; keep some new versions
+	   (kept-old-versions 2)    ; and some old ones, too
+	   (vc-make-backup-files t)
+	   (backup-by-copying t)
+	   (version-control t)
+	   (auto-save-interval 64)
+	   (auto-save-timeout 2))
   :config
   ;; Put backup files neatly away
   (let ((backup-dir (concat no-littering-var-directory "backups/"))
-		(auto-saves-dir (concat no-littering-var-directory "auto-save/")))
-	(dolist (dir (list backup-dir auto-saves-dir))
+	(auto-saves-dir (concat no-littering-var-directory "auto-save/")))
+    (dolist (dir (list backup-dir auto-saves-dir))
       (when (not (file-directory-p dir))
-		(make-directory dir t)))
-	(setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
+	(make-directory dir t)))
+    (setq backup-directory-alist `(("." . ,(expand-file-name backup-dir))
                                    auto-save-list-file-prefix ,(concat auto-saves-dir ".saves-")
                                    auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
           tramp-backup-directory-alist `((".*" . ,backup-dir))
@@ -582,12 +582,12 @@
   ;; Don't enable whitespace for.
   (setq-default whitespace-global-modes
                 '(not shell-mode
-                    help-mode
-                    magit-mode
-                    magit-diff-mode
-                    ibuffer-mode
-                    dired-mode
-                    occur-mode))
+                      help-mode
+                      magit-mode
+                      magit-diff-mode
+                      ibuffer-mode
+                      dired-mode
+                      occur-mode))
 
   ;; set whitespace actions.
   (setq-default whitespace-action
@@ -674,70 +674,70 @@
   (define-key input-decode-map [?\C-m] [C-m]) ;; fix C-m so not decoded as <ret>
 
   :bind (:prefix-map transpose-map
-                      :prefix "M-t"
-                      :prefix-docstring "transpose map"
-                      ("l" . transpose-lines)
-                      ("w" . transpose-words)
-                      ("s" . transpose-sexps)
-                      ("p" . transpose-params))
+                     :prefix "M-t"
+                     :prefix-docstring "transpose map"
+                     ("l" . transpose-lines)
+                     ("w" . transpose-words)
+                     ("s" . transpose-sexps)
+                     ("p" . transpose-params))
 
 ;;;;;; special character definitions λ
   :bind (:prefix-map special-char-map
-                      :prefix "C-x 8"
-                      :prefix-docstring "special char map"
-		              ("l" . sej/insert-lambda)
-		              ("t" . sej/insert-tm)
-		              ("c" . sej/insert-copyright)
-		              (">" . sej/insert-rightarrow)
-		              ("8" . sej/insert-infinity)
-		              ("v" . sej/insert-check))
+                     :prefix "C-x 8"
+                     :prefix-docstring "special char map"
+		     ("l" . sej/insert-lambda)
+		     ("t" . sej/insert-tm)
+		     ("c" . sej/insert-copyright)
+		     (">" . sej/insert-rightarrow)
+		     ("8" . sej/insert-infinity)
+		     ("v" . sej/insert-check))
 
 ;;;;;; map bindings sej-C-x bindings
   :bind (:prefix-map sej-C-q-map
-                      :prefix "C-q"
-                      :prefix-docstring "SeJ Personal C-q key bindings"
-                      ("v"   . emacs-version)
-                      ("\\"  . align-regexp) ;Align your code in a pretty way.
-                      ("D"   . describe-personal-keybindings)
-					  ("l"   . sej/toggle-relative-ln))
+                     :prefix "C-q"
+                     :prefix-docstring "SeJ Personal C-q key bindings"
+                     ("v"   . emacs-version)
+                     ("\\"  . align-regexp) ;Align your code in a pretty way.
+                     ("D"   . describe-personal-keybindings)
+		     ("l"   . sej/toggle-relative-ln))
 
   :bind (:prefix-map term-map
-                      :prefix "C-q S"
-                      :prefix-docstring "Term bindings")
+                     :prefix "C-q S"
+                     :prefix-docstring "Term bindings")
 
   :bind (:prefix-map sej-C-m-map
-                      :prefix "<C-m>"
-                      :prefix-docstring "Multi-menu")
+                     :prefix "<C-m>"
+                     :prefix-docstring "Multi-menu")
 
   :bind (:prefix-map sej-denote-map
-					 :prefix "C-,"
-					 :prefix-docstring "SeJ Denote key bindings"
-					 ("."   . org-timestamp))
+		     :prefix "C-,"
+		     :prefix-docstring "SeJ Denote key bindings"
+		     ("."   . org-timestamp))
 
   :bind (:map override-global-map
-               ("s-." . pop-to-mark-command)
-	           ("M-j" . join-line)
-               ("C-x j" . duplicate-dwim)
-			   ("M-\\" . cycle-spacing)
-			   ;; movement complementary to windmove / windswap
-			   ("A-h" . left-char)
-			   ("A-j" . next-line)
-			   ("A-k" . previous-line)
-			   ("A-l" . right-char)
-			   ;;scroll window up/down by one line
-			   ("A-n" . sej/scroll-up-one)
-			   ("A-p" . sej/scroll-down-one))
+              ("s-." . pop-to-mark-command)
+	      ("M-j" . join-line)
+              ("C-x j" . duplicate-dwim)
+	      ("M-\\" . cycle-spacing)
+	      ;; movement complementary to windmove / windswap
+	      ("A-h" . left-char)
+	      ("A-j" . next-line)
+	      ("A-k" . previous-line)
+	      ("A-l" . right-char)
+	      ;;scroll window up/down by one line
+	      ("A-n" . sej/scroll-up-one)
+	      ("A-p" . sej/scroll-down-one))
   :init
-    (defun sej/scroll-up-one()
-	"Scroll screen up one while keeping point in place."
-	(interactive)
-	(scroll-up 1))
+  (defun sej/scroll-up-one()
+    "Scroll screen up one while keeping point in place."
+    (interactive)
+    (scroll-up 1))
 
   (defun sej/scroll-down-one()
-	"Scroll screen down one while keeping point in place."
-	(interactive)
-	(scroll-down 1))
-)  ;; end of emacs
+    "Scroll screen down one while keeping point in place."
+    (interactive)
+    (scroll-down 1))
+  )  ;; end of emacs
 
 ;;;;; sej constants
 
@@ -780,22 +780,22 @@
              (auto-fill-mode . ""))
   :ensure nil
   :custom ((blink-matching-paren 'jump-offscreen)
-		   (column-number-mode t)
-		   (delete-trailing-lines t)
-		   (eval-expression-print-length nil)
-		   (eval-expression-print-level nil)
-		   (idle-update-delay 1)
-		   (kill-do-not-save-duplicates t)
-		   (kill-ring-max 300)
-		   (kill-ring-deindent-mode t)
-		   (track-eol t)
-		   (line-move-visual nil)
-		   (line-number-mode t)
-		   (save-interprogram-paste-before-kill t)
-		   (kill-read-only-ok t)
-		   (shift-select-mode nil)
-		   (set-mark-command-repeat-pop t)
-		   (backward-delete-char-untabify-method nil)))
+	   (column-number-mode t)
+	   (delete-trailing-lines t)
+	   (eval-expression-print-length nil)
+	   (eval-expression-print-level nil)
+	   (idle-update-delay 1)
+	   (kill-do-not-save-duplicates t)
+	   (kill-ring-max 300)
+	   (kill-ring-deindent-mode t)
+	   (track-eol t)
+	   (line-move-visual nil)
+	   (line-number-mode t)
+	   (save-interprogram-paste-before-kill t)
+	   (kill-read-only-ok t)
+	   (shift-select-mode nil)
+	   (set-mark-command-repeat-pop t)
+	   (backward-delete-char-untabify-method nil)))
 
 ;;;;; minibuffer
 ;; built-in: minibuffer settings
@@ -804,30 +804,30 @@
   :demand t
   :ensure nil
   :custom ((completion-cycle-threshold 7)
-		   (completion-flex-nospace nil)
-		   (completion-category-defaults nil)
-		   (completion-category-overrides
-			;; `partial-completion' is a killer app for files, because it
-			;; can expand ~/.l/s/fo to ~/.local/share/fonts.
-			;;
-			;; If `basic' cannot match my current input, Emacs tries the
-			;; next completion style in the given order.  In other words,
-			;; `orderless' kicks in as soon as I input a space or one of its
-			;; style dispatcher characters.
-			'((file (styles . (basic partial-completion orderless)))
-			  (project-file (styles . (basic substring partial-completion orderless)))
-			  (imenu (styles . (basic substring orderless)))
-			  (kill-ring (styles . (basic substring orderless)))
-			  (consult-location (styles . (basic substring orderless)))
-			  (eglot (styles . (basic substring orderless)))
-			  (buffer (styles initials basic))
-			  (info-menu (styles basic))))
-		   (completions-format 'vertical)
-		   (read-answer-short t)
-		   (completion-ignore-case t)
-		   (read-buffer-completion-ignore-case t)
-		   (read-file-name-completion-ignore-case t)
-		   (resize-mini-windows t)))
+	   (completion-flex-nospace nil)
+	   (completion-category-defaults nil)
+	   (completion-category-overrides
+	    ;; `partial-completion' is a killer app for files, because it
+	    ;; can expand ~/.l/s/fo to ~/.local/share/fonts.
+	    ;;
+	    ;; If `basic' cannot match my current input, Emacs tries the
+	    ;; next completion style in the given order.  In other words,
+	    ;; `orderless' kicks in as soon as I input a space or one of its
+	    ;; style dispatcher characters.
+	    '((file (styles . (basic partial-completion orderless)))
+	      (project-file (styles . (basic substring partial-completion orderless)))
+	      (imenu (styles . (basic substring orderless)))
+	      (kill-ring (styles . (basic substring orderless)))
+	      (consult-location (styles . (basic substring orderless)))
+	      (eglot (styles . (basic substring orderless)))
+	      (buffer (styles initials basic))
+	      (info-menu (styles basic))))
+	   (completions-format 'vertical)
+	   (read-answer-short t)
+	   (completion-ignore-case t)
+	   (read-buffer-completion-ignore-case t)
+	   (read-file-name-completion-ignore-case t)
+	   (resize-mini-windows t)))
 
 ;;;;; uniquify
 ;; built-in: to make buffer names unique but identifiable
@@ -835,10 +835,10 @@
   :demand t
   :ensure nil
   :custom ((uniquify-ignore-buffers-re "^\\*")
-		   (uniquify-buffer-name-style 'post-forward-angle-brackets)
-		   (uniquify-strip-common-suffix t)
-		   (uniquify-after-kill-buffer-p t)
-		   (uniquify-separator "/")))
+	   (uniquify-buffer-name-style 'post-forward-angle-brackets)
+	   (uniquify-strip-common-suffix t)
+	   (uniquify-after-kill-buffer-p t)
+	   (uniquify-separator "/")))
 
 ;;;;; repeat
 ;; built-in: bindings to allow easier keys when repeating functions
@@ -870,15 +870,15 @@
   :ensure nil
   :hook (after-init . savehist-mode) ;; earlier in startup so available to dashboard
   :custom ((history-delete-duplicates t)
-		   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
-		   (history-length 10000)
-		   (savehist-save-minibuffer-history t)
-		   (savehist-autosave-interval 300)
-		   (savehist-additional-variables '(mark-ring
-											global-mark-ring
-											search-ring
-											regexp-search-ring
-											extended-command-history))))
+	   (enable-recursive-minibuffers t "Allow commands in minibuffers.")
+	   (history-length 10000)
+	   (savehist-save-minibuffer-history t)
+	   (savehist-autosave-interval 300)
+	   (savehist-additional-variables '(mark-ring
+					    global-mark-ring
+					    search-ring
+					    regexp-search-ring
+					    extended-command-history))))
 
 ;;;;; recentf
 ;; built-in: recent file history list settings
@@ -886,19 +886,19 @@
 (use-package recentf
   :hook (emacs-startup . recentf-mode)
   :custom ((recentf-max-saved-items 2000)
-		   (recentf-max-menu-items 100)
-		   (recentf-auto-cleanup 'never)
-		   (recentf-exclude '((expand-file-name package-user-dir)
-							  ".cache"
-							  ".cask"
-							  ".elfeed"
-							  "bookmarks"
-							  "cache"
-							  "persp-confs"
-							  "recentf"
-							  "undo-tree-hist"
-							  "url"
-							  "COMMIT_EDITMSG\\'"))))
+	   (recentf-max-menu-items 100)
+	   (recentf-auto-cleanup 'never)
+	   (recentf-exclude '((expand-file-name package-user-dir)
+			      ".cache"
+			      ".cask"
+			      ".elfeed"
+			      "bookmarks"
+			      "cache"
+			      "persp-confs"
+			      "recentf"
+			      "undo-tree-hist"
+			      "url"
+			      "COMMIT_EDITMSG\\'"))))
 
 ;;;;; vundo
 ;; visual undo displays the undo history as a tree
@@ -970,7 +970,7 @@
 Return its absolute path.  Otherwise, return nil."
   (interactive)
   (-let [path (s-trim (shell-command-to-string (s-concat "which " command)))]
-    (when (f-executable? path) path)))
+        (when (f-executable? path) path)))
 
 (defun sej/exec-if-exec (command args)
   "If COMMAND `sej/is-exec' run it with ARGS, return per `sej/exec' or nil."
@@ -979,12 +979,12 @@ Return its absolute path.  Otherwise, return nil."
 
 (defun sej/toggle-relative-ln ()
   "Toggle line numbers relative to current, which displays absolute line number."
-        (interactive)
-             (if (and (boundp 'display-line-numbers-mode) display-line-numbers-mode)
-              (display-line-numbers-mode -1)
-                 (progn
-                   (setq display-line-numbers-type 'relative)
-                   (display-line-numbers-mode 1))))
+  (interactive)
+  (if (and (boundp 'display-line-numbers-mode) display-line-numbers-mode)
+      (display-line-numbers-mode -1)
+    (progn
+      (setq display-line-numbers-type 'relative)
+      (display-line-numbers-mode 1))))
 
 (defun sej/keyboard-quit-dwim ()
   "Do-What-I-Mean behaviour for a general `keyboard-quit'.
@@ -1037,14 +1037,14 @@ The DWIM behaviour of this command is as follows:
               ("C-c" . quick-calc))
   :commands (quick-calc calc)
   :custom (setq math-additional-units
-				'((GiB "1024 * MiB" "Giga Byte")
-				  (MiB "1024 * KiB" "Mega Byte")
-				  (KiB "1024 * B" "Kilo Byte")
-				  (B nil "Byte")
-				  (Gib "1024 * Mib" "Giga Bit")
-				  (Mib "1024 * Kib" "Mega Bit")
-				  (Kib "1024 * b" "Kilo Bit")
-				  (b "B / 8" "Bit"))))
+		'((GiB "1024 * MiB" "Giga Byte")
+		  (MiB "1024 * KiB" "Mega Byte")
+		  (KiB "1024 * B" "Kilo Byte")
+		  (B nil "Byte")
+		  (Gib "1024 * Mib" "Giga Bit")
+		  (Mib "1024 * Kib" "Mega Bit")
+		  (Kib "1024 * b" "Kilo Bit")
+		  (b "B / 8" "Bit"))))
 
 ;;;;; checkdoc
 ;; built-in: checker of buffer for style issues
@@ -1066,7 +1066,7 @@ The DWIM behaviour of this command is as follows:
                      ,(f-expand "~/.ssh/.authinfo")
                      macos-keychain-generic
                      macos-keychain-internet)
-	  auth-source-do-cache t)
+      auth-source-do-cache t)
 
 (defun sej/lookup-password (host user port)
   "Lookup password for HOST USER PORT."
@@ -1101,11 +1101,11 @@ The DWIM behaviour of this command is as follows:
 (use-package gnutls
   :ensure nil
   :custom ((gnutls-verify-error t)
-		   (gnutls-min-prime-bits 2048))
+	   (gnutls-min-prime-bits 2048))
   :init
   (unless (gnutls-available-p)
-	(message "installing gnutls...")
-	(shell-command-to-string "brew install gnutls")))
+    (message "installing gnutls...")
+    (shell-command-to-string "brew install gnutls")))
 
 ;;;;; keychain-environment
 ;; set up any SSH or GPG keychains that the Keychain tool has set up for us
@@ -1128,9 +1128,9 @@ The DWIM behaviour of this command is as follows:
 (use-package help
   :ensure nil
   :bind (:map help-map
-			  ("=" . describe-char)
-			  ("j" . describe-face)
-			  ("-" . describe-keymap))
+	      ("=" . describe-char)
+	      ("j" . describe-face)
+	      ("-" . describe-keymap))
   :hook
   (help-mode . visual-line-mode)
   :custom (help-window-select 'always)
@@ -1144,23 +1144,23 @@ The DWIM behaviour of this command is as follows:
   :ensure nil
   :hook (emacs-startup . which-key-mode)
   :bind (("C-h h" . which-key-show-top-level)
-          ("C-h M-m" . which-key-show-major-mode))
+         ("C-h M-m" . which-key-show-major-mode))
   :commands which-key-mode
   :custom ((which-key-use-C-h-commands t)
-		   (which-key-separator " ")
-		   (which-key-prefix-prefix "+")))
+	   (which-key-separator " ")
+	   (which-key-prefix-prefix "+")))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
 ;; https://github.com/Wilfred/helpful
 (use-package helpful
   :bind (("C-h ." . helpful-at-point)
-          ("C-h x" . helpful-command)
-          ("C-h k" . helpful-key) ; C-h k
-          ("C-h v" . helpful-variable) ; C-h v
-          ("C-h f" . helpful-callable) ; C-f v
-          ("C-h F" . helpful-function)
-          ("C-h M" . helpful-macro))  )
+         ("C-h x" . helpful-command)
+         ("C-h k" . helpful-key) ; C-h k
+         ("C-h v" . helpful-variable) ; C-h v
+         ("C-h f" . helpful-callable) ; C-f v
+         ("C-h F" . helpful-function)
+         ("C-h M" . helpful-macro))  )
 
 ;;;;; casual
 ;; triansient based jump screens
@@ -1170,14 +1170,14 @@ The DWIM behaviour of this command is as follows:
   :config
   (require 'casual-lib))
 
-;below are part of casual main package
+                                        ;below are part of casual main package
 (use-package casual-agenda
   :ensure nil
   :after org-agenda
   :bind (:map org-agenda-mode-map
-         ("C-o" . casual-agenda-tmenu)
-         ("M-j" . org-agenda-clock-goto) ; optional
-         ("J" . bookmark-jump)))
+              ("C-o" . casual-agenda-tmenu)
+              ("M-j" . org-agenda-clock-goto) ; optional
+              ("J" . bookmark-jump)))
 
 (use-package casual-bookmarks
   :ensure nil
@@ -1191,23 +1191,23 @@ The DWIM behaviour of this command is as follows:
   :ensure nil
   :after calc
   :bind (:map calc-mode-map
-			  ("C-o" . casual-calc-tmenu)
-			  :map calc-alg-map
-			  ("C-o" . casual-calc-tmenu)))
+	      ("C-o" . casual-calc-tmenu)
+	      :map calc-alg-map
+	      ("C-o" . casual-calc-tmenu)))
 
 (use-package casual-calendar
   :ensure nil
   :after calendar
   :bind (:map calendar-mode-map
-			  ("C-o" . casual-calendar)))
+	      ("C-o" . casual-calendar)))
 
 (use-package casual-dired
   :ensure nil
   :after dired
   :bind (:map dired-mode-map
-			  ("C-o" . casual-dired-tmenu)
-			  ("s" . casual-dired-sort-by-tmenu)
-			  ("/" . casual-dired-search-replace-tmenu)))
+	      ("C-o" . casual-dired-tmenu)
+	      ("s" . casual-dired-sort-by-tmenu)
+	      ("/" . casual-dired-search-replace-tmenu)))
 
 (use-package casual-editkit
   :ensure nil
@@ -1216,30 +1216,30 @@ The DWIM behaviour of this command is as follows:
 (use-package casual-help
   :ensure nil
   :bind (:map help-mode-map
-			  ("C-o" . casual-help-tmenu)
-			  ("M-[" . help-go-back)
-			  ("M-]" . help-go-forward)
-			  ("p" . casual-lib-browse-backward-paragraph)
-			  ("n" . casual-lib-browse-forward-paragraph)
-			  ("P" . help-goto-previous-page)
-			  ("N" . help-goto-next-page)
-			  ("j" . forward-button)
-			  ("k" . backward-button)))
+	      ("C-o" . casual-help-tmenu)
+	      ("M-[" . help-go-back)
+	      ("M-]" . help-go-forward)
+	      ("p" . casual-lib-browse-backward-paragraph)
+	      ("n" . casual-lib-browse-forward-paragraph)
+	      ("P" . help-goto-previous-page)
+	      ("N" . help-goto-next-page)
+	      ("j" . forward-button)
+	      ("k" . backward-button)))
 
 (use-package casual-ibuffer
   :ensure nil
   :after ibuffer
   :bind (:map ibuffer-mode-map
-         ("C-o" . casual-ibuffer-tmenu)
-         ("F" . casual-ibuffer-filter-tmenu)
-         ("s" . casual-ibuffer-sortby-tmenu)
-         ("{" . ibuffer-backwards-next-marked)
-         ("}" . ibuffer-forward-next-marked)
-         ("[" . ibuffer-backward-filter-group)
-         ("]" . ibuffer-forward-filter-group)
-         ("$" . ibuffer-toggle-filter-group)
-		 ("<double-mouse-1>" . ibuffer-visit-buffer)
-         ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window))
+              ("C-o" . casual-ibuffer-tmenu)
+              ("F" . casual-ibuffer-filter-tmenu)
+              ("s" . casual-ibuffer-sortby-tmenu)
+              ("{" . ibuffer-backwards-next-marked)
+              ("}" . ibuffer-forward-next-marked)
+              ("[" . ibuffer-backward-filter-group)
+              ("]" . ibuffer-forward-filter-group)
+              ("$" . ibuffer-toggle-filter-group)
+	      ("<double-mouse-1>" . ibuffer-visit-buffer)
+              ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window))
   :config
   (require 'hl-line)
   (require 'mouse))
@@ -1248,31 +1248,31 @@ The DWIM behaviour of this command is as follows:
   :ensure nil
   :hook (image-mode . casual-image-tmenu)
   :bind (:map image-mode-map
-			  ("C-o" . casual-image-tmenu)))
+	      ("C-o" . casual-image-tmenu)))
 
 (use-package casual-info
   :ensure nil
   :bind (:map Info-mode-map
-			  ("C-o" . casual-info-tmenu)
-			  ;; # Info
-			  ;; Use web-browser history navigation bindings
-			  ("M-[" . Info-history-back)
-			  ("M-]" . Info-history-forward)
-			  ;; Bind p and n to paragraph navigation
-			  ("p" . casual-info-browse-backward-paragraph)
-			  ("n" . casual-info-browse-forward-paragraph)
-			  ;; Bind h and l to navigate to previous and next nodes
-			  ;; Bind j and k to navigate to next and previous references
-			  ("h" . Info-prev)
-			  ("j" . Info-next-reference)
-			  ("k" . Info-prev-reference)
-			  ("l" . Info-next)
-			  ;; Bind / to search
-			  ("/" . Info-search)
-			  ;; Set Bookmark
-			  ("B" . bookmark-set))
+	      ("C-o" . casual-info-tmenu)
+	      ;; # Info
+	      ;; Use web-browser history navigation bindings
+	      ("M-[" . Info-history-back)
+	      ("M-]" . Info-history-forward)
+	      ;; Bind p and n to paragraph navigation
+	      ("p" . casual-info-browse-backward-paragraph)
+	      ("n" . casual-info-browse-forward-paragraph)
+	      ;; Bind h and l to navigate to previous and next nodes
+	      ;; Bind j and k to navigate to next and previous references
+	      ("h" . Info-prev)
+	      ("j" . Info-next-reference)
+	      ("k" . Info-prev-reference)
+	      ("l" . Info-next)
+	      ;; Bind / to search
+	      ("/" . Info-search)
+	      ;; Set Bookmark
+	      ("B" . bookmark-set))
   :hook ((Info-mode . hl-line-mode)
-		 (Info-mode . scroll-lock-mode)))
+	 (Info-mode . scroll-lock-mode)))
 
 (use-package casual-isearch
   :ensure nil
@@ -1282,25 +1282,25 @@ The DWIM behaviour of this command is as follows:
 (use-package casual-man
   :ensure nil
   :bind (:map man-mode-map
-			  ("C-o" . casual-man-tmenu)
-			  ("n" . casual-lib-browse-forward-paragraph)
-			  ("p" . casual-lib-browse-backward-paragraph)
-			  ("[" . Man-previous-section)
-			  ("]" . Man-next-section)
-			  ("j" . next-line)
-			  ("k" . previous-line)
-			  ("K" . Man-kill)
-			  ("o" . casual-man-occur-options)))
+	      ("C-o" . casual-man-tmenu)
+	      ("n" . casual-lib-browse-forward-paragraph)
+	      ("p" . casual-lib-browse-backward-paragraph)
+	      ("[" . Man-previous-section)
+	      ("]" . Man-next-section)
+	      ("j" . next-line)
+	      ("k" . previous-line)
+	      ("K" . Man-kill)
+	      ("o" . casual-man-occur-options)))
 
 (use-package casual-re-builder
   :ensure nil
   :after re-builder
   :bind (:map reb-mode-map
-			  ("C-o" . casual-re-builder-tmenu)
-			  :map reb-lisp-mode-map
-			  ("C-o" . casual-re-builder-tmenu)))
+	      ("C-o" . casual-re-builder-tmenu)
+	      :map reb-lisp-mode-map
+	      ("C-o" . casual-re-builder-tmenu)))
 
-; separate casual packages
+                                        ; separate casual packages
 (use-package casual-avy
   :ensure t ; separate package from casual
   :after avy
@@ -1310,7 +1310,7 @@ The DWIM behaviour of this command is as follows:
   :ensure t ; separate package from casual
   :after symbol-overlay
   :bind (:map symbol-overlay-map
-			  ("C-o" . casual-symbold-overlay-tmenu)))
+	      ("C-o" . casual-symbold-overlay-tmenu)))
 
 ;;; user interface
 ;;;; themes
@@ -1319,8 +1319,8 @@ The DWIM behaviour of this command is as follows:
 (use-package tron-legacy-theme
   :disabled t
   :custom ((tron-legacy-theme-vivid-cursor t)
-		   (tron-legacy-theme-dark-fg-bright-comments nil)
-		   (tron-legacy-theme-softer-bg nil))
+	   (tron-legacy-theme-dark-fg-bright-comments nil)
+	   (tron-legacy-theme-softer-bg nil))
   :init
   (load-theme 'tron-legacy :no-confirm))
 
@@ -1331,10 +1331,10 @@ The DWIM behaviour of this command is as follows:
 (use-package emacs ; built-in package
   :bind ("C-c C-t" . modus-themes-toggle)
   :custom ((require-theme 'modus-themes)
-		   (modus-themes-italic-constructs t)
-		   (modus-themes-bold-constructs nil)
-		   (modus-themes-mixed-fonts t)
-		   (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi)))
+	   (modus-themes-italic-constructs t)
+	   (modus-themes-bold-constructs nil)
+	   (modus-themes-mixed-fonts t)
+	   (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi)))
   :config
   (load-theme 'modus-vivendi :no-confirm))
 
@@ -1344,44 +1344,44 @@ The DWIM behaviour of this command is as follows:
 (use-package frame
   :ensure nil
   :bind (; super combo
-          ("s-4" . dired-other-frame)
-          ("s-5" . make-frame-command)
-          ("s-6" . delete-other-frames)
-		  ;; below are meant to match default OSX and my BTT settings in other apps
-          ;; full-half-1/3-2/3 w/hjkl combo
-          ("A-k" . sej/frame-resize-full)
-		  ("A-M-k" . toggle-frame-fullscreen)
-          ("H-A-h" . sej/frame-resize-l)
-          ("H-A-l" . sej/frame-resize-r)
-          ("H-A-M-s-h" . sej/frame-resize-l2)
-          ("H-A-M-s-l" . sej/frame-resize-r2)
-          ("H-A-M-h" . sej/frame-resize-l3)
-          ("H-A-M-l" . sej/frame-resize-r3)
-          ;; full-half-1/3-2/3 cursor combo ; fn(hyper) changes cursor to home / end / prior / next
-          ("A-<prior>" . sej/frame-resize-full)
-		  ("A-M-<prior>" . toggle-frame-fullscreen)
-          ("A-<home>" . sej/frame-resize-l)
-          ("A-<end>" . sej/frame-resize-r)
-          ("A-M-s-<home>" . sej/frame-resize-l2)
-          ("A-M-s-<end>" . sej/frame-resize-r2)
-          ("A-M-<home>" . sej/frame-resize-l3)
-          ("A-M-<end>" . sej/frame-resize-r3)
-		  ;; additional
-          ("H-A-c" . sej/frame-recentre)
-          ("H-A-f" . toggle-frame-fullscreen)
-          ;; combo if above are not available
-          ("s-C" . sej/frame-recentre)
-          ("s-F" . toggle-frame-fullscreen)
-          ("<S-s-up>" . sej/frame-resize-full)
-          ("<S-s-left>" . sej/frame-resize-l)
-          ("<S-s-right>" . sej/frame-resize-r)
-		  )
+         ("s-4" . dired-other-frame)
+         ("s-5" . make-frame-command)
+         ("s-6" . delete-other-frames)
+	 ;; below are meant to match default OSX and my BTT settings in other apps
+         ;; full-half-1/3-2/3 w/hjkl combo
+         ("A-k" . sej/frame-resize-full)
+	 ("A-M-k" . toggle-frame-fullscreen)
+         ("H-A-h" . sej/frame-resize-l)
+         ("H-A-l" . sej/frame-resize-r)
+         ("H-A-M-s-h" . sej/frame-resize-l2)
+         ("H-A-M-s-l" . sej/frame-resize-r2)
+         ("H-A-M-h" . sej/frame-resize-l3)
+         ("H-A-M-l" . sej/frame-resize-r3)
+         ;; full-half-1/3-2/3 cursor combo ; fn(hyper) changes cursor to home / end / prior / next
+         ("A-<prior>" . sej/frame-resize-full)
+	 ("A-M-<prior>" . toggle-frame-fullscreen)
+         ("A-<home>" . sej/frame-resize-l)
+         ("A-<end>" . sej/frame-resize-r)
+         ("A-M-s-<home>" . sej/frame-resize-l2)
+         ("A-M-s-<end>" . sej/frame-resize-r2)
+         ("A-M-<home>" . sej/frame-resize-l3)
+         ("A-M-<end>" . sej/frame-resize-r3)
+	 ;; additional
+         ("H-A-c" . sej/frame-recentre)
+         ("H-A-f" . toggle-frame-fullscreen)
+         ;; combo if above are not available
+         ("s-C" . sej/frame-recentre)
+         ("s-F" . toggle-frame-fullscreen)
+         ("<S-s-up>" . sej/frame-resize-full)
+         ("<S-s-left>" . sej/frame-resize-l)
+         ("<S-s-right>" . sej/frame-resize-r)
+	 )
   :custom ((window-divider-default-places t)
-		   (window-divider-default-bottom-width 1)
-		   (window-divider-default-right-width 1)
-		   (frame-title-format "%F--%b-[%f]--%Z")
-		   (icon-title-format frame-title-format)
-		   (undelete-frame-mode t))
+	   (window-divider-default-bottom-width 1)
+	   (window-divider-default-right-width 1)
+	   (frame-title-format "%F--%b-[%f]--%Z")
+	   (icon-title-format frame-title-format)
+	   (undelete-frame-mode t))
 
   :init
   (unless (display-graphic-p)
@@ -1414,33 +1414,33 @@ The DWIM behaviour of this command is as follows:
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 2)) 14)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (/ (display-pixel-width) 2)) 14)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (defun sej/frame-resize-l2 ()
     "Set frame full height and 1/3 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 3)) 0)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (/ (display-pixel-width) 3)) 0)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (defun sej/frame-resize-l3 ()
     "Set frame full height and 2/3 wide, position at left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame) 0 0)
     (set-frame-size (selected-frame)
-					(- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (defun sej/frame-resize-r ()
     "Set frame full height and 1/2 wide, position at screen right."
@@ -1448,37 +1448,37 @@ The DWIM behaviour of this command is as follows:
     (set-frame-position (selected-frame)
                         (- (truncate (/ (display-pixel-width) 2)) 0) 0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 2)) 14)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (/ (display-pixel-width) 2)) 14)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (defun sej/frame-resize-r2 ()
     "Set frame full height and 1/3 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame)
                         (truncate (* (/ (display-pixel-width) 3) 2))
-						0)
+			0)
     (set-frame-size (selected-frame)
-					(- (truncate (/ (display-pixel-width) 3)) 0)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (/ (display-pixel-width) 3)) 0)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (defun sej/frame-resize-r3 ()
     "Set frame full height and 2/3 wide, position at screen right of left hand screen in extended monitor display assumes monitors are same resolution."
     (interactive)
     (set-frame-position (selected-frame)
                         (truncate (* (/ (display-pixel-width) 3) 1))
-						0)
+			0)
     (set-frame-size (selected-frame)
-					(- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
-					(- (display-pixel-height)
-					   (- (frame-outer-height)
-						  (frame-inner-height) sej/menu-height))
-					1))
+		    (- (truncate (* (/ (display-pixel-width) 3) 2)) 0)
+		    (- (display-pixel-height)
+		       (- (frame-outer-height)
+			  (frame-inner-height) sej/menu-height))
+		    1))
 
   (when sys/mac-x-p
     (setq ns-use-native-fullscreen nil))
@@ -1577,7 +1577,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (defun sej/remove-all-buffer-properties ()
   "Remove text properties like read-only in the buffer contents."
   (interactive)
-(let ((inhibit-read-only t)) (set-text-properties (point-min) (point-max) ())))
+  (let ((inhibit-read-only t)) (set-text-properties (point-min) (point-max) ())))
 
 ;;;; scratch buffer
 ;;;;; scratch buffer set-up
@@ -1624,9 +1624,9 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; 	"Set up persistent scratch and make it `trusted-content'."
 ;; 	(add-to-list 'trusted-content persistent-scratch-save-file)
 ;; 	(persistent-scratch-setup-default))
-;; 
+;;
 ;; 	(persistent-scratch-autosave-mode)
-;; 
+;;
 ;;   (with-demoted-errors "Error: %S"
 ;;     (persistent-scratch-setup-default)))
 
@@ -1636,20 +1636,20 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package scratch-plus
   :hook (after-init . scratch-plus-mode)
   :bind (:map scratch-plus-mode-map
-			  ("C-q C-s" . scratch-plus-switch)
-			  ("C-q C-H-s" . scratch-plus-switch-project))
+	      ("C-q C-s" . scratch-plus-switch)
+	      ("C-q C-H-s" . scratch-plus-switch-project))
   :custom ((scratch-plus-restore-type 'demand)
-		   (scratch-plus-force-restore 'initial)
-		   (scratch-plus-save-directory (expand-file-name (concat user-emacs-directory "var")))
-		   (scratch-plus-project-subdir "temp")
-		   (scratch-plus-idle-save nil)
-		   (scratch-plus-prevent-kill 'bury)
-		   (scratch-plus-initial-message 'sej/initial-scratch-message)
-		   (scratch-plus-display-action nil))
+	   (scratch-plus-force-restore 'initial)
+	   (scratch-plus-save-directory (expand-file-name (concat user-emacs-directory "var")))
+	   (scratch-plus-project-subdir "temp")
+	   (scratch-plus-idle-save nil)
+	   (scratch-plus-prevent-kill 'bury)
+	   (scratch-plus-initial-message 'sej/initial-scratch-message)
+	   (scratch-plus-display-action nil))
   :init
   (defun sej/initial-scratch-message (majormode)
-	"Take MAJORMODE and return message for scratch-plus initial message."
-	(format "persistent scratch-plus for %s" majormode)))
+    "Take MAJORMODE and return message for scratch-plus initial message."
+    (format "persistent scratch-plus for %s" majormode)))
 
 ;;;;; Remember ; persistent notes
 ;; using persistent-scratch for lisp & this for notes
@@ -1657,15 +1657,15 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package remember
   :ensure nil
   :bind (:map global-map
-			  ("H-r" . remember) ; add single note, like capture
-			  ("C-, C-n" . remember-notes) ; go to notes document
-			  ("H-s-r" . remember-notes)) ; go to notes document
+	      ("H-r" . remember) ; add single note, like capture
+	      ("C-, C-n" . remember-notes) ; go to notes document
+	      ("H-s-r" . remember-notes)) ; go to notes document
   :custom ((remember-notes-initial-major-mode 'org-mode)
-		   (remember-in-new-frame t))
+	   (remember-in-new-frame t))
   ;; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
   :init
   (defun sej/switch-to-remember-buffer (f)
-	(with-selected-frame f
+    (with-selected-frame f
       (remember-notes t)))
   (add-hook 'after-make-frame-functions #'sej/switch-to-remember-buffer))
 
@@ -1675,24 +1675,24 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package window
   :ensure nil
   :bind (("H-0" . delete-window)
-          ("H-1" . delete-other-windows)
-          ("H-2" . split-window-vertically)
-          ("H-3" . split-window-right)
-          ("C-x K" . sej/quit-other)
+         ("H-1" . delete-other-windows)
+         ("H-2" . split-window-vertically)
+         ("H-3" . split-window-right)
+         ("C-x K" . sej/quit-other)
 
-          ;; wind move to multifram window
-          ("M-'" . next-multiframe-window))
+         ;; wind move to multifram window
+         ("M-'" . next-multiframe-window))
 
   :custom ((window-combination-resize t)
-		   (even-window-sizes 'height-only)
-		   (window-sides-vertical nil))
+	   (even-window-sizes 'height-only)
+	   (window-sides-vertical nil))
   :init
   (defun sej/quit-other()
-	"Quit other window."
-	(interactive)
-	(save-excursion
-	  (other-window 1)
-	  (quit-window))))
+    "Quit other window."
+    (interactive)
+    (save-excursion
+      (other-window 1)
+      (quit-window))))
 
 ;;;;; [[https://github.com/abo-abo/ace-window][ace-window]]
 ;; quickly selecting a window to switch to
@@ -1703,22 +1703,22 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-o" . ace-window))
   :hook (emacs-startup . ace-window-display-mode)
   :custom ((aw-dispatch-always nil)
-		   (aw-frame-offset '(100 . 0))
-		   (aw-minibuffer-flag t))
+	   (aw-frame-offset '(100 . 0))
+	   (aw-minibuffer-flag t))
   :config
   (defun sej/hide-frame (window)
-	"Hide frame containing window."
-	(lower-frame (window-frame window)))
+    "Hide frame containing window."
+    (lower-frame (window-frame window)))
 
   (add-to-list 'aw-dispatch-alist '(?h sej/hide-frame "Hide Frame"))
 
   (defun sej/ace-two-window (arg)
-	"Run full ace windows with two windows."
-	(interactive "P")
-	(let (dispatch (eval aw-dispatch-always))
-	  (setq aw-dispatch-always t)
-	  (ace-window arg)
-	  (setq aw-dispatch-always dispatch))))
+    "Run full ace windows with two windows."
+    (interactive "P")
+    (let (dispatch (eval aw-dispatch-always))
+      (setq aw-dispatch-always t)
+      (ace-window arg)
+      (setq aw-dispatch-always dispatch))))
 
 ;;;;; [[info:emacs#Window Convenience][winner-mode]]
 ;; built-in: Restore old window configurations
@@ -1727,7 +1727,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . winner-mode)
   :commands (winner-undo winner-redo)
   :bind (("C-c <left>" . winner-undo)
-          ("C-c <right>" . winner-redo))
+         ("C-c <right>" . winner-redo))
   :custom (winner-boring-buffers '("*Completions*"
                                    "*Compile-Log*"
                                    "*inferior-lisp*"
@@ -1747,10 +1747,10 @@ If FRAME is omitted or nil, use currently selected frame."
          ("C-~" . popper-cycle)
          ("H-`" . popper-toggle-type))
   :custom (popper-reference-buffers '("Output\\*$"
-									  "\\*Async Shell Command\\*"
-									  help-mode
-									  special-mode
-									  compilation-mode))
+				      "\\*Async Shell Command\\*"
+				      help-mode
+				      special-mode
+				      compilation-mode))
   :config
   (popper-mode +1)
   (popper-echo-mode +1))
@@ -1765,14 +1765,14 @@ If FRAME is omitted or nil, use currently selected frame."
   :bind (("M-["  . tab-bar-history-back)
          ("M-]" . tab-bar-history-forward))
   :custom ((tab-bar-close-button-show t)
-		   (tab-bar-close-last-tab-choice 'tab-bar-mode-disable)
-		   (tab-bar-close-tab-select 'recent)
-		   (tab-bar-new-tab-choice t)
-		   (tab-bar-new-tab-to 'right)
-		   (tab-bar-position nil)
-		   (tab-bar-show 2)
-		   (tab-bar-tab-hints nil)
-		   (tab-bar-tab-name-function 'tab-bar-tab-name-all))
+	   (tab-bar-close-last-tab-choice 'tab-bar-mode-disable)
+	   (tab-bar-close-tab-select 'recent)
+	   (tab-bar-new-tab-choice t)
+	   (tab-bar-new-tab-to 'right)
+	   (tab-bar-position nil)
+	   (tab-bar-show 2)
+	   (tab-bar-tab-hints nil)
+	   (tab-bar-tab-name-function 'tab-bar-tab-name-all))
   :config
   (tab-bar-mode t)
   (tab-bar-history-mode t))
@@ -1783,7 +1783,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; https://github.com/seagle0128/doom-modeline
 (use-package doom-modeline
   :hook ((after-init . doom-modeline-mode)
-		 (doom-modeline-before-github-fetch-notification . auth-source-pass-enable)))
+	 (doom-modeline-before-github-fetch-notification . auth-source-pass-enable)))
 
 ;;;;; minions
 ;; implements a nested menu that gives access to all minor modes
@@ -1828,8 +1828,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :after corfu
   :custom (nerd-icons-corfu-mapping
            '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
-			 (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
-			 (t :style "cod" :icon "code" :face font-lock-warning-face)))
+	     (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+	     (t :style "cod" :icon "code" :face font-lock-warning-face)))
   ;; Remember to add an entry for `t', the library uses that as default.
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
@@ -1852,7 +1852,7 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :hook (emacs-startup . save-place-mode)
   :custom ((save-place-forget-unreadable-files t)
-		   (save-place-limit nil)))
+	   (save-place-limit nil)))
 
 ;;;; multi-edit
 ;;;;; multiple cursors
@@ -1860,25 +1860,25 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
   :bind (:map global-map
-		   ("C-S-c C-S-c"   . mc/edit-lines)
-           ("C->"           . mc/mark-next-like-this)
-           ("C-<"           . mc/mark-previous-like-this)
-           ("C-c C-<"       . mc/mark-all-like-this)
-           ("C-M->"         . mc/skip-to-next-like-this)
-           ("C-M-<"         . mc/skip-to-previous-like-this)
-           ("A-<mouse-1>"   . mc/add-cursor-on-click)
-		   ("A-a"         . mc/edit-beginings-of-lines)
-		   ("A-e"         . mc/edit-ends-of-lines)
-		   ("A-s"         . mc/mark-next-like-this-symbol)
-		   ("A-S"         . mc/mark-all-symbols-like-this)
-		   ("A-D"         . mc/mark-all-like-this-in-defun)
-		   ("A-d"         . mc/mark-all-dwim)
-		   ("A-r"         . mc/mark-all-in-region)
-		   ("A-w"         . mc/mark-next-like-this-word)
-		   ("A-W"         . mc/mark-all-words-like-this)
-           :map mc/keymap
-		   ("C-m v"         . mc/vertical-align)
-           ("C-|" . mc/vertical-align-with-space)))
+	      ("C-S-c C-S-c"   . mc/edit-lines)
+              ("C->"           . mc/mark-next-like-this)
+              ("C-<"           . mc/mark-previous-like-this)
+              ("C-c C-<"       . mc/mark-all-like-this)
+              ("C-M->"         . mc/skip-to-next-like-this)
+              ("C-M-<"         . mc/skip-to-previous-like-this)
+              ("A-<mouse-1>"   . mc/add-cursor-on-click)
+	      ("A-a"         . mc/edit-beginings-of-lines)
+	      ("A-e"         . mc/edit-ends-of-lines)
+	      ("A-s"         . mc/mark-next-like-this-symbol)
+	      ("A-S"         . mc/mark-all-symbols-like-this)
+	      ("A-D"         . mc/mark-all-like-this-in-defun)
+	      ("A-d"         . mc/mark-all-dwim)
+	      ("A-r"         . mc/mark-all-in-region)
+	      ("A-w"         . mc/mark-next-like-this-word)
+	      ("A-W"         . mc/mark-all-words-like-this)
+              :map mc/keymap
+	      ("C-m v"         . mc/vertical-align)
+              ("C-|" . mc/vertical-align-with-space)))
 
 ;;;; search
 ;;;;; isearch
@@ -1892,32 +1892,32 @@ If FRAME is omitted or nil, use currently selected frame."
           ("C-g" . isearch-cancel) ;instead of `isearch-abort'
           ("M-/" . isearch-complete))
   :custom ((search-highlight t)
-		   (search-whitespace-regexp ".*?")
-		   (isearch-lax-whitespace t)
-		   (isearch-regexp-lax-whitespace nil)
-		   (isearch-lazy-highlight t)
-		   (isearch-lazy-count t)
-		   (isearch-yank-on-move t)
-		   (lazy-count-prefix-format "(%s/%s) ")
-		   (lazy-count-suffix-format nil)
-		   (isearch-yank-on-move 'shift)
-		   (isearch-allow-scroll 'unlimited)
-		   (isearch-repeat-on-direction-change t)
-		   (lazy-highlight-initial-delay 0.5)
-		   (lazy-highlight-no-delay-length 3)
-		   (search-ring-max 30)
-		   (regexp-search-ring-max 30)
-		   (isearch-wrap-pause t)))
+	   (search-whitespace-regexp ".*?")
+	   (isearch-lax-whitespace t)
+	   (isearch-regexp-lax-whitespace nil)
+	   (isearch-lazy-highlight t)
+	   (isearch-lazy-count t)
+	   (isearch-yank-on-move t)
+	   (lazy-count-prefix-format "(%s/%s) ")
+	   (lazy-count-suffix-format nil)
+	   (isearch-yank-on-move 'shift)
+	   (isearch-allow-scroll 'unlimited)
+	   (isearch-repeat-on-direction-change t)
+	   (lazy-highlight-initial-delay 0.5)
+	   (lazy-highlight-no-delay-length 3)
+	   (search-ring-max 30)
+	   (regexp-search-ring-max 30)
+	   (isearch-wrap-pause t)))
 
 ;;;;; Anzu
 ;; good query replace search
 ;; https://github.com/emacsorphanage/anzu
 (use-package anzu
   :bind  (([remap query-replace] . anzu-query-replace-regexp)
-           ("C-H-r" . anzu-query-replace)
-           ("C-H-S-r" . anzu-query-replace-at-cursor)
-           :map isearch-mode-map
-           ("C-H-r" . anzu-isearch-query-replace))
+          ("C-H-r" . anzu-query-replace)
+          ("C-H-S-r" . anzu-query-replace-at-cursor)
+          :map isearch-mode-map
+          ("C-H-r" . anzu-isearch-query-replace))
   :config (global-anzu-mode))
 
 ;;;;; re-builder
@@ -1933,8 +1933,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :demand t
   :custom ((bookmark-use-annotations t)
-		   (bookmark-automatically-show-annotations t)
-		   (bookmark-set-fringe-mark t)) ; Emacs28
+	   (bookmark-automatically-show-annotations t)
+	   (bookmark-set-fringe-mark t)) ; Emacs28
   :init (add-hook 'bookmark-bmenu-mode-hook #'hl-line-mode)
   :config (setq bookmark-save-flag +1))
 
@@ -1946,8 +1946,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :hook ((emacs-startup org-mode) . abbrev-mode)
   :custom ((abbrev-file-name             ;; tell emacs where to read abbrev
-				 (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
-		   (save-abbrevs 'silently))
+	    (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+	   (save-abbrevs 'silently))
   :config
   (define-abbrev-table
     'org-mode-abbrev-table
@@ -1966,14 +1966,14 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Swap M-/ and C-M-/
   :bind ("C-M-/" . dabbrev-expand)
   :custom ((dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
-		   (dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|=")
-		   (dabbrev-backward-o nly nil)
-		   (dabbrev-case-distinction 'case-replace)
-		   (dabbrev-case-fold-search t)
-		   (dabbrev-case-replace 'case-replace)
-		   (dabbrev-check-other-buffers t)
-		   (dabbrev-eliminate-newlines t)
-		   (dabbrev-upcase-means-case-search t))
+	   (dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|=")
+	   (dabbrev-backward-o nly nil)
+	   (dabbrev-case-distinction 'case-replace)
+	   (dabbrev-case-fold-search t)
+	   (dabbrev-case-replace 'case-replace)
+	   (dabbrev-check-other-buffers t)
+	   (dabbrev-eliminate-newlines t)
+	   (dabbrev-upcase-means-case-search t))
   :config
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
   ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
@@ -1989,45 +1989,45 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :bind ("M-/" . hippie-expand)
   :custom (hippie-expand-try-functions-list '(try-expand-dabbrev-visible
-											  try-complete-file-name
-											  try-complete-file-name-partially
-											  try-expand-all-abbrevs
-											  try-expand-dabbrev
-											  try-expand-dabbrev-all-buffers
-											  try-expand-dabbrev-from-kill
-											  try-expand-list
-											  try-expand-line
-											  cape-elisp-symbol
-											  try-expand-list-all-buffers
-											  try-expand-line-all-buffers)))
+					      try-complete-file-name
+					      try-complete-file-name-partially
+					      try-expand-all-abbrevs
+					      try-expand-dabbrev
+					      try-expand-dabbrev-all-buffers
+					      try-expand-dabbrev-from-kill
+					      try-expand-list
+					      try-expand-line
+					      cape-elisp-symbol
+					      try-expand-list-all-buffers
+					      try-expand-line-all-buffers)))
 
 ;;;;; [[https://github.com/minad/vertico][vertico]]
 ;; alternative selection visual to ivy, ido, helm
 (use-package vertico
   :bind (("C-H-v" . vertico-repeat))
   :hook ((emacs-startup . vertico-mode)
-		 (minibuffer-setup . vertico-repeat-save))
+	 (minibuffer-setup . vertico-repeat-save))
   :custom ((vertico-scroll-margin 0) ;; Different scroll margin
-		   (vertico-count 20)        ;; Show more candidates
-		   (vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
-		   (vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+	   (vertico-count 20)        ;; Show more candidates
+	   (vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
+	   (vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
 
-		   ;; Hide commands in M-x which do not work in the current mode. Vertico
-		   ;; commands are hidden in normal buffers.
-		   (read-extended-command-predicate #'command-completion-default-include-p))
+	   ;; Hide commands in M-x which do not work in the current mode. Vertico
+	   ;; commands are hidden in normal buffers.
+	   (read-extended-command-predicate #'command-completion-default-include-p))
   :config
 
 ;;;;;; vertico-repeat
   ;; repeat last vertico session C-H-v
   (use-package vertico-repeat
-	:ensure nil
-	:demand t
-	:config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
+    :ensure nil
+    :demand t
+    :config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
 ;;;;;; vertico-quick
   ;; quick jump to items in vertico list ala Avy
   (use-package vertico-quick
-	:ensure nil
+    :ensure nil
     :demand t
     :bind (:map vertico-map
                 ("C-o"   . vertico-quick-exit)
@@ -2048,46 +2048,46 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; M-U -> vertico-multiform-unobtrusive
   ;; M-V -> vertico-multiform-vertical
   (use-package vertico-multiform
-	:ensure nil
+    :ensure nil
     :demand t
     :bind (:map vertico-map
                 ("C-i"   . sej/vertico-multiform-toggle-ur)
                 ("<tab>" . vertico-insert))
     :custom ((vertico-multiform-commands
-			  '((consult-imenu buffer)
-				(consult-line buffer)
-				(consult-grep buffer)
-				(consult-git-grep buffer)
-				(consult-ripgrep buffer)
-				(consult-yank-pop)
-				(embark-bindings buffer)
-				(xref-find-references buffer)))
-			 (vertico-multiform-categories '((t reverse ))))
-	:config
-	(defun sej/vertico-multiform-toggle-ur ()
-	  "Toggle sticky setting between reverse and unobtrusive."
-	  (interactive)
-	  (if (equal vertico-multiform-categories '((t unobtrusive)))
-		  (progn (setq vertico-multiform-categories '((t reverse)))
-				 (vertico-multiform-reverse))
-		(progn (setq vertico-multiform-categories '((t unobtrusive)))
-			   (vertico-multiform-unobtrusive))))
+	      '((consult-imenu buffer)
+		(consult-line buffer)
+		(consult-grep buffer)
+		(consult-git-grep buffer)
+		(consult-ripgrep buffer)
+		(consult-yank-pop)
+		(embark-bindings buffer)
+		(xref-find-references buffer)))
+	     (vertico-multiform-categories '((t reverse ))))
+    :config
+    (defun sej/vertico-multiform-toggle-ur ()
+      "Toggle sticky setting between reverse and unobtrusive."
+      (interactive)
+      (if (equal vertico-multiform-categories '((t unobtrusive)))
+	  (progn (setq vertico-multiform-categories '((t reverse)))
+		 (vertico-multiform-reverse))
+	(progn (setq vertico-multiform-categories '((t unobtrusive)))
+	       (vertico-multiform-unobtrusive))))
 
     (vertico-multiform-mode 1))
 
 ;;;;;; vertico-directory
   ;; Configure directory extension.
   (use-package vertico-directory
-	:after vertico
-	:ensure nil
-	:demand t
-	;; More convenient directory navigation commands
-	:bind (:map vertico-map
-				("RET" . vertico-directory-enter)
-				("DEL" . vertico-directory-delete-char)
-				("M-DEL" . vertico-directory-delete-word))
-	;; Tidy shadowed file names
-	:hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
+    :after vertico
+    :ensure nil
+    :demand t
+    ;; More convenient directory navigation commands
+    :bind (:map vertico-map
+		("RET" . vertico-directory-enter)
+		("DEL" . vertico-directory-delete-char)
+		("M-DEL" . vertico-directory-delete-word))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
 
 ;;;;; [[https://github.com/minad/corfu][corfu]]
 ;; small completion program similar to company
@@ -2101,23 +2101,23 @@ If FRAME is omitted or nil, use currently selected frame."
 
   ;; Optional customizations
   :custom ((corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
-		   (corfu-auto nil)                    ;; Enable auto completion
-		   (corfu-separator ?\s)             ;; Orderless field separator
-		   (corfu-quit-at-boundary nil)        ;; Never quit at completion boundary
-		   (corfu-quit-no-match nil)           ;; t, 'separator, nil Never quit
-		   (corfu-preview-current nil)       ;; Disable current candidate preview
-		   (corfu-preselect 'directory)      ;; Preselect the prompt
-		   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-		   (corfu-scroll-margin 5)           ;; Use scroll margin
-		   (corfu-auto-delay 2)
-		   (corfu-auto-prefix 2)
-		   (corfu-count 10)
-		   (corfu-echo-documentation nil)
-		   (corfu-quit-at-boundary nil)
-		   (corfu-separator ?\s)            ; Use space
-		   (corfu-quit-no-match t) ; Don't quit if there is `corfu-separator' inserted
-		   (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
-		   (corfu-preselect-first t))        ; Preselect first candidate?
+	   (corfu-auto nil)                    ;; Enable auto completion
+	   (corfu-separator ?\s)             ;; Orderless field separator
+	   (corfu-quit-at-boundary nil)        ;; Never quit at completion boundary
+	   (corfu-quit-no-match nil)           ;; t, 'separator, nil Never quit
+	   (corfu-preview-current nil)       ;; Disable current candidate preview
+	   (corfu-preselect 'directory)      ;; Preselect the prompt
+	   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+	   (corfu-scroll-margin 5)           ;; Use scroll margin
+	   (corfu-auto-delay 2)
+	   (corfu-auto-prefix 2)
+	   (corfu-count 10)
+	   (corfu-echo-documentation nil)
+	   (corfu-quit-at-boundary nil)
+	   (corfu-separator ?\s)            ; Use space
+	   (corfu-quit-no-match t) ; Don't quit if there is `corfu-separator' inserted
+	   (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
+	   (corfu-preselect-first t))        ; Preselect first candidate?
 
   ;; Enable Corfu only for certain modes.
   ;; :hook ((prog-mode . corfu-mode)
@@ -2213,9 +2213,9 @@ If FRAME is omitted or nil, use currently selected frame."
   :custom (cape-dabbrev-min-length 3)
   :config
   (sej/add-all-to-list 'completion-at-point-functions
-					   #'cape-dabbrev
-					   #'cape-file
-					   #'cape-abbrev)
+		       #'cape-dabbrev
+		       #'cape-file
+		       #'cape-abbrev)
 
   ;; #'cape-history
   ;; #'cape-keyword
@@ -2234,7 +2234,7 @@ If FRAME is omitted or nil, use currently selected frame."
 
   (defun sej/cape-capf-setup-elisp ()
     "Set completion at point for elisp."
-	(setq-local completion-at-point-functions
+    (setq-local completion-at-point-functions
                 `(,(cape-capf-super
                     #'elisp-completion-at-point
                     #'cape-dabbrev)
@@ -2245,32 +2245,32 @@ If FRAME is omitted or nil, use currently selected frame."
     "Set completion at point for org."
     (setq-local completion-at-point-functions
                 `(,(cape-capf-super
-					#'cape-dict
-					#'cape-dabbrev
-					#'cape-history
-					#'cape-abbrev)
-				  cape-file)))
+		    #'cape-dict
+		    #'cape-dabbrev
+		    #'cape-history
+		    #'cape-abbrev)
+		  cape-file)))
 
-;;git-commit
+  ;;git-commit
   (defun sej/cape-capf-setup-git-commit ()
     "Set completion at point in git commits."
     (setq-local completion-at-point-functions
                 `(,(cape-capf-super
-					#'cape-dict
-					#'cape-dabbrev
-					#'cape-history
-					#'cape-abbrev)
-				  cape-file)))
+		    #'cape-dict
+		    #'cape-dabbrev
+		    #'cape-history
+		    #'cape-abbrev)
+		  cape-file)))
 
   ;; Eshell
   (defun sej/cape-capf-setup-eshell ()
     "Set completion at point in eshell."
     (setq-local completion-at-point-functions
                 `( pcomplete-completions-at-point
-				   cape-file
-				   cape-dabbrev
-				   cape-history
-				   cape-abbrev)))
+		   cape-file
+		   cape-dabbrev
+		   cape-history
+		   cape-abbrev)))
 
   :config
   ;; For pcomplete. For now these two advices are strongly recommended to
@@ -2289,8 +2289,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :hook (emacs-startup . marginalia-mode)
   :bind (:map completion-list-mode-map
               ("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
+              :map minibuffer-local-map
+              ("M-A" . marginalia-cycle))
   :init (marginalia-mode))
 
 ;;;;; [[https://github.com/oantolin/orderless][orderless]]
@@ -2299,7 +2299,7 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package orderless
   :demand t
   :custom ((completion-styles '(orderless basic))
-		   (completion-category-overrides '((file (styles basic partial-completion))))))
+	   (completion-category-overrides '((file (styles basic partial-completion))))))
 
 ;;;;; [[https://github.com/radian-software/prescient.el][prescient]]
 ;; sorts and filters lists of candidates
@@ -2319,12 +2319,12 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; acting on targets
 (use-package embark
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
-           ("C-'" . embark-dwim)        ;; good alternative: M-.
-           ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
-           ("C-s-e" . embark-export)
-           ("H-e" . embark-export)
-		   :map embark-collect-mode-map
-		   ("C-c C-a" . embark-collect-direct-action-minor-mode))
+          ("C-'" . embark-dwim)        ;; good alternative: M-.
+          ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
+          ("C-s-e" . embark-export)
+          ("H-e" . embark-export)
+	  :map embark-collect-mode-map
+	  ("C-c C-a" . embark-collect-direct-action-minor-mode))
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
@@ -2358,97 +2358,97 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; completing read
 (use-package consult
   :bind (("H-M-," . consult-recent-xref)
-		 ("H-q" . consult-register-load)
-          ;; C-c bindings (mode-specific-map)
-          ("C-c k" . consult-kmacro)
-          ("C-c h" . consult-history)
-          ("C-c M-x" . consult-mode-command)
-          ;; Other custom bindings
-          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-          ;; C-x bindings (ctl-x-map)
-          :map ctl-x-map
-          ("C-r" . consult-recent-file)
-		  ("M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-          ("b" . consult-buffer)                    ;; orig. switch-to-buffer
-          ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
-          ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-          ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-          ("t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-          ("r b" . consult-bookmark)            ;; orig. bookmark-jump
-          ("r i" . consult-register-load)
-          ;("p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-          ;; Custom sej bindings for fast register access
-          :map sej-C-q-map
-          ("C-y" . consult-register-load)
-          ("C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-          ("C-r" . consult-register)
-          ("C-t" . consult-theme)
-          ;; M-g bindings (goto-map)
-          :map goto-map
-          ("e" . consult-compile-error)
-          ("f" . consult-flymake)
-          ("g" . consult-goto-line)                 ;; orig. goto-line
-          ("M-g" . consult-goto-line)               ;; orig. goto-line
-          ("o" . consult-org-heading)               ;; Alternative: consult-org-heading
-          ("O" . consult-outline)
-          ("m" . consult-mark)
-          ("k" . consult-global-mark)
-          ("i" . consult-imenu)
-          ("I" . consult-imenu-multi)
-          ;; M-s bindings (search-map)
-          :map search-map
-          ("f" . consult-find)
-          ("g" . consult-grep)
-          ("G" . consult-git-grep)
-          ("k" . consult-keep-lines)
-          ("l" . consult-line)
-          ("L" . consult-locate)
-		  ("m" . consult-line-multi)            ;; needed by consult-line to detect isearch
-		  ("p" . sej/consult-project-search)
-          ("r" . consult-ripgrep)
-          ("u" . consult-focus-lines)
-          ;; isearch integration
-          :map isearch-mode-map
-          ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-          ("M-s m" . consult-line-multi)            ;; needed by consult-line to detect isearch
-		  ("M-s p" . sej/consult-project-search)
-          :map consult-narrow-map
-          ("?" . consult-narrow-help)
-          ;; Minibuffer history
-          :map minibuffer-local-map
-          ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-          ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+	 ("H-q" . consult-register-load)
+         ;; C-c bindings (mode-specific-map)
+         ("C-c k" . consult-kmacro)
+         ("C-c h" . consult-history)
+         ("C-c M-x" . consult-mode-command)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ;; C-x bindings (ctl-x-map)
+         :map ctl-x-map
+         ("C-r" . consult-recent-file)
+	 ("M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("b" . consult-buffer)                    ;; orig. switch-to-buffer
+         ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
+         ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("r i" . consult-register-load)
+                                        ;("p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ;; Custom sej bindings for fast register access
+         :map sej-C-q-map
+         ("C-y" . consult-register-load)
+         ("C-w" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-r" . consult-register)
+         ("C-t" . consult-theme)
+         ;; M-g bindings (goto-map)
+         :map goto-map
+         ("e" . consult-compile-error)
+         ("f" . consult-flymake)
+         ("g" . consult-goto-line)                 ;; orig. goto-line
+         ("M-g" . consult-goto-line)               ;; orig. goto-line
+         ("o" . consult-org-heading)               ;; Alternative: consult-org-heading
+         ("O" . consult-outline)
+         ("m" . consult-mark)
+         ("k" . consult-global-mark)
+         ("i" . consult-imenu)
+         ("I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         :map search-map
+         ("f" . consult-find)
+         ("g" . consult-grep)
+         ("G" . consult-git-grep)
+         ("k" . consult-keep-lines)
+         ("l" . consult-line)
+         ("L" . consult-locate)
+	 ("m" . consult-line-multi)            ;; needed by consult-line to detect isearch
+	 ("p" . sej/consult-project-search)
+         ("r" . consult-ripgrep)
+         ("u" . consult-focus-lines)
+         ;; isearch integration
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s m" . consult-line-multi)            ;; needed by consult-line to detect isearch
+	 ("M-s p" . sej/consult-project-search)
+         :map consult-narrow-map
+         ("?" . consult-narrow-help)
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-    ;; Enable automatic preview at point in the *Completions* buffer.
-    ;; This is relevant when you use the default completion UI,
-    :hook (completion-list-mode . consult-preview-at-point-mode)
+  ;; Enable automatic preview at point in the *Completions* buffer.
+  ;; This is relevant when you use the default completion UI,
+  :hook (completion-list-mode . consult-preview-at-point-mode)
 
-    :init
-    ;; Tweak the register preview for `consult-register-load',
-    ;; `consult-register-store' and the built-in commands.  This improves the
-    ;; register formatting, adds thin separator lines, register sorting and hides
-    ;; the window mode line.
-	(advice-add #'register-preview :override #'consult-register-window)
-	(setq register-preview-delay 0.5)
+  :init
+  ;; Tweak the register preview for `consult-register-load',
+  ;; `consult-register-store' and the built-in commands.  This improves the
+  ;; register formatting, adds thin separator lines, register sorting and hides
+  ;; the window mode line.
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq register-preview-delay 0.5)
 
-    ;; Use Consult to select xref locations with preview `C-M-.'
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
+  ;; Use Consult to select xref locations with preview `C-M-.'
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
 
-    ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
-	(setq xref-search-program
-		  (cond
-		   ((or (executable-find "ripgrep")
-				(executable-find "rg"))
-			'ripgrep)
-		   ((executable-find "ugrep")
-			'ugrep)
-		   (t
-			'grep)))
+  ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
+  (setq xref-search-program
+	(cond
+	 ((or (executable-find "ripgrep")
+	      (executable-find "rg"))
+	  'ripgrep)
+	 ((executable-find "ugrep")
+	  'ugrep)
+	 (t
+	  'grep)))
 
-:config
+  :config
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
@@ -2524,7 +2524,7 @@ If FRAME is omitted or nil, use currently selected frame."
      :state (consult--jump-state)))
 
   (defvar org-source
-	(list :name     "Org Buffer"
+    (list :name     "Org Buffer"
           :category 'buffer
           :narrow   ?o
           :face     'consult-buffer
@@ -2532,18 +2532,18 @@ If FRAME is omitted or nil, use currently selected frame."
           :state    #'consult--buffer-state
           :new
           (lambda (name)
-			(with-current-buffer (get-buffer-create name)
+	    (with-current-buffer (get-buffer-create name)
               (insert "#+title: " name "\n\n")
               (org-mode)
               (consult--buffer-action (current-buffer))))
           :items
           (lambda ()
-			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair))))
+	    (consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair))))
 
   (add-to-list 'consult-buffer-sources 'org-source 'append)
 
   (defvar denote-source
-	(list :name     "Denote Buffer"
+    (list :name     "Denote Buffer"
           :category 'buffer
           :narrow   ?d
           :face     'consult-buffer
@@ -2551,17 +2551,17 @@ If FRAME is omitted or nil, use currently selected frame."
           :state    #'consult--buffer-state
           :new
           (lambda (name)
-			(denote name))
+	    (denote name))
           :items
           (lambda ()
-			(consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair :filter t :include "\\[D\\].*"))))
+	    (consult--buffer-query :mode 'org-mode :as #'consult--buffer-pair :filter t :include "\\[D\\].*"))))
 
   (add-to-list 'consult-buffer-sources 'denote-source 'append)
 
   (defun sej/consult-project-search ()
-  "Search current project files using `consult-ripgrep`."
-  (interactive)
-  (consult-ripgrep (project-root (project-current t)))) ) ;; end of consult
+    "Search current project files using `consult-ripgrep`."
+    (interactive)
+    (consult-ripgrep (project-root (project-current t)))) ) ;; end of consult
 
 ;;;;; [[https://github.com/karthink/consult-dir][consult-dir]]
 ;; Think of it like the shell tools autojump, fasd or z but for Emacs.
@@ -2571,7 +2571,7 @@ If FRAME is omitted or nil, use currently selected frame."
          :map minibuffer-local-completion-map
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file)
-		 :map vertico-map
+	 :map vertico-map
          ("C-x C-d" . consult-dir)
          ("M-g d"   . consult-dir)
          ("M-s f"   . consult-dir-jump-file))
@@ -2584,19 +2584,19 @@ If FRAME is omitted or nil, use currently selected frame."
   :diminish yas-minor-mode
   :commands yas-minor-mode-on
   :bind (:map sej-C-q-map
-			  ("y d" . yas-load-directory)
-			  ("y f" . yas-visit-snippet-file)
-			  ("y n" . yas-new-snippet)
-			  ("y t" . yas-tryout-snippet)
-			  ("y l" . yas-describe-tables)
-			  ("y g" . yas-global-mode)
-			  ("y m" . yas-minor-mode)
-			  ("y r" . yas-reload-all)
-			  ("y x" . yas-expand))
+	      ("y d" . yas-load-directory)
+	      ("y f" . yas-visit-snippet-file)
+	      ("y n" . yas-new-snippet)
+	      ("y t" . yas-tryout-snippet)
+	      ("y l" . yas-describe-tables)
+	      ("y g" . yas-global-mode)
+	      ("y m" . yas-minor-mode)
+	      ("y r" . yas-reload-all)
+	      ("y x" . yas-expand))
   :hook (prog-mode . yas-minor-mode-on)
   :custom ((yas-prompt-functions '(yas-completing-prompt yas-no-prompt))
-		   (yas-wrap-around-region t)
-		   (which-key-add-keymap-based-replacements sej-C-q-map "y" "yasnippet"))
+	   (yas-wrap-around-region t)
+	   (which-key-add-keymap-based-replacements sej-C-q-map "y" "yasnippet"))
   :custom-face (yas-field-highlight-face ((t (:background "grey30"))))
   :init
   (use-package yasnippet-snippets))
@@ -2604,8 +2604,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package consult-yasnippet
   :after (consult yasnippet)
   :bind (:map sej-C-q-map
-			  ("y i" . consult-yasnippet)
-			  ("y v" . consult-yasnippet-visit-snippet-file)))
+	      ("y i" . consult-yasnippet)
+	      ("y v" . consult-yasnippet-visit-snippet-file)))
 
 ;;;; movement
 ;;;;; [[https://github.com/alezost/mwim.el][mwim]]
@@ -2613,52 +2613,52 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; will cycle between end of code and end-of-code plus comments
 (use-package mwim
   :bind (("C-a" . mwim-beginning) ; C-a Cycles between Absolute and Logical line beginning
-          ("C-e" . mwim-end))) ; C-e better than crux
+         ("C-e" . mwim-end))) ; C-e better than crux
 
 ;;;;; [[https://github.com/abo-abo/avy][avy]]
 ;; Jump to things in Emacs tree-style
 ;; https://karthinks.com/software/avy-can-do-anything
 (use-package avy
   :bind (("H-'" . avy-goto-char-timer)
-          ("M-g l" . avy-goto-line)
-          ("C-H-." . avy-pop-mark)
-          ("H-l" . avy-goto-line)
-          ("M-g w" . avy-goto-word-1)
-          ("H-w" . avy-goto-word-1)
-          ("H-j" . avy-copy-line)
-          ("C-M-s" . isearch-forward-other-window)
-          ("C-M-r" . isearch-backward-other-window)
-          :map isearch-mode-map
-          ("H-s" . avy-isearch))
+         ("M-g l" . avy-goto-line)
+         ("C-H-." . avy-pop-mark)
+         ("H-l" . avy-goto-line)
+         ("M-g w" . avy-goto-word-1)
+         ("H-w" . avy-goto-word-1)
+         ("H-j" . avy-copy-line)
+         ("C-M-s" . isearch-forward-other-window)
+         ("C-M-r" . isearch-backward-other-window)
+         :map isearch-mode-map
+         ("H-s" . avy-isearch))
   :custom  (avy-keys '(?q ?e ?r ?y ?u ?o ?p
-						  ?a ?s ?d ?f ?g ?h ?j
-						  ?k ?l ?' ?x ?c ?v ?b
-						  ?n ?, ?/))
+			  ?a ?s ?d ?f ?g ?h ?j
+			  ?k ?l ?' ?x ?c ?v ?b
+			  ?n ?, ?/))
   :config
   (add-to-list 'savehist-additional-variables 'avy-ring)
   (advice-add 'avy-pop-mark :after #'(lambda () (recenter-top-bottom nil)))
 
   (defun avy-show-dispatch-help ()
-     "Display help for Avy dispatch."
-     (let* ((len (length "avy-action-"))
-            (fw (frame-width))
-            (raw-strings (mapcar
-                          (lambda (x)
-                            (format "%2s: %-19s"
-                                    (propertize
-                                     (char-to-string (car x))
-                                     'face 'aw-key-face)
-                                    (substring (symbol-name (cdr x)) len)))
-                          avy-dispatch-alist))
-            (max-len (1+ (apply #'max (mapcar #'length raw-strings))))
-            (strings-len (length raw-strings))
-            (per-row (floor fw max-len))
-            display-strings)
-       (cl-loop for string in raw-strings
-                for N from 1 to strings-len do
-                (push (concat string " ") display-strings)
-                (when (= (mod N per-row) 0) (push "\n" display-strings)))
-       (message "%s" (apply #'concat (nreverse display-strings)))))
+    "Display help for Avy dispatch."
+    (let* ((len (length "avy-action-"))
+           (fw (frame-width))
+           (raw-strings (mapcar
+                         (lambda (x)
+                           (format "%2s: %-19s"
+                                   (propertize
+                                    (char-to-string (car x))
+                                    'face 'aw-key-face)
+                                   (substring (symbol-name (cdr x)) len)))
+                         avy-dispatch-alist))
+           (max-len (1+ (apply #'max (mapcar #'length raw-strings))))
+           (strings-len (length raw-strings))
+           (per-row (floor fw max-len))
+           display-strings)
+      (cl-loop for string in raw-strings
+               for N from 1 to strings-len do
+               (push (concat string " ") display-strings)
+               (when (= (mod N per-row) 0) (push "\n" display-strings)))
+      (message "%s" (apply #'concat (nreverse display-strings)))))
 
   ;; Kill text
   (defun avy-action-kill-whole-line (pt)
@@ -2735,13 +2735,13 @@ If called with a prefix argument, query for word to search."
           (dictionary-search-dwim '(4))))))
 
   (defun avy-action-define (pt)
-         "Avy action Dictionary search at PT dwim."
-         (save-excursion
-           (goto-char pt)
-           (dictionary-search-dwim))
-         (select-window
-          (cdr (ring-ref avy-ring 0)))
-         t)
+    "Avy action Dictionary search at PT dwim."
+    (save-excursion
+      (goto-char pt)
+      (dictionary-search-dwim))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
 
   (setf (alist-get ?= avy-dispatch-alist) 'dictionary-search-dwim)
 
@@ -2783,14 +2783,14 @@ If called with a prefix argument, query for word to search."
           (other-window (- next))))))
 
   (defun isearch-backward-other-window (prefix)
-         "Function to 'isearch-backward' in 'other-window', modified by PREFIX."
-         (interactive "P")
-         (unless (one-window-p)
-           (save-excursion
-             (let ((next (if prefix 1 -1)))
-               (other-window next)
-               (isearch-backward)
-               (other-window (- next)))))))
+    "Function to 'isearch-backward' in 'other-window', modified by PREFIX."
+    (interactive "P")
+    (unless (one-window-p)
+      (save-excursion
+        (let ((next (if prefix 1 -1)))
+          (other-window next)
+          (isearch-backward)
+          (other-window (- next)))))))
 
 ;;;;; goto-last-change
 ;; goto the last changes made in buffer
@@ -2835,25 +2835,25 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/knu/easy-kill-extras.el
 (use-package easy-kill-extras
   :bind (("M-w" . easy-kill) ; M-w
-          ([remap mark-sexp] . easy-mark-sexp) ; C-M-<SPC>
-          ("M-@" . easy-mark-word) ; M-@
-          ("H-<SPC>" . easy-mark) ; H-<SPC>
-          ("M-z" . easy-mark-to-char)) ; M-z
+         ([remap mark-sexp] . easy-mark-sexp) ; C-M-<SPC>
+         ("M-@" . easy-mark-word) ; M-@
+         ("H-<SPC>" . easy-mark) ; H-<SPC>
+         ("M-z" . easy-mark-to-char)) ; M-z
   :custom (easy-kill-alist '((?w word           " ")
-							 (?s sexp           "\n")
-							 (?l list           "\n")
-							 (?d defun          "\n\n")
-							 (?D defun-name     " ")
-							 (?e line           "\n")
-							 (?b buffer "")
-							 (?^ backward-line-edge "")
-							 (?$ forward-line-edge "")
-							 (?< buffer-before-point "")
-							 (?> buffer-after-point "")
-							 (?f string-to-char-forward "")
-							 (?F string-up-to-char-forward "")
-							 (?t string-to-char-backward "")
-							 (?T string-up-to-char-backward ""))))
+			     (?s sexp           "\n")
+			     (?l list           "\n")
+			     (?d defun          "\n\n")
+			     (?D defun-name     " ")
+			     (?e line           "\n")
+			     (?b buffer "")
+			     (?^ backward-line-edge "")
+			     (?$ forward-line-edge "")
+			     (?< buffer-before-point "")
+			     (?> buffer-after-point "")
+			     (?f string-to-char-forward "")
+			     (?F string-up-to-char-forward "")
+			     (?t string-to-char-backward "")
+			     (?T string-up-to-char-backward ""))))
 
 ;;;;; delsel
 ;; built-in: Do not delete selection if you insert
@@ -2878,24 +2878,24 @@ If called with a prefix argument, query for word to search."
          ("s-<up>" . sej/drag-stuff-up)) ; with Karabiner becomes R-command-p
   :config
   (defun sej/drag-stuff-up ()
-	"Mod of drag-stuff-up which works in org-mode."
+    "Mod of drag-stuff-up which works in org-mode."
     (interactive)
-	(if (equal major-mode #'org-mode)
-    (call-interactively
-     (if (org-at-heading-p)
-         'org-metaup
-       'drag-stuff-up))
-	(drag-stuff-up 1)))
+    (if (equal major-mode #'org-mode)
+        (call-interactively
+         (if (org-at-heading-p)
+             'org-metaup
+           'drag-stuff-up))
+      (drag-stuff-up 1)))
 
   (defun sej/drag-stuff-down ()
-	"Mod of drag-stuff-down which works in org-mode."
+    "Mod of drag-stuff-down which works in org-mode."
     (interactive)
-	(if (equal major-mode #'org-mode)
-    (call-interactively
-     (if (org-at-heading-p)
-         'org-metadown
-       'drag-stuff-down))
-	(drag-stuff-down 1)))
+    (if (equal major-mode #'org-mode)
+        (call-interactively
+         (if (org-at-heading-p)
+             'org-metadown
+           'drag-stuff-down))
+      (drag-stuff-down 1)))
 
   (defun sej/indent-region-advice (&rest ignored)
     (let ((deactivate deactivate-mark))
@@ -2991,92 +2991,92 @@ If called with a prefix argument, query for word to search."
   :bind ("C-c f" . fontaine-set-preset)
   :hook (emacs-startup . fontaine-mode)
   :config
-(let* ((variable-tuple
-        (cond ((x-list-fonts "Atkinson Hyperlegible") "Atkinson Hyperlegible")
-              ((x-list-fonts "Iosevka")  "Iosevka")
-              ((x-list-fonts "ETBembo")  "ETBembo")
-              ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
-              ((x-list-fonts "Lucida Grande")  "Lucida Grande")
-              ((x-list-fonts "Verdana")  "Verdana")
-              ((x-family-fonts "Sans Serif")  "Sans Serif")
-              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-       (fixed-tuple
-        (cond    ((x-list-fonts "Iosevka Fixed")   "Iosevka Fixed")
-              ((x-list-fonts "Iosevka")   "Iosevka")
-              ((x-list-fonts "ETBembo")  "ETBembo")
-              ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
-              ((x-list-fonts "Lucida Grande")  "Lucida Grande")
-              ((x-list-fonts "Verdana")  "Verdana")
-              ((x-family-fonts "Sans Serif")  "Sans Serif")
-              (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-       (sej-t-text  `(t
-                ;; I keep all properties for didactic purposes, but most can be
-                ;; omitted.  See the fontaine manual for the technicalities:
-                ;; <https://protesilaos.com/emacs/fontaine>.
-                :default-family ,fixed-tuple
-                :default-weight semilight
-                :default-height 140
+  (let* ((variable-tuple
+          (cond ((x-list-fonts "Atkinson Hyperlegible") "Atkinson Hyperlegible")
+                ((x-list-fonts "Iosevka")  "Iosevka")
+                ((x-list-fonts "ETBembo")  "ETBembo")
+                ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
+                ((x-list-fonts "Lucida Grande")  "Lucida Grande")
+                ((x-list-fonts "Verdana")  "Verdana")
+                ((x-family-fonts "Sans Serif")  "Sans Serif")
+                (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+         (fixed-tuple
+          (cond    ((x-list-fonts "Iosevka Fixed")   "Iosevka Fixed")
+                   ((x-list-fonts "Iosevka")   "Iosevka")
+                   ((x-list-fonts "ETBembo")  "ETBembo")
+                   ((x-list-fonts "Source Sans Pro")  "Source Sans Pro")
+                   ((x-list-fonts "Lucida Grande")  "Lucida Grande")
+                   ((x-list-fonts "Verdana")  "Verdana")
+                   ((x-family-fonts "Sans Serif")  "Sans Serif")
+                   (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+         (sej-t-text  `(t
+                        ;; I keep all properties for didactic purposes, but most can be
+                        ;; omitted.  See the fontaine manual for the technicalities:
+                        ;; <https://protesilaos.com/emacs/fontaine>.
+                        :default-family ,fixed-tuple
+                        :default-weight semilight
+                        :default-height 140
 
-                :fixed-pitch-family nil ; falls back to :default-family
-                :fixed-pitch-weight nil ; falls back to :default-weight
-                :fixed-pitch-height 1.0
+                        :fixed-pitch-family nil ; falls back to :default-family
+                        :fixed-pitch-weight nil ; falls back to :default-weight
+                        :fixed-pitch-height 1.0
 
-                :fixed-pitch-serif-family nil ; falls back to :default-family
-                :fixed-pitch-serif-weight nil ; falls back to :default-weight
-                :fixed-pitch-serif-height 1.0
+                        :fixed-pitch-serif-family nil ; falls back to :default-family
+                        :fixed-pitch-serif-weight nil ; falls back to :default-weight
+                        :fixed-pitch-serif-height 1.0
 
-                :variable-pitch-family ,variable-tuple
-                :variable-pitch-weight nil
-                :variable-pitch-height 1.0
+                        :variable-pitch-family ,variable-tuple
+                        :variable-pitch-weight nil
+                        :variable-pitch-height 1.0
 
-                :mode-line-active-family ,variable-tuple
-                :mode-line-active-weight regular
-                :mode-line-active-height 1.0
+                        :mode-line-active-family ,variable-tuple
+                        :mode-line-active-weight regular
+                        :mode-line-active-height 1.0
 
-                :mode-line-inactive-family ,variable-tuple
-                :mode-line-inactive-weight regular
-                :mode-line-inactive-height 1.0
+                        :mode-line-inactive-family ,variable-tuple
+                        :mode-line-inactive-weight regular
+                        :mode-line-inactive-height 1.0
 
-                :header-line-family nil ; falls back to :default-family
-                :header-line-weight nil ; falls back to :default-weight
-                :header-line-height 1.0
+                        :header-line-family nil ; falls back to :default-family
+                        :header-line-weight nil ; falls back to :default-weight
+                        :header-line-height 1.0
 
-                :line-number-family nil ; falls back to :default-family
-                :line-number-weight nil ; falls back to :default-weight
-                :line-number-height 1.0
+                        :line-number-family nil ; falls back to :default-family
+                        :line-number-weight nil ; falls back to :default-weight
+                        :line-number-height 1.0
 
-                :tab-bar-family nil ; falls back to :default-family
-                :tab-bar-weight nil ; falls back to :default-weight
-                :tab-bar-height 1.0
+                        :tab-bar-family nil ; falls back to :default-family
+                        :tab-bar-weight nil ; falls back to :default-weight
+                        :tab-bar-height 1.0
 
-                :tab-line-family nil ; falls back to :default-family
-                :tab-line-weight nil ; falls back to :default-weight
-                :tab-line-height 1.0
+                        :tab-line-family nil ; falls back to :default-family
+                        :tab-line-weight nil ; falls back to :default-weight
+                        :tab-line-height 1.0
 
-                :bold-family nil ; use whatever the underlying face has
-                :bold-weight bold
+                        :bold-family nil ; use whatever the underlying face has
+                        :bold-weight bold
 
-                :italic-family nil
-                :italic-slant italic
+                        :italic-family nil
+                        :italic-slant italic
 
-                :line-spacing nil))
+                        :line-spacing nil))
 
-       (sej-font-text `((regular) ; like this it uses all the fallback values and is named `regular'
-               (small
-                :default-height 100)
-               (medium
-                :default-height 160)
-               (large
-                :inherit medium
-                :default-height 180)
-               (presentation
-                :default-height 200)
-               ,sej-t-text ) ) )
-  (setq fontaine-presets sej-font-text) )
+         (sej-font-text `((regular) ; like this it uses all the fallback values and is named `regular'
+                          (small
+                           :default-height 100)
+                          (medium
+                           :default-height 160)
+                          (large
+                           :inherit medium
+                           :default-height 180)
+                          (presentation
+                           :default-height 200)
+                          ,sej-t-text ) ) )
+    (setq fontaine-presets sej-font-text) )
 
-;; Set the last preset or fall back to desired style from `fontaine-presets'
-;; (the `regular' in this case).
-(fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))  )
+  ;; Set the last preset or fall back to desired style from `fontaine-presets'
+  ;; (the `regular' in this case).
+  (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))  )
 
 ;;;;; show-font
 ;; preview fonts on the system
@@ -3085,9 +3085,9 @@ If called with a prefix argument, query for word to search."
   :init
   (which-key-add-keymap-based-replacements sej-C-q-map "C-f" "show-font")
   :bind (:map sej-C-q-map
-			  ("C-f f" . show-font-select-preview)
-			  ("C-f l" . show-font-list)
-			  ("C-f t" . show-font-tabulated)))
+	      ("C-f f" . show-font-select-preview)
+	      ("C-f l" . show-font-list)
+	      ("C-f t" . show-font-tabulated)))
 
 ;;;;; symbol-overlay
 ;; Highlight symbols and move between them
@@ -3109,7 +3109,7 @@ If called with a prefix argument, query for word to search."
   :bind-keymap ("C-q s" . symbol-overlay-map)
   :init
   (which-key-add-key-based-replacements
-    "C-q s" "Symbol Overlay")
+   "C-q s" "Symbol Overlay")
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . sej/symbol-overlay-mode-off)
          (iedit-mode-end . symbol-overlay-mode)))
@@ -3136,12 +3136,12 @@ If called with a prefix argument, query for word to search."
 (use-package rainbow-mode
   :blackout t
   :hook ((prog-mode . rainbow-mode)
-		 (org-mode . rainbow-mode)
-		 (conf-space-mode . rainbow-mode))
+	 (org-mode . rainbow-mode)
+	 (conf-space-mode . rainbow-mode))
   :bind (:map sej-C-q-map
-			  ("R" . rainbow-mode))
+	      ("R" . rainbow-mode))
   :custom ((rainbow-ansi-colors t)
-		   (rainbow-x-colors t)))
+	   (rainbow-x-colors t)))
 
 ;;;;; hl-todo
 ;; Highlight TODO and similar keywords in comments and strings
@@ -3153,29 +3153,29 @@ If called with a prefix argument, query for word to search."
   :custom-face
   (hl-todo ((t (:box nil :inherit))))
   :bind (:map hl-todo-mode-map
-			  ("H-P" . hl-todo-previous)
-			  ("H-N" . hl-todo-next)
-			  ("C-q T o" . hl-todo-occur)
-			  ("C-q T r" . hl-todo-ripgrep) )
+	      ("H-P" . hl-todo-previous)
+	      ("H-N" . hl-todo-next)
+	      ("C-q T o" . hl-todo-occur)
+	      ("C-q T r" . hl-todo-ripgrep) )
   :hook ((emacs-startup . global-hl-todo-mode)
          (prog-mode . hl-todo-mode)
          (org-mode . hl-todo-mode))
   :init (which-key-add-key-based-replacements "C-q T" "hl-todo")
   :custom (hl-todo-keyword-faces '(("DEBUG" . "#7cb8bb")
-								   ("FIX" . "red")
-								   ("FIXED" . "forest green")
-								   ("HELP" . "#ff0000")
-								   ("KLUDGE" . "yellow")
-								   ("INPROCESS" . "yellow")
-								   ("LATER" . "#2c5353")
-								   ("WAIT" . "#2c5353")
-								   ("MAYBE" . "#d1bf8f")
-								   ("NOTE" . "#5f6000")
-								   ("OKAY" . "#5f9000")
-								   ("DONE" . "green")
-								   ("TRY" . "#5f7f5f")
-								   ("TODO" . "#cc9393")
-								   ("TEST" . "#ff7700")))
+				   ("FIX" . "red")
+				   ("FIXED" . "forest green")
+				   ("HELP" . "#ff0000")
+				   ("KLUDGE" . "yellow")
+				   ("INPROCESS" . "yellow")
+				   ("LATER" . "#2c5353")
+				   ("WAIT" . "#2c5353")
+				   ("MAYBE" . "#d1bf8f")
+				   ("NOTE" . "#5f6000")
+				   ("OKAY" . "#5f9000")
+				   ("DONE" . "green")
+				   ("TRY" . "#5f7f5f")
+				   ("TODO" . "#cc9393")
+				   ("TEST" . "#ff7700")))
   :config (push 'org-mode hl-todo-include-modes))
 
 ;;;;; consult-todo
@@ -3183,26 +3183,26 @@ If called with a prefix argument, query for word to search."
 ;; [[https://github.com/liuyinz/consult-todo]]
 (use-package consult-todo
   :bind (:map sej-C-q-map
-			  ("T c" . consult-todo)
-			  ("T C" . sej/consult-todo-toggle-comment)
-			  ("T d" . consult-todo-dir)
-			  ("T p" . consult-todo-project)
-			  ("T a" . consult-todo-all))
+	      ("T c" . consult-todo)
+	      ("T C" . sej/consult-todo-toggle-comment)
+	      ("T d" . consult-todo-dir)
+	      ("T p" . consult-todo-project)
+	      ("T a" . consult-todo-all))
   :config
   (setq consult-todo-narrow
-		(let (value)
-		  (dolist (element (sort hl-todo-keyword-faces :reverse t) value)
-			(setq value (cons
-						 (cons
-						  (string-to-char (downcase (substring (car element) 0 1)))
-						  (car element))
-						 value)))))
+	(let (value)
+	  (dolist (element (sort hl-todo-keyword-faces :reverse t) value)
+	    (setq value (cons
+			 (cons
+			  (string-to-char (downcase (substring (car element) 0 1)))
+			  (car element))
+			 value)))))
   (defun sej/consult-todo-toggle-comment ()
-	"Function to toggle `consult-todo-only-comment'."
-	(interactive)
-	(unless (boundp 'consult-todo-only-comment)
-	   (setq consult-todo-only-comment nil))
-	 (embark-toggle-variable 'consult-todo-only-comment)) )
+    "Function to toggle `consult-todo-only-comment'."
+    (interactive)
+    (unless (boundp 'consult-todo-only-comment)
+      (setq consult-todo-only-comment nil))
+    (embark-toggle-variable 'consult-todo-only-comment)) )
 
 ;;;;; volatile-highlights
 ;; Highlight some buffer region operations
@@ -3217,7 +3217,7 @@ If called with a prefix argument, query for word to search."
 ;; https://protesilaos.com/emacs/pulsar
 (use-package pulsar
   :bind (("C-H-p" . pulsar-pulse-line)
-		 ("C-H-h" . pulsar-highlight-dwim))
+	 ("C-H-h" . pulsar-highlight-dwim))
   :hook ((emacs-startup . pulsar-global-mode)
          ((consult-after-jump
            bookmark-after-jump
@@ -3226,18 +3226,18 @@ If called with a prefix argument, query for word to search."
            imenu-after-jump) . pulsar-reveal-entry)
          (next-error . pulsar-pulse-line-red))
   :custom ((pulsar-pulse t)
-		   (pulsar-delay 0.055)
-		   (pulsar-iterations 10)
-		   (pulsar-face 'pulsar-magenta)
-		   (pulsar-highlight-face 'pulsar-yellow))
+	   (pulsar-delay 0.055)
+	   (pulsar-iterations 10)
+	   (pulsar-face 'pulsar-magenta)
+	   (pulsar-highlight-face 'pulsar-yellow))
   :config
   ;; Check the default value of `pulsar-pulse-functions'.  That is where
   ;; you add more commands that should cause a pulse after they are
   ;; invoked
   (setq pulsar-pulse-functions (-union pulsar-pulse-functions '(pop-to-mark-command
-														 flymake-goto-next-error
-														 flymake-goto-prev-error
-														 recenter-top-bottom))))
+								flymake-goto-next-error
+								flymake-goto-prev-error
+								recenter-top-bottom))))
 
 ;;;;; paren
 ;; built-in: show paren mode
@@ -3268,16 +3268,16 @@ If called with a prefix argument, query for word to search."
 (use-package indent-bars
   :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
   :custom ((indent-bars-prefer-character t)
-		   (indent-bars-treesit-support t)
-		   (indent-bars-treesit-ignore-blank-lines-types '("module"))
-		   ;; Add other languages as needed
-		   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
-												if_statement with_statement while_statement)))
-		   ;; wrap may not be needed if no-descend-list is enough
-		   (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
-											   list list_comprehension
-											   dictionary dictionary_comprehension
-											   parenthesized_expression subscript)))))
+	   (indent-bars-treesit-support t)
+	   (indent-bars-treesit-ignore-blank-lines-types '("module"))
+	   ;; Add other languages as needed
+	   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+						if_statement with_statement while_statement)))
+	   ;; wrap may not be needed if no-descend-list is enough
+	   (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+					       list list_comprehension
+					       dictionary dictionary_comprehension
+					       parenthesized_expression subscript)))))
 
 ;;;;; indentation & outline settings
 (bind-keys* ("C-S-n" . outline-next-visible-heading)
@@ -3381,10 +3381,10 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/lassik/emacs-format-all-the-code
 (use-package format-all
   :bind (:prefix-map format-all-map
-					 :prefix "C-q f"
-					 :prefix-docstring "format-all-menu"
-					 ("b" . format-all-buffer)
-					 ("r" . format-all-region)))
+		     :prefix "C-q f"
+		     :prefix-docstring "format-all-menu"
+		     ("b" . format-all-buffer)
+		     ("r" . format-all-region)))
 
 ;;;; server tools
 ;;;;; tree-sitter
@@ -3402,10 +3402,10 @@ If called with a prefix argument, query for word to search."
   :custom (treesit-auto-install 'prompt)
   :config
   (setq treesit-language-source-alist
-		'((markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-					   "split_parser" "tree-sitter-markdown/src"))
-		  (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-							  "split_parser" "tree-sitter-markdown-inline/src"))))
+	'((markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+		       "split_parser" "tree-sitter-markdown/src"))
+	  (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+			      "split_parser" "tree-sitter-markdown-inline/src"))))
   ;;(treesit-install-language-grammar 'markdown)
   ;;(treesit-install-language-grammar 'markdown-inline)
 
@@ -3443,14 +3443,14 @@ If called with a prefix argument, query for word to search."
   :bind (:map eglot-mode-map
               ("C-c r" . eglot-rename)
               ("C-c o" . eglot-code-action-organize-imports)
-			  ("C-c C-." . eglot-code-actions)
+	      ("C-c C-." . eglot-code-actions)
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions)
-			  ("M-^" . eglot-find-implementation))
+	      ("M-^" . eglot-find-implementation))
   :custom ((eglot-autoshutdown t)
-		   (read-process-output-max (* 1024 1024))
-		   (help-at-pt-display-when-idle t)
-		   (completion-category-defaults nil))
+	   (read-process-output-max (* 1024 1024))
+	   (help-at-pt-display-when-idle t)
+	   (completion-category-defaults nil))
   :config
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
@@ -3476,19 +3476,19 @@ If called with a prefix argument, query for word to search."
   ;; Emacs set-up [[https://webbureaucrat.gitlab.io/articles/emacs-for-python-and-poetry-using-basedpyright-langserver/][link]]
   ;; brew install basedpyright
   (add-to-list 'eglot-server-programs
-			   '((python-mode python-ts-mode)
-               "basedpyright-langserver" "--stdio"))
+	       '((python-mode python-ts-mode)
+                 "basedpyright-langserver" "--stdio"))
   (setq-default eglot-workspace-configuration
-				'(:basedpyright (
-								 :typeCheckingMode "standard"
-								)
-								:basedpyright.analysis (
-														:diagnosticSeverityOverrides (
-																					  :reportUnusedCallResult "none"
-																					  )
-														:inlayHints (
-																	 :callArgumentNames :json-false
-												   ))))
+		'(:basedpyright (
+				 :typeCheckingMode "standard"
+				 )
+				:basedpyright.analysis (
+							:diagnosticSeverityOverrides (
+										      :reportUnusedCallResult "none"
+										      )
+							:inlayHints (
+								     :callArgumentNames :json-false
+								     ))))
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
@@ -3500,45 +3500,45 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :demand t
   :custom ((tramp-default-method "ssh") ; or scp
-		   (tramp-terminal-type "dumb")
-		   (tramp-verbose 10)
-		   (tramp-completion-reread-directory-timeout nil)
-		   (tramp-histfile-override "/tmp/tramp_history")
-		   (tramp-auto-save-directory "~/.cache/emacs/backups")
-		   (tramp-inhibit-errors-if-setting-file-attributes-fail t)
-  ;; 		   (remote-file-name-inhibit-cache nil)
-  ;; 		   (remote-file-name-inhibit-locks t)
-		   (tramp-use-scp-direct-remote-copying t)
-  ;; 		   (remote-file-name-inhibit-auto-save-visited t)
-		   (tramp-copy-size-limit (* 1024 1024))
-  ;; 		   (connection-local-set-profile-variables 'remote-direct-async-process
-  ;; 												   '((tramp-direct-async-process . t)))
-  ;; 		   (connection-local-set-profiles '(:application tramp :protocol "scp")
-  ;; 										  'remote-direct-async-process)
-  ;; 		   (magit-tramp-pipe-stty-settings 'pty)
-  ;; 		   (tramp-default-remote-shell "/bin/bash")
-		   (tramp-chunksize 500)
-  ;; 		   (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
-  ;; 									  vc-ignore-dir-regexp
-  ;; 									  tramp-file-name-regexp))
-		   ;; use the settings in ~/.ssh/config instead of Tramp's
-		   ;; (tramp-use-ssh-controlmaster-options nil)
-		   ;; don't generate backups for remote files opened as root (security hazard)
-		   ;; (backup-enable-predicate (lambda (name)
-		   ;; 							  (and (normal-backup-enable-predicate name)
-		   ;; 								   (not (let ((method (file-remote-p name 'method)))
-		   ;; 										  (when (stringp method)
-		   ;; 											(member method '("su" "sudo")))))))))
-		   )
+	   (tramp-terminal-type "dumb")
+	   (tramp-verbose 10)
+	   (tramp-completion-reread-directory-timeout nil)
+	   (tramp-histfile-override "/tmp/tramp_history")
+	   (tramp-auto-save-directory "~/.cache/emacs/backups")
+	   (tramp-inhibit-errors-if-setting-file-attributes-fail t)
+           ;; 		   (remote-file-name-inhibit-cache nil)
+           ;; 		   (remote-file-name-inhibit-locks t)
+	   (tramp-use-scp-direct-remote-copying t)
+           ;; 		   (remote-file-name-inhibit-auto-save-visited t)
+	   (tramp-copy-size-limit (* 1024 1024))
+           ;; 		   (connection-local-set-profile-variables 'remote-direct-async-process
+           ;; 												   '((tramp-direct-async-process . t)))
+           ;; 		   (connection-local-set-profiles '(:application tramp :protocol "scp")
+           ;; 										  'remote-direct-async-process)
+           ;; 		   (magit-tramp-pipe-stty-settings 'pty)
+           ;; 		   (tramp-default-remote-shell "/bin/bash")
+	   (tramp-chunksize 500)
+           ;; 		   (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+           ;; 									  vc-ignore-dir-regexp
+           ;; 									  tramp-file-name-regexp))
+	   ;; use the settings in ~/.ssh/config instead of Tramp's
+	   ;; (tramp-use-ssh-controlmaster-options nil)
+	   ;; don't generate backups for remote files opened as root (security hazard)
+	   ;; (backup-enable-predicate (lambda (name)
+	   ;; 							  (and (normal-backup-enable-predicate name)
+	   ;; 								   (not (let ((method (file-remote-p name 'method)))
+	   ;; 										  (when (stringp method)
+	   ;; 											(member method '("su" "sudo")))))))))
+	   )
   :config
   (put 'temporary-file-directory 'standard-value '("/tmp"))
   (add-to-list 'tramp-default-user-alist '("\\`localhost\\'" "\\`root\\'" "su"))
   (with-eval-after-load 'tramp
-	(with-eval-after-load 'compile
-	  (remove-hook 'compile-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+    (with-eval-after-load 'compile
+      (remove-hook 'compile-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
   (remove-hook 'find-file-hook #'doom-modeline-update-buffer-file-name)
   (remove-hook 'find-file-hook 'forge-bug-reference-setup)
-  ;(require 'tramp-sh)
+                                        ;(require 'tramp-sh)
   )
 
 ;;;;; ssh-config-mode
@@ -3555,11 +3555,11 @@ If called with a prefix argument, query for word to search."
 (use-package newcomment
   :ensure nil
   :bind (("H-;" . comment-box)
-		 ("M-;" . comment-line))
+	 ("M-;" . comment-line))
   :custom ((comment-empty-lines t)
-		   (comment-fill-column 0)
-		   (comment-multi-line t)
-		   (comment-style 'multi-line)))
+	   (comment-fill-column 0)
+	   (comment-multi-line t)
+	   (comment-style 'multi-line)))
 
 ;;;;; ediff
 ;; built-in: A saner diff
@@ -3571,9 +3571,9 @@ If called with a prefix argument, query for word to search."
         ;; restore window layout when done
         (ediff-quit . winner-undo))
   :custom ((ediff-diff-options "-w")
-		   (ediff-window-setup-function 'ediff-setup-windows-plain)
-		   (ediff-split-window-function 'split-window-horizontally)
-		   (ediff-shell (getenv "$SHELL"))))
+	   (ediff-window-setup-function 'ediff-setup-windows-plain)
+	   (ediff-split-window-function 'split-window-horizontally)
+	   (ediff-shell (getenv "$SHELL"))))
 
 ;;;; paren management
 ;;;;; electric
@@ -3582,18 +3582,18 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :hook ('prog-mode . electric-indent-mode)
   :bind (("C-j". sej/open-new-line)
-		 ("C-S-J" . sej/open-line-above-and-indent))
+	 ("C-S-J" . sej/open-line-above-and-indent))
   :custom ((electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
-		   (electirc-pair-preserve-balance t)
-		   (electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187)))
-		   (electric-pair-skip-self 'electric-pair-default-skip-self)
-		   (electric-pair-skip-whitespace nil)
-		   (electric-pair-skip-whitespace-chars '(9 10 32))
-		   (electric-quote-context-sensitive t)
-		   (electric-quote-paragraph t)
-		   (electric-quote-string nil)
-		   (electric-quote-replace-double t))
-   :init (setq-default electric-indent-chars '(?\n ?\^?)))
+	   (electirc-pair-preserve-balance t)
+	   (electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187)))
+	   (electric-pair-skip-self 'electric-pair-default-skip-self)
+	   (electric-pair-skip-whitespace nil)
+	   (electric-pair-skip-whitespace-chars '(9 10 32))
+	   (electric-quote-context-sensitive t)
+	   (electric-quote-paragraph t)
+	   (electric-quote-string nil)
+	   (electric-quote-replace-double t))
+  :init (setq-default electric-indent-chars '(?\n ?\^?)))
 
 ;;;;; elec-pair
 ;; built-in: Automatic parenthesis pairing
@@ -3627,12 +3627,12 @@ If called with a prefix argument, query for word to search."
   :preface
   ;; ANSI Coloring
   (with-eval-after-load 'compile
-  (require 'ansi-color)
-  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter nil t))
+    (require 'ansi-color)
+    (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter nil t))
   :custom ((compilation-message-face 'compilation-base-face)
-		   (compilation-always-kill t)
-		   (compilation-ask-about-save nil)
-		   (compilation-scroll-output 'first-error)) )
+	   (compilation-always-kill t)
+	   (compilation-ask-about-save nil)
+	   (compilation-scroll-output 'first-error)) )
 
 ;;;;; make-mode
 ;; built-in: Major mode for editing standard Makefiles
@@ -3652,16 +3652,16 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :hook (emacs-startup . flymake-mode)
   :bind (("H-[" . flymake-goto-prev-error)
-		 ("H-]" . flymake-goto-next-error)
-		 ("H-\\" . flymake-show-buffer-diagnostics))
+	 ("H-]" . flymake-goto-next-error)
+	 ("H-\\" . flymake-show-buffer-diagnostics))
   :custom ((flymake-show-diagnostics-at-end-of-line t)
-		   (flymake-fringe-indicator-position 'right-fringe)
-		   (flymake-suppress-zero-counters t)
-		   (flymake-start-on-flymake-mode t)
-		   (flymake-no-changes-timeout .5)
-		   (flymake-start-on-save-buffer t)
-		   (flymake-proc-compilation-prevents-syntax-check t)
-		   (flymake-wrap-around t)))
+	   (flymake-fringe-indicator-position 'right-fringe)
+	   (flymake-suppress-zero-counters t)
+	   (flymake-start-on-flymake-mode t)
+	   (flymake-no-changes-timeout .5)
+	   (flymake-start-on-save-buffer t)
+	   (flymake-proc-compilation-prevents-syntax-check t)
+	   (flymake-wrap-around t)))
 
 ;;;; vcs
 ;;;;; Project
@@ -3677,11 +3677,11 @@ If called with a prefix argument, query for word to search."
 (use-package magit
   :bind (("C-x g" . magit-status))
   :custom ((magit-log-section-commit-count 30)
-		   (magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
-		   (magit-diff-refine-hunk t)
-		   (magit-repository-directories '(("~/Projects" . 1) ("~/src" . 1)))
-		   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
-		   (magit-bury-buffer-function #'magit-restore-window-configuration))
+	   (magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
+	   (magit-diff-refine-hunk t)
+	   (magit-repository-directories '(("~/Projects" . 1) ("~/src" . 1)))
+	   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+	   (magit-bury-buffer-function #'magit-restore-window-configuration))
   :config
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
@@ -3695,13 +3695,13 @@ If called with a prefix argument, query for word to search."
 ;;;;; [[https://github.com/dandavison/magit-delta][magit-delta]]
 (use-package magit-delta
   :if sys/macp
-	:ensure-system-package (delta . "brew install git-delta")
-	:hook (magit-mode . magit-delta-mode)
-	:custom ((magit-delta-default-dark-theme "ansi")
-			 (magit-delta-delta-args `("--max-line-distance" "0.6"
-									   "--true-color" "always"
-									   "--color-only"
-									   ))))
+  :ensure-system-package (delta . "brew install git-delta")
+  :hook (magit-mode . magit-delta-mode)
+  :custom ((magit-delta-default-dark-theme "ansi")
+	   (magit-delta-delta-args `("--max-line-distance" "0.6"
+				     "--true-color" "always"
+				     "--color-only"
+				     ))))
 
 ;;;;; [[https://github.com/aurtzy/disproject][disproject]]
 ;; integration with project.el and allows for dispatching via transient menus
@@ -3727,8 +3727,8 @@ If called with a prefix argument, query for word to search."
 (use-package git-gutter-fringe
   :blackout t
   :bind (:map global-map
-		 ("C-H-]" . git-gutter:next-hunk)
-		 ("C-H-[" . git-gutter:previous-hunk))
+	      ("C-H-]" . git-gutter:next-hunk)
+	      ("C-H-[" . git-gutter:previous-hunk))
   :hook (emacs-startup . global-git-gutter-mode)
   :init (setq git-gutter:lighter "")
   :config
@@ -3825,13 +3825,13 @@ If called with a prefix argument, query for word to search."
 (use-package lisp-mode
   :ensure nil
   :hook (((emacs-lisp-mode lisp-mode) . (lambda () (add-hook 'after-save-hook #'check-parens nil t)))
-		 (emacs-lisp-mode-hook . flymake-mode))
+	 (emacs-lisp-mode-hook . flymake-mode))
   :bind ((:map global-map
-			   ("C-q C-e" . toggle-debug-on-error))
-		 (:map emacs-lisp-mode-map
-			   ("C-<return>" . sej/eval-dwim)
-			   ("C-x C-e" . sej/eval-dwim)
-			   ("H-<return>" . eval-buffer)))
+	       ("C-q C-e" . toggle-debug-on-error))
+	 (:map emacs-lisp-mode-map
+	       ("C-<return>" . sej/eval-dwim)
+	       ("C-x C-e" . sej/eval-dwim)
+	       ("H-<return>" . eval-buffer)))
   :custom (parens-require-spaces t)
   :init
   (dolist (mode '(ielm-mode
@@ -3853,13 +3853,13 @@ If called with a prefix argument, query for word to search."
   :config
   ;; taken from here [[http://blog.shanderlam.com/][eval-dwim]]
   (defun sej/eval-dwim (arg)
-	"Call eval command you want (Do What I Mean).
+    "Call eval command you want (Do What I Mean).
      If the region is active and option `transient-mark-mode' is on, call
      `eval-region'. Else, call `eval-last-sexp' using (ARG)."
-	(interactive "P")
-	(if (and transient-mark-mode mark-active)
-		(eval-region (region-beginning) (region-end))
-	  (eval-last-sexp arg)))
+    (interactive "P")
+    (if (and transient-mark-mode mark-active)
+	(eval-region (region-beginning) (region-end))
+      (eval-last-sexp arg)))
 
   ;; enable dash for Emacs lisp highlighting
   (eval-after-load "dash" '(dash-enable-font-lock)))
@@ -3877,8 +3877,8 @@ If called with a prefix argument, query for word to search."
   :hook
   ((prog-mode . turn-on-eldoc-mode))
   :custom ((eldoc-idle-delay 0.2)
-		   (eldoc-echo-area-use-multiline-p 3)
-		   (eldoc-echo-area-display-truncation-message nil))
+	   (eldoc-echo-area-use-multiline-p 3)
+	   (eldoc-echo-area-display-truncation-message nil))
   :config
   (eldoc-add-command-completions "paredit-")
   (eldoc-add-command-completions "combobulate-"))
@@ -3916,10 +3916,10 @@ If called with a prefix argument, query for word to search."
   :bind (("A-i" . sej/ielm-other-window)
          :map sej-C-q-map
          ("i" . sej/ielm-other-window)
-		 :map ielm-map
-		 ("<return>" . sej/ielm-return))
+	 :map ielm-map
+	 ("<return>" . sej/ielm-return))
   :hook ((ielm-mode . show-paren-mode)
-		 (ielm-mode . electric-pair-mode))
+	 (ielm-mode . electric-pair-mode))
   :config
   (defun sej/ielm-other-window ()
     "Run ielm on other window."
@@ -3995,7 +3995,7 @@ If called with a prefix argument, query for word to search."
 ;;;;; [[http://doc.endlessparentheses.com/Fun/inferior-python-mode.html][inferior-python-mode]]
 ;; built-in: runs a python interpreter as a subprocess of Emacs
 (use-package inferior-pyton-mode
-:ensure nil  )
+  :ensure nil  )
 
 ;;;;; [[https://github.com/pwalsh/pipenv.el][pipenv]]
 ;; integration with pipenv
@@ -4027,7 +4027,7 @@ If called with a prefix argument, query for word to search."
 ;;;;; [[https://github.com/wbolster/emacs-python-pytest][python-pytest]]
 (use-package python-pytest
   :bind (:map python-base-mode-map
-			  ("C-c t" . python-pytest-dispatch)))
+	      ("C-c t" . python-pytest-dispatch)))
 
 ;;;;; [[https://github.com/purcell/envrc][envrc]]
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
@@ -4080,8 +4080,8 @@ If called with a prefix argument, query for word to search."
 (use-package web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
   :custom ((web-mode-markup-indent-offset 2)
-		   (web-mode-css-indent-offset 2)
-		   (web-mode-code-indent-offset 2)))
+	   (web-mode-css-indent-offset 2)
+	   (web-mode-code-indent-offset 2)))
 
 ;;;;; [[https://github.com/zenozeng/css-eldoc][css-eldoc]]
 ;; eldoc-mode plugin for CSS
@@ -4187,7 +4187,7 @@ If called with a prefix argument, query for word to search."
   ;; Set the default formatting styles for various C based modes
   (setq c-default-style
         '((awk-mode . "awk")
-		  (java-mode . "gnu")
+	  (java-mode . "gnu")
           (other . "gnu"))))
 
 (use-package c-ts-mode
@@ -4424,22 +4424,22 @@ the children of class at point."
          :map sej-C-q-map
          ("d" . sej/open-dashboard))
   :custom ((dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
-		   (dashboard-set-init-info t)
-		   (dashboard-projects-backend 'project-el) ; alt option: projectile
-		   (dashboard-items '((recents  . 15)
-							  (bookmarks . 15)
-							  (projects . 10)
-							  (registers . 10)))
-		   (dashboard-set-heading-icons t)
-		   (dashboard-set-file-icons t))
+	   (dashboard-set-init-info t)
+	   (dashboard-projects-backend 'project-el) ; alt option: projectile
+	   (dashboard-items '((recents  . 15)
+			      (bookmarks . 15)
+			      (projects . 10)
+			      (registers . 10)))
+	   (dashboard-set-heading-icons t)
+	   (dashboard-set-file-icons t))
   :config
   (dashboard-setup-startup-hook)
 
-(defun sej/open-dashboard-only ()
+  (defun sej/open-dashboard-only ()
     "Move to the dashboard package buffer and make only window in frame."
     (interactive)
-	(dashboard-insert-startupify-lists)
-	(dashboard-initialize)
+    (dashboard-insert-startupify-lists)
+    (dashboard-initialize)
     (switch-to-buffer "*dashboard*")
     (hl-line-mode t)
     (delete-other-windows))
@@ -4475,15 +4475,15 @@ the children of class at point."
     "Replace text in yasnippet template."
     (yas/expand-snippet (buffer-string) (point-min) (point-max)))
   :custom ((auto-insert-directory "~/.emacs.d/templates/")
-		   (auto-insert 'other)
-		   (auto-insert-directory (concat no-littering-etc-directory "autoinsert/"))))
+	   (auto-insert 'other)
+	   (auto-insert-directory (concat no-littering-etc-directory "autoinsert/"))))
 
 ;;;;; autorevert
 ;; built-in: watch for changes in files on disk
 ;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Revert.html]]
 (use-package autorevert
   :hook ((emacs-startup . global-auto-revert-mode)
-		 (dired-mode . auto-revert-mode))
+	 (dired-mode . auto-revert-mode))
   :custom ((auto-revert-use-notify t)
            (auto-revert-avoid-polling t)
            (auto-revert-verbose nil)
@@ -4520,17 +4520,17 @@ the children of class at point."
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
               ("C-u D" . sej/dired-do-delete-skip-trash)
-			  ("z" . sej/dired-get-size))
+	      ("z" . sej/dired-get-size))
   :custom ((dired-recursive-deletes 'always) ;; Always delete and copy recursively
-		   (dired-recursive-copies 'always)
-		   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
-		   (dired-dwim-target t)
-		   (dired-auto-revert-buffer #'dired-directory-changed-p)
-		   (dired-free-space nil)
-		   (dired-mouse-drag-files t)
-		   (dired-isearch-filenames 'dwim)
-		   (dired-create-destination-dirs 'ask)
-		   (dired-vc-rename-file t))
+	   (dired-recursive-copies 'always)
+	   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
+	   (dired-dwim-target t)
+	   (dired-auto-revert-buffer #'dired-directory-changed-p)
+	   (dired-free-space nil)
+	   (dired-mouse-drag-files t)
+	   (dired-isearch-filenames 'dwim)
+	   (dired-create-destination-dirs 'ask)
+	   (dired-vc-rename-file t))
   :config
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
@@ -4539,23 +4539,23 @@ the children of class at point."
       (dired-do-delete arg)))
 
   (defun sej/dired-get-size ()
-  "Display file size in dired."
-  (interactive)
-  (let ((files (dired-get-marked-files)))
-    (with-temp-buffer
-      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
-      (message
-       "Size of all marked files: %s"
-       (progn
-         (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]+\\).*total$")
-         (match-string 1)))))))
+    "Display file size in dired."
+    (interactive)
+    (let ((files (dired-get-marked-files)))
+      (with-temp-buffer
+        (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+        (message
+         "Size of all marked files: %s"
+         (progn
+           (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]+\\).*total$")
+           (match-string 1)))))))
 
 ;;;;; ls-lisp
 (use-package ls-lisp
   :ensure nil
   :custom ((ls-lisp-use-insert-directory-program nil)
-		   (ls-lisp-ignore-case 't)
-		   (ls-lisp-use-string-collate nil)))
+	   (ls-lisp-ignore-case 't)
+	   (ls-lisp-use-string-collate nil)))
 
 ;;;;; dired-aux
 ;; built-in: auxiliary functionality of dired
@@ -4563,14 +4563,14 @@ the children of class at point."
 (use-package dired-aux
   :ensure nil
   :commands (dired-diff
-			 dirred-backup-diff
-			 dired-compare-directories
-			 dired-do-chmod
-			 dired-do-chgrp
-			 dired-do-chown
-			 dired-do-print
-			 dired-do-shell-command
-			 dired-compress))
+	     dirred-backup-diff
+	     dired-compare-directories
+	     dired-do-chmod
+	     dired-do-chgrp
+	     dired-do-chown
+	     dired-do-print
+	     dired-do-shell-command
+	     dired-compress))
 
 ;;;;; dired-x
 ;; built-in: Extra Dired functionality
@@ -4578,7 +4578,7 @@ the children of class at point."
 (use-package dired-x
   :ensure nil
   :commands (dired-x-find-file
-			 dired-x-find-file-other-window)
+	     dired-x-find-file-other-window)
   :custom (dired-x-hands-off-my-keys nil))
 
 ;;;;; diredfl
@@ -4591,10 +4591,10 @@ the children of class at point."
 (use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
-			  ("<tab>" . dired-subtree-toggle)
-			  ("TAB" . dired-subtree-toggle)
-			  ("<backtab>" . dired-subtree-remove)
-			  ("S-TAB" . dired-subtree-remove))
+	      ("<tab>" . dired-subtree-toggle)
+	      ("TAB" . dired-subtree-toggle)
+	      ("<backtab>" . dired-subtree-remove)
+	      ("S-TAB" . dired-subtree-remove))
   :custom (dired-subtree-use-backgrounds nil))
 
 ;;;;; dwim-shell-command
@@ -4602,7 +4602,7 @@ the children of class at point."
 ;; [[https://github.com/xenodium/dwim-shell-command#my-toolbox]]
 (use-package dwim-shell-command
   :if sys/macp
-    :ensure-system-package (macosrec . "brew tap xenodium/macosrec && brew install macosrec")
+  :ensure-system-package (macosrec . "brew tap xenodium/macosrec && brew install macosrec")
   :bind (([remap shell-command] . dwim-shell-command)
          :map dired-mode-map
          ([remap dired-do-async-shell-command] . dwim-shell-command)
@@ -4617,8 +4617,8 @@ the children of class at point."
 (use-package quick-preview
   :bind ( :map sej-C-q-map
           ("q" . quick-preview-at-point)
-           :map dired-mode-map
-           ("Q" . quick-preview-at-point)))
+          :map dired-mode-map
+          ("Q" . quick-preview-at-point)))
 
 ;;;;; browse-at-remote
 ;; browse file at remote source
@@ -4655,50 +4655,50 @@ the children of class at point."
 ;;
 (use-package denote
   :bind (:map sej-denote-map
-			  ("a" . denote-add-links)
-			  ("b" . denote-backlinks)
-			  ("B" . denote-find-backlink)
-			  ("c" . sej/denote-colleagues-new-meeting)
-			  ("C" . sej/denote-colleagues-edit)
-			  ("C-c" . sej/denote-colleagues-dump)
-			  ("d" . denote-date)
-			  ("D" . denote-create-any-dir)
-			  ("K" . sej/denote-keywords-edit)
-			  ("C-k" . sej/denote-keywords-dump)
-			  ("l" . denote-link) ; "insert" mnemonic
-			  ("L" . denote-find-link)
-			  ("n" . denote)
-			  ("N" . denote-open-or-create)
-			  ("r" . denote-rename-file)
-			  ("R" . denote-rename-file-using-front-matter)
-			  ("C-R" . denote-region)
-			  ("s" . denote-signature)
-			  ("S" . denote-subdirectory)
-			  ("t" . denote-type)
-			  ("T" . denote-template)
-			  ("C-d r" . denote-dired-rename-files)
-			  ("C-d k" . denote-dired-rename-marked-files-with-keywords)
-			  ("C-d f" . denote-dired-rename-marked-files-using-front-matter)
-			  :map search-map
-			  ("d" . sej/denote-consult-search)
-			  :map isearch-mode-map
-			  ("M-s d" . sej/denote-consult-search))
+	      ("a" . denote-add-links)
+	      ("b" . denote-backlinks)
+	      ("B" . denote-find-backlink)
+	      ("c" . sej/denote-colleagues-new-meeting)
+	      ("C" . sej/denote-colleagues-edit)
+	      ("C-c" . sej/denote-colleagues-dump)
+	      ("d" . denote-date)
+	      ("D" . denote-create-any-dir)
+	      ("K" . sej/denote-keywords-edit)
+	      ("C-k" . sej/denote-keywords-dump)
+	      ("l" . denote-link) ; "insert" mnemonic
+	      ("L" . denote-find-link)
+	      ("n" . denote)
+	      ("N" . denote-open-or-create)
+	      ("r" . denote-rename-file)
+	      ("R" . denote-rename-file-using-front-matter)
+	      ("C-R" . denote-region)
+	      ("s" . denote-signature)
+	      ("S" . denote-subdirectory)
+	      ("t" . denote-type)
+	      ("T" . denote-template)
+	      ("C-d r" . denote-dired-rename-files)
+	      ("C-d k" . denote-dired-rename-marked-files-with-keywords)
+	      ("C-d f" . denote-dired-rename-marked-files-using-front-matter)
+	      :map search-map
+	      ("d" . sej/denote-consult-search)
+	      :map isearch-mode-map
+	      ("M-s d" . sej/denote-consult-search))
   :init
   (which-key-add-keymap-based-replacements sej-denote-map
     "f"     "Denote-find"
     "C-d"   "Denote dired")
   (which-key-add-key-based-replacements
-    "<C-m> n j"     "Denote journal entry"
-    "<C-m> n J"     "Denote journal link"
-    "<C-m> n R"     "Denote ren w/front-matter"
-    "<C-m> n e"     "Denote extract org-tree"
-    "<C-m> n h"     "Denote link to heading"
-    "<C-m> n c"      "denote-colleagues-meet"
-    "<C-m> n C"     "denote-colleagues-edit"
-    "<C-m> n C-c"   "denote-colleagues-dump"
-    "<C-m> n C-k"   "denote-keywords-dump"
-    "<C-m> n C-d k" "Denote dired ren w/keywords"
-    "<C-m> n C-d f" "Denote dired ren w/front" )
+   "<C-m> n j"     "Denote journal entry"
+   "<C-m> n J"     "Denote journal link"
+   "<C-m> n R"     "Denote ren w/front-matter"
+   "<C-m> n e"     "Denote extract org-tree"
+   "<C-m> n h"     "Denote link to heading"
+   "<C-m> n c"      "denote-colleagues-meet"
+   "<C-m> n C"     "denote-colleagues-edit"
+   "<C-m> n C-c"   "denote-colleagues-dump"
+   "<C-m> n C-k"   "denote-keywords-dump"
+   "<C-m> n C-d k" "Denote dired ren w/keywords"
+   "<C-m> n C-d f" "Denote dired ren w/front" )
   :hook
   ;; Generic (great if you rename files Denote-style in lots of places):
   ;; (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -4721,61 +4721,61 @@ the children of class at point."
   (denote-faces-title ((t (:foreground "royal blue" :underline t))))
 
   :custom ((denote-directory sej-org-directory)
-		   (denote-save-buffers t)
-		   (denote-known-keywords nil)
-		   (denote-infer-keywords t)
-		   (denote-sort-keywords t)
-		   (denote-file-type nil) ; Org is the default, set others here
-		   (denote-prompts '(title keywords template))
-		   (denote-excluded-directories-regexp nil)
-		   (denote-excluded-keywords-regexp nil)
-		   (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
+	   (denote-save-buffers t)
+	   (denote-known-keywords nil)
+	   (denote-infer-keywords t)
+	   (denote-sort-keywords t)
+	   (denote-file-type nil) ; Org is the default, set others here
+	   (denote-prompts '(title keywords template))
+	   (denote-excluded-directories-regexp nil)
+	   (denote-excluded-keywords-regexp nil)
+	   (denote-rename-confirmations '(rewrite-front-matter modify-file-name))
 
-		   ;; Pick dates, where relevant, with Org's advanced interface:
-		   (denote-date-prompt-use-org-read-date t)
+	   ;; Pick dates, where relevant, with Org's advanced interface:
+	   (denote-date-prompt-use-org-read-date t)
 
-		   ;; Read this manual for how to specify `denote-templates'.
-		   (denote-templates
-			`((standard . ,(concat "\n\n" "* "))
-			  (note . ,(concat "\n\n" "- "))
-			  (journal . ,(concat "#+category: journal" "\n\n" "* Notes\n" (org-insert-timestamp nil) "\n ") )))
+	   ;; Read this manual for how to specify `denote-templates'.
+	   (denote-templates
+	    `((standard . ,(concat "\n\n" "* "))
+	      (note . ,(concat "\n\n" "- "))
+	      (journal . ,(concat "#+category: journal" "\n\n" "* Notes\n" (org-insert-timestamp nil) "\n ") )))
 
-		   (denote-date-format nil) ; use default ; read doc string
+	   (denote-date-format nil) ; use default ; read doc string
 
-		   ;; By default, we do not show the context of links.  We just display
-		   ;; file names.  This provides a more informative view.
-		   (denote-backlinks-show-context t)
+	   ;; By default, we do not show the context of links.  We just display
+	   ;; file names.  This provides a more informative view.
+	   (denote-backlinks-show-context t)
 
-		   ;; Also see `denote-backlinks-display-buffer-action' which is a bit
-		   ;; advanced.
+	   ;; Also see `denote-backlinks-display-buffer-action' which is a bit
+	   ;; advanced.
 
-		   ;; directories to use `denote-dired-mode' in.
-		   (denote-dired-directories
-			(list denote-directory
-				  (thread-last
-					denote-directory (expand-file-name "attachments"))
-				  (expand-file-name "~/Documents/denote-personal")
-				  (expand-file-name "~/Documents/knowledge")))
+	   ;; directories to use `denote-dired-mode' in.
+	   (denote-dired-directories
+	    (list denote-directory
+		  (thread-last
+		   denote-directory (expand-file-name "attachments"))
+		  (expand-file-name "~/Documents/denote-personal")
+		  (expand-file-name "~/Documents/knowledge")))
 
-		   ;; apply `denote-dired-directores' fontification to subdirectories
-		   (denote-dired-directories-include-subdirectories t)
+	   ;; apply `denote-dired-directores' fontification to subdirectories
+	   (denote-dired-directories-include-subdirectories t)
 
-		   (savehist-additional-variables (-union savehist-additional-variables
-												  '(denote-file-history
-													denote-title-history
-													denote-keyword-history
-													denote-component-history ))))
+	   (savehist-additional-variables (-union savehist-additional-variables
+						  '(denote-file-history
+						    denote-title-history
+						    denote-keyword-history
+						    denote-component-history ))))
 
   :config
 ;;;;;; play nice with diredfl
   (defun sej/denote-dired-mode-hook()
-	"Function to switch off between diredfl-mode and denote-dired-mode."
-  (denote-dired-mode-in-directories)
-  (if denote-dired-mode
-      (dired-hide-details-mode +1)
-    (diredfl-mode +1)))
+    "Function to switch off between diredfl-mode and denote-dired-mode."
+    (denote-dired-mode-in-directories)
+    (if denote-dired-mode
+        (dired-hide-details-mode +1)
+      (diredfl-mode +1)))
 
-(add-hook 'dired-mode-hook #'sej/denote-dired-mode-hook)
+  (add-hook 'dired-mode-hook #'sej/denote-dired-mode-hook)
 
 ;;;;;; denote keyword functions
   ;; define keywords in text file in denote-directory
@@ -4783,21 +4783,21 @@ the children of class at point."
 
   (defun sej/denote-keywords-update (&rest _arg)
     "Update keywords from file."
-	(setq sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
+    (setq sej/denote-keywords-p (f-join denote-directory "denote-keywords.txt"))
     (if (f-exists-p sej/denote-keywords-p)
         (progn (setq denote-known-keywords  (s-split "\n" (f-read sej/denote-keywords-p) t))
                (setq org-tag-persistent-alist (-map #'list denote-known-keywords)))
       (setq denote-known-keywords  "defined-in-denote-keywords.txt"))
-	(eval nil))
+    (eval nil))
 
   ;; update 1st time in config
   (sej/denote-keywords-update)
 
   (defun sej/denote-keywords-edit ()
-  "Edit the keywords list."
-  (interactive)
-  (sej/denote-keywords-update)
-  (switch-to-buffer (find-file-noselect sej/denote-keywords-p)))
+    "Edit the keywords list."
+    (interactive)
+    (sej/denote-keywords-update)
+    (switch-to-buffer (find-file-noselect sej/denote-keywords-p)))
 
   (defun sej/denote-keywords-dump ()
     "Dump the current used keywords in denote-directory for refactor purposes."
@@ -4809,146 +4809,146 @@ the children of class at point."
       (insert (mapconcat 'identity sej/value "\n"))))
 
 ;;;;;; denote colleagues
-;; easy way to launch topic specific files either colleagues or topics
+  ;; easy way to launch topic specific files either colleagues or topics
 
-(defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
-  "Default file to keep the colleague list, kept in the base variable `denote-directory'." )
+  (defvar sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt")
+    "Default file to keep the colleague list, kept in the base variable `denote-directory'." )
 
-(defvar sej/denote-colleagues nil
-  "List of names I collaborate with.
+  (defvar sej/denote-colleagues nil
+    "List of names I collaborate with.
 There is at least one file in the variable `denote-directory' that has
 the name of this person.")
 
-(defvar sej/denote-colleagues-prompt-history nil
-  "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
+  (defvar sej/denote-colleagues-prompt-history nil
+    "Minibuffer history for `sej/denote-colleagues-new-meeting'.")
 
-(defun sej/denote-colleagues-edit ()
-  "Edit the colleague list by opening `sej/denote-colleagues'."
-  (interactive)
-  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
-  (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
+  (defun sej/denote-colleagues-edit ()
+    "Edit the colleague list by opening `sej/denote-colleagues'."
+    (interactive)
+    (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+    (switch-to-buffer (find-file-noselect sej/denote-colleagues-p)))
 
-(defun sej/denote-colleagues-update (&rest _arg)
-  "Update denote colleagues variables."
-  (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
-  (if (f-exists-p sej/denote-colleagues-p)
-      (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
-	(progn
-	  (setq sej/denote-colleagues '("none-defined"))
-      (message  "Put colleagues and topics in denote-colleagues.txt"))))
+  (defun sej/denote-colleagues-update (&rest _arg)
+    "Update denote colleagues variables."
+    (setq sej/denote-colleagues-p (f-join denote-directory "denote-colleagues.txt"))
+    (if (f-exists-p sej/denote-colleagues-p)
+        (setq sej/denote-colleagues  (s-split "\n" (f-read sej/denote-colleagues-p) t))
+      (progn
+	(setq sej/denote-colleagues '("none-defined"))
+        (message  "Put colleagues and topics in denote-colleagues.txt"))))
 
-(defun sej/denote-colleagues-prompt ()
-  "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
-  (let ((default-value (car sej/denote-colleagues-prompt-history)))
-    (completing-read
-     (format-prompt "New meeting with COLLEAGUE" default-value)
-     sej/denote-colleagues
-     nil
-	 'confirm
-	 nil
-     'sej/denote-colleagues-prompt-history
-     default-value)))
+  (defun sej/denote-colleagues-prompt ()
+    "Prompt with completion for a name among `sej/denote-colleagues', using the last input as the default value."
+    (let ((default-value (car sej/denote-colleagues-prompt-history)))
+      (completing-read
+       (format-prompt "New meeting with COLLEAGUE" default-value)
+       sej/denote-colleagues
+       nil
+       'confirm
+       nil
+       'sej/denote-colleagues-prompt-history
+       default-value)))
 
-(defun sej/denote-colleagues-update-file (name)
-  "Update the colleagues file with an additional colleague NAME."
-  (interactive "sName to add: ")
-  (with-temp-file
-	  sej/denote-colleagues-p
-	(insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))) )
+  (defun sej/denote-colleagues-update-file (name)
+    "Update the colleagues file with an additional colleague NAME."
+    (interactive "sName to add: ")
+    (with-temp-file
+	sej/denote-colleagues-p
+      (insert (mapconcat 'identity (sort (add-to-list 'sej/denote-colleagues name :APPEND)) "\n"))) )
 
-(defun sej/denote-colleagues-get-file (name)
-  "Find file in variable `denote-directory' for NAME colleague.
+  (defun sej/denote-colleagues-get-file (name)
+    "Find file in variable `denote-directory' for NAME colleague.
 If there are more than one files, prompt with completion for one among them.
 NAME is one among `sej/denote-colleagues', which if not found in the list, is
 confirmed and added, calling the function `sej/denote-colleagues-update-file'."
-  (if-let* ((files
-			 (let* ((testname (denote-sluggify 'title name))
-					(files (denote-directory-files testname))
-					(RESULT nil))
-			   (dolist (VAR files RESULT)
-				 (if (string-match (denote-retrieve-filename-title VAR) testname)
-					 (setq RESULT (cons VAR RESULT))))))
-            (length-of-files (length files)))
-      (cond
-       ((= length-of-files 1)
-        (car files))
-       ((> length-of-files 1)
-        (completing-read "Select a file: " files nil :require-match)))
-    (progn (sej/denote-colleagues-update-file name)
-		   (denote name
-				   nil
-				   denote-file-type
-				   denote-directory
-				   (denote-parse-date nil)
-				   (alist-get 'standard denote-templates "* ")
-				   nil))))
+    (if-let* ((files
+	       (let* ((testname (denote-sluggify 'title name))
+		      (files (denote-directory-files testname))
+		      (RESULT nil))
+		 (dolist (VAR files RESULT)
+		   (if (string-match (denote-retrieve-filename-title VAR) testname)
+		       (setq RESULT (cons VAR RESULT))))))
+              (length-of-files (length files)))
+        (cond
+         ((= length-of-files 1)
+          (car files))
+         ((> length-of-files 1)
+          (completing-read "Select a file: " files nil :require-match)))
+      (progn (sej/denote-colleagues-update-file name)
+	     (denote name
+		     nil
+		     denote-file-type
+		     denote-directory
+		     (denote-parse-date nil)
+		     (alist-get 'standard denote-templates "* ")
+		     nil))))
 
-(defun sej/denote-colleagues-new-meeting ()
-  "Prompt for the name of a colleague and insert a timestamped heading therein.
+  (defun sej/denote-colleagues-new-meeting ()
+    "Prompt for the name of a colleague and insert a timestamped heading therein.
 The name of a colleague corresponds to at least one file in the variable
 `denote-directory'.  In case there are multiple files, prompt to choose
 one among them and operate therein."
-  (declare (interactive-only t))
-  (interactive)
-  (sej/denote-colleagues-update)
-  (let* ((name (sej/denote-colleagues-prompt))
-         (file (sej/denote-colleagues-get-file name))
-         (time (format-time-string "%F %a")))  ; add %R if you want the time
-    (with-current-buffer (find-file file)
-      (goto-char (point-max))
-	  (org-insert-heading '(16) nil 1)
-	  (org-return)
-      (org-insert-item)
-      (end-of-line 0)
-      (org-move-to-column 2))))
+    (declare (interactive-only t))
+    (interactive)
+    (sej/denote-colleagues-update)
+    (let* ((name (sej/denote-colleagues-prompt))
+           (file (sej/denote-colleagues-get-file name))
+           (time (format-time-string "%F %a")))  ; add %R if you want the time
+      (with-current-buffer (find-file file)
+        (goto-char (point-max))
+	(org-insert-heading '(16) nil 1)
+	(org-return)
+        (org-insert-item)
+        (end-of-line 0)
+        (org-move-to-column 2))))
 
-(defun sej/filter-journal-lines-from-list (lines)
-  "Filter out lines containing '/journal/' from a cons cell LINES and return the titles."
-  (let ((filtered-lines '()))
-    (while lines
-      (let ((line (car lines)))
-        (unless (string-match-p (rx "journal") line)
-          (push (concat (denote-retrieve-filename-title line) "\n" ) filtered-lines)))
-      (setq lines (cdr lines)))
-    (sort filtered-lines)))
+  (defun sej/filter-journal-lines-from-list (lines)
+    "Filter out lines containing '/journal/' from a cons cell LINES and return the titles."
+    (let ((filtered-lines '()))
+      (while lines
+        (let ((line (car lines)))
+          (unless (string-match-p (rx "journal") line)
+            (push (concat (denote-retrieve-filename-title line) "\n" ) filtered-lines)))
+        (setq lines (cdr lines)))
+      (sort filtered-lines)))
 
-(defun sej/denote-colleagues-dump ()
-  "Dump current used colleagues in denote directory for refactor purposes."
-  (interactive)
-  (let ((value (sej/filter-journal-lines-from-list (denote-directory-files) )))
-    (dolist (element value)
-      (insert element))))
+  (defun sej/denote-colleagues-dump ()
+    "Dump current used colleagues in denote directory for refactor purposes."
+    (interactive)
+    (let ((value (sej/filter-journal-lines-from-list (denote-directory-files) )))
+      (dolist (element value)
+        (insert element))))
 
 ;;;;;; create denote files in any directory
-(defun denote-create-any-dir ()
-  "Create new Denote note in any directory.
+  (defun denote-create-any-dir ()
+    "Create new Denote note in any directory.
 Prompt for the directory using minibuffer completion."
-  (declare (interactive-only t))
-  (interactive)
-  (let ((denote-directory (read-directory-name "New note in: " nil nil :must-match)))
-    (call-interactively 'denote)))
+    (declare (interactive-only t))
+    (interactive)
+    (let ((denote-directory (read-directory-name "New note in: " nil nil :must-match)))
+      (call-interactively 'denote)))
 
 ;;;;;; rename based on front matter at every save
-(defun sej/denote-always-rename-on-save-based-on-front-matter ()
-  "Rename the current Denote file, if needed, upon saving the file.
+  (defun sej/denote-always-rename-on-save-based-on-front-matter ()
+    "Rename the current Denote file, if needed, upon saving the file.
 Rename the file based on its front matter, checking for changes in the
 title or keywords fields.
 
 Add this function to the `after-save-hook'."
-  (let ((denote-rename-confirmations nil)
-        (denote-save-buffers t)) ; to save again post-rename
-    (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
-      (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
-      (message "Buffer saved; Denote file renamed"))))
+    (let ((denote-rename-confirmations nil)
+          (denote-save-buffers t)) ; to save again post-rename
+      (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
+        (ignore-errors (denote-rename-file-using-front-matter buffer-file-name))
+        (message "Buffer saved; Denote file renamed"))))
 
-(add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
+  (add-hook 'after-save-hook #'sej/denote-always-rename-on-save-based-on-front-matter)
 
 ;;;;;; search denote files
-;; bind to M-s d ; d for denote
-(defun sej/denote-consult-search ()
-  "Search all my Denote files using `consult-ripgrep`."
-  (interactive)
-  (consult-ripgrep denote-directory)) );end of denote use-package
+  ;; bind to M-s d ; d for denote
+  (defun sej/denote-consult-search ()
+    "Search all my Denote files using `consult-ripgrep`."
+    (interactive)
+    (consult-ripgrep denote-directory)) );end of denote use-package
 
 ;;;;; [[https://github.com/protesilaos/denote-journal][denote-journal]]
 (use-package denote-journal
@@ -4957,34 +4957,34 @@ Add this function to the `after-save-hook'."
               denote-journal-link-or-create-entry )
   :hook (calendar-mode . denote-journal-calendar-mode)
   :bind (:map sej-denote-map
-			  ("j" . denote-journal-new-or-existing-entry)
-			  ("J" . denote-journal-link-or-create-entry)
-			  ("C-j" . sej/journelly-open))
+	      ("j" . denote-journal-new-or-existing-entry)
+	      ("J" . denote-journal-link-or-create-entry)
+	      ("C-j" . sej/journelly-open))
   :custom ((denote-journal-directory (expand-file-name "journal" denote-directory))
-		   (denote-journal-title-format "%y-%m"))
+	   (denote-journal-title-format "%y-%m"))
   :config
   ;; replacement function to only use year and month for journal title yy-mm.
   (defun sej/denote-journal--entry-today (&optional date)
-	"Return list of files matching a journal for today or optional DATE.
+    "Return list of files matching a journal for today or optional DATE.
      DATE has the same format as that returned by `denote-parse-date'."
-	(interactive)
-	(let* ((identifier (format "%s"(format-time-string "%y-%m" date)))
+    (interactive)
+    (let* ((identifier (format "%s"(format-time-string "%y-%m" date)))
            (files (denote-directory-files identifier))
            (keyword (concat "_" (regexp-quote denote-journal-keyword))))
       (seq-filter
        (lambda (file)
-		 (string-match-p keyword file))
+	 (string-match-p keyword file))
        files)))
 
   ;; (denote-journal--entry-today)
   (advice-add 'denote-journal--entry-today :override #'sej/denote-journal--entry-today)
 
   (defun sej/journelly-open ()
-	"Open Journelly shared file.
+    "Open Journelly shared file.
 
       Journelly is an IOS app written by xenodium.com allowing simple journelling in text/org file format."
-	(interactive)
-	(find-file-other-window (expand-file-name "Journelly.org" denote-journal-directory))))
+    (interactive)
+    (find-file-other-window (expand-file-name "Journelly.org" denote-journal-directory))))
 
 ;;;;; [[https://github.com/protesilaos/denote-silo][denote-silo]]
 (use-package denote-silo
@@ -4994,7 +4994,7 @@ Add this function to the `after-save-hook'."
               denote-silo-dired
               denote-silo-cd )
   :bind (:map sej-denote-map
-			  ("C-s" . denote-silo-open-or-create))
+	      ("C-s" . denote-silo-open-or-create))
   :config
   (add-to-list 'denote-silo-directories "~/Documents/denote-personal" :APPEND)
 
@@ -5002,60 +5002,60 @@ Add this function to the `after-save-hook'."
   (denote-rename-buffer-mode 1)
 
   (defun sej/denote-silo-update (&rest _arg)
-	"Function to update silo & critical variables based on current buffer/file.
+    "Function to update silo & critical variables based on current buffer/file.
 Chooses silo based on file being in one of the extras-directories any history since.
 Then proceeds to update keywords, colleagues, journal directory & finally refile targets."
-	(interactive)
-	(let ((file buffer-file-name) existin)
-	  (if file
-		  (dolist (elem (-union denote-silo-directories denote-silo-directory-history) )
-			(if (file-in-directory-p file elem)
-				(setq existin elem))
-			(if (and existin (not (equal existin denote-directory)))
-				(setq denote-directory existin)))
-		(sej/denote-keywords-update)
-		(sej/denote-colleagues-update)
-		(setq denote-journal-directory (expand-file-name "journal" denote-directory)))
-	  (setq org-refile-targets '((nil :maxlevel . 9)
-								 (org-agenda-files :maxlevel . 5)
-								 (org-buffer-list :maxlevel . 2)))))
+    (interactive)
+    (let ((file buffer-file-name) existin)
+      (if file
+	  (dolist (elem (-union denote-silo-directories denote-silo-directory-history) )
+	    (if (file-in-directory-p file elem)
+		(setq existin elem))
+	    (if (and existin (not (equal existin denote-directory)))
+		(setq denote-directory existin)))
+	(sej/denote-keywords-update)
+	(sej/denote-colleagues-update)
+	(setq denote-journal-directory (expand-file-name "journal" denote-directory)))
+      (setq org-refile-targets '((nil :maxlevel . 9)
+				 (org-agenda-files :maxlevel . 5)
+				 (org-buffer-list :maxlevel . 2)))))
 
   (advice-add 'denote-silo-select-silo-then-command :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-open-or-create :after #'sej/denote-silo-update)
   (advice-add 'denote-silo-create-note :after #'sej/denote-silo-update)
 
   (defvar sej/switch-buffer-functions
-	nil
-	"A list of functions to be called when the current buffer has been changed.
+    nil
+    "A list of functions to be called when the current buffer has been changed.
 Each is passed two arguments, the previous buffer and the current buffer.")
 
   (defvar sej/switch-buffer-functions--last-buffer
-	nil
-	"The last current buffer.")
+    nil
+    "The last current buffer.")
 
   (defun sej/switch-buffer-functions-run ()
-	"Run `sej/switch-buffer-functions' if needed.
+    "Run `sej/switch-buffer-functions' if needed.
 
 This function checks the result of `current-buffer', and run
 `sej/switch-buffer-functions' when it has been changed from
 the last buffer.
 
 This function should be hooked to `post-command-hook'."
-	(unless (eq (current-buffer)
-				sej/switch-buffer-functions--last-buffer)
+    (unless (eq (current-buffer)
+		sej/switch-buffer-functions--last-buffer)
       (let ((current (current-buffer))
-			(previous sej/switch-buffer-functions--last-buffer))
-		(setq sej/switch-buffer-functions--last-buffer current)
-		(run-hook-with-args 'sej/switch-buffer-functions previous current))))
+	    (previous sej/switch-buffer-functions--last-buffer))
+	(setq sej/switch-buffer-functions--last-buffer current)
+	(run-hook-with-args 'sej/switch-buffer-functions previous current))))
 
   (add-hook 'post-command-hook
-			'sej/switch-buffer-functions-run)
+	    'sej/switch-buffer-functions-run)
 
   (defun sej/denote-check-for-denote-buffer-switch (_prev curr)
-	"Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
-	(interactive)
-	(if (string-match "\\[D\\].*" (buffer-name curr))
-		(sej/denote-silo-update)))
+    "Check for denote CURR buffer switch to and update with `sej/denote-silo-update'."
+    (interactive)
+    (if (string-match "\\[D\\].*" (buffer-name curr))
+	(sej/denote-silo-update)))
 
   (add-hook 'sej/switch-buffer-functions #'sej/denote-check-for-denote-buffer-switch))
 
@@ -5078,84 +5078,84 @@ This function should be hooked to `post-command-hook'."
 (use-package denote-menu
   :hook (denote-menu-mode . sej/denote-menu-setup)
   :bind (:map sej-denote-map
-         ("m" . sej/denote-menu-only-categories)
-         :map denote-menu-mode-map
-         ("c" . denote-menu-clear-filters)
-         ("/ r" . denote-menu-filter)
-         ("/ k" . denote-menu-filter-by-keyword)
-         ("/ o" . denote-menu-filter-out-keyword)
-         ("e" . denote-menu-export-to-dired)
-		 ("s" . tabulated-list-sort)
-		 ("t" . sej/denote-menu-cycle))
+              ("m" . sej/denote-menu-only-categories)
+              :map denote-menu-mode-map
+              ("c" . denote-menu-clear-filters)
+              ("/ r" . denote-menu-filter)
+              ("/ k" . denote-menu-filter-by-keyword)
+              ("/ o" . denote-menu-filter-out-keyword)
+              ("e" . denote-menu-export-to-dired)
+	      ("s" . tabulated-list-sort)
+	      ("t" . sej/denote-menu-cycle))
   :custom (( denote-menu-title-column-width 45)
-		   (denote-menu-keywords-column-width 35))
+	   (denote-menu-keywords-column-width 35))
   :config
   (defun sej/denote-menu-setup ()
-	"Change the denote menu mode to my liking."
-	(interactive)
-	(visual-line-mode -1)
-	(if denote-menu-show-file-signature
-      (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
-                                    ("Signature" ,denote-menu-signature-column-width t)
-                                    ("Title" ,denote-menu-title-column-width t)
-                                    ("Keywords" ,denote-menu-keywords-column-width t)])
+    "Change the denote menu mode to my liking."
+    (interactive)
+    (visual-line-mode -1)
+    (if denote-menu-show-file-signature
+        (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
+                                      ("Signature" ,denote-menu-signature-column-width t)
+                                      ("Title" ,denote-menu-title-column-width t)
+                                      ("Keywords" ,denote-menu-keywords-column-width t)])
 
-    (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
-                                  ("Title" ,denote-menu-title-column-width t)
-                                  ("Keywords" ,denote-menu-keywords-column-width t)]))
-	(denote-menu-update-entries)
-	(setq tabulated-list-sort-key '("Date" . t))
-	(tabulated-list-init-header)
-	(tabulated-list-print))
+      (setq tabulated-list-format `[("Date" ,denote-menu-date-column-width t)
+                                    ("Title" ,denote-menu-title-column-width t)
+                                    ("Keywords" ,denote-menu-keywords-column-width t)]))
+    (denote-menu-update-entries)
+    (setq tabulated-list-sort-key '("Date" . t))
+    (tabulated-list-init-header)
+    (tabulated-list-print))
 
   (defvar sej/denote-menu-toggle-p 0
-	"Variable to hold current toggle state.")
+    "Variable to hold current toggle state.")
 
   (defun sej/denote-menu-cycle ()
-	"Cycle listing All, only-Jounal, no-Journal notes."
-	(interactive)
-	(list-denotes)
-	(cond
-	 ((= sej/denote-menu-toggle-p 0)
-	  (sej/denote-menu-only-journal))
-	 ((= sej/denote-menu-toggle-p 1)
-	  (sej/denote-menu-only-categories))
-	 (t (sej/denote-menu-all))))
+    "Cycle listing All, only-Jounal, no-Journal notes."
+    (interactive)
+    (list-denotes)
+    (cond
+     ((= sej/denote-menu-toggle-p 0)
+      (sej/denote-menu-only-journal))
+     ((= sej/denote-menu-toggle-p 1)
+      (sej/denote-menu-only-categories))
+     (t (sej/denote-menu-all))))
 
   (defun sej/denote-menu-all ()
-	"Cycle listing All, only-Jounal, no-Journal notes."
-	(interactive)
-	(list-denotes)
-	(setq sej/denote-menu-toggle-p 0)
-	(setq tabulated-list-sort-key '("Date" . t))
-	(denote-menu-clear-filters)
-	(tabulated-list-init-header)
-	(tabulated-list-print)
-	(beginning-of-buffer))
+    "Cycle listing All, only-Jounal, no-Journal notes."
+    (interactive)
+    (list-denotes)
+    (setq sej/denote-menu-toggle-p 0)
+    (setq tabulated-list-sort-key '("Date" . t))
+    (denote-menu-clear-filters)
+    (tabulated-list-init-header)
+    (tabulated-list-print)
+    (beginning-of-buffer))
 
   (defun sej/denote-menu-only-journal ()
-	"Listing only-Jounal notes."
-	(interactive)
-	(list-denotes)
-	(setq sej/denote-menu-toggle-p 1)
-	(denote-menu-filter-by-keyword '("journal"))
-	(setq tabulated-list-sort-key '("Date" . t))
-	(tabulated-list-init-header)
-	(tabulated-list-print)
-	(beginning-of-buffer))
+    "Listing only-Jounal notes."
+    (interactive)
+    (list-denotes)
+    (setq sej/denote-menu-toggle-p 1)
+    (denote-menu-filter-by-keyword '("journal"))
+    (setq tabulated-list-sort-key '("Date" . t))
+    (tabulated-list-init-header)
+    (tabulated-list-print)
+    (beginning-of-buffer))
 
   (defun sej/denote-menu-only-categories ()
-	"Cycle listing only-categories."
-	(interactive)
-	(list-denotes)
-	(setq sej/denote-menu-toggle-p 2)
-	(denote-menu-clear-filters)
-	(denote-menu-filter-out-keyword '("journal"))
-	(setq tabulated-list-sort-key '("Title" . nil))
-	(tabulated-list-init-header)
-	(tabulated-list-print)
-	(beginning-of-buffer))
-)
+    "Cycle listing only-categories."
+    (interactive)
+    (list-denotes)
+    (setq sej/denote-menu-toggle-p 2)
+    (denote-menu-clear-filters)
+    (denote-menu-filter-out-keyword '("journal"))
+    (setq tabulated-list-sort-key '("Title" . nil))
+    (tabulated-list-init-header)
+    (tabulated-list-print)
+    (beginning-of-buffer))
+  )
 
 ;;;;; markdown-mode
 ;; markdown-mode used a lot on Github
@@ -5172,27 +5172,27 @@ This function should be hooked to `post-command-hook'."
            ("\\.md\\'"          . markdown-mode)
            ("\\.markdown\\'"    . markdown-mode))
   :custom ((markdown-command "multimarkdown")
-		   (markdown-enable-wiki-links t)
-		   (markdown-italic-underscore t)
-		   (markdown-fontify-code-blocks-natively t)
-		   (markdown-make-gfm-checkboxes-buttons t)
-		   (markdown-gfm-additional-languages '("sh"))
-		   ;; (markdown-command "pandoc -f markdown -t html")
-		   (markdown-header-scaling t)))
+	   (markdown-enable-wiki-links t)
+	   (markdown-italic-underscore t)
+	   (markdown-fontify-code-blocks-natively t)
+	   (markdown-make-gfm-checkboxes-buttons t)
+	   (markdown-gfm-additional-languages '("sh"))
+	   ;; (markdown-command "pandoc -f markdown -t html")
+	   (markdown-header-scaling t)))
 
 ;;;;; flymake-markdownlint
-  (use-package flymake-markdownlint
-	:vc (:url "https://codeberg.org/shaohme/flymake-markdownlint")
-	:ensure-system-package (markdownlint . "brew install markdownlint-cli")
-	:hook (markdown-mode . flymake-markdownlint-setup))
+(use-package flymake-markdownlint
+  :vc (:url "https://codeberg.org/shaohme/flymake-markdownlint")
+  :ensure-system-package (markdownlint . "brew install markdownlint-cli")
+  :hook (markdown-mode . flymake-markdownlint-setup))
 
 ;;;;; markdown-toc
-  ;; Table of contents
-  ;; Inside a markdown file, the first time,
-  ;; place yourself where you want to insert the TOC:
-  ;; M-x markdown-toc-generate-toc
-  ;; https://github.com/ardumont/markdown-toc
-  (use-package markdown-toc)
+;; Table of contents
+;; Inside a markdown file, the first time,
+;; place yourself where you want to insert the TOC:
+;; M-x markdown-toc-generate-toc
+;; https://github.com/ardumont/markdown-toc
+(use-package markdown-toc)
 
 ;;;;; markdown-soma
 ;; realtime preview by eww
@@ -5210,8 +5210,8 @@ This function should be hooked to `post-command-hook'."
 (use-package markdown-soma
   :ensure-system-package (rustup . "brew install rustup")
   :vc (:url "https://github.com/jasonm23/markdown-soma"
-			:rev :newest
-			:branch "master")
+	    :rev :newest
+	    :branch "master")
   :commands markdown-soma-mode
   ;; :hook (markdown-mode . markdown-soma-mode)
   ;; :bind (:map markdown-mode-command-map
@@ -5225,14 +5225,14 @@ This function should be hooked to `post-command-hook'."
   (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 
   (setq markdown-soma-custom-css
-				 (markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark")) ;; select css theme
+	(markdown-soma--css-pathname-from-builtin-name "markdown-soma-dark")) ;; select css theme
   (setq markdown-soma-highlightjs-theme "github-dark") ;; Change "theme name" to the selected highlightjs theme.
   (setq	sej/markdown-soma-mod-var 0)
-  
+
   (defun sej/markdown-soma-mod (x)
     "Calibrate  markdown-soma display by X."
     (setcdr x (+ sej/markdown-soma-mod-var (cdr x)))
-	(nth 6 (posn-at-point)))
+    (nth 6 (posn-at-point)))
 
   (defun sej/markdown-soma-mod-plus ()
     "Add to display mod correction."
@@ -5247,18 +5247,18 @@ This function should be hooked to `post-command-hook'."
   (advice-add 'markdown-soma--window-point :filter-return #'sej/markdown-soma-mod)
 
   (defun sej/markdown-soma-shell-command (x)
-  "Advise to execute the soma app with path."
-  (interactive)
-  (format (concat (file-name-directory (executable-find "soma")) x)))
+    "Advise to execute the soma app with path."
+    (interactive)
+    (format (concat (file-name-directory (executable-find "soma")) x)))
 
   (advice-add 'markdown-soma--shell-command :filter-return #'sej/markdown-soma-shell-command)
 
   (defun sej/markdown-soma-compile-soma ()
-	"Compile soma if does not exist."
-	(unless (executable-find "soma")
-	  (message "compiling soma...")
-	  (let ((default-directory "~/.emacs.d/elpa/markdown-soma"))
-		(shell-command-to-string (concat (executable-find "cargo") " install --path .")))))
+    "Compile soma if does not exist."
+    (unless (executable-find "soma")
+      (message "compiling soma...")
+      (let ((default-directory "~/.emacs.d/elpa/markdown-soma"))
+	(shell-command-to-string (concat (executable-find "cargo") " install --path .")))))
 
   (advice-add 'markdown-soma-start :before #'sej/markdown-soma-compile-soma))
 
@@ -5275,7 +5275,7 @@ This function should be hooked to `post-command-hook'."
 ;; so it pretty much looks like the final output.
 (use-package adoc-mode
   :mode ("\\.txt\\'"
-		 "\\.adoc\\'")
+	 "\\.adoc\\'")
   :hook (adoc-mode . turn-on-auto-fill))
 
 ;;;;; sej/number-rectangle
@@ -5373,18 +5373,18 @@ This function should be hooked to `post-command-hook'."
 (when (eval 'sys/macp)
   (use-package jinx
     :after vertico
-	:vc (:url "https://github.com/minad/jinx"
-            :rev :newest
-            :branch "main")
+    :vc (:url "https://github.com/minad/jinx"
+              :rev :newest
+              :branch "main")
     :ensure-system-package ((enchant-2 . "brew install enchant")
                             (pkg-config . "brew install pkg-config"))
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
     :bind (("s-:" . jinx-correct-all)
-		   ("C-;" . jinx-correct-nearest)
+	   ("C-;" . jinx-correct-nearest)
            ("C-M-;" . jinx-correct-all))
-	:custom	(jinx-languages "en_US en_GB en_CA")
+    :custom	(jinx-languages "en_US en_GB en_CA")
     :config
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
@@ -5446,17 +5446,17 @@ This function should be hooked to `post-command-hook'."
 ;; ./install-sh
 ;; sudo make install
 
-  (use-package pdf-tools
-    :magic ("%PDF" . pdf-view-mode)
-	:custom (pdf-tools-handle-upgrades nil)
-	:config
-	(pdf-tools-install)
-	(dolist
+(use-package pdf-tools
+  :magic ("%PDF" . pdf-view-mode)
+  :custom (pdf-tools-handle-upgrades nil)
+  :config
+  (pdf-tools-install)
+  (dolist
       (pkg
        '(pdf-annot pdf-cache pdf-dev pdf-history pdf-info pdf-isearch
                    pdf-links pdf-misc pdf-occur pdf-outline pdf-sync
                    pdf-util pdf-view pdf-virtual))
-      (require pkg)))
+    (require pkg)))
 
 ;;;;; [[https://github.com/jeremy-compostella/pdfgrep][pdfgrep]]
 ;; grep service and highlighting for pdf
@@ -5498,17 +5498,17 @@ This function should be hooked to `post-command-hook'."
                ("C-q ]" . annotate-goto-next-annotation)
                ("C-q [" . annotate-goto-previous-annotation)) )
   :custom ((annotate-file (emacs-path "annotations"))
-		   (annotate-annotation-column 73)
-		   (annotate-diff-export-context 5)
-		   (annotate-use-messages nil)
-		   (annotate-integrate-marker "")
-		   (annotate-integrate-higlight ?^)
-		   (annotate-fallback-comment "#")
-		   (annotate-blacklist-major-mode '())
-		   (annotate-annotation-max-size-not-place-new-line 50)
-		   (annotate-search-region-lines-delta 4)
-		   (annotate-annotation-position-policy :by-length)
-		   (annotate-summary-ask-query nil))
+	   (annotate-annotation-column 73)
+	   (annotate-diff-export-context 5)
+	   (annotate-use-messages nil)
+	   (annotate-integrate-marker "")
+	   (annotate-integrate-higlight ?^)
+	   (annotate-fallback-comment "#")
+	   (annotate-blacklist-major-mode '())
+	   (annotate-annotation-max-size-not-place-new-line 50)
+	   (annotate-search-region-lines-delta 4)
+	   (annotate-annotation-position-policy :by-length)
+	   (annotate-summary-ask-query nil))
   :config
   (defun sej/annotate-mode ()
     "Toggles `annotate-mode' for the current buffer."
@@ -5582,9 +5582,9 @@ function with the \\[universal-argument]."
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
           (org-mode . variable-pitch-mode))
   :bind (( ("C-c l" . org-insert-link)
-		   ("C-c S" . org-store-link))
+	   ("C-c S" . org-store-link))
          (:map org-mode-map
-			   ("C-,")
+	       ("C-,")
                ("C-M-\\" . org-indent-region)
                ("S-<left>" . org-shiftleft)
                ("S-<right>" . org-shiftright)
@@ -5592,16 +5592,16 @@ function with the \\[universal-argument]."
                ("C-M-<return>" . org-insert-subheading)
                ("M-S-<return>" . org-insert-todo-heading)
                ("C-\\" . org-insert-item)
-			   ("C-c d" . org-check-deadlines)
+	       ("C-c d" . org-check-deadlines)
                ("M-s H" . consult-org-heading)
-			   ("<M-DEL>" . sej/kill-whole-word)
-			   ("C-c (" . sej/org-fold-hide-drawer-toggle)
-			   ("C-c )" . org-fold-hide-drawer-all)
-			   ("C-c b" . org-switchb)
-			   ("C-c x" . org-todo)
-			   ("C-c H-t" . org-todo-yesterday)))
+	       ("<M-DEL>" . sej/kill-whole-word)
+	       ("C-c (" . sej/org-fold-hide-drawer-toggle)
+	       ("C-c )" . org-fold-hide-drawer-all)
+	       ("C-c b" . org-switchb)
+	       ("C-c x" . org-todo)
+	       ("C-c H-t" . org-todo-yesterday)))
   :custom
-;; set headline numbering face to something more subtle
+  ;; set headline numbering face to something more subtle
   (org-num-face 'org-modern-date-inactive)
 
   ;; archive location setting
@@ -5633,16 +5633,16 @@ function with the \\[universal-argument]."
   ;; use C-u in front to add note
   ;; C-c C-z to add note
   (org-todo-keywords '((sequence "TODO(t!)" "INPROCESS(i@/!)" "WAIT(w@/!)" "DEFER(r@/!)" "|" "DONE(d!)")
-					   (sequence "MAYBE(m@/!)" "|" "DONE(d!)")
+		       (sequence "MAYBE(m@/!)" "|" "DONE(d!)")
                        (sequence "DELIGATE(D@/!)" "CHECK(c)" "|" "VERIFIED(v!)")
-					   (sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F!)")
-					   (sequence "MAINT" "|" "MAINTd(M!)")
-					   (sequence "|" "CANCELED(x!)")))
+		       (sequence "FIX(f@/!)" "INPROCESS(i@/!)" "|" "FIXED(F!)")
+		       (sequence "MAINT" "|" "MAINTd(M!)")
+		       (sequence "|" "CANCELED(x!)")))
 
   ;; `list-colors-display' for a buffer of colour names
   (org-todo-keyword-faces '(
-							("DEFER" . (:foreground "pink"))
-							("TODO" . (:foreground "#cc9393"))
+			    ("DEFER" . (:foreground "pink"))
+			    ("TODO" . (:foreground "#cc9393"))
                             ("CANCELED" . (:foreground "grey"))
                             ("CHECK" . (:foreground "yellow"))
                             ("DELIGATE" . (:foreground "blue"))
@@ -5654,7 +5654,7 @@ function with the \\[universal-argument]."
                             ("MAYBE" . (:foreground  "#d1bf8f"))
                             ("VERIFIED" . (:foreground "green"))
                             ("WAIT" . (:foreground "#2c5353"))
-							))
+			    ))
   (org-startup-folded 'content)
   (org-startup-indented t)
   (org-tags-column -115)
@@ -5664,26 +5664,26 @@ function with the \\[universal-argument]."
   (org-clock-sound t)
   (org-id-method 'ts)
   (org-refile-targets '((nil :maxlevel . 9)
-						(org-agenda-files :maxlevel . 5)
-						(org-buffer-list :maxlevel . 2)))
+			(org-agenda-files :maxlevel . 5)
+			(org-buffer-list :maxlevel . 2)))
 
 ;;;;;; tags
   ;; defined here for regular topics
   ;; `org-tag-persistent-alist' defined in denote section from current note list
   (org-tag-alist '(("meeting")
-				   ("admin")
-				   ("emacs")
-				   ("home")
-				   ("home-routines")
-				   ("kids")
-				   ("purchase")
-				   ("home-automation")
-				   ("financial")
-				   ("electronics")
-				   ("computer")
-				   ("projects")
-				   ("3d-printer")
-				   ("other")))
+		   ("admin")
+		   ("emacs")
+		   ("home")
+		   ("home-routines")
+		   ("kids")
+		   ("purchase")
+		   ("home-automation")
+		   ("financial")
+		   ("electronics")
+		   ("computer")
+		   ("projects")
+		   ("3d-printer")
+		   ("other")))
 
 ;;;;;; org-requires
   :config
@@ -5698,58 +5698,58 @@ function with the \\[universal-argument]."
 ;;;;;; buffer-face-modes
   (let* ((variable-tuple
           (cond ((x-list-fonts "Atkinson Hyperlegible") '(:family "Atkinson Hyperlegible"))
-				((x-list-fonts "Iosevka")   '(:family "Iosevka"))
-				((x-list-fonts "ETBembo")         '(:font "ETBembo"))
-				((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-				((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-				((x-list-fonts "Verdana")         '(:font "Verdana"))
-				((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-				(nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-		 (fixed-tuple
+		((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+		((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+		((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+		((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+		((x-list-fonts "Verdana")         '(:font "Verdana"))
+		((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+		(nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+	 (fixed-tuple
           (cond    ((x-list-fonts "Iosevka Fixed")   '(:family "Iosevka Fixed"))
-				   ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
-				   ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
-				   ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
-				   ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
-				   ((x-list-fonts "Verdana")         '(:font "Verdana"))
-				   ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
-				   (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-		 (base-font-color     (face-foreground 'default nil 'default))
-		 (headline           `(:inherit default :weight regular :foreground ,base-font-color))
-		 )
+		   ((x-list-fonts "Iosevka")   '(:family "Iosevka"))
+		   ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+		   ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+		   ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+		   ((x-list-fonts "Verdana")         '(:font "Verdana"))
+		   ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+		   (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+	 (base-font-color     (face-foreground 'default nil 'default))
+	 (headline           `(:inherit default :weight regular :foreground ,base-font-color))
+	 )
 
-	(custom-theme-set-faces
-	 'user
-	 `(variable-pitch ((t (,@variable-tuple :weight normal))))
-	 `(fixed-pitch ((t (,@fixed-tuple))))
+    (custom-theme-set-faces
+     'user
+     `(variable-pitch ((t (,@variable-tuple :weight normal))))
+     `(fixed-pitch ((t (,@fixed-tuple))))
 
-	 `(org-level-8 ((t (,@headline ,@variable-tuple))))
-	 `(org-level-7 ((t (,@headline ,@variable-tuple))))
-	 `(org-level-6 ((t (,@headline ,@variable-tuple))))
-	 `(org-level-5 ((t (,@headline ,@variable-tuple :height 1.0 :foreground "#ff9580"))))
-	 `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1 :foreground "#caa6df"))))
-	 `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2 :foreground "#82b0ec"))))
-	 `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
-	 `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple :height 1.0 :foreground "#ff9580"))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1 :foreground "#caa6df"))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2 :foreground "#82b0ec"))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3 :foreground "#88ca9f"))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4 :foreground "#d2b580"))))
 
-	 `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
-	 `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through nil :italic t :foreground "#71696A"))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline t :foreground "#00FFFF"))))
+     `(org-headline-done  ((t (,@headline ,@variable-tuple :strike-through nil :italic t :foreground "#71696A"))))
 
-	 `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
-	 `(org-block ((t (:inherit fixed-pitch))))
-	 `(org-code ((t (:inherit (shadow fixed-pitch)))))
-	 `(org-document-info ((t (:foreground "dark orange"))))
-	 `(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-	 `(org-indent ((t (:inherit (org-hide variable-pitch)))))
-	 `(org-link ((t (:foreground "royal blue" :underline t))))
-	 `(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-	 `(org-property-value ((t (:inherit fixed-pitch))) t)
-	 `(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-	 `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-	 `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-	 `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
-	 `(org-done ((t (:foreground "#71696A" :strike-through nil))))
-	 ) )
+     `(org-default ((t (,@headline ,@variable-tuple :inherit variable-pitch))))
+     `(org-block ((t (:inherit fixed-pitch))))
+     `(org-code ((t (:inherit (shadow fixed-pitch)))))
+     `(org-document-info ((t (:foreground "dark orange"))))
+     `(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+     `(org-indent ((t (:inherit (org-hide variable-pitch)))))
+     `(org-link ((t (:foreground "royal blue" :underline t))))
+     `(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+     `(org-property-value ((t (:inherit fixed-pitch))) t)
+     `(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+     `(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+     `(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+     `(org-verbatim ((t (:inherit (shadow fixed-pitch)))))
+     `(org-done ((t (:foreground "#71696A" :strike-through nil))))
+     ) )
 
 ;;;;;; prettify org checkboxes with unicode characters
   (defface org-checkbox-done-text
@@ -5764,9 +5764,9 @@ function with the \\[universal-argument]."
 
 ;;;;;; personal sej functions
   (defun sej/org-timer-done-alert ()
-	"Alert when timer is done."
-	(interactive)
-	(tmr "0s" "org timer done!"))
+    "Alert when timer is done."
+    (interactive)
+    (tmr "0s" "org timer done!"))
   (add-hook 'org-timer-done-hook #'sej/org-timer-done-alert)
 
   (defun sej/get-open-org-file ()
@@ -5779,41 +5779,41 @@ function with the \\[universal-argument]."
 
   (defun sej/org-reformat-buffer ()
     "Format the current org buffer, which often fixes and updates org interpreted data."
-  (interactive)
-  (when (y-or-n-p "Really format current buffer? ")
-    (let ((document (org-element-interpret-data (org-element-parse-buffer))))
-      (erase-buffer)
-      (insert document)
-      (goto-char (point-min)))))
+    (interactive)
+    (when (y-or-n-p "Really format current buffer? ")
+      (let ((document (org-element-interpret-data (org-element-parse-buffer))))
+        (erase-buffer)
+        (insert document)
+        (goto-char (point-min)))))
 
-(defun sej/org-remove-link ()
-  "Replace an org link by its description or if empty its address."
-  (interactive)
-  (if (org-in-regexp org-bracket-link-regexp 1)
-      (let ((remove (list (match-beginning 0) (match-end 0)))
-            (description (if (match-end 3)
-                             (org-match-string-no-properties 3)
-                           (org-match-string-no-properties 1))))
-        (apply 'delete-region remove)
-        (insert description))))
-(bind-key "C-c C-H-u" 'sej/org-remove-link)
+  (defun sej/org-remove-link ()
+    "Replace an org link by its description or if empty its address."
+    (interactive)
+    (if (org-in-regexp org-bracket-link-regexp 1)
+        (let ((remove (list (match-beginning 0) (match-end 0)))
+              (description (if (match-end 3)
+                               (org-match-string-no-properties 3)
+                             (org-match-string-no-properties 1))))
+          (apply 'delete-region remove)
+          (insert description))))
+  (bind-key "C-c C-H-u" 'sej/org-remove-link)
 
   (defun sej/org-fold-hide-drawer-toggle ()
-	"Toggle drawer of headline in or above."
-	(interactive)
-	(save-excursion
-	  (org-previous-visible-heading 1)
-	  (org-update-checkbox-count)
-	  (re-search-forward org-drawer-regexp nil 'noerror)
-	  (org-fold-hide-drawer-toggle nil 'noerror)))
+    "Toggle drawer of headline in or above."
+    (interactive)
+    (save-excursion
+      (org-previous-visible-heading 1)
+      (org-update-checkbox-count)
+      (re-search-forward org-drawer-regexp nil 'noerror)
+      (org-fold-hide-drawer-toggle nil 'noerror)))
 
   (add-to-list 'font-lock-extra-managed-props 'display)
   (font-lock-add-keywords 'org-mode
                           `(("^.*?\\( \\)\\(:[[:alnum:]_@#%:]+:\\)$"
-							 (1 `(face nil
+			     (1 `(face nil
                                        display (space :align-to (- right ,(org-string-width (match-string 2)) 3)))
-								prepend))) t)
-) ; end of use-pacakge for org
+				prepend))) t)
+  ) ; end of use-pacakge for org
 
 ;;;;; org-agenda
 ;; built-in: agenda for todo & calendar items
@@ -5824,18 +5824,18 @@ function with the \\[universal-argument]."
   :preface
   (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
   :bind (("C-c a" . org-agenda)
-		 (:map org-agenda-mode-map
-			   ("2" . org-agenda-fortnight-view))
-		 (:map sej-denote-map
-			   ("C-." . consult-org-agenda)
-			   ("C-," . sej/org-agenda-call)))
+	 (:map org-agenda-mode-map
+	       ("2" . org-agenda-fortnight-view))
+	 (:map sej-denote-map
+	       ("C-." . consult-org-agenda)
+	       ("C-," . sej/org-agenda-call)))
   :defines
   (org-agenda-span
-  org-agenda-skip-scheduled-if-deadline-is-shown
-  org-agenda-todo-ignore-deadlines
-  org-agenda-todo-ignore-scheduled
-  org-agenda-sorting-strategy
-  org-agenda-skip-deadline-prewarning-if-scheduled)
+   org-agenda-skip-scheduled-if-deadline-is-shown
+   org-agenda-todo-ignore-deadlines
+   org-agenda-todo-ignore-scheduled
+   org-agenda-sorting-strategy
+   org-agenda-skip-deadline-prewarning-if-scheduled)
   :custom-face
   (org-agenda-calendar-event ((t (:foreground "gray70"))))
   (org-imminent-deadline ((t (:bold nil :foreground "chocolate3"))))
@@ -5845,34 +5845,34 @@ function with the \\[universal-argument]."
   (org-agenda-date-weekend ((t (:bold nil :foreground "medium aquamarine"))))
   :custom ((org-agenda-block-separator nil)
            (org-agenda-diary-file (concat org-directory "/diary.org"))
-		   (org-agenda-files `(,org-directory ,denote-journal-directory))
+	   (org-agenda-files `(,org-directory ,denote-journal-directory))
            (org-agenda-dim-blocked-tasks t) ; other option is 'invisible
            (org-agenda-inhibit-startup nil)
            (org-agenda-show-all-dates t)
            (org-agenda-skip-scheduled-if-done t)
            (org-agenda-start-on-weekday 1) ; Monday
-		   (org-agenda-log-mode-items '(closed clock))
+	   (org-agenda-log-mode-items '(closed clock))
            (org-agenda-start-with-log-mode t)
            (org-agenda-use-time-grid t)
            (org-agenda-include-diary t)
-		   (org-agenda-tags-column -115) ; still not ideal but works for half screen
+	   (org-agenda-tags-column -115) ; still not ideal but works for half screen
            (org-agenda-window-setup (quote current-window)) ;open agenda in current window
            (org-agenda-span-name (quote fortnight)) ;show me tasks scheduled or due in next fortnight
            (org-agenda-skip-scheduled-if-deadline-is-shown t) ;don't show tasks as scheduled if shown as deadline
            (org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled))
            (org-deadline-warning-days 7) ;warn me of any deadlines in next 7 days
-		   (org-agenda-sticky nil)) ; FIX change later to t
+	   (org-agenda-sticky nil)) ; FIX change later to t
   :config
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal)
   (defvar sej/org-custom-agenda-orig
-	;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
-	;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
-	`((tags-todo "*"
-				 ((org-agenda-skip-function
-				   `(org-agenda-skip-entry-if 'scheduled 'deadline ;'timestamp
-											  'todo '("MAYBE" "CANCELED" "DONE" "VERIFIED" "FIXED")))
+    ;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
+    ;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
+    `((tags-todo "*"
+		 ((org-agenda-skip-function
+		   `(org-agenda-skip-entry-if 'scheduled 'deadline ;'timestamp
+					      'todo '("MAYBE" "CANCELED" "DONE" "VERIFIED" "FIXED")))
                   (org-agenda-block-separator 9472)
                   (org-agenda-overriding-header "Tasks with action needed without a scheduled or deadline date")))
       (agenda "" ((org-agenda-span 1)
@@ -5899,93 +5899,93 @@ function with the \\[universal-argument]."
                   (org-agenda-entry-types '(:deadline :scheduled))
                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
                   (org-agenda-overriding-header "Upcoming deadlines (+14d)"))))
-	"Custom agenda for use in `org-agenda-custom-commands'.")
+    "Custom agenda for use in `org-agenda-custom-commands'.")
 
   (setq org-agenda-custom-commands `(("n" "Agenda and all TODOs" ((agenda "") (alltodo "")))
-									 ("d" "Deadlines & scheduled" agenda ""
-									  ((org-agenda-span 'month)
-									   (org-agenda-time-grid nil)
-									   (org-agenda-show-all-dates nil)
-									   (org-agenda-entry-types '(:deadline :scheduled))
-									   (org-deadline-warning-days 0)
-									   (org-agenda-sorting-strategy '(priority-up effort-down))))
-									 ("D" "Deadlines & scheduled w/warnings" agenda ""
-									  ((org-agenda-span 'month)
-									   (org-agenda-time-grid nil)
-									   (org-agenda-show-all-dates nil)
-									   (org-agenda-entry-types '(:deadline :scheduled))
-									   (org-deadline-warning-days 7)
-									   (org-agenda-sorting-strategy '(priority-up effort-down))))
-									 ("A" "Agenda and top priority tasks"
-									  ,sej/org-custom-agenda-orig)
-									 ("P" "Plain text daily agenda and top priorities"
-									  ,sej/org-custom-agenda-orig
-									  ((org-agenda-with-colors nil)
-									   (org-agenda-prefix-format "%t %s")
-									   (org-agenda-current-time-string ,(car (last org-agenda-time-grid)))
-									   (org-agenda-fontify-priorities nil)
-									   (org-agenda-remove-tags t))
-									  ("agenda.txt"))
-									 ("w" . "Wine searches")
-									 ("wi" tags "+Italian+CATEGORY=\"wine\"")
-									 ("wf" tags "+French+CATEGORY=\"wine\"")
-									 ("ws" tags "+Spanish+CATEGORY=\"wine\"")
-									 ("ww" tags "+CATEGORY=\"wine\"")
-									 ))
+				     ("d" "Deadlines & scheduled" agenda ""
+				      ((org-agenda-span 'month)
+				       (org-agenda-time-grid nil)
+				       (org-agenda-show-all-dates nil)
+				       (org-agenda-entry-types '(:deadline :scheduled))
+				       (org-deadline-warning-days 0)
+				       (org-agenda-sorting-strategy '(priority-up effort-down))))
+				     ("D" "Deadlines & scheduled w/warnings" agenda ""
+				      ((org-agenda-span 'month)
+				       (org-agenda-time-grid nil)
+				       (org-agenda-show-all-dates nil)
+				       (org-agenda-entry-types '(:deadline :scheduled))
+				       (org-deadline-warning-days 7)
+				       (org-agenda-sorting-strategy '(priority-up effort-down))))
+				     ("A" "Agenda and top priority tasks"
+				      ,sej/org-custom-agenda-orig)
+				     ("P" "Plain text daily agenda and top priorities"
+				      ,sej/org-custom-agenda-orig
+				      ((org-agenda-with-colors nil)
+				       (org-agenda-prefix-format "%t %s")
+				       (org-agenda-current-time-string ,(car (last org-agenda-time-grid)))
+				       (org-agenda-fontify-priorities nil)
+				       (org-agenda-remove-tags t))
+				      ("agenda.txt"))
+				     ("w" . "Wine searches")
+				     ("wi" tags "+Italian+CATEGORY=\"wine\"")
+				     ("wf" tags "+French+CATEGORY=\"wine\"")
+				     ("ws" tags "+Spanish+CATEGORY=\"wine\"")
+				     ("ww" tags "+CATEGORY=\"wine\"")
+				     ))
 
   ;; display repeaters for dates, scheduled, deadlines
   ;; [[https://whhone.com/posts/org-agenda-repeated-tasks/]]
 
   ;; Add `sej/org-agenda-repeater' to the agenda prefix.
   (defun sej/org-agenda-repeater ()
-	"The repeater shown in org-agenda-prefix for agenda."
-	(if (org-before-first-heading-p)
-		"┄┄┄┄┄"  ; fill the time grid
-	  (let ((rpt (org-get-repeat)))
-		(if rpt rpt ""))))
+    "The repeater shown in org-agenda-prefix for agenda."
+    (if (org-before-first-heading-p)
+	"┄┄┄┄┄"  ; fill the time grid
+      (let ((rpt (org-get-repeat)))
+	(if rpt rpt ""))))
 
-;;   This format works similar to a printf format, with the following meaning:
-;;
-;;   %c   the category of the item, \"Diary\" for entries from the diary,
-;;        or as given by the CATEGORY keyword or derived from the file name
-;;   %e   the effort required by the item
-;;   %l   the level of the item (insert X space(s) if item is of level X)
-;;   %i   the icon category of the item, see `org-agenda-category-icon-alist'
-;;   %T   the last tag of the item (ignore inherited tags, which come first)
-;;   %t   the HH:MM time-of-day specification if one applies to the entry
-;;   %s   Scheduling/Deadline information, a short string
-;;   %b   show breadcrumbs, i.e., the names of the higher levels
-;;   %(expression) Eval EXPRESSION and replace the control string
-;;                 by the result
-;;
-;; If the first character after `%' is a question mark, the entire field
-;; will only be included if the corresponding value applies to the current
-;; entry.
-;;
-;; If there is punctuation or whitespace character just before the
-;; final format letter, this character will be appended to the field
-;; value if the value is not empty.
-(setq org-agenda-prefix-format
-	  `((agenda . "%i %-10c%?t%?-4e%?s%(sej/org-agenda-repeater)")
-		 (todo .    "%i %-10c %?-4e")
-		 (tags .    "%i %-10c")
-		 (search .  "%i %-10c")))
+  ;;   This format works similar to a printf format, with the following meaning:
+  ;;
+  ;;   %c   the category of the item, \"Diary\" for entries from the diary,
+  ;;        or as given by the CATEGORY keyword or derived from the file name
+  ;;   %e   the effort required by the item
+  ;;   %l   the level of the item (insert X space(s) if item is of level X)
+  ;;   %i   the icon category of the item, see `org-agenda-category-icon-alist'
+  ;;   %T   the last tag of the item (ignore inherited tags, which come first)
+  ;;   %t   the HH:MM time-of-day specification if one applies to the entry
+  ;;   %s   Scheduling/Deadline information, a short string
+  ;;   %b   show breadcrumbs, i.e., the names of the higher levels
+  ;;   %(expression) Eval EXPRESSION and replace the control string
+  ;;                 by the result
+  ;;
+  ;; If the first character after `%' is a question mark, the entire field
+  ;; will only be included if the corresponding value applies to the current
+  ;; entry.
+  ;;
+  ;; If there is punctuation or whitespace character just before the
+  ;; final format letter, this character will be appended to the field
+  ;; value if the value is not empty.
+  (setq org-agenda-prefix-format
+	`((agenda . "%i %-10c%?t%?-4e%?s%(sej/org-agenda-repeater)")
+	  (todo .    "%i %-10c %?-4e")
+	  (tags .    "%i %-10c")
+	  (search .  "%i %-10c")))
 
   (defun sej/org-agenda-call (&optional arg)
-	"Call org-agenda screen ARG, but default to `A'."
-	(interactive)
-	(if arg
-		(org-agenda nil arg)
-	  (org-agenda nil "A")))
+    "Call org-agenda screen ARG, but default to `A'."
+    (interactive)
+    (if arg
+	(org-agenda nil arg)
+      (org-agenda nil "A")))
 
   (defun sej/beginning-of-buffer-point (&optional &arg &arg)
-	"Move point to top of agenda buffer after generate. Dummy to filter extra args."
-	(goto-char (point-min)))
+    "Move point to top of agenda buffer after generate. Dummy to filter extra args."
+    (goto-char (point-min)))
   (advice-add 'org-agenda :after #'sej/beginning-of-buffer-point)
 
   (defun sej/beginning-of-buffer-view (&optional &arg)
-	"Move view to top of agenda buffer after regen. Dummy to filter extra args."
-	(goto-char (point-min)))
+    "Move view to top of agenda buffer after regen. Dummy to filter extra args."
+    (goto-char (point-min)))
   (advice-add 'org-agenda-redo-all :after #'sej/beginning-of-buffer-view)
 
   )  ; end of org-agenda
@@ -5993,19 +5993,19 @@ function with the \\[universal-argument]."
 ;;;;; [[https://github.com/awth13/org-appear][org-appear]]
 ;; make invisible parts of org-mode visible
 (use-package org-appear
-    :hook (org-mode . org-appear-mode))
+  :hook (org-mode . org-appear-mode))
 
 ;;;;; org-attach
-  ;; directory to store attachments in relative to file
+;; directory to store attachments in relative to file
 ;; below is an absolute dir parallel to denote-directory
 (use-package org-attach
   :after (org dired)
   :ensure nil
   :bind (:map dired-mode-map
-			  ("C-c C-a" . org-attach-dired-to-subtree))
+	      ("C-c C-a" . org-attach-dired-to-subtree))
   :init
   (setq org-attach-id-dir  (expand-file-name "../denote-attachments/" denote-directory)
-		org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
+	org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
 
   (add-to-list 'org-file-apps '("\\.xls\\'". default))
 
@@ -6016,8 +6016,8 @@ function with the \\[universal-argument]."
   (add-to-list 'org-file-apps '("\\.html\\'" . emacs))
 
   (defun sej/org-attach-save-file-list-to-property (dir)
-	"Save list of attachments to ORG_ATTACH_FILES property."
-	(when-let* ((files (org-attach-file-list dir)))
+    "Save list of attachments to ORG_ATTACH_FILES property."
+    (when-let* ((files (org-attach-file-list dir)))
       (org-set-property "ORG_ATTACH_FILES" (mapconcat #'identity files ", "))))
 
   (add-hook 'org-attach-after-change-hook #'sej/org-attach-save-file-list-to-property)
@@ -6083,17 +6083,17 @@ function with the \\[universal-argument]."
 ;; to attach or specified directory
 (use-package org-download
   :hook ((emacs-startup . org-download-enable)
-		 (dired-mode . org-download-enable))
+	 (dired-mode . org-download-enable))
   :custom ((org-download-method 'directory)
-		   (org-download-image-dir "images")
-		   (org-download-heading-lvl nil)
-		   (org-download-timestamp "%Y%m%d-%H%M%S_")
-		   (org-image-actual-width 300)
-		   (org-download-screenshot-method "/usr/local/bin/pngpaste %s"))
+	   (org-download-image-dir "images")
+	   (org-download-heading-lvl nil)
+	   (org-download-timestamp "%Y%m%d-%H%M%S_")
+	   (org-image-actual-width 300)
+	   (org-download-screenshot-method "/usr/local/bin/pngpaste %s"))
   :bind
-    ("C-M-y" . org-download-screenshot)
-    :config
-    (require 'org-download))
+  ("C-M-y" . org-download-screenshot)
+  :config
+  (require 'org-download))
 
 ;;;;; org-fragtog
 ;; LaTeX previews
@@ -6102,96 +6102,96 @@ function with the \\[universal-argument]."
   :after org
   :hook (org-mode . org-fragtog-mode)
   :custom ((org-startup-with-latex-preview nil)
-		   (org-format-latex-options
-			(plist-put org-format-latex-options :scale 2)
-			(plist-put org-format-latex-options :foreground 'auto)
-			(plist-put org-format-latex-options :background 'auto))))
+	   (org-format-latex-options
+	    (plist-put org-format-latex-options :scale 2)
+	    (plist-put org-format-latex-options :foreground 'auto)
+	    (plist-put org-format-latex-options :background 'auto))))
 
 ;;;;; org-modern
 ;; https://github.com/minad/org-modern
 (use-package org-modern
-    :hook ((org-mode . org-modern-mode)
-		   (org-agenda-finalize . org-modern-agenda))
-	:custom-face
-	(org-modern-symbol ((t (:family "Iosevka Fixed"))))
-	(org-modern-label ((t (:family "Iosevka Fixed" :height 1.0 :background ,(face-attribute 'default :background)))))
-	(org-modern-tag ((t (:foreground "dark cyan" :background ,(face-attribute 'default :background)))))
-	(org-modern-block-name ((t (:family "Iosevka Fixed" :height 1.0 :weight light))))
-	(org-modern-date-active ((((background light)) :background "gray90" :foreground "black")
-							  (t :background "gray10" :foreground "#00d3d0")))
-	(org-modern-time-active ((((background light)) :background "gray35" :foreground "white" :distant-foreground "black")
-							  (t :background "gray10" :foreground "#00e9ff" :distant-foreground "white")))
-	(org-modern-date-inactive ((((background light)) :background "gray90" :foreground "gray30")
-								(t :background "black" :foreground "gray70")))
-	(org-modern-time-inactive ((((background light)) :foreground "gray95" :distant-foreground "gray5")
-								(t :background "black" :foreground "gray5" :distant-foreground "gray95")))
-	(org-modern-progress-complete ((((background light)) :background "gray20" :foreground "white")
-									(t :background "gray75" :foreground "black")))
-	(org-modern-progress-incomplete ((((background light)) :background "gray90" :foreground "black")
-									  (t :background "gray20" :foreground "white")))
-	:custom ((org-modern-star 'fold)
-			 (org-modern-hide-stars nil)
-			 (org-modern-timestamp t)
-			 (org-modern-table t)
-			 (org-modern-keyword t)
-			 (org-modern-priority '((?1 . "🎉")
-									(?2 . "😄")
-									(?3 . "🆗")
-									(?4 . "☹️")
-									(?5 . "🤮")
-									))
-			 (org-modern-priority-faces '((?A :foreground "red")
-										  (?B :foreground "pink")
-										  (?C :foreground "yellow")
-										  (?D :foreground "beige")
-										  (?E :foreground "grey")
-										  (?1 :foreground "red")
-										  (?2 :foreground "pink")
-										  (?3 :foreground "yellow")
-										  (?4 :foreground "beige")
-										  (?5 :foreground "grey")))
-			 (org-modern-checkbox '((88 . "☑") (45 . #("□–" 0 2 (composition ((2))))) (32 . "□")))
-			 (org-modern-todo t)
-			 (org-modern-todo-faces org-todo-keyword-faces)
-			 (org-modern-tag t)
-			 (org-modern-tag-faces '(("emacs" :foreground "#8b89c5") ("Emacs" :foreground "#8b89c5")
-									 ("org" :foreground "cyan") ("deck" :foreground "brown")))
-			 (org-modern-progress 8)
-			 (org-modern-block-name t)
-			 (org-modern-footnote nil)
-			 (org-modern-internal-target '(" ↪ " t " "))
-			 (org-modern-radio-target '(" ⛯ " t " "))
-			 (org-modern-horizontal-rule nil))
-	:config
-	;; copy of org-modern--tag with spaces around ":" removed to allow right justify to work properly
-	(defun sej/org-modern--tag ()
-	  "Prettify headline tags."
-	  (save-excursion
-		(let* ((default-face (get-text-property (match-beginning 1) 'face))
-		   (colon-props `(display #(":" 0 1 (face org-hide)) face ,default-face))
-		   (beg (match-beginning 2))
-		   (end (match-end 2))
-		   colon-beg colon-end)
-	  (goto-char beg)
-	  (while (re-search-forward "::?" end 'noerror)
-		(let ((cbeg (match-beginning 0))
-			  (cend (match-end 0)))
-		  (when colon-beg
-			;;(put-text-property colon-end (1+ colon-end) 'display
-			;;				   (format #(" %c" 1 3 (cursor t)) (char-after colon-end)))
-			;;(put-text-property (1- cbeg) cbeg 'display
-			;;				   (string (char-before cbeg) ?\s))
-			(put-text-property
-			 colon-end cbeg 'face
-			 (if-let ((faces org-modern-tag-faces)
-					  (face (or (cdr (assoc (buffer-substring-no-properties colon-end cbeg) faces))
-								(cdr (assq t faces)))))
-				 `(:inherit (,face org-modern-tag))
-			   'org-modern-tag)))
-		  (add-text-properties cbeg cend colon-props)
-		  (setq colon-beg cbeg colon-end cend))))))
+  :hook ((org-mode . org-modern-mode)
+	 (org-agenda-finalize . org-modern-agenda))
+  :custom-face
+  (org-modern-symbol ((t (:family "Iosevka Fixed"))))
+  (org-modern-label ((t (:family "Iosevka Fixed" :height 1.0 :background ,(face-attribute 'default :background)))))
+  (org-modern-tag ((t (:foreground "dark cyan" :background ,(face-attribute 'default :background)))))
+  (org-modern-block-name ((t (:family "Iosevka Fixed" :height 1.0 :weight light))))
+  (org-modern-date-active ((((background light)) :background "gray90" :foreground "black")
+			   (t :background "gray10" :foreground "#00d3d0")))
+  (org-modern-time-active ((((background light)) :background "gray35" :foreground "white" :distant-foreground "black")
+			   (t :background "gray10" :foreground "#00e9ff" :distant-foreground "white")))
+  (org-modern-date-inactive ((((background light)) :background "gray90" :foreground "gray30")
+			     (t :background "black" :foreground "gray70")))
+  (org-modern-time-inactive ((((background light)) :foreground "gray95" :distant-foreground "gray5")
+			     (t :background "black" :foreground "gray5" :distant-foreground "gray95")))
+  (org-modern-progress-complete ((((background light)) :background "gray20" :foreground "white")
+				 (t :background "gray75" :foreground "black")))
+  (org-modern-progress-incomplete ((((background light)) :background "gray90" :foreground "black")
+				   (t :background "gray20" :foreground "white")))
+  :custom ((org-modern-star 'fold)
+	   (org-modern-hide-stars nil)
+	   (org-modern-timestamp t)
+	   (org-modern-table t)
+	   (org-modern-keyword t)
+	   (org-modern-priority '((?1 . "🎉")
+				  (?2 . "😄")
+				  (?3 . "🆗")
+				  (?4 . "☹️")
+				  (?5 . "🤮")
+				  ))
+	   (org-modern-priority-faces '((?A :foreground "red")
+					(?B :foreground "pink")
+					(?C :foreground "yellow")
+					(?D :foreground "beige")
+					(?E :foreground "grey")
+					(?1 :foreground "red")
+					(?2 :foreground "pink")
+					(?3 :foreground "yellow")
+					(?4 :foreground "beige")
+					(?5 :foreground "grey")))
+	   (org-modern-checkbox '((88 . "☑") (45 . #("□–" 0 2 (composition ((2))))) (32 . "□")))
+	   (org-modern-todo t)
+	   (org-modern-todo-faces org-todo-keyword-faces)
+	   (org-modern-tag t)
+	   (org-modern-tag-faces '(("emacs" :foreground "#8b89c5") ("Emacs" :foreground "#8b89c5")
+				   ("org" :foreground "cyan") ("deck" :foreground "brown")))
+	   (org-modern-progress 8)
+	   (org-modern-block-name t)
+	   (org-modern-footnote nil)
+	   (org-modern-internal-target '(" ↪ " t " "))
+	   (org-modern-radio-target '(" ⛯ " t " "))
+	   (org-modern-horizontal-rule nil))
+  :config
+  ;; copy of org-modern--tag with spaces around ":" removed to allow right justify to work properly
+  (defun sej/org-modern--tag ()
+    "Prettify headline tags."
+    (save-excursion
+      (let* ((default-face (get-text-property (match-beginning 1) 'face))
+	     (colon-props `(display #(":" 0 1 (face org-hide)) face ,default-face))
+	     (beg (match-beginning 2))
+	     (end (match-end 2))
+	     colon-beg colon-end)
+	(goto-char beg)
+	(while (re-search-forward "::?" end 'noerror)
+	  (let ((cbeg (match-beginning 0))
+		(cend (match-end 0)))
+	    (when colon-beg
+	      ;;(put-text-property colon-end (1+ colon-end) 'display
+	      ;;				   (format #(" %c" 1 3 (cursor t)) (char-after colon-end)))
+	      ;;(put-text-property (1- cbeg) cbeg 'display
+	      ;;				   (string (char-before cbeg) ?\s))
+	      (put-text-property
+	       colon-end cbeg 'face
+	       (if-let ((faces org-modern-tag-faces)
+			(face (or (cdr (assoc (buffer-substring-no-properties colon-end cbeg) faces))
+				  (cdr (assq t faces)))))
+		   `(:inherit (,face org-modern-tag))
+		 'org-modern-tag)))
+	    (add-text-properties cbeg cend colon-props)
+	    (setq colon-beg cbeg colon-end cend))))))
 
-	(advice-add 'org-modern--tag :override #'sej/org-modern--tag))
+  (advice-add 'org-modern--tag :override #'sej/org-modern--tag))
 
 ;;;;; [[https://github.com/org-noter/org-noter][org-noter]]
 ;; create notes that are kept in sync as you scroll through the document
@@ -6201,12 +6201,12 @@ function with the \\[universal-argument]."
   :bind (:map org-noter-notes-mode-map
               ("C-M-i" . org-noter-insert-dynamic-block))
   :custom ((org-noter-notes-search-path (list org-directory))
-		   (org-noter-supported-modes '(doc-view-mode pdf-view-mode))
-		   (org-noter-max-short-selected-text-length 10)
-		   (org-noter-separate-notes-from-heading t))
+	   (org-noter-supported-modes '(doc-view-mode pdf-view-mode))
+	   (org-noter-max-short-selected-text-length 10)
+	   (org-noter-separate-notes-from-heading t))
   :config
   (use-package org-noter-pdf
-	:ensure nil)
+    :ensure nil)
 
   (require 'pdf-macs)
   (defun org-noter-pdf--show-arrow ()
@@ -6269,23 +6269,23 @@ function with the \\[universal-argument]."
   :config
   (require 'ob)
   (defun sej/ob-start ()
-	"Bable languages available."
-  (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp  . t)
-														   (python      . t)
-														   (calc        . t)
-														   (shell       . t)
-														   (latex       . t)
-														   (C           . t)
-														   (sql         . t)
-														   (makefile    . t)
-														   (ein         . t)
-														   (perl        . t)
-														   (ruby        . t)
-														   (js          . t)
-														   (css         . t)
-														   (restclient  . t)
-														   (java        . t)
-														   (applescript . t)))))
+    "Bable languages available."
+    (org-babel-do-load-languages 'org-babel-load-languages '((emacs-lisp  . t)
+							     (python      . t)
+							     (calc        . t)
+							     (shell       . t)
+							     (latex       . t)
+							     (C           . t)
+							     (sql         . t)
+							     (makefile    . t)
+							     (ein         . t)
+							     (perl        . t)
+							     (ruby        . t)
+							     (js          . t)
+							     (css         . t)
+							     (restclient  . t)
+							     (java        . t)
+							     (applescript . t)))))
 
 ;;;;; [[https://github.com/pope/ob-go][ob-go]]
 ;; org-bable functions for go evaluations
@@ -6315,14 +6315,14 @@ function with the \\[universal-argument]."
 ;; [[https://plrj.org/2025/06/18/org-babel-and-applescript-with-a-little-vc-use-package/][Org Babel and AppleScript with a little vc-use-package]]
 ;; example script
 ;; #+begin_src applescript
-  ;; -- AppleScript goes here; this is a comment
-  ;; display dialog “Hello World”
+;; -- AppleScript goes here; this is a comment
+;; display dialog “Hello World”
 ;; #+end_src
 (use-package ob-applescript
   :after org
   :vc (:url "https://github.com/stig/ob-applescript.el"
-			:rev :newest
-			:branch "trunk")
+	    :rev :newest
+	    :branch "trunk")
   :init
   (require 'apples-mode))
 
@@ -6332,20 +6332,20 @@ function with the \\[universal-argument]."
 (use-package ox
   :ensure nil
   :custom ((org-export-with-toc nil)
-		   (org-export-headline-levels 8)
-		   (org-export-backends '(ascii html latex md))
-		   (org-export-dispatch-use-expert-ui nil)
-		   (org-export-coding-system 'utf-8)
-		   (org-export-exclude-tags '("noexport" "no_export" "ignore"))
-		   (org-export-with-author t)
-		   (org-export-with-drawers t)
-		   (org-export-with-email t)
-		   (org-export-with-footnotes t)
-		   (org-export-with-latex t)
-		   (org-export-with-properties t)
-		   (org-export-with-smart-quotes t)
-		   (org-html-html5-fancy t)
-		   (org-html-postamble nil)))
+	   (org-export-headline-levels 8)
+	   (org-export-backends '(ascii html latex md))
+	   (org-export-dispatch-use-expert-ui nil)
+	   (org-export-coding-system 'utf-8)
+	   (org-export-exclude-tags '("noexport" "no_export" "ignore"))
+	   (org-export-with-author t)
+	   (org-export-with-drawers t)
+	   (org-export-with-email t)
+	   (org-export-with-footnotes t)
+	   (org-export-with-latex t)
+	   (org-export-with-properties t)
+	   (org-export-with-smart-quotes t)
+	   (org-html-html5-fancy t)
+	   (org-html-postamble nil)))
 
 ;;;;; ox-latex
 ;; built-in: latex exporter
@@ -6353,9 +6353,9 @@ function with the \\[universal-argument]."
 (use-package ox-latex
   :ensure nil
   :custom ((org-latex-pdf-process '("latexmk -shell-escape -bibtex -pdf %f"))
-		   (org-latex-remove-logfiles t)
-		   (org-latex-prefer-user-labels t)
-		   (bibtex-dialect 'biblatex)))
+	   (org-latex-remove-logfiles t)
+	   (org-latex-prefer-user-labels t)
+	   (bibtex-dialect 'biblatex)))
 
 ;;;;; ox-gfm
 ;; github flavoured markdown exporter for Org mode
@@ -6380,80 +6380,80 @@ function with the \\[universal-argument]."
 (use-package org-pretty-tags
   :hook (org-mode . org-pretty-tags-global-mode)
   :custom ((org-pretty-tags-surrogate-strings
-			`(;; generic tags
-		  ("ATTACH" . "📎")
-		  ("automation" . "⚙️")
-		  ("basement" . #("󱊾" 0 1 (face (:family "Symbols Nerd Font Mono" :height 1.0)
-										font-lock-face (:family "Symbols Nerd Font Mono" :height 1.0)
-										display (raise 0.0) rear-nonsticky t)))
-		  ("batteries" . "🔋⚡") ("battery" . "🔋⚡")
-		  ("Blog" . "✍")
-		  ("cat" . "🐱") ("cats" . "🐱")
-		  ("closed". "🔒")
-		  ("computer" . "🖥️")
-		  ("datasheet" . "📈")
-		  ("debug" . "🐞")
-		  ("deck" . "⛩")
-		  ("done" . "✅")
-		  ("emacs" . "") ("Emacs" . "")
-		  ("org" . #("" 0 1 (face (:family "Symbols Nerd Font Mono" :height 1.0)
-								   font-lock-face (:family "Symbols Nerd Font Mono" :height 1.0)
-								   display (raise 0.0) rear-nonsticky t)))
-		  ("family" . "👨‍👩‍👧‍👦")
-		  ("financial" . "💰")
-		  ("friends" . "🍻")
-		  ("furnace" . "🔥")
-		  ("garage" . "🚗")
-		  ("gtd" . "✅")
-		  ("hockey" . "🏒")
-		  ("home" . "🏠")
-		  ("idea" . "💡")
-		  ("journal" . "✒️")
-		  ("kids" . "👶🏻")
-		  ("kitchen" . "🍽️")
-		  ("knowledge" . "🤓")
-		  ("laundry" . "🧺")
-		  ("log" . "📋")
-		  ("maintenance" . "🛠️")
-		  ("manual" . "📚")
-		  ("media" . "💿")
-		  ("meeting" . "👥")
-		  ("music" . "🎶")
-		  ("outside" . "🌻")
-		  ("plugin" . "🔌")
-		  ("pond" . "🐟")
-		  ("project" . "🚧")
-		  ("read" . "👀")
-		  ("routine" . "🧹")
-		  ("security" . "🔥")
-		  ("service" . "🤝")
-		  ("sprinkler" . "💦")
-		  ("swimming" . "🏊‍♀️")
-		  ("tool" . "🔧")
-		  ("topic" . "☆")
-		  ("travel" . "✈️")
-		  ("tutorial" . "👨‍🎓")
-		  ("water" . "💧")
-		  ("waterfront" . "⚓")
+	    `(;; generic tags
+	      ("ATTACH" . "📎")
+	      ("automation" . "⚙️")
+	      ("basement" . #("󱊾" 0 1 (face (:family "Symbols Nerd Font Mono" :height 1.0)
+					    font-lock-face (:family "Symbols Nerd Font Mono" :height 1.0)
+					    display (raise 0.0) rear-nonsticky t)))
+	      ("batteries" . "🔋⚡") ("battery" . "🔋⚡")
+	      ("Blog" . "✍")
+	      ("cat" . "🐱") ("cats" . "🐱")
+	      ("closed". "🔒")
+	      ("computer" . "🖥️")
+	      ("datasheet" . "📈")
+	      ("debug" . "🐞")
+	      ("deck" . "⛩")
+	      ("done" . "✅")
+	      ("emacs" . "") ("Emacs" . "")
+	      ("org" . #("" 0 1 (face (:family "Symbols Nerd Font Mono" :height 1.0)
+				       font-lock-face (:family "Symbols Nerd Font Mono" :height 1.0)
+				       display (raise 0.0) rear-nonsticky t)))
+	      ("family" . "👨‍👩‍👧‍👦")
+	      ("financial" . "💰")
+	      ("friends" . "🍻")
+	      ("furnace" . "🔥")
+	      ("garage" . "🚗")
+	      ("gtd" . "✅")
+	      ("hockey" . "🏒")
+	      ("home" . "🏠")
+	      ("idea" . "💡")
+	      ("journal" . "✒️")
+	      ("kids" . "👶🏻")
+	      ("kitchen" . "🍽️")
+	      ("knowledge" . "🤓")
+	      ("laundry" . "🧺")
+	      ("log" . "📋")
+	      ("maintenance" . "🛠️")
+	      ("manual" . "📚")
+	      ("media" . "💿")
+	      ("meeting" . "👥")
+	      ("music" . "🎶")
+	      ("outside" . "🌻")
+	      ("plugin" . "🔌")
+	      ("pond" . "🐟")
+	      ("project" . "🚧")
+	      ("read" . "👀")
+	      ("routine" . "🧹")
+	      ("security" . "🔥")
+	      ("service" . "🤝")
+	      ("sprinkler" . "💦")
+	      ("swimming" . "🏊‍♀️")
+	      ("tool" . "🔧")
+	      ("topic" . "☆")
+	      ("travel" . "✈️")
+	      ("tutorial" . "👨‍🎓")
+	      ("water" . "💧")
+	      ("waterfront" . "⚓")
 
-		  ;; wine & specific tags
-		  ("wine" . "🍷")
-		  ("Red" . "🍷") ("Rose" . "🌹") ("White" . "🥂")
-		  ("Champagne" "🍾") ("Prosecco" "🍾") ("Cava" "🍾") ("Sparkling" "🍾")
-		  ("Liquor" . "🫒🍸")
-		  ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
-		  ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
-		  ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
-		  ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
+	      ;; wine & specific tags
+	      ("wine" . "🍷")
+	      ("Red" . "🍷") ("Rose" . "🌹") ("White" . "🥂")
+	      ("Champagne" "🍾") ("Prosecco" "🍾") ("Cava" "🍾") ("Sparkling" "🍾")
+	      ("Liquor" . "🫒🍸")
+	      ("France" . "🇫🇷Fr") ("French" . "🇫🇷Fr")
+	      ("Italy" . "🇮🇹It") ("Italian" . "🇮🇹It")
+	      ("Spain" . "🇪🇸Sp") ("Spanish" . "🇪🇸Sp")
+	      ("Canada" . "🇨🇦Cdn") ("Canadian" . "🇨🇦Cdn")
 
-		  ;; electronics & specific tags
-		  ("electronics" . "electronics")
-		  ("stereo" . "🎧")
-		  ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
-		  ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
-		  ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
-		  ))))
-		    
+	      ;; electronics & specific tags
+	      ("electronics" . "electronics")
+	      ("stereo" . "🎧")
+	      ("active" . ,(propertize (nerd-icons-codicon "nf-cod-chip")))
+	      ("static" . ,(propertize (nerd-icons-mdicon "nf-md-resistor_nodes")))
+	      ("board" . ,(propertize (nerd-icons-mdicon "nf-md-developer_board")))
+	      ))))
+
 ;;;;; org-protocol
 (use-package org-protocol
   :ensure nil
@@ -6524,7 +6524,7 @@ function with the \\[universal-argument]."
          (markdown-mode . toc-org-mode))
   :bind (:map org-mode-map
               ("C-c C-o" . toc-org-markdown-follow-thing-at-point)
-			  :map org-mode-map
+	      :map org-mode-map
               ("C-c C-o" . toc-org-markdown-follow-thing-at-point)))
 
 
@@ -6641,8 +6641,8 @@ function with the \\[universal-argument]."
            (eshell-save-history-on-exit t)
            (eshell-prefer-lisp-functions nil)
            (eshell-destroy-buffer-when-process-dies t)
-		   ;; turn off semantic-mode in eshell buffers
-		   (semantic-mode -1))
+	   ;; turn off semantic-mode in eshell buffers
+	   (semantic-mode -1))
 
   :config
   (setenv "PAGER" "cat")
@@ -6706,19 +6706,19 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :ensure nil
   :custom (eshell-modules-list             ; Needs review
            '(eshell-smart
-			 eshell-alias
-			 eshell-basic
-			 eshell-cmpl
-			 eshell-dirs
-			 eshell-glob
-			 eshell-hist
-			 eshell-ls
-			 eshell-pred
-			 eshell-prompt
-			 eshell-script
-			 eshell-term
-			 eshell-tramp
-			 eshell-unix)))
+	     eshell-alias
+	     eshell-basic
+	     eshell-cmpl
+	     eshell-dirs
+	     eshell-glob
+	     eshell-hist
+	     eshell-ls
+	     eshell-pred
+	     eshell-prompt
+	     eshell-script
+	     eshell-term
+	     eshell-tramp
+	     eshell-unix)))
 
 (use-package em-dirs
   :ensure nil
@@ -6729,13 +6729,13 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :ensure nil
   :after esh-mode
   :custom ((password-cache t)
-		   (password-cache-expiry 600)))
+	   (password-cache-expiry 600)))
 
 (use-package em-hist
   :ensure nil
   :after esh-mode
   :custom ((eustom (st-ignoredups t))
-		   (eshell-save-history-on-exit t)))
+	   (eshell-save-history-on-exit t)))
 
 ;;;;; eshell-prompt-extras
 ;; Display extra information for prompt
@@ -6745,9 +6745,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :defines eshell-highlight-prompt
   :commands (epe-theme-lambda epe-theme-dakrone epe-theme-pipeline)
   :custom ((eshell-highlight-prompt nil)
-		   (eshell-prompt-function 'epe-theme-lambda)
-		   (eshell-prompt-funct ion 'epe-theme-dakrone)
-		   (epe-git-dirty-char " Ϟ"))
+	   (eshell-prompt-function 'epe-theme-lambda)
+	   (eshell-prompt-funct ion 'epe-theme-dakrone)
+	   (epe-git-dirty-char " Ϟ"))
   :init
   (autoload 'epe-theme-lambda "eshell-prompt-extras")
   ;; epe-git-dirty-char "*"
@@ -6880,20 +6880,20 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :bind  (:map sej-C-q-map
                ("S s" . shell))
   :custom ((system-uses-terminfo t)
-		   (ansi-color-for-comint-mode t)
-		   (comint-use-prompt-reg exp t)
-		   (shell-command-prompt-show-cwd nil)
+	   (ansi-color-for-comint-mode t)
+	   (comint-use-prompt-reg exp t)
+	   (shell-command-prompt-show-cwd nil)
            (comint-scroll-to-bottom-on-input t) ;; always insert at the bottom
-		   ;; always add output at the bottom
-		   (comint-scroll-to-bottom-on-output nil)
-		   ;; scroll to show max possible output
-		   (comint-scroll-show-maximum-output t)
-		   ;; no duplicates in command history
-		   (comint-input-ignoredups t)
-		   ;; insert space/slash after file completion
-		   (comint-completion-addsuffix t)
-		   ;; if this is t, it breaks shell-command
-		   (comint-prompt-read-only nil))
+	   ;; always add output at the bottom
+	   (comint-scroll-to-bottom-on-output nil)
+	   ;; scroll to show max possible output
+	   (comint-scroll-show-maximum-output t)
+	   ;; no duplicates in command history
+	   (comint-input-ignoredups t)
+	   ;; insert space/slash after file completion
+	   (comint-completion-addsuffix t)
+	   ;; if this is t, it breaks shell-command
+	   (comint-prompt-read-only nil))
   :config
   (defun n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
@@ -6948,11 +6948,11 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; [[https://codeberg.org/akib/emacs-eat][eat]]
 (use-package eat
   :custom (;; Close the terminal buffer when the shell terminates.
-		   (eat-kill-buffer-on-exit t)
-		   ;; Enable mouse-support.
-		   (eat-enable-mouse t)
-		   ;; fixing editing
-		   (eat-term-name "xterm-256color"))
+	   (eat-kill-buffer-on-exit t)
+	   ;; Enable mouse-support.
+	   (eat-enable-mouse t)
+	   ;; fixing editing
+	   (eat-term-name "xterm-256color"))
   :config
   (when (eq system-type 'darwin)
     (define-key eat-semi-char-mode-map (kbd "C-h") #'eat-self-input)
@@ -6977,9 +6977,9 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
               ("S S" . serial-term)
               ("S t" . term))
   :custom ((term-buffer-maximum-size 9999)
-		   (term-completion-autolist t)
-		   (term-completion-recexact t)
-		   (term-scroll-to-bottom-on-output nil)))
+	   (term-completion-autolist t)
+	   (term-completion-recexact t)
+	   (term-scroll-to-bottom-on-output nil)))
 
 ;;;;; vterm
 ;; fully-fledged terminal emulator inside GNU Emacs
@@ -6989,15 +6989,15 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :bind (:map sej-C-q-map
               ("S v" . vterm))
   :custom ((vterm-install t)
-		   (vterm-always-compile-module t)
-		   (vterm-disable-bold-font nil)
-		   (vterm-disable-inverse-video nil)
-		   (vterm-use-vterm-prompt-detection-met hod t)
-		   (vterm-disable-underline nil)
-		   (vterm-kill-buffer-on-exit t)
-		   (vterm-max-scrollback 9999)
-		   (vterm-shell "/bin/zsh")
-		   (vterm-term-environment-variable "xterm-256color")))
+	   (vterm-always-compile-module t)
+	   (vterm-disable-bold-font nil)
+	   (vterm-disable-inverse-video nil)
+	   (vterm-use-vterm-prompt-detection-met hod t)
+	   (vterm-disable-underline nil)
+	   (vterm-kill-buffer-on-exit t)
+	   (vterm-max-scrollback 9999)
+	   (vterm-shell "/bin/zsh")
+	   (vterm-term-environment-variable "xterm-256color")))
 
 ;;;;; ERC IRC client
 ;; built-in: irc client
@@ -7007,7 +7007,7 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   :bind (:map sej-C-q-map
               ("I" . sej/erc-start-or-switch))
   :custom ((auth-source-debug t)
-		   (erc-prompt-for-password nil))
+	   (erc-prompt-for-password nil))
   :config
   ;; from [[https://www.emacswiki.org/emacs/ErcSSL][emacswiki.org erc-tls hack]]
   ;; erc hack for gnutls for client cert.
@@ -7039,8 +7039,8 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
     (unwind-protect
         (progn
           (setq *uconf/erc-certs*
-				`((,(plist-get (car (auth-source-search :host "irc.libera.chat")) :cert ) ) ) )
-			      (open-network-stream name buffer host port
+		`((,(plist-get (car (auth-source-search :host "irc.libera.chat")) :cert ) ) ) )
+	  (open-network-stream name buffer host port
                                :nowait t
                                :type 'tls))
       (setq *uconf/erc-certs* nil)))
@@ -7049,13 +7049,13 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
   (advice-add 'erc-open-tls-stream :override #'uconf/erc-open-tls-stream)
 
   (defun sej/erc-buffer-connected-p (buffer)
-	"Check if ERC BUFFER is connected."
-	(with-current-buffer buffer
+    "Check if ERC BUFFER is connected."
+    (with-current-buffer buffer
       (and (erc-server-process-alive)
            erc-server-connected)))
 
   (defun sej/erc-start-or-switch ()
-	"Connects to ERC, or switch to last active buffer.
+    "Connects to ERC, or switch to last active buffer.
 
 This function serves multiple purposes:
 
@@ -7074,25 +7074,25 @@ This function serves multiple purposes:
    the function prompts the user to reconnect to the IRC server. If the user
    confirms, a new connection is initiated using the `erc' command with the
    server and port specified (`irc.libera.chat` on port 6667)."
-	(interactive)
-	(let ((erc-buffers '("Libera.Chat" "irc.libera.chat" "irc.libera.chat:6667"))
+    (interactive)
+    (let ((erc-buffers '("Libera.Chat" "irc.libera.chat" "irc.libera.chat:6667"))
           (connected nil))
       (dolist (buffer erc-buffers)
-		(when (and (get-buffer buffer)
+	(when (and (get-buffer buffer)
                    (my/erc-buffer-connected-p buffer))
           (setq connected t)))
       (if connected
           (erc-track-switch-buffer 1)
-		(when (y-or-n-p "Start ERC? ")
-		  (let ((irc "irc.libera.chat"))
-			;; TODO need to get back to erc-tls
-			(erc :server irc
-					 :port 6697
-					 :nick (car (auth-source-user-and-password irc))
-					 :full-name (car (auth-source-user-and-password irc))
-					 :password (cadr (auth-source-user-and-password irc))
-					 ) ))
-		)))
+	(when (y-or-n-p "Start ERC? ")
+	  (let ((irc "irc.libera.chat"))
+	    ;; TODO need to get back to erc-tls
+	    (erc :server irc
+		 :port 6697
+		 :nick (car (auth-source-user-and-password irc))
+		 :full-name (car (auth-source-user-and-password irc))
+		 :password (cadr (auth-source-user-and-password irc))
+		 ) ))
+	)))
 
   ;; Options
 
@@ -7137,10 +7137,10 @@ This function serves multiple purposes:
   :ensure nil
   :commands (eww eww-browse-url)
   :custom ((shr-use-fonts t)
-		   (shr-use-colors t)
-		   (shr-max-image-proportion 0.2)
-		   (shr-image-animate t)
-		   (shr-width (current-fill-column))))
+	   (shr-use-colors t)
+	   (shr-max-image-proportion 0.2)
+	   (shr-image-animate t)
+	   (shr-width (current-fill-column))))
 
 ;; Support the HTML pre tag with proper syntax highlighting.
 (use-package shr-tag-pre-highlight
@@ -7158,20 +7158,20 @@ This function serves multiple purposes:
   :bind (:map sej-C-q-map
               ("W" . eww))
   :custom ((eww-restore-desktop nil)
-		   (eww-desktop-remove-duplicates t)
-		   (eww-header-line-format "%u")
-		   (eww-search-prefix "https://duckduckgo.com/html/?q=")
-		   (eww-download-directory "~/Downloads/")
-		   (eww-suggest-uris
-			'(eww-links-at-point
-			  thing-at-point-url-at-point))
-		   (eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
-		   (eww-history-limit 150)
-		   (eww-use-external-browser-for-content-type
-			"\\`\\(video/\\|audio/\\|application/pdf\\)")
-		   (eww-browse-url-new-window-is-tab nil)
-		   (eww-form-checkbox-selected-symbol "[X]")
-		   (eww-form-checkbox-symbol "[ ]"))
+	   (eww-desktop-remove-duplicates t)
+	   (eww-header-line-format "%u")
+	   (eww-search-prefix "https://duckduckgo.com/html/?q=")
+	   (eww-download-directory "~/Downloads/")
+	   (eww-suggest-uris
+	    '(eww-links-at-point
+	      thing-at-point-url-at-point))
+	   (eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
+	   (eww-history-limit 150)
+	   (eww-use-external-browser-for-content-type
+	    "\\`\\(video/\\|audio/\\|application/pdf\\)")
+	   (eww-browse-url-new-window-is-tab nil)
+	   (eww-form-checkbox-selected-symbol "[X]")
+	   (eww-form-checkbox-symbol "[ ]"))
   :config
   (defun sej/eww-visit-history (&optional arg)
     "Revisit a URL from `eww-prompt-history' using completion.
@@ -7221,7 +7221,7 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
               ("t" . tmr-prefix-map))
   :ensure-system-package ffmpeg
   :custom (;; Read the `tmr-descriptions-list' doc string
-		   (tmr-descriptions-list 'tmr-description-history))
+	   (tmr-descriptions-list 'tmr-description-history))
   :config
   (if sys/macp
       (progn
@@ -7234,11 +7234,11 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
            :severity 'urgent
            :id 'test-alert
            :style 'osx-notifier
-		   :persistent 'persistent) )
-		(setq tmr-sound-file "/System/Library/Sounds/Blow.aiff")
+	   :persistent 'persistent) )
+	(setq tmr-sound-file "/System/Library/Sounds/Blow.aiff")
         (add-to-list 'tmr-timer-finished-functions #'sej/osx-alert-tmr)
         ;; (delete 'tmr-notification-notify tmr-timer-finished-functions)
-		)))
+	)))
 
 ;;;;; elfeed
 ;; rss feeder
@@ -7247,13 +7247,13 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :bind ("C-q w" . elfeed)
   :config
   ;;(setq elfeed-feeds '(("http://nullprogram.com/feed/" blog emacs)
-					   ;; ( "https://planet.emacslife.com/atom.xml" blog emacs)
-					   ;; ("https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs)
-					   ;; ("http://nedroid.com/feed/" webcomic))))
+  ;; ( "https://planet.emacslife.com/atom.xml" blog emacs)
+  ;; ("https://sachachua.com/blog/category/emacs/feed/index.xml" blog emacs)
+  ;; ("http://nedroid.com/feed/" webcomic))))
 
 ;;;;;; Configure Elfeed with org mode
   (use-package elfeed-org
-	:demand t
+    :demand t
     :config
     (elfeed-org)
     :custom
@@ -7265,10 +7265,10 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
   :after elfeed
   :bind (:map elfeed-show-mode-map
               ("'" . elfeed-webkit-toggle)))
-  ;; :init
-  ;; (setq elfeed-webkit-auto-enable-tags '(webkit comics))
-  ;; :config
-  ;; ;;(elfeed-webkit-auto-toggle-by-tag)
+;; :init
+;; (setq elfeed-webkit-auto-enable-tags '(webkit comics))
+;; :config
+;; ;;(elfeed-webkit-auto-toggle-by-tag)
 
 ;;; init.el --- end
 (message "init.el ends here")

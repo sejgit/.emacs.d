@@ -1,4 +1,4 @@
-.PHONY: lint lint-checkdoc lint-package compile clean help
+.PHONY: lint lint-checkdoc lint-package compile format clean help
 
 # Emacs binary
 EMACS ?= emacs
@@ -14,6 +14,7 @@ help:
 	@echo "  make lint-checkdoc - Check documentation"
 	@echo "  make lint-package  - Check package conventions"
 	@echo "  make compile       - Byte compile all files"
+	@echo "  make format        - Auto-format elisp files"
 	@echo "  make clean         - Remove compiled files"
 
 lint: lint-checkdoc compile
@@ -38,11 +39,26 @@ lint-package:
 		2>&1 | grep -v "^Loading" || true
 
 compile:
-	@echo "Byte compiling..."
+	@echo "Byte compiling (checking for errors)..."
 	@$(EMACS) -Q --batch \
 		--eval "(setq byte-compile-error-on-warn nil)" \
 		-f batch-byte-compile $(ALL_FILES) \
 		2>&1 | grep -E "(Error|Warning):" || echo "  No errors or warnings"
+	@echo "Cleaning up .elc files..."
+	@find . -name "*.elc" -type f -delete
+
+format:
+	@echo "Formatting elisp files..."
+	@for file in $(ALL_FILES); do \
+		echo "  Formatting $$file"; \
+		$(EMACS) -Q --batch "$$file" \
+			--eval "(setq-default indent-tabs-mode nil)" \
+			--eval "(emacs-lisp-mode)" \
+			--eval "(indent-region (point-min) (point-max))" \
+			--eval "(delete-trailing-whitespace)" \
+			--eval "(save-buffer 0)"; \
+	done
+	@echo "✓ Formatting complete"
 
 clean:
 	@echo "Cleaning compiled files..."

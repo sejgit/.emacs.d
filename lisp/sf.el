@@ -21,9 +21,9 @@
 ;;; Commentary:
 ;; Insert SF Symbols via `completing-read'.
 ;;
-;; Be sure to set a fallback font that renderers them. If you can
-;; see the following string ->"􀃊 􀃌 􀃎"<-, you are good. Otherwise,
-;; You can patch your config with something like:
+;; Be sure to set a fallback font that renderers them.  If you can
+;; see the following string ->"􀃊 􀃌 􀃎"<-, you are good.  Otherwise,
+;; you can patch your config with something like:
 ;; (set-fontset-font t nil "SF Pro Display" nil 'append)
 
 
