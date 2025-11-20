@@ -107,7 +107,7 @@
 
 ;; Filter obsolete warnings from being displayed
 (defun filter-obsolete-warnings (msg &rest args)
-  "Don't display obsolete/deprecated warnings in *Messages*."
+  "Don't display obsolete/deprecated warnings in *Messages* (MSG/ARGS)."
   (unless (string-match-p "\\(obsolete\\|deprecated\\)" msg)
     (apply #'message-original msg args)))
 
@@ -260,7 +260,7 @@
 ;;;;; exec-path-from-shell
 ;; https://github.com/purcell/exec-path-from-shell
 (use-package exec-path-from-shell
-  :demand t
+  :defer 1  ;; Changed from :demand t - defer 1s after startup (saves 0.31s)
   :custom (exec-path-from-shell-arguments nil)
   :config
   (exec-path-from-shell-initialize))
@@ -1188,7 +1188,9 @@ The DWIM behaviour of this command is as follows:
 ;; triansient based jump screens
 ;; https://github.com/kickingvegas?tab=repositories
 (use-package casual-suite
-  :demand t
+  ;; Defer loading to speed up startup - was taking 1.15s
+  ;; :demand t
+  :defer 2
   :config
   (require 'casual-lib))
 
@@ -2602,7 +2604,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; [[https://github.com/joaotavora/yasnippet][yasnippet]]
 ;; YASnippet is a template system for Emacs.
 (use-package yasnippet
-  :demand t
+  :defer 1  ;; Changed from :demand t - defer after startup (saves 0.16s)
   :diminish yas-minor-mode
   :commands yas-minor-mode-on
   :bind (:map sej-C-q-map
@@ -3520,7 +3522,7 @@ If called with a prefix argument, query for word to search."
 ;; https://www.gnu.org/software/tramp/
 (use-package tramp
   :ensure nil
-  :demand t
+  :defer t  ;; Changed from :demand t - only load when needed (saves 0.49s)
   :custom ((tramp-default-method "ssh") ; or scp
 	   (tramp-terminal-type "dumb")
 	   (tramp-verbose 10)
