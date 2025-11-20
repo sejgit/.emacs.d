@@ -51,6 +51,12 @@
 ;; Suppress specific obsolete warnings during native compilation
 (setq native-comp-compiler-options
       '("-O2" "-Wno-deprecated-declarations"))
+;; Suppress byte-compile warnings for obsolete functions
+(setq byte-compile-warnings '(not obsolete make-local suspicious lexical free-vars))
+;; Suppress warnings about lexical binding
+(setq byte-compile-error-on-warn nil)
+;; Completely silence byte-compile warnings in output
+(setq byte-compile-verbose nil)
 
 ;;;;; frame settings early to prevent clutter
 (modify-all-frames-parameters '((width . 80)

@@ -91,14 +91,19 @@
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
 (require 'warnings)
 ;; remove warnings for cl depreciated and server already running
-(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element))))
-(setq warning-suppress-log-types (quote ((cl) (org-element))))
-(setq byte-compile-warnings '(not obsolete cl-functions))
+(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element) (comp) (bytecomp) (files))))
+(setq warning-suppress-log-types (quote ((cl) (org-element) (comp) (bytecomp) (files))))
+(setq byte-compile-warnings '(not obsolete cl-functions make-local suspicious lexical))
 (setq native-comp-async-report-warnings-errors 'silent)
 ;; Suppress native-comp warnings for obsolete functions
 (setq native-comp-warning-on-missing-source nil)
 (when (boundp 'native-comp-async-report-warnings-errors)
   (setq native-comp-async-report-warnings-errors nil))
+;; Suppress warning display during package loading
+(setq warning-minimum-level :emergency)
+(setq warning-minimum-log-level :error)
+;; Silence byte-compile warnings output
+(setq byte-compile-verbose nil)
 
 ;; Filter obsolete warnings from being displayed
 (defun filter-obsolete-warnings (msg &rest args)
