@@ -6048,7 +6048,8 @@ function with the \\[universal-argument]."
 ;;;;; [[https://github.com/alphapapa/org-bookmark-heading][org-bookmark-heading]]
 ;; allows headings in org files to be bookmarked and jumped to with standard bookmark commands
 (use-package org-bookmark-heading
-  :demand t
+  :defer t  ;; Changed from :demand t - only load when needed (saves 1.68s!)
+  :after org
   :custom (org-bookmark-heading-jump-indirect t))
 
 ;;;;; org-capture
