@@ -107,7 +107,9 @@
 
 ;; Filter obsolete warnings from being displayed
 (defun sej/filter-obsolete-warnings (orig-fun format-string &rest args)
-  "Don't display obsolete/deprecated warnings in *Messages*."
+  "Don't display obsolete/deprecated warnings in *Messages*.
+
+   ORIG-FUN, FORMAT-STRING, ARGS"
   (let ((inhibit-read-only t))  ; Allow writing to *Messages* buffer
     (condition-case nil
         (unless (and (stringp format-string)
@@ -172,10 +174,10 @@
   "Are we running Apple Silicon Mac system?")
 
 ;; specific vars for different systems
-(defvar sej/menu-height -25
+(defvar sej/menu-height -30
   "Menu-height used to calculate frame adjustments.")
 (cond (sys/mac-x86-p
-       (setq sej/menu-height -25)) ;; x86 Intel mac
+       (setq sej/menu-height -32)) ;; x86 Intel mac
       (sys/mac-AA64-p
        (setq sej/menu-height -37)) ;; Apple silicon mac
       (t
@@ -1447,7 +1449,7 @@ The DWIM behaviour of this command is as follows:
 		    (- (truncate (/ (display-pixel-width) 2)) 14)
 		    (- (display-pixel-height)
 		       (- (frame-outer-height)
-			  (frame-inner-height) sej/menu-height))
+			  (frame-inner-height) sej/menu-height) )
 		    1))
 
   (defun sej/frame-resize-l2 ()
