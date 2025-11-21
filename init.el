@@ -3996,6 +3996,17 @@ If called with a prefix argument, query for word to search."
 (setq python-indent-guess-ident-offset-verbose nil
       python-indent-offset 4
       comment-inline-offset 2)
+
+;; Python should use spaces, not tabs (PEP 8)
+(add-hook 'python-mode-hook
+          (lambda ()
+            (setq indent-tabs-mode nil)
+            (setq tab-width 4)))
+(add-hook 'python-ts-mode-hook
+          (lambda ()
+            (setq indent-tabs-mode nil)
+            (setq tab-width 4)))
+
 (cond
  ((executable-find "ipython")
   (setq python-shell-buffer-name "IPython"
