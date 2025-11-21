@@ -108,14 +108,21 @@
 ;; Filter obsolete warnings from being displayed
 (defun sej/filter-obsolete-warnings (orig-fun format-string &rest args)
   "Don't display obsolete/deprecated warnings in *Messages*."
-  (unless (and (stringp format-string)
-               (or (string-match-p "obsolete" format-string)
-                   (string-match-p "deprecated" format-string)
-                   (string-match-p "lexical-binding" format-string)))
-    (apply orig-fun format-string args)))
+  (let ((inhibit-read-only t))  ; Allow writing to *Messages* buffer
+    (condition-case nil
+        (unless (and (stringp format-string)
+                     (or (string-match-p "obsolete" format-string)
+                         (string-match-p "deprecated" format-string)
+                         (string-match-p "lexical-binding" format-string)))
+          (apply orig-fun format-string args))
+      (error nil))))  ; Silently ignore errors
 
 (unless (advice-member-p #'sej/filter-obsolete-warnings 'message)
   (advice-add 'message :around #'sej/filter-obsolete-warnings))
+
+;; Ensure *Messages* buffer is never read-only
+(with-current-buffer (messages-buffer)
+  (setq buffer-read-only nil))
 
 ;; prevent warnings buffer from poping up during package compile
 ;; still available in the buffer list
