@@ -2903,10 +2903,11 @@ If called with a prefix argument, query for word to search."
 ;; https://github.com/rejeep/drag-stuff.el
 (use-package drag-stuff
   :blackout
-  :hook (emacs-startup . drag-stuff-global-mode)
+  :defer 2  ;; Defer to avoid initialization errors
   :bind (("s-<down>" . sej/drag-stuff-down) ; with Karabiner becomes R-command-n
          ("s-<up>" . sej/drag-stuff-up)) ; with Karabiner becomes R-command-p
   :config
+  (drag-stuff-global-mode 1)  ;; Enable after package loads
   (defun sej/drag-stuff-up ()
     "Mod of drag-stuff-up which works in org-mode."
     (interactive)
@@ -4054,7 +4055,9 @@ If called with a prefix argument, query for word to search."
 ;; A GNU Emacs library which uses the direnv tool to determine per-directory/project
 ;; environment variables and then set those environment variables on a per-buffer basis.
 (use-package envrc
-  :hook (after-init . envrc-global-mode))
+  :defer 3  ;; Defer to reduce startup direnv calls - will still activate when editing files
+  :config
+  (envrc-global-mode))
 
 ;;;;; blacken & yapfify
 ;; Format the python buffer following YAPF rules
@@ -6204,9 +6207,9 @@ function with the \\[universal-argument]."
 	      ;;				   (string (char-before cbeg) ?\s))
 	      (put-text-property
 	       colon-end cbeg 'face
-	       (if-let ((faces org-modern-tag-faces)
-			(face (or (cdr (assoc (buffer-substring-no-properties colon-end cbeg) faces))
-				  (cdr (assq t faces)))))
+	       (if-let* ((faces org-modern-tag-faces)
+			 (face (or (cdr (assoc (buffer-substring-no-properties colon-end cbeg) faces))
+				   (cdr (assq t faces)))))
 		   `(:inherit (,face org-modern-tag))
 		 'org-modern-tag)))
 	    (add-text-properties cbeg cend colon-props)
