@@ -106,17 +106,16 @@
 (setq byte-compile-verbose nil)
 
 ;; Filter obsolete warnings from being displayed
-(defun filter-obsolete-warnings (msg &rest args)
-  "Don't display obsolete/deprecated warnings in *Messages* (MSG/ARGS)."
-  (unless (string-match-p "\\(obsolete\\|deprecated\\)" msg)
-    (apply #'message-original msg args)))
+(defun sej/filter-obsolete-warnings (orig-fun format-string &rest args)
+  "Don't display obsolete/deprecated warnings in *Messages*."
+  (unless (and (stringp format-string)
+               (or (string-match-p "obsolete" format-string)
+                   (string-match-p "deprecated" format-string)
+                   (string-match-p "lexical-binding" format-string)))
+    (apply orig-fun format-string args)))
 
-(unless (advice-member-p #'filter-obsolete-warnings 'message)
-  (advice-add 'message :around
-              (lambda (orig-fun format-string &rest args)
-                (unless (and (stringp format-string)
-                             (string-match-p "\\(obsolete\\|deprecated\\)" format-string))
-                  (apply orig-fun format-string args)))))
+(unless (advice-member-p #'sej/filter-obsolete-warnings 'message)
+  (advice-add 'message :around #'sej/filter-obsolete-warnings))
 
 ;; prevent warnings buffer from poping up during package compile
 ;; still available in the buffer list
@@ -5855,7 +5854,7 @@ function with the \\[universal-argument]."
   (org-agenda-date-weekend ((t (:bold nil :foreground "medium aquamarine"))))
   :custom ((org-agenda-block-separator nil)
            (org-agenda-diary-file (concat org-directory "/diary.org"))
-	   (org-agenda-files `(,org-directory ,denote-journal-directory))
+	   ;; Set org-agenda-files in :config after denote-journal-directory is defined
            (org-agenda-dim-blocked-tasks t) ; other option is 'invisible
            (org-agenda-inhibit-startup nil)
            (org-agenda-show-all-dates t)
@@ -5876,6 +5875,10 @@ function with the \\[universal-argument]."
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal)
+
+  ;; Set org-agenda-files after denote-journal-directory is defined
+  (setq org-agenda-files `(,org-directory ,denote-journal-directory))
+
   (defvar sej/org-custom-agenda-orig
     ;; stolen shamelessly from prot w/minor mods <2024-12-28 Sat> [[https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/][link]]
     ;; [[https://orgmode.org/worg/org-tutorials/org-custom-agenda-commands.html][custom agenda commands tutorial (not prot)]]
