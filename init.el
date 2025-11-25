@@ -93,17 +93,12 @@
 ;; remove warnings for cl depreciated and server already running
 (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element) (comp) (bytecomp) (files))))
 (setq warning-suppress-log-types (quote ((cl) (org-element) (comp) (bytecomp) (files))))
-(setq byte-compile-warnings '(not obsolete cl-functions make-local suspicious lexical))
+(setq byte-compile-warnings '(not obsolete cl-functions make-local suspicious lexical free-vars))
 (setq native-comp-async-report-warnings-errors 'silent)
-;; Suppress native-comp warnings for obsolete functions
-(setq native-comp-warning-on-missing-source nil)
-(when (boundp 'native-comp-async-report-warnings-errors)
-  (setq native-comp-async-report-warnings-errors nil))
-;; Suppress warning display during package loading
-(setq warning-minimum-level :emergency)
-(setq warning-minimum-log-level :error)
-;; Silence byte-compile warnings output
-(setq byte-compile-verbose nil)
+;; Make warnings visible, but keep noise down
+;; Show and log warnings (including package load issues), but not lower levels.
+(setq warning-minimum-level :warning)
+(setq warning-minimum-log-level :warning)
 
 ;; Filter obsolete warnings from being displayed
 (defun sej/filter-obsolete-warnings (orig-fun format-string &rest args)
@@ -276,12 +271,37 @@
 ;;;;; ultra-scroll
 ;; [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] is a smooth-scrolling package for emacs, with native support for standard builds as well as emacs-mac
 (use-package ultra-scroll
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - defer until first scroll (ULTRA-SCROLL)
+  :defer t
   :vc (:url "https://github.com/jdtsmith/ultra-scroll")
   :custom ((scroll-conservatively 101) ; important!
 	   (scroll-margin 0))
   :config
   (ultra-scroll-mode 1))
+
+(defun sej/install-iosevka-font ()
+  "Install the Iosevka font using Homebrew Cask on macOS.
+
+This runs \"brew install --cask font-iosevka\" in a subprocess.
+It does not change any other system state."
+  (interactive)
+  (if (not (executable-find "brew"))
+      (user-error "Homebrew (brew) not found in PATH – install Homebrew first")
+    (let ((buf (get-buffer-create "*Iosevka Font Install*")))
+      (with-current-buffer buf
+        (erase-buffer)
+        (insert "Running: brew install --cask font-iosevka\n\n"))
+      (display-buffer buf)
+      (let ((proc (start-process-shell-command
+                   "iosevka-font-install" buf
+                   "brew install --cask font-iosevka")))
+        (set-process-sentinel
+         proc
+         (lambda (p _event)
+           (when (eq (process-status p) 'exit)
+             (if (= (process-exit-status p) 0)
+                 (message "Iosevka font installation finished successfully.")
+               (message "Iosevka font installation failed; see *Iosevka Font Install* buffer for details.")))))))))
 
 ;;;;; OSX System specific environment setting
 (when sys/macp
@@ -290,10 +310,12 @@
   (when sys/mac-AA64-p
     (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
     (setq exec-path (append exec-path '("/opt/homebrew/bin"))))
+  ;; Prefer not to run Homebrew on startup. If Iosevka is missing,
+  ;; just notify the user and point to `sej/install-iosevka-font'.
   (unless (find-font (font-spec :name "Iosevka"))
-    (shell-command-to-string "brew install font-iosevka"))
-  (if (find-font (font-spec :name "Iosevka"))
-      (add-to-list 'default-frame-alist '(font . "iosevka-14")))
+    (message "Iosevka font not found; run M-x sej/install-iosevka-font to install it via Homebrew."))
+  (when (find-font (font-spec :name "Iosevka"))
+    (add-to-list 'default-frame-alist '(font . "iosevka-14")))
 
 ;;;;;; OSX Apple keyboard
   ;; caps lock is control (through karabiner)
@@ -404,7 +426,8 @@
 ;; You can alter how your minor and major modes show up in the mode-line.
 ;; https://github.com/raxod502/blackout
 (use-package blackout
-  :demand t)
+  ;; EXPERIMENTAL: Changed from :demand t - only needed when modes are active (BLACKOUT)
+  :defer t)
 
 ;;;;; Alert
 ;; Alert is a Growl-workalike for Emacs
@@ -527,7 +550,6 @@
   (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
   (next-line-add-newlines t "Add a new line when going to the next line.")
   (load-prefer-newer t)
-  (inhibit-startup-screen t)
 
 ;;;;;; whitespace and end-of-buffer settings
   (indicate-empty-lines t)
@@ -1774,7 +1796,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;;;;; popper
 ;; minor-mode to tame ephemeral windows [[https://github.com/karthink/popper][link]]
 (use-package popper
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - only needed when using popper features (POPPER)
+  :defer t
   :bind (("C-`" . popper-toggle)
          ("C-~" . popper-cycle)
          ("H-`" . popper-toggle-type))
@@ -1963,7 +1986,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; built-in bookmark package
 (use-package bookmark
   :ensure nil
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - only needed when using bookmarks (BOOKMARK)
+  :defer t
   :custom ((bookmark-use-annotations t)
 	   (bookmark-automatically-show-annotations t)
 	   (bookmark-set-fringe-mark t)) ; Emacs28
@@ -2053,14 +2077,16 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; repeat last vertico session C-H-v
   (use-package vertico-repeat
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-REPEAT)
+    :after vertico
     :config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
 ;;;;;; vertico-quick
   ;; quick jump to items in vertico list ala Avy
   (use-package vertico-quick
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-QUICK)
+    :after vertico
     :bind (:map vertico-map
                 ("C-o"   . vertico-quick-exit)
                 ("C-." . vertico-quick-embark))
@@ -2081,7 +2107,8 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; M-V -> vertico-multiform-vertical
   (use-package vertico-multiform
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-MULTIFORM)
+    :after vertico
     :bind (:map vertico-map
                 ("C-i"   . sej/vertico-multiform-toggle-ur)
                 ("<tab>" . vertico-insert))
@@ -2112,7 +2139,7 @@ If FRAME is omitted or nil, use currently selected frame."
   (use-package vertico-directory
     :after vertico
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, :after already defers (VERTICO-DIRECTORY)
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
 		("RET" . vertico-directory-enter)
@@ -2199,23 +2226,27 @@ If FRAME is omitted or nil, use currently selected frame."
 
   (use-package corfu-history
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after corfu (CORFU-HISTORY)
+    :after corfu
     :config
     (add-to-list 'savehist-additional-variables 'corfu-history)
     (corfu-history-mode t))
   (use-package corfu-indexed
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after corfu (CORFU-INDEXED)
+    :after corfu
     :config
     (corfu-indexed-mode t))
   (use-package corfu-popupinfo
     :ensure nil
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after corfu (CORFU-POPUPINFO)
+    :after corfu
     :config
     (corfu-popupinfo-mode t))
   (use-package corfu-terminal
     :unless (display-graphic-p)
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after corfu (CORFU-TERMINAL)
+    :after corfu
     :init
     (corfu-terminal-mode +1)  )
 
@@ -2224,7 +2255,8 @@ If FRAME is omitted or nil, use currently selected frame."
               :rev :newest
               :branch "master")
     :unless (display-graphic-p)
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after corfu (CORFU-DOC-TERMINAL)
+    :after corfu
     :init
     (corfu-doc-terminal-mode +1) ) ) ; end of corfu
 
@@ -2235,7 +2267,8 @@ If FRAME is omitted or nil, use currently selected frame."
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - loads after corfu for completion setup (CAPE)
+  :after corfu
   :bind ("C-H-/" . completion-at-point) ;; capf
   :bind-keymap ("A-/" . cape-prefix-map)
   :hook ((emacs-lisp-mode .  sej/cape-capf-setup-elisp)
@@ -2329,7 +2362,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; provides an orderless completion style that divides the pattern into space-separated components,
 ;; and matches candidates that match all of the components in any order.
 (use-package orderless
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - sets completion-styles, test completion carefully (ORDERLESS)
+  :defer 1
   :custom ((completion-styles '(orderless basic))
 	   (completion-category-overrides '((file (styles basic partial-completion))))))
 
@@ -3431,7 +3465,8 @@ If called with a prefix argument, query for word to search."
 (use-package treesit-auto
   ;; some auto features for tree-sit
   ;; [[https://github.com/renzmann/treesit-auto]]
-  :demand t
+  ;; EXPERIMENTAL: Changed from :demand t - can load when tree-sitter is needed (TREESIT-AUTO)
+  :defer t
   :custom (treesit-auto-install 'prompt)
   :config
   (setq treesit-language-source-alist
@@ -7133,7 +7168,7 @@ This function serves multiple purposes:
           (connected nil))
       (dolist (buffer erc-buffers)
 	(when (and (get-buffer buffer)
-                   (my/erc-buffer-connected-p buffer))
+                   (sej/erc-buffer-connected-p buffer))
           (setq connected t)))
       (if connected
           (erc-track-switch-buffer 1)
@@ -7307,7 +7342,8 @@ defined keys follow the pattern of <PREFIX> <KEY>.")
 
 ;;;;;; Configure Elfeed with org mode
   (use-package elfeed-org
-    :demand t
+    ;; EXPERIMENTAL: Changed from :demand t - only needed when using elfeed (ELFEED-ORG)
+    :after elfeed
     :config
     (elfeed-org)
     :custom
