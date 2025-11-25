@@ -3710,9 +3710,9 @@ If called with a prefix argument, query for word to search."
 (use-package magit
   :bind (("C-x g" . magit-status))
   :custom ((magit-log-section-commit-count 30)
-	   (magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
+	   (magit-revision-show-gravatars nil)
 	   (magit-diff-refine-hunk t)
-	   (magit-repository-directories '(("~/Projects" . 1) ("~/src" . 1)))
+	   (magit-repository-directories nil)
 	   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
 	   (magit-bury-buffer-function #'magit-restore-window-configuration))
   :config
@@ -3728,13 +3728,30 @@ If called with a prefix argument, query for word to search."
         ;; Add gh auth switch to push menu
         (transient-append-suffix 'magit-push
           "p" '("@" "Switch GitHub account" gh-auth-switch))))
-  (setopt magit-format-file-function #'magit-format-file-nerd-icons))
+
+  (defun my/magit-format-file-icons-when-small (file stat status &rest args)
+    "Only draw nerd icons for FILE when STAT reports a small size.
+Falls back to the default formatter for large (likely binary) files."
+    (let ((file-size (and (listp stat) (file-attribute-size stat))))
+      (if (and file-size (<= file-size (* 200 1024)))
+          (apply #'magit-format-file-nerd-icons file stat status args)
+        (apply #'magit-format-file-default file stat status args))))
+
+  (setopt magit-format-file-function #'my/magit-format-file-icons-when-small))
 
 ;;;;; [[https://github.com/dandavison/magit-delta][magit-delta]]
 (use-package magit-delta
   :if sys/macp
   :ensure-system-package (delta . "brew install git-delta")
-  :hook (magit-mode . magit-delta-mode)
+  :preface
+  (defun my/magit-delta-toggle ()
+    "Toggle `magit-delta-mode' in the current Magit buffer."
+    (interactive)
+    (if magit-delta-mode
+        (magit-delta-mode -1)
+      (magit-delta-mode +1)))
+  :bind (:map magit-mode-map
+              ("C-c d" . my/magit-delta-toggle))
   :custom ((magit-delta-default-dark-theme "ansi")
 	   (magit-delta-delta-args `("--max-line-distance" "0.6"
 				     "--true-color" "always"
