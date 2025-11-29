@@ -10,6 +10,7 @@
 /.sandbox/
 .cache/
 .cask/
+.eask/
 .clang_complete
 .dap-*
 .persistent-scratch

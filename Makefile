@@ -1,7 +1,9 @@
 # * makem.sh/Makefile --- Script to aid building and testing Emacs Lisp packages
-
 # URL: https://github.com/alphapapa/makem.sh
 # Version: 0.5
+# sej adds
+
+.PHONY: lint
 
 # * Arguments
 
@@ -12,13 +14,6 @@
 # conflict with Make's own arguments through Make to the script.
 # Using -- doesn't seem to do it.
 
-ifdef install-deps
-	INSTALL_DEPS = "--install-deps"
-endif
-ifdef install-linters
-	INSTALL_LINTERS = "--install-linters"
-endif
-
 ifdef sandbox
 	ifeq ($(sandbox), t)
 		SANDBOX = --sandbox
@@ -27,33 +22,9 @@ ifdef sandbox
 	endif
 endif
 
-ifdef debug
-	DEBUG = "--debug"
-endif
-
-# ** Verbosity
-
-# Since the "-v" in "make -v" gets intercepted by Make itself, we have
-# to use a variable.
-
-verbose = $(v)
-
-ifneq (,$(findstring vvv,$(verbose)))
-	VERBOSE = "-vvv"
-else ifneq (,$(findstring vv,$(verbose)))
-	VERBOSE = "-vv"
-else ifneq (,$(findstring v,$(verbose)))
-	VERBOSE = "-v"
-endif
-
 # * Rules
 
-# TODO: Handle cases in which "test" or "tests" are called and a
-# directory by that name exists, which can confuse Make.
+.DEFAULT: lint
 
-%:
-	@./makem.sh $(DEBUG) $(VERBOSE) $(SANDBOX) $(INSTALL_DEPS) $(INSTALL_LINTERS) $(@)
-
-.DEFAULT: init
-init:
-	@./makem.sh $(DEBUG) $(VERBOSE) $(SANDBOX) $(INSTALL_DEPS) $(INSTALL_LINTERS)
+lint:
+	pre-commit run --all-files
