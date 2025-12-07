@@ -1,4 +1,4 @@
-;;; sf.el --- Insert SF symbols -*- lexical-binding: t; -*-
+;;; sej-sf.el --- Insert SF symbols -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Alvaro Ramirez
 
@@ -5419,4 +5419,5 @@
     "􀣺 apple.logo"
     "􀛢 50.square.fill"))
 
-;;; sf.el ends here
+(provide 'sej-sf)
+;;; sej-sf.el ends here

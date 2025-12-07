@@ -1,4 +1,4 @@
-;;; gh-auth-switch.el --- GitHub account switching for Magit -*- lexical-binding: t; -*-
+;;; sej-gh-auth-switch.el --- GitHub account switching for Magit -*- -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;;; Commentary:
 ;; Provides interactive commands to switch between GitHub accounts
@@ -17,5 +17,5 @@
   (interactive)
   (async-shell-command "gh auth status"))
 
-(provide 'gh-auth-switch)
-;;; gh-auth-switch.el ends here
+(provide 'sej-gh-auth-switch)
+;;; sej-gh-auth-switch.el ends here

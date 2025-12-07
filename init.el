@@ -1,6 +1,6 @@
 ;;; init.el --- SeJ Emacs configurations. -*- lexical-binding: t; no-byte-compile: t; -*-
 
-;; Copyright (C) 2019 Stephen Jenkins
+;; Copyright (C) 2025 Stephen Jenkins
 
 ;; Author: Stephen Jenkins
 ;; URL: https://github.com/sejgit/.emacs.d
@@ -35,87 +35,74 @@
 ;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-imagemagick --with-dbus
 ;; or
 ;; emacs-head@31
-;; brew install emacs-head@31 --with-cocoa --with-crash-debug --with-ctags --with-dbus --with-imagemagick --with-mailutils --with-native-comp --with-native-full-aot --with-tree-sitter --with-mps --with-xwidgets
+;; brew install emacs-head@31 --with-cocoa --with-crash-debug --with-ctags --with-dbus --with-imagemagick
+;; --with-mailutils --with-native-comp --with-native-full-aot --with-tree-sitter --with-mps --with-xwidgets
 ;;
 
 ;;; Code:
 (message "Emacs start")
 
 ;;; initialize environment
-;;;;; debug
-;; only turned on when needed
-(setq debug-on-error nil)
-(setq debug-on-event nil)
-(setq source-directory (expand-file-name "~/src/emacs-dev"))
-(setq find-function-C-source-directory (expand-file-name "~/src/emacs-dev/src"))
 
+;;;; Before package
 
-;;;;; should i even be here
-(defconst emacs/>=30p
-  ( >= emacs-major-version 30 )
-  "Emacs is 30 or above.")
-(when (not emacs/>=30p)
-  (error "This requires Emacs 29 and above")  )
+;; Ask the user whether to terminate asynchronous compilations on exit.
+;; This prevents native compilation from leaving temporary files in /tmp.
+(setq native-comp-async-query-on-exit t)
 
-;;;;; Use-Package set-up
-;; https://github.com/jwiegley/use-package
-;; https://github.com/emacsmirror/diminish
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; https://github.com/jwiegley/use-package#use-package-ensure-system-package
-;; Should set before loading `use-package'
-(setq-default use-package-always-defer t
-              use-package-compute-statistics t
-              use-package-expand-minimally t
-              use-package-enable-imenu-support t)
+;; Allow for shorter responses: "y" for yes and "n" for no.
+(setq read-answer-short t)
+(if (boundp 'use-short-answers)
+	(setq use-short-answers t)
+  (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-(eval-and-compile
-  (defsubst emacs-path (path)
-    (expand-file-name path user-emacs-directory))
+(setq undo-limit (* 13 160000)
+	  undo-strong-limit (* 13 240000)
+	  undo-outer-limit (* 13 24000000))
 
-  (setq package-enable-at-startup nil
-        load-path (append (list (emacs-path "lisp"))
-			  (delete-dups load-path))))
-
-;; part of Emacs built-in as of Emacs29
-(eval-when-compile
-  (require 'use-package))
+;;;; Use-Package set-up
+;; Ensure use-package is available
+(require 'use-package)
 (require 'use-package-ensure)
-(setq use-package-always-ensure t)
 (use-package system-packages)
 (use-package use-package-ensure-system-package
   :ensure nil
   :after use-package)
+
+;;;;; Package manager
+
+(require 'package)
+(package-initialize)
+
+(defun sej/package-install-refresh-contents (&rest args)
+  "With first `package-install' of ARGS, `package-refresh-contents' to ensure list is up to date."
+  (package-refresh-contents)
+  (advice-remove 'package-install 'sej/package-install-refresh-contents))
+
+(advice-add 'package-install :before 'sej/package-install-refresh-contents)
+
+;;;;; exec-path-from-shell
+;; https://github.com/purcell/exec-path-from-shell
+(use-package exec-path-from-shell
+  :defer 1  ;; Changed from :demand t - defer 1s after startup (saves 0.31s)
+  :custom (exec-path-from-shell-arguments nil)
+  :config
+  (exec-path-from-shell-initialize))
+
 
 ;;;;;  Warnings
 ;; set-up server & suppress warnings
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/emacs-lisp/warnings.el
 (require 'warnings)
 ;; remove warnings for cl depreciated and server already running
-(setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element) (comp) (bytecomp) (files))))
-(setq warning-suppress-log-types (quote ((cl) (org-element) (comp) (bytecomp) (files))))
-(setq byte-compile-warnings '(not obsolete cl-functions make-local suspicious lexical free-vars))
-(setq native-comp-async-report-warnings-errors 'silent)
-;; Make warnings visible, but keep noise down
-;; Show and log warnings (including package load issues), but not lower levels.
-(setq warning-minimum-level :warning)
-(setq warning-minimum-log-level :warning)
-
-;; Filter obsolete warnings from being displayed
-(defun sej/filter-obsolete-warnings (orig-fun format-string &rest args)
-  "Don't display obsolete/deprecated warnings in *Messages*.
-
-   ORIG-FUN, FORMAT-STRING, ARGS"
-  (let ((inhibit-read-only t))  ; Allow writing to *Messages* buffer
-    (condition-case nil
-        (unless (and (stringp format-string)
-                     (or (string-match-p "obsolete" format-string)
-                         (string-match-p "deprecated" format-string)
-                         (string-match-p "lexical-binding" format-string)))
-          (apply orig-fun format-string args))
-      (error nil))))  ; Silently ignore errors
-
-(unless (advice-member-p #'sej/filter-obsolete-warnings 'message)
-  (advice-add 'message :around #'sej/filter-obsolete-warnings))
+;; (setq warning-suppress-types (quote ((cl) (server) (iedit) (org-element) (comp) (bytecomp) (files))))
+;; (setq warning-suppress-log-types (quote ((cl) (org-element) (comp) (bytecomp) (files))))
+;; (setq byte-compile-warnings '(not obsolete cl-functions make-local suspicious lexical free-vars))
+;; (setq native-comp-async-report-warnings-errors 'silent)
+;; ;; Make warnings visible, but keep noise down
+;; ;; Show and log warnings (including package load issues), but not lower levels.
+;; (setq warning-minimum-level :warning)
+;; (setq warning-minimum-log-level :warning)
 
 ;; Ensure *Messages* buffer is never read-only
 (with-current-buffer (messages-buffer)
@@ -128,7 +115,7 @@
                (display-buffer-no-window)
                (allow-no-window . t)))
 
-;;;;; during loading clear file-name-handler-alist
+;;;; during loading clear file-name-handler-alist
 ;; avoids loader files polluting the file history list
 (defvar file-name-handler-alist-old file-name-handler-alist)
 
@@ -138,91 +125,29 @@
           #'(lambda ()
               (setq file-name-handler-alist file-name-handler-alist-old)))
 
-;;;;; system custom constants
-;; section for global constants
-(defconst sys/win32p
-  (eq system-type 'windows-nt)
-  "Are we running on a WinTel system?")
+;;;; system custom constants
+(require 'sej-global-constants)
 
-(defconst sys/linuxp
-  (eq system-type 'gnu/linux)
-  "Are we running on a GNU/Linux system?")
+;;;;; OS System specific environmental settins
+;; OSX System specific
+(when sys/macp
+  (require 'sej-os-specific-osx))
 
-(defconst sys/freebsdp
-  (eq system-type 'berkeley-unix)
-  "Are we running on a FreeBSD system?")
+;; Linux System specific
+(when sys/linuxp
+  (require 'sej-os-specific-linux))
 
-(defconst sys/macp
-  (eq system-type 'darwin)
-  "Are we running on a Mac system?")
+;; FreeBSD System specific
+(when sys/freebsdp
+  (require 'sej-os-specific-bsd))
 
-(defconst sys/mac-x-p
-  (and (display-graphic-p) sys/macp)
-  "Are we running on a graphic Mac system?")
+;; Microsoft Windows specific
+(when sys/win32p
+  (require 'sej-os-specific-windows))
 
-(defconst sys/mac-x86-p
-  (and (string= (substring system-configuration 0 6) "x86_64") sys/macp)
-  "Are we running X86 Mac system?")
-
-(defconst sys/mac-AA64-p
-  (and (string= (substring system-configuration 0 7) "aarch64") sys/macp)
-  "Are we running Apple Silicon Mac system?")
-
-;; specific vars for different systems
-(defvar sej/menu-height -30
-  "Menu-height used to calculate frame adjustments.")
-(cond (sys/mac-x86-p
-       (setq sej/menu-height -32)) ;; x86 Intel mac
-      (sys/mac-AA64-p
-       (setq sej/menu-height -37)) ;; Apple silicon mac
-      (t
-       (setq sej/menu-height -30))) ;; default for other
-
-(defconst sys/linux-x-p
-  (and (display-graphic-p) sys/linuxp)
-  "Are we running under X on a GNU/Linux system?")
-
-(defconst sys/freebsd-x-p
-  (and (display-graphic-p) sys/freebsdp)
-  "Are we running under graphic FreeBSD system?")
-
-(defconst sys/cygwinp
-  (eq system-type 'cygwin)
-  "Are we running on a Cygwin system?")
-
-(defconst sys/rootp
-  (string-equal "root" (getenv "USER"))
-  "Are you using ROOT user?")
-
-;;;;; customization variables set
-;; set-up Emacs customizations choices which are then modified by custom.el
-(defgroup sej nil
-  "SeJ Emacs customizations."
-  :group 'convenience)
-
-(defcustom sej-homepage "https://github.com/sejgit/.emacs.d"
-  "The Github page of Emacs Owner."
-  :type 'string)
-
-(defcustom sej-full-name "Stephen Jenkins"
-  "Set user full name."
-  :type 'string)
-
-(defcustom sej-mail-address "random@gmail.com"
-  "Set user email address."
-  :type 'string)
-
-(defcustom sej-dashboard t
-  "If Non-nil, use dashboard at start-up, otherwise will restore previous session."
-  :type 'boolean)
-
-(defcustom sej-org-directory "~/Documents/orgtodo"
-  "Set org directory."
-  :type 'string)
-
-(defcustom sej-latex-directory "/Library/TeX/texbin"
-  "Directory for Latex."
-  :type 'string)
+;;;;; fonts
+;; sej/install-iosvka-font
+(require 'sej-fonts)
 
 ;;;;; Load `custom-file'
 ;; If it doesn't exist, copy from the template, then load it.
@@ -247,187 +172,46 @@
          (expand-file-name "custom-post.el" "~/.ssh/")))
     (load file :noerror-if-file-is-missing) ) )
 
-;;;;; Package manager
-;; add melpa to already encluded elpa
-(require 'package)
-(setq package-check-signature nil)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-(defun sej/package-install-refresh-contents (&rest args)
-  "With first `package-install' of ARGS, `package-refresh-contents' to ensure list is up to date."
-  (package-refresh-contents)
-  (advice-remove 'package-install 'sej/package-install-refresh-contents))
+;;;;; Server set-up
+;; set-up Emacs server
+(use-package emacs
+  :when (or sys/macp sys/linuxp sys/freebsdp)
+  :hook (emacs-startup . sej/server-mode)
+  :init
+  (defun sej/server-mode ()
+	"Start server-mode without errors"
+	(interactive)
+	(with-demoted-errors
+		"%S -- Server exists -- not starting new one."
+	  (load "server")
+	  (unless (server-running-p) (server-start)) ) ) )
 
-(advice-add 'package-install :before 'sej/package-install-refresh-contents)
-
-;;;;; exec-path-from-shell
-;; https://github.com/purcell/exec-path-from-shell
-(use-package exec-path-from-shell
-  :defer 1  ;; Changed from :demand t - defer 1s after startup (saves 0.31s)
-  :custom (exec-path-from-shell-arguments nil)
-  :config
-  (exec-path-from-shell-initialize))
+;;;;; scratch
+;; bury rather than kill, sej/create-scratch-buffer, sej/scratch-save, sej/scratch-restore
+(require 'sej-scratch)
 
 ;;;;; ultra-scroll
 ;; [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] is a smooth-scrolling package for emacs, with native support for standard builds as well as emacs-mac
 (use-package ultra-scroll
-  ;; EXPERIMENTAL: Changed from :demand t - defer until first scroll (ULTRA-SCROLL)
-  :defer t
+  :defer 10
   :vc (:url "https://github.com/jdtsmith/ultra-scroll")
   :custom ((scroll-conservatively 101) ; important!
-	   (scroll-margin 0))
+		   (scroll-margin 0)
+		   (fast-but-imprecise-scrolling t)
+		   (scroll-error-top-bottom t)
+		   (scroll-preserve-screen-position t)
+		   (auto-window-vscroll nil)
+		   (next-screen-context-lines 0)
+		   (hscroll-margin 2)
+		   (hscroll-step 1))
   :config
   (ultra-scroll-mode 1))
 
-(defun sej/install-iosevka-font ()
-  "Install the Iosevka font using Homebrew Cask on macOS.
-
-This runs \"brew install --cask font-iosevka\" in a subprocess.
-It does not change any other system state."
-  (interactive)
-  (if (not (executable-find "brew"))
-      (user-error "Homebrew (brew) not found in PATH – install Homebrew first")
-    (let ((buf (get-buffer-create "*Iosevka Font Install*")))
-      (with-current-buffer buf
-        (erase-buffer)
-        (insert "Running: brew install --cask font-iosevka\n\n"))
-      (display-buffer buf)
-      (let ((proc (start-process-shell-command
-                   "iosevka-font-install" buf
-                   "brew install --cask font-iosevka")))
-        (set-process-sentinel
-         proc
-         (lambda (p _event)
-           (when (eq (process-status p) 'exit)
-             (if (= (process-exit-status p) 0)
-                 (message "Iosevka font installation finished successfully.")
-               (message "Iosevka font installation failed; see *Iosevka Font Install* buffer for details.")))))))))
-
-;;;;; OSX System specific environment setting
-(when sys/macp
-  (message "Mac OSX")
-  ;; fix path on M1 macs
-  (when sys/mac-AA64-p
-    (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
-    (setq exec-path (append exec-path '("/opt/homebrew/bin"))))
-  ;; Prefer not to run Homebrew on startup. If Iosevka is missing,
-  ;; just notify the user and point to `sej/install-iosevka-font'.
-  (unless (find-font (font-spec :name "Iosevka"))
-    (message "Iosevka font not found; run M-x sej/install-iosevka-font to install it via Homebrew."))
-  (when (find-font (font-spec :name "Iosevka"))
-    (add-to-list 'default-frame-alist '(font . "iosevka-14")))
-
-;;;;;; OSX Apple keyboard
-  ;; caps lock is control (through karabiner)
-  ;; Fn key do Hyper
-  ;; LControl key do RControl (Karabiner) which is Super (Emacs)
-  ;; left opt/alt key do Emacs Alt modifier
-  ;; right opt/alt key do regular alt key
-  ;; left and right command(apple) key do Meta
-  ;; space bar acts as super key with other key
-  ;; karabiner.json backup files in dotfiles under .config directory
-  ;; https://github.com/pqrs-org/Karabiner-Elements
-
-  (if (boundp 'mac-carbon-version-string) ;; using mac-port?
-      ( progn
-        (message "Mac-port")
-        ;; for emacs-mac-port
-        (setq mac-right-command-modifier 'left)  ;right command, plus Karabiner
-        (setq mac-right-option-modifier 'meta)   ;right option as meta
-        (setq mac-function-modifier 'hyper)      ;hyper is function & held tab key (Karabiner)
-        (setq mac-control-modifier 'control)     ;Karabiner swapped & caps_lock
-        (setq mac-right-control-modifier 'alt)   ;actually left control
-        (setq mac-option-modifier 'meta)         ;left option is meta
-        (setq mac-command-modifier 'super))      ;left command is super
-    ( progn
-      (message "ns-port")
-      ;; for regular Emacs port
-      (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
-      (setq ns-right-option-modifier 'meta)	 ;right option as meta
-      (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
-      (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
-      (setq ns-right-control-modifier 'alt)    ;actually left control
-      (setq ns-option-modifier 'meta)			 ;left option is meta
-      (setq ns-command-modifier 'super)		 ;left command is super
-
-      ;; old version w/command as meta, control as super, option as Alt
-      ;; (setq ns-right-command-modifier 'left)   ;right command, plus Karabiner
-      ;; (setq ns-right-option-modifier 'none)	 ;Stays as alt key (like å∫ç∂)
-      ;; (setq ns-function-modifier 'hyper)		 ;hyper is function & held tab key (Karabiner)
-      ;; (setq ns-control-modifier 'control)		 ;Karabiner swapped & caps_lock
-      ;; (setq ns-right-control-modifier 'super)  ;actually left control
-      ;; (setq ns-option-modifier 'alt)			 ;left option is A-alt key
-      ;; (setq ns-command-modifier 'meta)		 ;left command is meta
-      ))
-  ;; only needed with old version
-  ;; (global-set-key (kbd "M-`") 'ns-next-frame)
-  ;; (global-set-key (kbd "M-h") 'ns-do-hide-emacs)
-
-  (setq insert-directory-program "gls")
-
-  (if (not (getenv "TERM_PROGRAM"))
-      (setenv "PATH"
-              (shell-command-to-string "source $HOME/.zprofile ; printf $PATH")))
-  (setq exec-path (split-string (getenv "PATH") ":")))
-
-;;;;; Linux System specific environment setting
-(when sys/linuxp
-  (message "Linux")
-;;;;;; Linux keyboard
-  ;; nothing set at this moment
-  ;; load-dir init.d
-  (setq exec-path (append exec-path '("/usr/local/bin")))  )
-
-;;;;; FreeBSD System specific environment setting
-(when sys/freebsdp
-  (message "FreeBSD")
-;;;;;; FreeBSD keyboard
-  ;; - nothing set at this moment
-  ;; load-dir init.d
-  (setq exec-path (append exec-path '("/usr/local/bin")))
-  (setq insert-directory-program "/usr/local/bin/gls"))
-
-;;;;; Microsoft Windows specific environment settings
-;; set execution paths
-(when sys/win32p
-  (message "Microsoft Windows")
-;;;;;; Windows keyboard
-  ;; - CapsLock::LControl through AutoHotkeys
-  ;; scroll lock do hyper (tab to scroll lock using AutoHotkeys)
-  ;; Left control key do super (LControl::Appskey using AutoHotkeys)
-  ;; Left Windows left alone due to win10 taking many keys
-  ;; LAlt::Meta
-  ;; RAlt::Alt modifier (RAlt::NumLock using Autohotkeys) **only works as tap & release
-  ;; Rwin is Alt (not used in current laptop)
-  ;; NOTE: only negative of this set-up is RAlt as numlock -> Alt is awkward push & release
-  ;; https://www.autohotkey.com/
-  (setq w32-pass-lwindow-to-system t
-        w32-recognize-altgr nil
-        W32-enable-caps-lock nil
-        w32-pass-rwindow-to-system nil
-        w32-rwindow-modifier 'meta
-        w32-apps-modifier 'super
-        w32-pass-alt-to-system t
-        w32-alt-is-meta t
-        w32-scroll-lock-modifier 'hyper
-        w32-enable-num-lock nil)
-  (w32-register-hot-key [A-])
-  (define-key function-key-map (kbd "<kp-numlock>") 'event-apply-alt-modifier)
-  (setenv "PATH"
-          (mapconcat
-           #'identity exec-path path-separator))
-
-  ;; set exec-path for latex installation
-  (setq exec-path (append (list sej-latex-directory
-                                "c:/msys64/mingw64/bin"
-                                "/mingw64/bin/") exec-path)))
 ;;;;; Blackout
 ;; Similar to packages like minions, diminish, or delight.
 ;; You can alter how your minor and major modes show up in the mode-line.
 ;; https://github.com/raxod502/blackout
-(use-package blackout
-  ;; EXPERIMENTAL: Changed from :demand t - only needed when modes are active (BLACKOUT)
-  :defer t)
+(use-package blackout)
 
 ;;;;; Alert
 ;; Alert is a Growl-workalike for Emacs
@@ -436,20 +220,6 @@ It does not change any other system state."
 (use-package alert
   :config
   (if sys/macp (setq alert-default-style #'osx-notifier))  )
-
-;;;;; Server set-up
-;; set-up Emacs server
-(use-package emacs
-  :when (or sys/macp sys/linuxp sys/freebsdp)
-  :hook (emacs-startup . sej/server-mode)
-  :init
-  (defun sej/server-mode ()
-    "Start server-mode without errors"
-    (interactive)
-    (with-demoted-errors
-        "%S -- Server exists -- not starting new one."
-      (load "server")
-      (unless (server-running-p) (server-start)) ) ) )
 
 ;;;;; async
 ;; A module for doing asynchronous processing in Emacs
@@ -464,25 +234,25 @@ It does not change any other system state."
 ;; A modern list API for Emacs. No 'cl required.
 ;; https://github.com/magnars/dash.el
 (use-package dash
-  :commands -map -union)
+  :commands (-map -union))
 
 ;;;;; f
 ;; modern API for working with files and directories in Emacs.
 ;; https://github.com/rejeep/f.el
 (use-package f
-  :demand t
-  :commands f-read f-join f-exists-p)
+  :commands (f-read f-join f-exists-p f-expand f-executable?))
 
 ;;;;; s
 ;; The long lost Emacs string manipulation library.
 ;; https://github.com/magnars/s.el
 (use-package s
-  :commands s-split)
+  :commands (s-split s-trim s-concat))
 
 ;;;;; cl-lib
 ;; Forward cl-lib compatibility library for Emacs<24.3
 ;; https://elpa.gnu.org/packages/cl-lib.html
-(require 'cl-lib)
+(use-package cl-lib
+  :commands (cl-loop cl-destructuring-bind cl-incf))
 
 ;;;;; noflet
 ;; noflet is dynamic, local, advice for Emacs-Lisp code.
@@ -503,16 +273,22 @@ It does not change any other system state."
 (use-package no-littering
   :demand t
   :custom ((create-lockfiles nil)
-	   (backup-by-copying t)    ; Don't delink hardlinks
-	   (delete-old-versions t)  ; Clean up the backups
-	   (version-control t)      ; Use version numbers on backups,
-	   (kept-new-versions 5)    ; keep some new versions
-	   (kept-old-versions 2)    ; and some old ones, too
-	   (vc-make-backup-files t)
-	   (backup-by-copying t)
-	   (version-control t)
-	   (auto-save-interval 64)
-	   (auto-save-timeout 2))
+		   (backup-by-copying t)    ; Don't delink hardlinks
+		   (backup-by-copying-when-linked t)
+		   (delete-old-versions t)  ; Clean up the backups
+		   (version-control t)      ; Use version numbers on backups,
+		   (kept-new-versions 5)    ; keep some new versions
+		   (kept-old-versions 2)    ; and some old ones, too
+		   (vc-make-backup-files t)
+		   (auto-save-interval 64)
+		   (auto-save-timeout 2)
+		   (auto-save-no-message t)
+		   (auto-save-default nil)
+		   (auto-save-include-big-deletions t))
+  :init
+  (eval-and-compile ; Ensure values don't differ at compile time.
+	(setq no-littering-etc-directory user-emacs-directory)
+	(setq no-littering-var-directory user-emacs-directory))
   :config
   ;; Put backup files neatly away
   (let ((backup-dir (concat no-littering-var-directory "backups/"))
@@ -550,27 +326,34 @@ It does not change any other system state."
   (echo-keystrokes 0.1 "How quick to display multi-keystrokes.")
   (next-line-add-newlines t "Add a new line when going to the next line.")
   (load-prefer-newer t)
+  (display-line-numbers-width 3 "default nil used in display-line-numbers-mode")
+  (display-line-numbers-widen t "widen numbers in display-line-numbers-mode")
+  (x-underline-at-descent-line t "position underlines at descent line instead of the baseline")
+  (remote-file-name-inhibit-cache 50 "number of seconds to cache file name")
 
 ;;;;;; whitespace and end-of-buffer settings
-  (indicate-empty-lines t)
-  (indicate-buffer-boundaries t)
+  (indicate-empty-lines nil)
+  (indicate-buffer-boundaries nil)
   (show-trailing-whitespace nil)
   (mode-require-final-newline nil)
-  (require-final-newline nil)
+  (require-final-newline t)
 
 ;;;;;; tabs, indentation and the TAB key
-  (tab-always-indent t) ; was 'complete)
-  (tab-first-completion nil) ; was 'word-or-paren-or-punct)
+  (tab-always-indent 'complete)
+  (tab-first-completion 'word-or-paren-or-punct)
   (tab-width 4)
-  (indent-tabs-mode t)
-  (fill-column 78)
+  (indent-tabs-mode nil)
+  (fill-column 80)
   (x-stretch-cursor 1)
+  (read-extended-command-predicate #'command-completion-default-include-p)
 
 ;;;;;; long line settings
-  (truncate-lines 1)
+  (truncate-lines t)
   (font-lock-maximum-decoration t)
-  (truncate-partial-width-windows 1)
+  (truncate-partial-width-windows nil)
   (auto-hscroll-mode 'current-line)
+  (truncate-string-ellipsis "…")
+  (word-wrap t)
 
 ;;;;;; mouse
   (make-pointer-invisible t "Hide mouse while typing.")
@@ -597,6 +380,11 @@ It does not change any other system state."
   (prefer-coding-system 'utf-8) ; with sugar on top
 
   :init
+;;;;;; context-menu-mode
+(when (memq 'context-menu sej-ui-features)
+  (when (and (display-graphic-p) (fboundp 'context-menu-mode))
+	(add-hook 'after-init-hook #'context-menu-mode)))
+
 ;;;;;; global so-long mode
   ;; set-up global so long mode to protect us
   (global-so-long-mode)
@@ -657,11 +445,6 @@ It does not change any other system state."
           (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
-  ;; Do not allow the cursor in the minibuffer prompt
-  (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
   ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
   ;; Vertico commands are hidden in normal buffers.
   (setq read-extended-command-predicate
@@ -692,6 +475,9 @@ It does not change any other system state."
 
 ;;;;;; windows
   (window-divider-mode)
+  (setq ansi-color-for-comint-mode t
+		comint-prompt-read-only t
+		comint-buffer-maximum-size 4096)
 
 ;;;;;; Automatically visit symlink sources
   (setq find-file-visit-truename t)
@@ -832,30 +618,34 @@ It does not change any other system state."
              (auto-fill-mode . ""))
   :ensure nil
   :custom ((blink-matching-paren 'jump-offscreen)
-	   (column-number-mode t)
-	   (delete-trailing-lines t)
-	   (eval-expression-print-length nil)
-	   (eval-expression-print-level nil)
-	   (idle-update-delay 1)
-	   (kill-do-not-save-duplicates t)
-	   (kill-ring-max 300)
-	   (kill-ring-deindent-mode t)
-	   (track-eol t)
-	   (line-move-visual nil)
-	   (line-number-mode t)
-	   (save-interprogram-paste-before-kill t)
-	   (kill-read-only-ok t)
-	   (shift-select-mode nil)
-	   (set-mark-command-repeat-pop t)
-	   (backward-delete-char-untabify-method nil)))
+		   (column-number-mode t)
+		   (delete-trailing-lines t)
+		   (eval-expression-print-length nil)
+		   (eval-expression-print-level nil)
+		   (idle-update-delay 1)
+		   (kill-buffer-delete-auto-save-files t)
+		   (kill-do-not-save-duplicates t)
+		   (kill-ring-max 300)
+		   (kill-ring-deindent-mode t)
+		   (track-eol t)
+		   (line-move-visual nil)
+		   (line-number-mode t)
+		   (save-interprogram-paste-before-kill t)
+		   (kill-read-only-ok t)
+		   (shift-select-mode nil)
+		   (set-mark-command-repeat-pop t)
+		   (backward-delete-char-untabify-method nil)))
 
 ;;;;; minibuffer
 ;; built-in: minibuffer settings
 ;; https://github.com/emacs-mirror/emacs/blob/master/lisp/minibuffer.el
 (use-package minibuffer
-  :demand t
   :ensure nil
-  :custom ((completion-cycle-threshold 7)
+;;  :hook (minibuffer-setup . cursor-intangible-mode)
+  :custom
+  ((minibuffer-prompt-properties '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+   (enable-recursive-minibuffers t)
+   (completion-cycle-threshold 7)
 	   (completion-flex-nospace nil)
 	   (completion-category-defaults nil)
 	   (completion-category-overrides
@@ -879,7 +669,10 @@ It does not change any other system state."
 	   (completion-ignore-case t)
 	   (read-buffer-completion-ignore-case t)
 	   (read-file-name-completion-ignore-case t)
-	   (resize-mini-windows t)))
+	   (resize-mini-windows 'grow-only)
+	   (imenu-auto-rescan t "rescan the buffer for Imenu entries")
+	   (imenu-max-item-length 160 "prevent truncation of long function names")
+	   (next-line-add-newlines nil "disable auto-adding a new line at the bottom when scrolling")))
 
 ;;;;; uniquify
 ;; built-in: to make buffer names unique but identifiable
@@ -927,10 +720,12 @@ It does not change any other system state."
 	   (savehist-save-minibuffer-history t)
 	   (savehist-autosave-interval 300)
 	   (savehist-additional-variables '(mark-ring
-					    global-mark-ring
-					    search-ring
-					    regexp-search-ring
-					    extended-command-history))))
+										kill-ring
+										register-alist
+										global-mark-ring
+										search-ring
+										regexp-search-ring
+										extended-command-history))))
 
 ;;;;; recentf
 ;; built-in: recent file history list settings
@@ -1180,14 +975,19 @@ The DWIM behaviour of this command is as follows:
 (use-package help
   :ensure nil
   :bind (:map help-map
-	      ("=" . describe-char)
-	      ("j" . describe-face)
-	      ("-" . describe-keymap))
+			  ("=" . describe-char)
+			  ("j" . describe-face)
+			  ("-" . describe-keymap))
   :hook
   (help-mode . visual-line-mode)
-  :custom (help-window-select 'always)
+  :custom ((help-window-select 'always)
+		   (help-enable-completion-autoload nil)
+		   (help-enable-autoload nil)
+		   (help-enable-symbol-autoload nil)
+		   (help-window-select t))
   :init
-  (advice-add 'help-window-display-message :override #'ignore))
+  (advice-add 'help-window-display-message :override #'ignore)
+  (setq apropos-do-all t))
 
 ;;;;; which-key
 ;; built-in: minibuffer keybinding prompts
@@ -1198,9 +998,11 @@ The DWIM behaviour of this command is as follows:
   :bind (("C-h h" . which-key-show-top-level)
          ("C-h M-m" . which-key-show-major-mode))
   :commands which-key-mode
-  :custom ((which-key-use-C-h-commands t)
+  :custom
+  ((which-key-use-C-h-commands t)
 	   (which-key-separator " ")
-	   (which-key-prefix-prefix "+")))
+   (which-key-prefix-prefix "+")
+   (which-func-update-delay 1.0)))
 
 ;;;;; helpful
 ;; helpful is an improved help-fns & help-fns+
@@ -1435,7 +1237,8 @@ The DWIM behaviour of this command is as follows:
 	   (window-divider-default-right-width 1)
 	   (frame-title-format "%F--%b-[%f]--%Z")
 	   (icon-title-format frame-title-format)
-	   (undelete-frame-mode t))
+	   (undelete-frame-mode t)
+	   (window-resize-pixelwise nil))
 
   :init
   (unless (display-graphic-p)
@@ -1575,11 +1378,14 @@ If FRAME is omitted or nil, use currently selected frame."
  ("C-c r" . revert-buffer)
  ("s-r" . revert-buffer)
  ("C-x k" . kill-current-buffer)
- ;; ("s-n" . bs-cycle-next) ; buffer cycle next
- ;; ("s-p" . bs-cycle-previous)
- )
+ ("s-]" . bs-cycle-next) ; buffer cycle next
+ ("s-[" . bs-cycle-previous))
 
 (setq-default bs-default-configuration "all-intern-last")
+(setq cutom-buffer-done-kill t)
+(setq redisplay-skip-fontification-on-input t)
+(setq hl-line-sticky-flag nil)
+(setq global-hl-line-sticky-flag nil)
 
 ;;;;; sej/dos2unix
 ;; convert the current buffer to UNIX file format
@@ -1632,96 +1438,6 @@ If FRAME is omitted or nil, use currently selected frame."
   "Remove text properties like read-only in the buffer contents."
   (interactive)
   (let ((inhibit-read-only t)) (set-text-properties (point-min) (point-max) ())))
-
-;;;; scratch buffer
-;;;;; scratch buffer set-up
-;; initial message
-;; bury don't kill scratch
-(setq initial-scratch-message "")
-(defun kill-buffer-around-advice (kill-current-buffer &rest args)
-  "Bury the *scratch* buffer, but never kill it when using KILL-CURRENT-BUFFER ARGS."
-  (let ((buffer-to-kill (buffer-name)))
-    (if (equal buffer-to-kill "*scratch*")
-        (bury-buffer)
-      (apply kill-current-buffer args))))
-(advice-add 'kill-current-buffer :around #'kill-buffer-around-advice)
-
-;;;;; sej/create-scratch-buffer
-;; as name suggests
-;; (defun sej/create-scratch-buffer nil
-;;   "Create a new scratch buffer to work in (could be *scratch* - *scratchX*)."
-;;   (interactive)
-;;   (let ((n 0)
-;;         bufname)
-;;     (while (progn
-;;              (setq bufname (concat "*scratch"
-;;                                    (if (= n 0) "" (int-to-string n))
-;;                                    "*"))
-;;              (setq n (1+ n))
-;;              (get-buffer bufname)))
-;;     (switch-to-buffer (get-buffer-create bufname))
-;;     (emacs-lisp-mode)
-;;     ))
-;; (defalias 'create-scratch-buffer 'sej/create-scratch-buffer)
-;; (bind-key* "C-q C-S" 'sej/create-scratch-buffer)
-;; (bind-key* "C-q C-s" 'scratch-buffer)
-
-;;;;; [[https://github.com/Fanael/persistent-scratch][persistent-scratch]]
-;; keep the scratch buffer from session to session
-;; (use-package persistent-scratch
-;;   :commands persistent-scratch-setup-default
-;;   :hook (emacs-startup . sej/persistent-scratch-setup-default)
-;;   :custom ((persistent-scratch-autosave-interval 30)
-;; 		   (persistent-scratch-backup-directory nil))
-;;   :config
-;;   (defun sej/persistent-scratch-setup-default ()
-;; 	"Set up persistent scratch and make it `trusted-content'."
-;; 	(add-to-list 'trusted-content persistent-scratch-save-file)
-;; 	(persistent-scratch-setup-default))
-;;
-;; 	(persistent-scratch-autosave-mode)
-;;
-;;   (with-demoted-errors "Error: %S"
-;;     (persistent-scratch-setup-default)))
-
-;;;;; [[https://git.sr.ht/~swflint/scratch-plus][scratch-plus]]
-;; better persistent scratch
-;; by mode & by product
-(use-package scratch-plus
-  :hook (after-init . scratch-plus-mode)
-  :bind (:map scratch-plus-mode-map
-	      ("C-q C-s" . scratch-plus-switch)
-	      ("C-q C-H-s" . scratch-plus-switch-project))
-  :custom ((scratch-plus-restore-type 'demand)
-	   (scratch-plus-force-restore 'initial)
-	   (scratch-plus-save-directory (expand-file-name (concat user-emacs-directory "var")))
-	   (scratch-plus-project-subdir "temp")
-	   (scratch-plus-idle-save nil)
-	   (scratch-plus-prevent-kill 'bury)
-	   (scratch-plus-initial-message 'sej/initial-scratch-message)
-	   (scratch-plus-display-action nil))
-  :init
-  (defun sej/initial-scratch-message (majormode)
-    "Take MAJORMODE and return message for scratch-plus initial message."
-    (format "persistent scratch-plus for %s" majormode)))
-
-;;;;; Remember ; persistent notes
-;; using persistent-scratch for lisp & this for notes
-;; also add a register to the remember note document
-(use-package remember
-  :ensure nil
-  :bind (:map global-map
-	      ("H-r" . remember) ; add single note, like capture
-	      ("C-, C-n" . remember-notes) ; go to notes document
-	      ("H-s-r" . remember-notes)) ; go to notes document
-  :custom ((remember-notes-initial-major-mode 'org-mode)
-	   (remember-in-new-frame t))
-  ;; MAYBE TODO remember-data-file "file name" ; could make this the current denote journal monthly file name
-  :init
-  (defun sej/switch-to-remember-buffer (f)
-    (with-selected-frame f
-      (remember-notes t)))
-  (add-hook 'after-make-frame-functions #'sej/switch-to-remember-buffer))
 
 ;;;; windows
 ;;;;; window key-bindings
@@ -1896,7 +1612,7 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; commands: (sf-symbol-insert) & (sf-symbol-insert-name)
 (when (memq system-type '(darwin))
   (set-fontset-font t nil "SF Pro Display" nil 'append)
-  (load "~/.emacs.d/lisp/sf.el"))
+  (require 'sej-sf))
 
 ;;; text manipulation
 ;;;; text manipulation settings
@@ -1907,7 +1623,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :hook (emacs-startup . save-place-mode)
   :custom ((save-place-forget-unreadable-files t)
-	   (save-place-limit nil)))
+		   (save-place-limit 600)
+		   (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))))
 
 ;;;; multi-edit
 ;;;;; multiple cursors
@@ -1958,7 +1675,7 @@ If FRAME is omitted or nil, use currently selected frame."
 	   (isearch-yank-on-move 'shift)
 	   (isearch-allow-scroll 'unlimited)
 	   (isearch-repeat-on-direction-change t)
-	   (lazy-highlight-initial-delay 0.5)
+	   (lazy-highlight-initial-delay 0)
 	   (lazy-highlight-no-delay-length 3)
 	   (search-ring-max 30)
 	   (regexp-search-ring-max 30)
@@ -2002,8 +1719,8 @@ If FRAME is omitted or nil, use currently selected frame."
   :ensure nil
   :hook ((emacs-startup org-mode) . abbrev-mode)
   :custom ((abbrev-file-name             ;; tell emacs where to read abbrev
-	    (concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
-	   (save-abbrevs 'silently))
+			(concat no-littering-var-directory "abbrev_defs") only-global-abbrevs nil)    ;; definitions from...
+		   (save-abbrevs 'silently))
   :config
   (define-abbrev-table
     'org-mode-abbrev-table
@@ -2424,7 +2141,8 @@ If FRAME is omitted or nil, use currently selected frame."
 ;; completing read
 (use-package consult
   :bind (("H-M-," . consult-recent-xref)
-	 ("H-q" . consult-register-load)
+		 ("C-M-." . sej/project-find-regexp)
+		 ("H-q" . consult-register-load)
          ;; C-c bindings (mode-specific-map)
          ("C-c k" . consult-kmacro)
          ("C-c h" . consult-history)
@@ -2434,7 +2152,7 @@ If FRAME is omitted or nil, use currently selected frame."
          ;; C-x bindings (ctl-x-map)
          :map ctl-x-map
          ("C-r" . consult-recent-file)
-	 ("M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+		 ("M-:" . consult-complex-command)     ;; orig. repeat-complex-command
          ("b" . consult-buffer)                    ;; orig. switch-to-buffer
          ("4 C-r" . find-file-read-only-other-window) ;; orig. nil
          ("4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
@@ -2469,8 +2187,8 @@ If FRAME is omitted or nil, use currently selected frame."
          ("k" . consult-keep-lines)
          ("l" . consult-line)
          ("L" . consult-locate)
-	 ("m" . consult-line-multi)            ;; needed by consult-line to detect isearch
-	 ("p" . sej/consult-project-search)
+		 ("m" . consult-line-multi)            ;; needed by consult-line to detect isearch
+		 ("p" . sej/consult-project-search)
          ("r" . consult-ripgrep)
          ("u" . consult-focus-lines)
          ;; isearch integration
@@ -2479,12 +2197,12 @@ If FRAME is omitted or nil, use currently selected frame."
          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
          ("M-s m" . consult-line-multi)            ;; needed by consult-line to detect isearch
-	 ("M-s p" . sej/consult-project-search)
+		 ("M-s p" . sej/consult-project-search)
          :map consult-narrow-map
          ("?" . consult-narrow-help)
          ;; Minibuffer history
          :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-e" . consult-history)                 ;; orig. next-matching-history-element
          ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
   ;; Enable automatic preview at point in the *Completions* buffer.
@@ -2502,6 +2220,15 @@ If FRAME is omitted or nil, use currently selected frame."
   ;; Use Consult to select xref locations with preview `C-M-.'
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
+  
+  (defun sej/project-find-regexp ()
+  "Use `project-find-regexp' with completion."
+  (interactive)
+  (defvar xref-show-xrefs-function)
+  (let ((xref-show-xrefs-function #'consult-xref))
+    (if-let ((tap (thing-at-point 'symbol)))
+        (project-find-regexp tap)
+      (call-interactively #'project-find-regexp))))
 
   ;; Prefer ripgrep, then ugrep, and fall back to regular grep.
   (setq xref-search-program
@@ -3313,6 +3040,7 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :hook (emacs-startup . show-paren-mode)
   :custom ((show-paren-delay 0)
+		   (show-paren-highlight-openparen t)
            (show-paren-style 'parenthesis) ; parenthesis, expression, mixed
            (show-paren-when-point-in-periphery t)
            (show-paren-when-point-inside-paren t)
@@ -3335,16 +3063,16 @@ If called with a prefix argument, query for word to search."
 (use-package indent-bars
   :hook (prog-mode . indent-bars-mode) ; or whichever modes you prefer(use-package indent-bars
   :custom ((indent-bars-prefer-character t)
-	   (indent-bars-treesit-support t)
-	   (indent-bars-treesit-ignore-blank-lines-types '("module"))
-	   ;; Add other languages as needed
-	   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
-						if_statement with_statement while_statement)))
-	   ;; wrap may not be needed if no-descend-list is enough
-	   (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
-					       list list_comprehension
-					       dictionary dictionary_comprehension
-					       parenthesized_expression subscript)))))
+		   (indent-bars-treesit-support t)
+		   (indent-bars-treesit-ignore-blank-lines-types '("module"))
+		   ;; Add other languages as needed
+		   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+										 if_statement with_statement while_statement)))
+		   ;; wrap may not be needed if no-descend-list is enough
+		   (indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+										list list_comprehension
+										dictionary dictionary_comprehension
+										parenthesized_expression subscript)))))
 
 ;;;;; indentation & outline settings
 (bind-keys* ("C-S-n" . outline-next-visible-heading)
@@ -3511,15 +3239,28 @@ If called with a prefix argument, query for word to search."
   :bind (:map eglot-mode-map
               ("C-c r" . eglot-rename)
               ("C-c o" . eglot-code-action-organize-imports)
-	      ("C-c C-." . eglot-code-actions)
+			  ("C-c C-." . eglot-code-actions)
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions)
-	      ("M-^" . eglot-find-implementation))
+			  ("M-^" . eglot-find-implementation))
   :custom ((eglot-autoshutdown t)
-	   (read-process-output-max (* 1024 1024))
-	   (help-at-pt-display-when-idle t)
-	   (completion-category-defaults nil))
+		   (read-process-output-max (* 1024 1024))
+		   (help-at-pt-display-when-idle t)
+		   (completion-category-defaults nil)
+		   (eglot-sync-connect 0)
+		   (eglot-extend-to-xref t))
   :config
+  ;; Eglot optimization
+  (if minimal-emacs-debug
+	  (setq eglot-events-buffer-config '(:size 2000000 :format full))
+	;; This reduces log clutter to improves performance.
+	(setq jsonrpc-event-hook nil)
+	;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
+	(setq eglot-events-buffer-size 0)  ; Deprecated
+	(setq eglot-events-buffer-config '(:size 0 :format short)))
+
+  (setq eglot-report-progress minimal-emacs-debug)  ; Prevent minibuffer spam
+
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
     (interactive)
@@ -3544,19 +3285,19 @@ If called with a prefix argument, query for word to search."
   ;; Emacs set-up [[https://webbureaucrat.gitlab.io/articles/emacs-for-python-and-poetry-using-basedpyright-langserver/][link]]
   ;; brew install basedpyright
   (add-to-list 'eglot-server-programs
-	       '((python-mode python-ts-mode)
-                 "basedpyright-langserver" "--stdio"))
+			   '((python-mode python-ts-mode)
+				 "basedpyright-langserver" "--stdio"))
   (setq-default eglot-workspace-configuration
-		'(:basedpyright (
-				 :typeCheckingMode "standard"
-				 )
-				:basedpyright.analysis (
-							:diagnosticSeverityOverrides (
-										      :reportUnusedCallResult "none"
-										      )
-							:inlayHints (
-								     :callArgumentNames :json-false
-								     ))))
+				'(:basedpyright (
+								 :typeCheckingMode "standard"
+								 )
+								:basedpyright.analysis (
+												:diagnosticSeverityOverrides (
+																	  :reportUnusedCallResult "none"
+																	  )
+												:inlayHints (
+													 :callArgumentNames :json-false
+													 ))))
   (use-package consult-eglot
     :commands consult-eglot-symbols))
 
@@ -3623,11 +3364,11 @@ If called with a prefix argument, query for word to search."
 (use-package newcomment
   :ensure nil
   :bind (("H-;" . comment-box)
-	 ("M-;" . comment-line))
+		 ("M-;" . comment-line))
   :custom ((comment-empty-lines t)
-	   (comment-fill-column 0)
-	   (comment-multi-line t)
-	   (comment-style 'multi-line)))
+		   (comment-fill-column 0)
+		   (comment-multi-line t)
+		   (comment-style 'multi-line)))
 
 ;;;;; ediff
 ;; built-in: A saner diff
@@ -3698,9 +3439,9 @@ If called with a prefix argument, query for word to search."
     (require 'ansi-color)
     (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter nil t))
   :custom ((compilation-message-face 'compilation-base-face)
-	   (compilation-always-kill t)
-	   (compilation-ask-about-save nil)
-	   (compilation-scroll-output 'first-error)) )
+		   (compilation-always-kill t)
+		   (compilation-ask-about-save nil)
+		   (compilation-scroll-output 'first-error)) )
 
 ;;;;; make-mode
 ;; built-in: Major mode for editing standard Makefiles
@@ -3722,14 +3463,14 @@ If called with a prefix argument, query for word to search."
   :bind (("H-[" . flymake-goto-prev-error)
 	 ("H-]" . flymake-goto-next-error)
 	 ("H-\\" . flymake-show-buffer-diagnostics))
-  :custom ((flymake-show-diagnostics-at-end-of-line t)
+  :custom ((flymake-show-diagnostics-at-end-of-line 'short)
 	   (flymake-fringe-indicator-position 'right-fringe)
 	   (flymake-suppress-zero-counters t)
 	   (flymake-start-on-flymake-mode t)
 	   (flymake-no-changes-timeout .5)
 	   (flymake-start-on-save-buffer t)
 	   (flymake-proc-compilation-prevents-syntax-check t)
-	   (flymake-wrap-around t)))
+	   (flymake-wrap-around nil)))
 
 ;;;; vcs
 ;;;;; Project
@@ -3751,7 +3492,8 @@ If called with a prefix argument, query for word to search."
 	   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
 	   (magit-bury-buffer-function #'magit-restore-window-configuration))
   :config
-  (require 'gh-auth-switch)
+  ;; gh-auth-switch, gh-auth-status, (adds P @ in Magit)
+  (require 'sej-gh-auth-switch)
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
@@ -3762,7 +3504,10 @@ If called with a prefix argument, query for word to search."
           "-p" '("-t" "Fetch all tags" ("-t" "--tags")))
         ;; Add gh auth switch to push menu
         (transient-append-suffix 'magit-push
-          "p" '("@" "Switch GitHub account" gh-auth-switch))))
+          "p" '("@" "Switch @ GitHub account" gh-auth-switch))
+		;; Add gh auth status to push menu
+		(transient-append-suffix 'magit-push
+		  "p" '("s" "GitHub account <s>tatus" gh-auth-status))))
 
   (defun my/magit-format-file-icons-when-small (file stat status &rest args)
     "Only draw nerd icons for FILE when STAT reports a small size.
@@ -3773,25 +3518,6 @@ Falls back to the default formatter for large (likely binary) files."
         (apply #'magit-format-file-default file stat status args))))
 
   (setopt magit-format-file-function #'my/magit-format-file-icons-when-small))
-
-;;;;; [[https://github.com/dandavison/magit-delta][magit-delta]]
-(use-package magit-delta
-  :if sys/macp
-  :ensure-system-package (delta . "brew install git-delta")
-  :preface
-  (defun my/magit-delta-toggle ()
-    "Toggle `magit-delta-mode' in the current Magit buffer."
-    (interactive)
-    (if magit-delta-mode
-        (magit-delta-mode -1)
-      (magit-delta-mode +1)))
-  :bind (:map magit-mode-map
-              ("C-c d" . my/magit-delta-toggle))
-  :custom ((magit-delta-default-dark-theme "ansi")
-	   (magit-delta-delta-args `("--max-line-distance" "0.6"
-				     "--true-color" "always"
-				     "--color-only"
-				     ))))
 
 ;;;;; [[https://github.com/aurtzy/disproject][disproject]]
 ;; integration with project.el and allows for dispatching via transient menus
@@ -4507,7 +4233,7 @@ the children of class at point."
   :bind (("<f6>" . sej/open-dashboard)
          :map sej-C-q-map
          ("d" . sej/open-dashboard))
-  :custom ((dashboard-startup-banner (locate-user-emacs-file "emacs.png"))
+  :custom ((dashboard-startup-banner (emacs-path "emacs.png"))
 	   (dashboard-set-init-info t)
 	   (dashboard-projects-backend 'project-el) ; alt option: projectile
 	   (dashboard-items '((recents  . 15)
@@ -4569,8 +4295,9 @@ the children of class at point."
   :hook ((emacs-startup . global-auto-revert-mode)
 	 (dired-mode . auto-revert-mode))
   :custom ((auto-revert-use-notify t)
+		   (auto-revert-stop-on-user-input nil)
            (auto-revert-avoid-polling t)
-           (auto-revert-verbose nil)
+           (auto-revert-verbose t)
            (global-auto-revert-non-file-buffers t)
            (revert-without-query '(".*"))))
 
@@ -4604,17 +4331,23 @@ the children of class at point."
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
               ("C-u D" . sej/dired-do-delete-skip-trash)
-	      ("z" . sej/dired-get-size))
-  :custom ((dired-recursive-deletes 'always) ;; Always delete and copy recursively
-	   (dired-recursive-copies 'always)
-	   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
-	   (dired-dwim-target t)
-	   (dired-auto-revert-buffer #'dired-directory-changed-p)
-	   (dired-free-space nil)
-	   (dired-mouse-drag-files t)
-	   (dired-isearch-filenames 'dwim)
-	   (dired-create-destination-dirs 'ask)
-	   (dired-vc-rename-file t))
+			  ("z" . sej/dired-get-size))
+  :custom ((dired-recursive-deletes 'top) ;; Always delete and copy recursively
+		   (dired-recursive-copies 'always)
+		   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
+		   (dired-dwim-target t)
+		   (dired-auto-revert-buffer #'dired-directory-changed-p)
+		   (auto-revert-remote-files nil)
+		   (dired-free-space nil)
+		   (dired-mouse-drag-files t)
+		   (dired-isearch-filenames 'dwim)
+		   (dired-create-destination-dirs 'ask)
+		   (dired-deletion-confirmer 'y-or-n-p)
+		   (dired-filter-verbose nil)
+		   (dired-clean-confirm-killing-deleted-buffers nil)
+		   (dired-omit-verbose nil)
+		   (dired-omit-files (concat "\\`[.]\\'"))
+		   (dired-vc-rename-file t))
   :config
   (defun sej/dired-do-delete-skip-trash (&optional arg)
     ""Only needed for pre-version 30.1""
@@ -4822,7 +4555,7 @@ the children of class at point."
 	   (denote-templates
 	    `((standard . ,(concat "\n\n" "* "))
 	      (note . ,(concat "\n\n" "- "))
-	      (journal . ,(concat "#+category: journal" "\n\n" "* Notes\n" (org-insert-timestamp nil) "\n ") )))
+	      (journal . ,(concat "#+category: journal" "\n\n" "* Notes\n"  "\n ") )))
 
 	   (denote-date-format nil) ; use default ; read doc string
 
@@ -5404,52 +5137,50 @@ This function should be hooked to `post-command-hook'."
 ;; FIX standard spelling package
 ;; use jinx now but this set-up is here in case I move back
 ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Spelling.html
-;; (use-package flyspell
-;;   :disabled t
-;;
-;;   :blackout t
-;;   :bind (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
-;;           :map ctl-x-x-map
-;;           ("s" . flyspell-mode)
-;;           ("w" . ispell-word))
-;;   :functions
-;;   flyspell-correct-word
-;;   flyspell-goto-next-error
-;;   :ensure-system-package aspell
-;;   :hook
-;;   (prog-mode . flyspell-prog-mode)
-;;   (text-mode . flyspell-mode)
-;;   :config
-;;   (setq flyspell-abbrev-p t
-;;         flyspell-use-global-abbrev-table-p t
-;;         flyspell-issue-message-flag nil
-;;         flyspell-issue-welcome-flag nil)
-;;   (cond
-;;    ((executable-find "aspell")
-;;     (setq-default ispell-program-name "aspell")
-;;     (push "--sug-mode=ultra" ispell-extra-args))
-;;    ((executable-find "enchant-2")
-;;     (setq-default ispell-program-name "enchant-2"))
-;;    ((executable-find "hunspell")
-;;     (progn (setq-default ispell-program-name "hunspell")
-;;            (setq ispell-really-hunspell t)))   )
-;;
-;;   (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
-;;   (define-key flyspell-mouse-map [mouse-3] #'undefined)
-;;
-;;   (setq ispell-personal-dictionary "~/sej.ispell"
-;;         ispell-silently-savep t)
-;;
-;;   (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
-;;   (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-;;   (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
-;;
-;;   (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
-;;                                   ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
-;;                                   ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
-;;
-;;   (setq ispell-dictionary "canadian"))
+(use-package flyspell
+  :blackout t
+  :bind (("s-$" . ispell-word) ; M-$ doesn't work well in osx due to keybindings
+          :map ctl-x-x-map
+          ("s" . flyspell-mode)
+          ("w" . ispell-word))
+  :functions
+  flyspell-correct-word
+  flyspell-goto-next-error
+  :ensure-system-package aspell
+  :hook ((prog-mode . flyspell-prog-mode)
+         (text-mode . flyspell-mode))
+  :custom ((flyspell-abbrev-p t)
+           (flyspell-use-global-abbrev-table-p t)
+           (flyspell-issue-message-flag nil)
+           (flyspell-issue-welcome-flag nil)
+		   (ispell-silently-savep t))
+  :config
+  (cond
+   ((executable-find "aspell")
+    (setq-default ispell-program-name "aspell")
+    (push "--sug-mode=ultra" ispell-extra-args))
+   ((executable-find "enchant-2")
+    (setq-default ispell-program-name "enchant-2"))
+   ((executable-find "hunspell")
+    (progn (setq-default ispell-program-name "hunspell")
+           (setq ispell-really-hunspell t)))   )
+
+  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word) ;;for mac
+  (define-key flyspell-mouse-map [mouse-3] #'undefined)
+
+  (setq ispell-personal-dictionary "~/sej.ispell"
+        ispell-silently-savep t)
+
+  (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_EXAMPLE" . "#\\+END_EXAMPLE"))
+
+  (setq ispell-dictionary-alist '(("british" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_GB-ise") nil utf-8)
+                                  ("canadian" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil  ("-d" "en_CA") nil utf-8)
+                                  ("american" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+
+  (setq ispell-dictionary "canadian"))
 
 ;;;;; jinx
 ;; spell checking using enchanted spell checker
@@ -6661,7 +6392,8 @@ function with the \\[universal-argument]."
   (add-hook 'sh-mode-hook #'sej/sh-prettify-mode-line)
   (add-hook 'sh-mode-hook #'sh-script-extra-font-lock-activate)
   :config
-  (setq-default sh-basic-offset 2))
+  (setq-default sh-basic-offset 2)
+  (setq sh-indent-after-continuation 'always))
 
 ;;;; eshell
 ;;;;; eshell
@@ -7254,7 +6986,6 @@ This function serves multiple purposes:
 	   (eww-suggest-uris
 	    '(eww-links-at-point
 	      thing-at-point-url-at-point))
-	   (eww-bookmarks-directory "~/.emacs.d/eww-bookmarks/")
 	   (eww-history-limit 150)
 	   (eww-use-external-browser-for-content-type
 	    "\\`\\(video/\\|audio/\\|application/pdf\\)")
