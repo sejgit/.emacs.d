@@ -94,9 +94,9 @@ Note that this should end with a directory separator.")
 
 ;; GC when Emacs loses focus (less intrusive)
 (add-function :after after-focus-change-function
-  (lambda ()
-    (unless (frame-focus-state)
-      (garbage-collect))))
+              (lambda ()
+                (unless (frame-focus-state)
+                  (garbage-collect))))
 
 
 ;;;; Native compilation and Byte compilation
@@ -244,9 +244,9 @@ Note that this should end with a directory separator.")
 	(setq-default inhibit-message nil)
 	(setq-default inhibit-redisplay nil)
 	;; Restore the mode-line
-	  (unless (default-toplevel-value 'mode-line-format)
-		(setq-default mode-line-format (get 'mode-line-format
-											'initial-value)))))
+	(unless (default-toplevel-value 'mode-line-format)
+	  (setq-default mode-line-format (get 'mode-line-format
+										  'initial-value)))))
 
 (advice-add 'startup--load-user-init-file :around
 			#'sej--startup-load-user-init-file)

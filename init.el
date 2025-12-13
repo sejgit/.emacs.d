@@ -311,7 +311,7 @@
 ;; Ensure adding the following compile-angel code at the very beginning
 ;; of your `~/.emacs.d/post-init.el` file, before all other packages.
 (use-package compile-angel
-  :defer 5
+  :demand t
   :custom
   ;; Set `compile-angel-verbose` to nil to suppress output from compile-angel.
   ;; Drawback: The minibuffer will not display compile-angel's actions.
@@ -331,6 +331,7 @@
   (push "/post-init.el" compile-angel-excluded-files)
   (push "/pre-early-init.el" compile-angel-excluded-files)
   (push "/post-early-init.el" compile-angel-excluded-files)
+  (push ".*org-element.*" compile-angel-excluded-files)
 
   ;; A local mode that compiles .el files whenever the user saves them.
   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
@@ -4651,6 +4652,7 @@ function with the \\[universal-argument]."
 ;; <2024-10-19 Sat> mods to mix with denote system
 (use-package org
   :ensure nil
+  :commands (org-agenda sej/org-agenda-call consult-org-agenda)
   :mode ("\\.org$" . org-mode)
   :hook ( (org-mode . visual-line-mode)
           ;;(org-mode . org-num-mode) ; TRY remove for now ; TEST for a while
@@ -4852,6 +4854,7 @@ function with the \\[universal-argument]."
 (use-package org-agenda
   :ensure nil
   :after org
+  :commands (org-agenda sej/org-agenda-call consult-org-agenda)
   :preface
   (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
   :bind (("C-c a" . org-agenda)
@@ -4897,7 +4900,7 @@ function with the \\[universal-argument]."
   ;; get denote up and running
   (require 'denote)
   (require 'denote-journal)
-
+  (load-library "org-element.el")
   ;; Set org-agenda-files after denote-journal-directory is defined
   (setq org-agenda-files `(,org-directory ,denote-journal-directory))
 
