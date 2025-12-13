@@ -38,9 +38,8 @@
 
 ;;;; debug
 ;; only turned on when needed
-(setq debug-on-error nil)
-(setq debug-on-event nil)
-
+(setq debug-on-error t)
+(setq debug-on-event t)
 
 ;;;; set dirs & src files location
 
@@ -81,15 +80,23 @@ Note that this should end with a directory separator.")
 (setq gc-cons-threshold most-positive-fixnum)
 (setq gc-cons-percentage 1.0)
 
-(setq garbage-collection-messages t)
+(setq garbage-collection-messages nil)
 
 (defun sej--restore-gc-values ()
   "Restore garbage collection values to stored values."
-  (setq gc-cons-threshold sej--backup-gc-cons-threshold)
-  (setq gc-cons-percentage sej--backup-gc-cons-percentage))
+  ;; Increase from 32MB to 100MB for M1 Mac with 16GB RAM
+  ;; This prevents GC pauses during scrolling large files
+  (setq gc-cons-threshold (* 100 1024 1024))  ; 100MB
+  (setq gc-cons-percentage 0.1))  ; GC when heap grows 10%
 
 (add-hook 'after-init-hook #'garbage-collect t)
 (add-hook 'emacs-startup-hook #'sej--restore-gc-values 105)
+
+;; GC when Emacs loses focus (less intrusive)
+(add-function :after after-focus-change-function
+  (lambda ()
+    (unless (frame-focus-state)
+      (garbage-collect))))
 
 
 ;;;; Native compilation and Byte compilation
@@ -190,7 +197,6 @@ Note that this should end with a directory separator.")
 
 
 ;;;; Performance: Inhibit redisplay
-
 (defun sej--reset-inhibit-redisplay ()
   "Reset inhibit redisplay and force redisplay."
   (setq-default inhibit-redisplay nil)
@@ -206,7 +212,6 @@ Note that this should end with a directory separator.")
 
 
 ;;;; Performance: Inhibit message
-
 (defun sej--reset-inhibit-message ()
   "Reset inhibit message."
   (setq-default inhibit-message nil)
@@ -216,9 +221,6 @@ Note that this should end with a directory separator.")
 		   (not noninteractive))
   (setq-default inhibit-message t)
   (add-hook 'after-init-hook #'sej--reset-inhibit-message))
-
-
-;;;; Performance: Disable mode-line during startup
 
 (when (and (not (daemonp))
 		   (not noninteractive))
