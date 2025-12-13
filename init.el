@@ -278,12 +278,13 @@
 		   (delete-old-versions t)  ; Clean up the backups
 		   (version-control t)      ; Use version numbers on backups,
 		   (kept-new-versions 5)    ; keep some new versions
-		   (kept-old-versions 2)    ; and some old ones, too
+		   (kept-old-versions 5)    ; and some old ones, too
 		   (vc-make-backup-files t)
-		   (auto-save-interval 64)
-		   (auto-save-timeout 2)
+           (make-backup-files t)
+		   (auto-save-default t)
+		   (auto-save-interval 300)
+		   (auto-save-timeout 30)
 		   (auto-save-no-message t)
-		   (auto-save-default nil)
 		   (auto-save-include-big-deletions t))
   :init
   (eval-and-compile ; Ensure values don't differ at compile time.
@@ -301,6 +302,43 @@
                                    auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
           tramp-backup-directory-alist `((".*" . ,backup-dir))
           tramp-auto-save-directory auto-saves-dir)))
+
+;;;;; [[https://github.com/jamescherti/compile-angel.el][compile-angel]]
+;; Native compilation enhances Emacs performance by converting Elisp code into
+;; native machine code, resulting in faster execution and improved
+;; responsiveness.
+;;
+;; Ensure adding the following compile-angel code at the very beginning
+;; of your `~/.emacs.d/post-init.el` file, before all other packages.
+(use-package compile-angel
+  :defer 5
+  :custom
+  ;; Set `compile-angel-verbose` to nil to suppress output from compile-angel.
+  ;; Drawback: The minibuffer will not display compile-angel's actions.
+  (compile-angel-verbose t)
+
+  :config
+  ;; The following directive prevents compile-angel from compiling your init
+  ;; files. If you choose to remove this push to `compile-angel-excluded-files'
+  ;; and compile your pre/post-init files, ensure you understand the
+  ;; implications and thoroughly test your code. For example, if you're using
+  ;; the `use-package' macro, you'll need to explicitly add:
+  ;; (eval-when-compile (require 'use-package))
+  ;; at the top of your init file.
+  (push "/init.el" compile-angel-excluded-files)
+  (push "/early-init.el" compile-angel-excluded-files)
+  (push "/pre-init.el" compile-angel-excluded-files)
+  (push "/post-init.el" compile-angel-excluded-files)
+  (push "/pre-early-init.el" compile-angel-excluded-files)
+  (push "/post-early-init.el" compile-angel-excluded-files)
+
+  ;; A local mode that compiles .el files whenever the user saves them.
+  ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
+
+  ;; A global mode that compiles .el files prior to loading them via `load' or
+  ;; `require'. Additionally, it compiles all packages that were loaded before
+  ;; the mode `compile-angel-on-load-mode' was activated.
+  (compile-angel-on-load-mode 1))
 
 ;;;;; Emacs internal settings
 ;; a use-package friendly place to put settings
@@ -490,20 +528,6 @@
        (interactive)
        ,@body))
 
-;;;;;; pop-to-mark-command
-  ;; When popping the mark, continue popping until the cursor actually moves
-  ;; Also, if the last command was a copy - skip past all the expand-region cruft.
-  (defun ensure-new-position (pop-to-mark-command &rest args)
-    "When popping the mark, continue popping until we move the cursor."
-    (let ((p (point)))
-      (when (eq last-command 'save-region-or-current-line)
-        (apply pop-to-mark-command args)
-        (apply pop-to-mark-command args)
-        (apply pop-to-mark-command args))
-      (dotimes (i 10)
-        (when (= p (point)) (apply pop-to-mark-command args)))))
-  (advice-add 'pop-to-mark-command :around #'ensure-new-position)
-
 ;;;;;; transpose lines/words/sexps/params global
   (unbind-key "M-t") ;; which used to be transpose-words
   (unbind-key "C-q")
@@ -573,7 +597,6 @@
 
 ;;;;; Simple
 ;; built-in: simple settings
-;;
 (use-package simple
   :demand t
   :blackout ((visual-line-mode . "")
@@ -634,7 +657,8 @@
    (resize-mini-windows 'grow-only)
    (imenu-auto-rescan t "rescan the buffer for Imenu entries")
    (imenu-max-item-length 160 "prevent truncation of long function names")
-   (next-line-add-newlines nil "disable auto-adding a new line at the bottom when scrolling")))
+   (next-line-add-newlines nil "disable auto-adding a new line at the bottom when scrolling"))
+  :hook (after-init . minibuffer-depth-indicate-mode))
 
 ;;;;; uniquify
 ;; built-in: to make buffer names unique but identifiable
@@ -890,24 +914,33 @@
   ((which-key-use-C-h-commands t)
    (which-key-separator " ")
    (which-key-prefix-prefix "+")
-   (which-func-update-delay 1.0)))
+   (which-func-update-delay 1.0)
+   (which-key-idle-secondary-delay 0.25)
+   (which-key-add-column-padding 1)
+   (which-key-max-description-length 40)))
 
 ;;;;; [[https://github.com/Wilfred/helpful][helpful]]
-;; helpful is an improved help-fns & help-fns+
+;; Helpful is an alternative to the built-in Emacs help that provides much more
+;; contextual information.
 (use-package helpful
+  :commands (helpful-callable
+             helpful-variable
+             helpful-key
+             helpful-command
+             helpful-at-point
+             helpful-function)
   :bind (("C-h ." . helpful-at-point)
-         ("C-h x" . helpful-command)
-         ("C-h k" . helpful-key) ; C-h k
-         ("C-h v" . helpful-variable) ; C-h v
-         ("C-h f" . helpful-callable) ; C-f v
-         ("C-h F" . helpful-function)
-         ("C-h M" . helpful-macro))  )
+         ("C-h M" . helpful-macro)
+         ([remap describe-command] . helpful-command)
+         ([remap describe-function] . helpful-callable)
+         ([remap describe-key] . helpful-key)
+         ([remap describe-symbol] . helpful-symbol)
+         ([remap describe-variable] . helpful-variable))
+  :custom (helpful-max-buffers 7))
 
 ;;;;; [[https://github.com/kickingvegas?tab=repositories][casual]]
 ;; triansient based jump screens
 (use-package casual-suite
-  ;; Defer loading to speed up startup - was taking 1.15s
-  ;; :demand t
   :defer 2
   :config
   (require 'casual-lib))
@@ -1166,12 +1199,12 @@
  ("s-]" . bs-cycle-next) ; buffer cycle next
  ("s-[" . bs-cycle-previous)
  ("H-0" . delete-window)
-("H-1" . delete-other-windows)
-("H-2" . split-window-vertically)
-("H-3" . split-window-right)
-("C-x K" . sej/quit-other)
-("M-'" . next-multiframe-window) ;; wind move to multifram window
-)
+ ("H-1" . delete-other-windows)
+ ("H-2" . split-window-vertically)
+ ("H-3" . split-window-right)
+ ("C-x K" . sej/quit-other)
+ ("M-'" . next-multiframe-window) ;; wind move to multifram window
+ )
 
 (setq-default bs-default-configuration "all-intern-last")
 (setq cutom-buffer-done-kill t)
@@ -1242,6 +1275,77 @@
                                    "*Buffer List*"
                                    "*Ibuffer*"
                                    "*esh command on file*")))
+
+;;;;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el][saveplace]]
+;; built-in: automatically save place in files so return to same place in next session
+(use-package saveplace
+  :ensure nil
+  :hook (emacs-startup . save-place-mode)
+  :commands (save-place-mode save-place-local-mode)
+  :custom ((save-place-forget-unreadable-files t)
+           (save-place-limit 600)
+           (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))))
+
+;;;;; [[https://github.com/jamescherti/easysession.el][easysession]]
+;; The easysession Emacs package is a session manager for Emacs that can persist
+;; and restore file editing buffers, indirect buffers/clones, Dired buffers,
+;; windows/splits, the built-in tab-bar (including tabs, their buffers, and
+;; windows), and Emacs frames. It offers a convenient and effortless way to
+;; manage Emacs editing sessions and utilizes built-in Emacs functions to
+;; persist and restore frames.
+(use-package easysession
+  :commands (easysession-switch-to
+             easysession-save-as
+             easysession-save-mode
+             easysession-load-including-geometry)
+  :bind (("C-c s l" . easysession-switch-to)
+         ("C-c s s" . easysession-save-as))
+  :init
+  ;; The depth 102 and 103 have been added to to `add-hook' to ensure that the
+  ;; session is loaded after all other packages. (Using 103/102 is particularly
+  ;; useful for those using minimal-emacs.d, where some optimizations restore
+  ;; `file-name-handler-alist` at depth 101 during `emacs-startup-hook`.)
+  ;;(add-hook 'emacs-startup-hook #'easysession-save-mode 103)
+  ;;(add-hook 'emacs-startup-hook #'easysession-load-including-geometry 102)
+  :custom ((easysession-mode-line-misc-info t)  ; Display the session in the modeline
+           (easysession-save-interval (* 10 60)) ; Save every 10 minutes
+           (easysession-switch-to-save-session nil)) ; do not save session on switch
+  :config
+  (add-to-list 'savehist-additional-variables 'easysession--current-session-name)
+  
+  (defun my-easysession-visible-buffer-list ()
+    "Return a list of all buffers considered visible in the current session.
+
+A buffer is included if it satisfies any of the following:
+- It is currently displayed in a visible window.
+- It is associated with a visible tab in `tab-bar-mode', if enabled.
+- It is the *scratch* buffer (included as a special case).
+
+The returned list contains live buffers only."
+    (let ((visible-buffers '()))
+      (dolist (buffer (buffer-list))
+        (when (and (buffer-live-p buffer)
+                   (or ;; Exception: The scratch buffer
+                    (string= (buffer-name buffer) "*scratch*")
+                    ;; Windows
+                    (get-buffer-window buffer 'visible)
+                    ;; Tab-bar windows
+                    (and (bound-and-true-p tab-bar-mode)
+                         (fboundp 'tab-bar-get-buffer-tab)
+                         (tab-bar-get-buffer-tab buffer t nil))))
+          (push buffer visible-buffers)))
+      visible-buffers))
+
+  (setq easysession-buffer-list-function #'my-easysession-visible-buffer-list)
+
+  (defun my-empty-easysession ()
+    "Set up a minimal environment when easysession creates a new session."
+    (when (and (boundp 'tab-bar-mode) tab-bar-mode)
+      (tab-bar-close-other-tabs))
+    (delete-other-windows)
+    (scratch-buffer))
+
+  (add-hook 'easysession-new-session-hook #'my-empty-easysession))
 
 ;;;;; [[https://github.com/karthink/popper][popper]]
 ;; minor-mode to tame ephemeral windows
@@ -1332,15 +1436,6 @@
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;;; text manipulation
-;;;; text manipulation settings
-;;;;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/saveplace.el][saveplace]]
-;; built-in: automatically save place in files so return to same place in next session
-(use-package saveplace
-  :ensure nil
-  :hook (emacs-startup . save-place-mode)
-  :custom ((save-place-forget-unreadable-files t)
-		   (save-place-limit 600)
-		   (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))))
 
 ;;;; multi-edit
 ;;;;; [[https://github.com/magnars/multiple-cursors.el][multiple cursors]]
@@ -1498,93 +1593,94 @@
 
 	       ;; Hide commands in M-x which do not work in the current mode. Vertico
 	       ;; commands are hidden in normal buffers.
-	       (read-extended-command-predicate #'command-completion-default-include-p))
-  :config
+	       (read-extended-command-predicate #'command-completion-default-include-p)))
 
 ;;;;;; vertico-repeat
-  ;; repeat last vertico session C-H-v
-  (use-package vertico-repeat
-    :ensure nil
-    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-REPEAT)
-    :after vertico
-    :config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
+;; repeat last vertico session C-H-v
+(use-package vertico-repeat
+  :ensure nil
+  :after vertico
+  :config (add-to-list 'savehist-additional-variables 'vertico-repeat-history))
 
 ;;;;;; vertico-quick
-  ;; quick jump to items in vertico list ala Avy
-  (use-package vertico-quick
-    :ensure nil
-    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-QUICK)
-    :after vertico
-    :bind (:map vertico-map
-                ("C-o"   . vertico-quick-exit)
-                ("C-." . vertico-quick-embark))
-    :preface
-    (defun vertico-quick-embark (&optional arg)
-      "Embark on candidate using quick keys."
-      (interactive)
-      (when (vertico-quick-jump)
-        (embark-act arg))))
+;; quick jump to items in vertico list ala Avy
+(use-package vertico-quick
+  :ensure nil
+  :after vertico
+  :bind (:map vertico-map
+              ("C-o"   . vertico-quick-exit)
+              ("C-." . vertico-quick-embark))
+  :preface
+  (defun vertico-quick-embark (&optional arg)
+    "Embark on candidate using quick keys."
+    (interactive)
+    (when (vertico-quick-jump)
+      (embark-act arg))))
 
 ;;;;;; vertico-multiform
-  ;; vertico forms, with below active to temporarily change them C-i sticky
-  ;; M-B -> vertico-multiform-buffer
-  ;; M-F -> vertico-multiform-flat
-  ;; M-G -> vertico-multiform-grid
-  ;; M-R -> vertico-multiform-reverse
-  ;; M-U -> vertico-multiform-unobtrusive
-  ;; M-V -> vertico-multiform-vertical
-  (use-package vertico-multiform
-    :ensure nil
-    ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-MULTIFORM)
-    :after vertico
-    :bind (:map vertico-map
-                ("C-i"   . sej/vertico-multiform-toggle-ur)
-                ("<tab>" . vertico-insert))
-    :custom ((vertico-multiform-commands
-	          '((consult-imenu buffer)
-		        (consult-line buffer)
-		        (consult-grep buffer)
-		        (consult-git-grep buffer)
-		        (consult-ripgrep buffer)
-		        (consult-yank-pop)
-		        (embark-bindings buffer)
-		        (xref-find-references buffer)))
-	         (vertico-multiform-categories '((t reverse ))))
-    :config
-    (defun sej/vertico-multiform-toggle-ur ()
-      "Toggle sticky setting between reverse and unobtrusive."
-      (interactive)
-      (if (equal vertico-multiform-categories '((t unobtrusive)))
-	      (progn (setq vertico-multiform-categories '((t reverse)))
-		         (vertico-multiform-reverse))
-	    (progn (setq vertico-multiform-categories '((t unobtrusive)))
-	           (vertico-multiform-unobtrusive))))
+;; vertico forms, with below active to temporarily change them C-i sticky
+;; M-B -> vertico-multiform-buffer
+;; M-F -> vertico-multiform-flat
+;; M-G -> vertico-multiform-grid
+;; M-R -> vertico-multiform-reverse
+;; M-U -> vertico-multiform-unobtrusive
+;; M-V -> vertico-multiform-vertical
+(use-package vertico-multiform
+  :ensure nil
+  ;; EXPERIMENTAL: Changed from :demand t - extension, loads after vertico (VERTICO-MULTIFORM)
+  :after vertico
+  :bind (:map vertico-map
+              ("C-i"   . sej/vertico-multiform-toggle-ur)
+              ("<tab>" . vertico-insert))
+  :custom ((vertico-multiform-commands
+	        '((consult-imenu buffer)
+		      (consult-line buffer)
+		      (consult-grep buffer)
+		      (consult-git-grep buffer)
+		      (consult-ripgrep buffer)
+		      (consult-yank-pop)
+		      (embark-bindings buffer)
+		      (xref-find-references buffer)))
+	       (vertico-multiform-categories '((t reverse ))))
+  :config
+  (defun sej/vertico-multiform-toggle-ur ()
+    "Toggle sticky setting between reverse and unobtrusive."
+    (interactive)
+    (if (equal vertico-multiform-categories '((t unobtrusive)))
+	    (progn (setq vertico-multiform-categories '((t reverse)))
+		       (vertico-multiform-reverse))
+	  (progn (setq vertico-multiform-categories '((t unobtrusive)))
+	         (vertico-multiform-unobtrusive))))
 
-    (vertico-multiform-mode 1))
+  (vertico-multiform-mode 1))
 
 ;;;;;; vertico-directory
-  ;; Configure directory extension.
-  (use-package vertico-directory
-    :after vertico
-    :ensure nil
-    ;; EXPERIMENTAL: Changed from :demand t - extension, :after already defers (VERTICO-DIRECTORY)
-    ;; More convenient directory navigation commands
-    :bind (:map vertico-map
-		        ("RET" . vertico-directory-enter)
-		        ("DEL" . vertico-directory-delete-char)
-		        ("M-DEL" . vertico-directory-delete-word))
-    ;; Tidy shadowed file names
-    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))  ;; end of vertico
+;; Configure directory extension.
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  ;; EXPERIMENTAL: Changed from :demand t - extension, :after already defers (VERTICO-DIRECTORY)
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+		      ("RET" . vertico-directory-enter)
+		      ("DEL" . vertico-directory-delete-char)
+		      ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 ;;;;; [[https://github.com/minad/corfu][corfu]]
 ;; small completion program similar to company
 (use-package corfu
+  :commands (corfu-mode global-corfu-mode)
+  :hook ((prog-mode . corfu-mode)
+         (shell-mode . corfu-mode)
+         (eshell-mode . corfu-mode)
+         (eat-mode . corfu-mode))
   :bind (:map corfu-map
               ("A-<return>" . corfu-complete)
               ("<escape>". corfu-quit)
               ("M-d" . corfu-show-documentation)
               ("M-l" . 'corfu-show-location))
-  :hook (emacs-startup . global-corfu-mode)
 
   ;; Optional customizations
   :custom ((corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
@@ -1606,23 +1702,19 @@
 	       (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
 	       (corfu-preselect-first t))        ; Preselect first candidate?
 
-  ;; Enable Corfu only for certain modes.
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (shell-mode . corfu-mode)
-  ;;        (eshell-mode . corfu-mode))
-
+  :config
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
+  (global-corfu-mode)
 
-  :config
-  ;; (setq global-corfu-modes '((not markdown-mode) t))
+  (setq global-corfu-modes '((not markdown-mode) t))
   ;; TAB cycle if there are only few candidates
-  ;; (setq completion-cycle-threshold 3)
+  (setq completion-cycle-threshold 3)
 
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
-  ;; (setq tab-always-indent 'complete)
+  (setq tab-always-indent 'complete)
 
   ;; Free the RET key for less intrusive behavior.
   ;; Option 1: Unbind RET completely
@@ -1690,10 +1782,10 @@
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  ;; EXPERIMENTAL: Changed from :demand t - loads after corfu for completion setup (CAPE)
   :after corfu
-  :bind ("C-H-/" . completion-at-point) ;; capf
-  :bind-keymap ("A-/" . cape-prefix-map)
+  :commands (cape-dabbrev cape-file cape-elisp-block)
+  :bind (("C-H-/" . completion-at-point)
+         ("C-c p" . cape-prefix-map))
   :hook ((emacs-lisp-mode .  sej/cape-capf-setup-elisp)
          (org-mode . sej/cape-capf-setup-org)
          (eshell-mode . sej/cape-capf-setup-eshell)
@@ -1703,7 +1795,8 @@
   (sej/add-all-to-list 'completion-at-point-functions
 		               #'cape-dabbrev
 		               #'cape-file
-		               #'cape-abbrev)
+		               #'cape-abbrev
+                       #'cape-elisp-block)
 
   ;; #'cape-history
   ;; #'cape-keyword
@@ -1735,20 +1828,20 @@
 ;;;;; [[https://github.com/minad/marginalia][marginalia]]
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
+  :commands (marginalia-mode marginalia-cycle)
   :hook (emacs-startup . marginalia-mode)
   :bind (:map completion-list-mode-map
               ("M-A" . marginalia-cycle)
               :map minibuffer-local-map
-              ("M-A" . marginalia-cycle))
-  :init (marginalia-mode))
+              ("M-A" . marginalia-cycle)))
 
 ;;;;; [[https://github.com/oantolin/orderless][orderless]]
 ;; provides an orderless completion style that divides the pattern into space-separated components,
 ;; and matches candidates that match all of the components in any order.
 (use-package orderless
-  ;; EXPERIMENTAL: Changed from :demand t - sets completion-styles, test completion carefully (ORDERLESS)
   :defer 1
   :custom ((completion-styles '(orderless basic))
+           (completion-category-defaults nil)
 	       (completion-category-overrides '((file (styles basic partial-completion))))))
 
 ;;;;; [[https://github.com/radian-software/prescient.el][prescient]]
@@ -1768,6 +1861,12 @@
 ;;;;; [[https://github.com/oantolin/embark/][embark]]
 ;; acting on targets
 (use-package embark
+  :commands (embark-act
+             embark-dwim
+             embark-export
+             embark-collect
+             embark-bindings
+             embark-prefix-help-command)
   :bind  (("C-." . embark-act)        ;; pick some comfortable binding
           ("C-'" . embark-dwim)        ;; good alternative: M-.
           ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
@@ -1792,14 +1891,6 @@
                  (window-parameters (mode-line-format . none)))))
 
 ;;;;; [[https://github.com/oantolin/embark/blob/master/embark-consult.el][embark-consult]]
-;; embark-consult provides integration between Embark and Consult. The package will be loaded automatically by Embark.
-;;
-;; Some of the functionality here was previously contained in Embark itself:
-;;
-;; Support for consult-buffer, so that you get the correct actions for each type of entry in consult-buffer’s list.
-;; Support for consult-line, consult-outline, consult-mark and  consult-global-mark, so that the insert and save actions
-;; don’t include a weird unicode character at the start of the line, and so you can export from them to an occur buffer
-;; (where occur-edit-mode works!).
 (use-package embark-consult
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
@@ -2310,12 +2401,6 @@ If called with a prefix argument, query for word to search."
 			                 (?t string-to-char-backward "")
 			                 (?T string-up-to-char-backward ""))))
 
-;;;;; [[https://github.com/typester/emacs/blob/master/lisp/delsel.el][delsel]]
-;; built-in: Do not delete selection if you insert
-(use-package delsel
-  :ensure nil
-  :hook (emacs-startup . delete-selection-mode))
-
 ;;;;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/rect.el][rect]]
 ;; built-in: Rectangle
 (use-package rect
@@ -2649,7 +2734,8 @@ If called with a prefix argument, query for word to search."
 ;; built-in: electric indent mode
 (use-package electric
   :ensure nil
-  :hook ('prog-mode . electric-indent-mode)
+  :hook ((prog-mode . electric-indent-mode)
+         (prog-mode . electric-pair-mode))
   :custom ((electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
            (electirc-pair-preserve-balance t)
            (electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187)))
@@ -2699,10 +2785,45 @@ If called with a prefix argument, query for word to search."
   :blackout)
 
 ;;;;; outline settings
-(bind-keys* ("C-S-n" . outline-next-visible-heading)
-            ("C-S-p" . outline-previous-visible-heading)
-            ("C-n" . next-line)
-            ("C-P" . previous-line))
+;; The built-in outline-minor-mode provides structured code folding in modes
+;; such as Emacs Lisp and Python, allowing users to collapse and expand sections
+;; based on headings or indentation levels. This feature enhances navigation and
+;; improves the management of large files with hierarchical structures.
+(use-package outline
+  :ensure nil
+  :commands outline-minor-mode
+  :bind (("C-S-n" . outline-next-visible-heading)
+         ("C-S-p" . outline-previous-visible-heading)
+         ("C-n" . next-line)
+         ("C-P" . previous-line))
+  :hook  ((emacs-lisp-mode . outline-minor-mode)
+          ;; Use " ▼" instead of the default ellipsis "..." for folded text to make
+          ;; folds more visually distinctive and readable.
+          (outline-minor-mode
+           .
+           (lambda()
+             (let* ((display-table (or buffer-display-table (make-display-table)))
+                    (face-offset (* (face-id 'shadow) (ash 1 22)))
+                    (value (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▼"))))
+               (set-display-table-slot display-table 'selective-display value)
+               (setq buffer-display-table display-table))))))
+
+;; The outline-indent Emacs package provides a minor mode that enables code
+;; folding based on indentation levels.
+;;
+;; In addition to code folding, *outline-indent* allows:
+;; - Moving indented blocks up and down
+;; - Indenting/unindenting to adjust indentation levels
+;; - Inserting a new line with the same indentation level as the current line
+;; - Move backward/forward to the indentation level of the current line
+;; - and other features.
+(use-package outline-indent
+  :commands outline-indent-minor-mode
+  :hook ((python-mode-hook . outline-indent-minor-mode)
+         (python-ts-mode-hook . outline-indent-minor-mode)
+         (yaml-mode-hook . outline-indent-minor-mode)
+         (yaml-ts-mode-hook . outline-indent-minor-mode))
+  :custom (outline-indent-ellipsis " ▼") )
 
 ;;;; paren management
 ;;;;; [[https://www.emacswiki.org/emacs/ShowParenMode][paren]]
@@ -2843,6 +2964,9 @@ If called with a prefix argument, query for word to search."
   ;;(treesit-install-language-grammar 'markdown)
   ;;(treesit-install-language-grammar 'markdown-inline)
 
+  ;; Set the maximum level of syntax highlighting for Tree-sitter modes
+  (setq treesit-font-lock-level 4)
+  
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -2954,7 +3078,7 @@ If called with a prefix argument, query for word to search."
            ;; 		   (remote-file-name-inhibit-cache nil)
            ;; 		   (remote-file-name-inhibit-locks t)
 	       (tramp-use-scp-direct-remote-copying t)
-           ;; 		   (remote-file-name-inhibit-auto-save-visited t)
+           (remote-file-name-inhibit-auto-save-visited t)
 	       (tramp-copy-size-limit (* 1024 1024))
            ;; 		   (connection-local-set-profile-variables 'remote-direct-async-process
            ;; 												   '((tramp-direct-async-process . t)))
@@ -3285,6 +3409,16 @@ Falls back to the default formatter for large (likely binary) files."
              elisp-slime-nav-find-elisp-thing-at-point)
   :hook ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
+;;;;; [[https://github.com/Wilfred/elisp-refs][elisp-refs]]
+;; Provides functions to find references to functions, macros, variables,
+;; special forms, and symbols in Emacs Lisp
+(use-package elisp-refs
+  :commands (elisp-refs-function
+             elisp-refs-macro
+             elisp-refs-variable
+             elisp-refs-special
+             elisp-refs-symbol))
+
 ;;;;; [[https://github.com/xiongtx/eros][eros]]
 ;; eros-mode will show you the result of evaluating an elisp command
 ;; as an overlay in your elisp buffer. Try it out with C-x C-e or s-<return>
@@ -3398,14 +3532,14 @@ Falls back to the default formatter for large (likely binary) files."
   :config
   (envrc-global-mode))
 
-;;;;; blacken & yapfify
-;; Format the python buffer following YAPF rules
-;; There's also blacken if you like it better.
-(cond
- ((executable-find "black")
-  (use-package blacken  ))
- ((executable-find "yapf")
-  (use-package yapfify  )))
+;;;;; [[https://github.com/radian-software/apheleia][apheleia]]
+;; Apheleia is an Emacs package designed to run code formatters (e.g., Shfmt,
+;; Black and Prettier) asynchronously without disrupting the cursor position.
+(use-package apheleia
+  :ensure t
+  :commands (apheleia-mode
+             apheleia-global-mode)
+  :hook ((prog-mode . apheleia-mode)))
 
 ;;;;; [[https://github.com/donkirkby/live-py-plugin][live-py-mode]]
 ;; Live Coding in Python
@@ -4124,7 +4258,7 @@ the children of class at point."
 
   ;; update 1st time in config
   (sej/denote-keywords-update))
-          
+
 ;;;;; [[https://github.com/protesilaos/denote-journal][denote-journal]]
 (use-package denote-journal
   :commands ( denote-journal-new-entry

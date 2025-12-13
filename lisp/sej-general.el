@@ -103,6 +103,20 @@ If the region is active and option `transient-mark-mode' is on, call
                   (delete-file (concat buffer-file-name "c"))))))
 
 
+;;;;; pop-to-mark-command
+;; When popping the mark, continue popping until the cursor actually moves
+;; Also, if the last command was a copy - skip past all the expand-region cruft.
+(defun ensure-new-position (pop-to-mark-command &rest args)
+  "When popping the mark, continue popping until we move the cursor."
+  (let ((p (point)))
+    (when (eq last-command 'save-region-or-current-line)
+      (apply pop-to-mark-command args)
+      (apply pop-to-mark-command args)
+      (apply pop-to-mark-command args))
+    (dotimes (i 10)
+      (when (= p (point)) (apply pop-to-mark-command args)))))
+(advice-add 'pop-to-mark-command :around #'ensure-new-position)
+
 
 ;; Local variables:
 ;; byte-compile-warnings: (not obsolete free-vars)
