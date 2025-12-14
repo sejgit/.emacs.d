@@ -34,7 +34,7 @@ To be used as `:override' advice to `eshell/cat'."
         (unless existing-buffer
           (kill-buffer buffer)))))
 
-  
+
   ;; Turn ls results into clickable links.  Especially useful when
   ;; combined with link-hint.  Modified from
   ;; https://www.emacswiki.org/emacs/EshellEnhancedLS

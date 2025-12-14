@@ -366,5 +366,3 @@ This variable holds a list of Emacs UI features that can be enabled:
 (message "early-init -- done")
 (provide 'early-init)
 ;;; early-init.el ends here
-
-

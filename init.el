@@ -1313,7 +1313,7 @@
            (easysession-switch-to-save-session nil)) ; do not save session on switch
   :config
   (add-to-list 'savehist-additional-variables 'easysession--current-session-name)
-  
+
   (defun my-easysession-visible-buffer-list ()
     "Return a list of all buffers considered visible in the current session.
 
@@ -2967,7 +2967,7 @@ If called with a prefix argument, query for word to search."
 
   ;; Set the maximum level of syntax highlighting for Tree-sitter modes
   (setq treesit-font-lock-level 4)
-  
+
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
