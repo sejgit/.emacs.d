@@ -2948,7 +2948,10 @@ If called with a prefix argument, query for word to search."
 ;; Important this is using the built-in Emacs version tree-sit.el
 ;; `M-x combobulate' (default: `C-c o o') to start using Combobulate
 (use-package treesit
-  :ensure nil)
+  :ensure nil
+  :config
+  (add-to-list 'treesit-extra-load-path (emacs-path "tree-sitter/"))
+  (add-to-list 'treesit-extra-load-path (emacs-path "var/tree-sitter/")))
 
 (use-package treesit-auto
   ;; some auto features for tree-sit
@@ -2962,8 +2965,6 @@ If called with a prefix argument, query for word to search."
 		               "split_parser" "tree-sitter-markdown/src"))
 	      (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown"
 			                  "split_parser" "tree-sitter-markdown-inline/src"))))
-  ;;(treesit-install-language-grammar 'markdown)
-  ;;(treesit-install-language-grammar 'markdown-inline)
 
   ;; Set the maximum level of syntax highlighting for Tree-sitter modes
   (setq treesit-font-lock-level 4)
