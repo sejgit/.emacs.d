@@ -331,7 +331,8 @@
   (push "/post-init.el" compile-angel-excluded-files)
   (push "/pre-early-init.el" compile-angel-excluded-files)
   (push "/post-early-init.el" compile-angel-excluded-files)
-  (push ".*org-element.*" compile-angel-excluded-files)
+  (push "\\.*org-element\\.*" compile-angel-excluded-files-regexps)
+  (push "/var/.*\\.el" compile-angel-excluded-files-regexps)
 
   ;; A local mode that compiles .el files whenever the user saves them.
   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
@@ -1985,7 +1986,7 @@ The returned list contains live buffers only."
     (interactive)
     (defvar xref-show-xrefs-function)
     (let ((xref-show-xrefs-function #'consult-xref))
-      (if-let ((tap (thing-at-point 'symbol)))
+      (if-let* ((tap (thing-at-point 'symbol)))
           (project-find-regexp tap)
         (call-interactively #'project-find-regexp))))
 
