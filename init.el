@@ -3013,15 +3013,13 @@ If called with a prefix argument, query for word to search."
 		   (eglot-extend-to-xref t))
   :config
   ;; Eglot optimization
-  (if minimal-emacs-debug
-	  (setq eglot-events-buffer-config '(:size 2000000 :format full))
-	;; This reduces log clutter to improves performance.
-	(setq jsonrpc-event-hook nil)
-	;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
-	(setq eglot-events-buffer-size 0)  ; Deprecated
-	(setq eglot-events-buffer-config '(:size 0 :format short)))
+  ;; This reduces log clutter to improves performance.
+  (setq jsonrpc-event-hook nil)
+  ;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
+  (setq eglot-events-buffer-size 0)  ; Deprecated
+  (setq eglot-events-buffer-config '(:size 0 :format short))
 
-  (setq eglot-report-progress minimal-emacs-debug)  ; Prevent minibuffer spam
+  (setq eglot-report-progress nil)  ; Prevent minibuffer spam
 
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"

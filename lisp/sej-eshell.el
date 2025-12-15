@@ -6,57 +6,57 @@
 
 ;;; Code:
 
-  ;; NOTE by Prot 2020-06-16: the following two advice-add snippets
-  ;; will need to be reviewed to make sure they do not produce
-  ;; undesirable side effects.
+;; NOTE by Prot 2020-06-16: the following two advice-add snippets
+;; will need to be reviewed to make sure they do not produce
+;; undesirable side effects.
 
-  ;; syntax highlighting implementation modified from
-  ;; https://emacs.stackexchange.com/questions/50385/use-emacs-syntax-coloring-when-not-in-emacs
-  ;;
-  ;; This command also makes it possible to, e.g., cat an encrypted and/or
-  ;; compressed file.
-  (defun contrib/eshell-cat-with-syntax-highlight (&rest args)
-    "Like `eshell/cat' but with syntax highlighting.
+;; syntax highlighting implementation modified from
+;; https://emacs.stackexchange.com/questions/50385/use-emacs-syntax-coloring-when-not-in-emacs
+;;
+;; This command also makes it possible to, e.g., cat an encrypted and/or
+;; compressed file.
+(defun contrib/eshell-cat-with-syntax-highlight (&rest args)
+  "Like `eshell/cat' but with syntax highlighting using ARGS.
 To be used as `:override' advice to `eshell/cat'."
-    (setq args (eshell-stringify-list (flatten-tree args)))
-    (dolist (filename args)
-      (let ((existing-buffer (get-file-buffer filename))
-            (buffer (find-file-noselect filename)))
-        (eshell-print
-         (with-current-buffer buffer
-           (if (fboundp 'font-lock-ensure)
-               (font-lock-ensure)
-             (with-no-warnings
-               (font-lock-fontify-buffer)))
-           (let ((contents (buffer-string)))
-             (remove-text-properties 0 (length contents) '(read-only nil) contents)
-             contents)))
-        (unless existing-buffer
-          (kill-buffer buffer)))))
+  (setq args (eshell-stringify-list (flatten-tree args)))
+  (dolist (filename args)
+    (let ((existing-buffer (get-file-buffer filename))
+          (buffer (find-file-noselect filename)))
+      (eshell-print
+       (with-current-buffer buffer
+         (if (fboundp 'font-lock-ensure)
+             (font-lock-ensure)
+           (with-no-warnings
+             (font-lock-fontify-buffer)))
+         (let ((contents (buffer-string)))
+           (remove-text-properties 0 (length contents) '(read-only nil) contents)
+           contents)))
+      (unless existing-buffer
+        (kill-buffer buffer)))))
 
 
-  ;; Turn ls results into clickable links.  Especially useful when
-  ;; combined with link-hint.  Modified from
-  ;; https://www.emacswiki.org/emacs/EshellEnhancedLS
-  (define-button-type 'eshell-ls
-    'supertype 'button
-    'help-echo "RET, mouse-2: visit this file"
-    'follow-link t)
+;; Turn ls results into clickable links.  Especially useful when
+;; combined with link-hint.  Modified from
+;; https://www.emacswiki.org/emacs/EshellEnhancedLS
+(define-button-type 'eshell-ls
+  'supertype 'button
+  'help-echo "RET, mouse-2: visit this file"
+  'follow-link t)
 
-  (defun contrib/electrify-ls (name)
-    "Buttonise `eshell' ls file names.
+(defun contrib/electrify-ls (name)
+  "Buttonise `eshell' ls file NAME.
 Visit them with RET or mouse click.  This function is meant to be
 used as `:filter-return' advice to `eshell-ls-decorated-name'."
-    (add-text-properties 0 (length name)
-                         (list 'button t
-                               'keymap button-map
-                               'mouse-face 'highlight
-                               'evaporate t
-                               'action #'find-file
-                               'button-data (expand-file-name name)
-                               'category 'eshell-ls)
-                         name)
-    name)
+  (add-text-properties 0 (length name)
+                       (list 'button t
+                             'keymap button-map
+                             'mouse-face 'highlight
+                             'evaporate t
+                             'action #'find-file
+                             'button-data (expand-file-name name)
+                             'category 'eshell-ls)
+                       name)
+  name)
 
 
 ;;;;; eshell/truncate-eshell-buffers
@@ -175,5 +175,5 @@ used as `:filter-return' advice to `eshell-ls-decorated-name'."
 ;; byte-compile-warnings: (not obsolete free-vars)
 ;; End:
 
-(provide 'sej-template)
-;;; sej-template.el ends here
+(provide 'sej-eshell)
+;;; sej-eshell.el ends here
