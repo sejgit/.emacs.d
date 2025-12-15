@@ -5417,6 +5417,7 @@ function with the \\[universal-argument]."
 ;;;;; [[https://gitlab.com/marcowahl/org-pretty-tags][org-pretty-tags]]
 ;; Display text or image surrogates for Org mode tags.
 (use-package org-pretty-tags
+  :after nerd-icons
   :hook (org-mode . org-pretty-tags-global-mode)
   :custom ((org-pretty-tags-surrogate-strings
 	        `(;; generic tags
