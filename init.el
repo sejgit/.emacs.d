@@ -1014,12 +1014,9 @@
               ("}" . ibuffer-forward-next-marked)
               ("[" . ibuffer-backward-filter-group)
               ("]" . ibuffer-forward-filter-group)
-              ("$" . ibuffer-toggle-filter-group)
-	          ("<double-mouse-1>" . ibuffer-visit-buffer)
-              ("M-<double-mouse-1>" . ibuffer-visit-buffer-other-window))
+              ("$" . ibuffer-toggle-filter-group))
   :config
-  (require 'hl-line)
-  (require 'mouse))
+  (require 'hl-line))
 
 (use-package casual-image
   :ensure nil
@@ -2737,7 +2734,8 @@ If called with a prefix argument, query for word to search."
 (use-package electric
   :ensure nil
   :hook ((prog-mode . electric-indent-mode)
-         (prog-mode . electric-pair-mode))
+         (prog-mode . electric-pair-mode)
+         (prog-mode . electric-layout-mode) )
   :custom ((electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
            (electirc-pair-preserve-balance t)
            (electric-pair-pairs '((8216 . 8217) (8220 . 8221) (171 . 187)))
@@ -2840,16 +2838,6 @@ If called with a prefix argument, query for word to search."
            (show-paren-when-point-inside-paren t)
            (show-paren-context-when-offscreen 'child-frame)))
 
-;;;;; [[https://github.com/emacs-mirror/emacs/blob/master/lisp/elec-pair.el][elec-pair]]
-;; built-in: Automatic parenthesis pairing
-(use-package elec-pair
-  :disabled ;; using smartparens for now
-  :ensure nil
-  :hook (prog-mode . electric-pair-mode)
-  :config
-  (electric-layout-mode t)
-  (electric-indent-mode t))
-
 ;;;;; [[https://github.com/Fuco1/smartparens][smartparens]]
 ;; minor mode for dealing with pairs in Emacs
 (use-package smartparens
@@ -2860,6 +2848,8 @@ If called with a prefix argument, query for word to search."
   :config
   (require 'smartparens-config)
   (sp-use-smartparens-bindings))
+
+;;;; search
 
 
 ;;; programming
@@ -3993,7 +3983,9 @@ the children of class at point."
   :bind (:map dired-mode-map
               ("C-c C-p" . wdired-change-to-wdired-mode)
               ("C-u D" . sej/dired-do-delete-skip-trash)
-			  ("z" . sej/dired-get-size))
+			  ("z" . sej/dired-get-size)
+              ("<down-mouse-1>" . nil)
+              ("<mouse-1>" . nil))
   :custom ((dired-recursive-deletes 'top) ;; Always delete and copy recursively
 		   (dired-recursive-copies 'always)
 		   (dired-listing-switches "-AFGhlv --group-directories-first")   ;; Show directory first
@@ -4001,7 +3993,7 @@ the children of class at point."
 		   (dired-auto-revert-buffer #'dired-directory-changed-p)
 		   (auto-revert-remote-files nil)
 		   (dired-free-space nil)
-		   (dired-mouse-drag-files t)
+		   (dired-mouse-drag-files nil)
 		   (dired-isearch-filenames 'dwim)
 		   (dired-create-destination-dirs 'ask)
 		   (dired-deletion-confirmer 'y-or-n-p)
@@ -5783,6 +5775,9 @@ function with the \\[universal-argument]."
   :hook ((shell-mode . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
 
+(with-eval-after-load 'magit
+  (add-hook 'magit-section-mode-hook (lambda () (with-editor-mode -1))))
+
 ;;;;; eat
 ;; faster shell integration
 ;; [[https://codeberg.org/akib/emacs-eat][eat]]
@@ -5798,8 +5793,7 @@ function with the \\[universal-argument]."
          (eshell-load . eat-eshell-visual-command-mode))
   :custom (;; Close the terminal buffer when the shell terminates.
 	       (eat-kill-buffer-on-exit t)
-	       ;; Enable mouse-support.
-	       (eat-enable-mouse t)
+	       (eat-enable-mouse nil)
 	       ;; Use proper term name
 	       (eat-term-name "xterm-256color"))
   :config
