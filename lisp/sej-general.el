@@ -94,7 +94,8 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; there is one, as you'll want to recompile it.
 
 (defun sej/lisp-on-save-funcs ()
-  "If you're saving an elisp file, likely the .elc is no longer valid."
+  "If you're saving an elisp file, likely the .elc is no longer valid.
+FIX: causing issue in Magit for diff ; due to `auto-save-mode' active in Magit commit."
   (make-local-variable 'after-save-hook)
   (add-hook 'after-save-hook
             (lambda ()
@@ -107,7 +108,7 @@ If the region is active and option `transient-mark-mode' is on, call
 ;; When popping the mark, continue popping until the cursor actually moves
 ;; Also, if the last command was a copy - skip past all the expand-region cruft.
 (defun ensure-new-position (pop-to-mark-command &rest args)
-  "When popping the mark, continue popping until we move the cursor."
+  "When POP-TO-MARK-COMMAND (ARGS) invoked, continue popping until we move the cursor."
   (let ((p (point)))
     (when (eq last-command 'save-region-or-current-line)
       (apply pop-to-mark-command args)

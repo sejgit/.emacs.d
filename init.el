@@ -5770,7 +5770,9 @@ function with the \\[universal-argument]."
          (eshell-mode . with-editor-export-editor)))
 
 (with-eval-after-load 'magit
-  (add-hook 'magit-section-mode-hook (lambda () (with-editor-mode -1))))
+  (add-hook 'magit-status-mode-hook (lambda ()
+                                      (with-editor-mode -1)
+                                      (auto-save-mode -1))))
 
 ;;;;; eat
 ;; faster shell integration
