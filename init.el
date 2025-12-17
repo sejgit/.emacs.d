@@ -3584,12 +3584,6 @@ Falls back to the default formatter for large (likely binary) files."
 (use-package json-mode
   :mode "\\.json\\'")
 
-;;;;; [[https://github.com/Sterlingg/json-snatcher][json-snatcher]]
-;; pull path to value in large JSON
-(use-package json-snatcher
-  :commands jsons-print-path
-  :after json-mode)
-
 ;;;;; [[https://github.com/mooz/js2-mode][js2-mode]]
 ;; Improved JavaScript editing mode
 (use-package js2-mode
