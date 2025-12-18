@@ -2949,6 +2949,8 @@ If called with a prefix argument, query for word to search."
   ;; [[https://github.com/renzmann/treesit-auto]]
   ;; EXPERIMENTAL: Changed from :demand t - can load when tree-sitter is needed (TREESIT-AUTO)
   :defer t
+  :commands (treesit-major-mode-setup)
+  :hook (treesit-mode . treesit-auto-mode)
   :custom (treesit-auto-install 'prompt)
   :config
   (setq treesit-language-source-alist
