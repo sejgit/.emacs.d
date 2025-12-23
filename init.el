@@ -3008,12 +3008,12 @@ If called with a prefix argument, query for word to search."
   :config
   ;; Eglot optimization
   ;; This reduces log clutter to improves performance.
-  (setq jsonrpc-event-hook nil)
+  ;;(setq jsonrpc-event-hook nil)
   ;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
-  (setq eglot-events-buffer-size 0)  ; Deprecated
-  (setq eglot-events-buffer-config '(:size 0 :format short))
+  ;;(setq eglot-events-buffer-size 0)  ; Deprecated
+  ;;(setq eglot-events-buffer-config '(:size 0 :format short))
 
-  (setq eglot-report-progress nil)  ; Prevent minibuffer spam
+  ;;(setq eglot-report-progress nil)  ; Prevent minibuffer spam
 
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
@@ -3038,14 +3038,27 @@ If called with a prefix argument, query for word to search."
   ;; basedpyright-langserver [[https://docs.basedpyright.com/latest/installation/ides/][link]]
   ;; Emacs set-up [[https://webbureaucrat.gitlab.io/articles/emacs-for-python-and-poetry-using-basedpyright-langserver/][link]]
   ;; brew install basedpyright
+  ;; moving to uvx ty server
+  ;; [[https://mwolson.org/blog/2025-12-17-ty-a-fast-python-type-checker-and-lsp-for-emacs/][derived from]]
+  (defun my-project-find-python-project (dir)
+    (when-let ((root (locate-dominating-file dir "pyproject.toml")))
+      (cons 'python-project root)))
+
+  (with-eval-after-load "project"
+    (cl-defmethod project-root ((project (head python-project)))
+      (cdr project))
+
+    (add-hook 'project-find-functions #'my-project-find-python-project))
+
+  (add-to-list 'auto-mode-alist '("/uv\\.lock\\'" . toml-ts-mode))
   (add-to-list 'eglot-server-programs
-			   '((python-mode python-ts-mode)
-				 "basedpyright-langserver" "--stdio"))
+			   '((python-mode python-ts-mode) . ("uvx" "ty" "server")))
+  ;;  "basedpyright-langserver" "--stdio"))
   (setq-default eglot-workspace-configuration
-				'(:basedpyright (
-								 :typeCheckingMode "standard"
-								 )
-								:basedpyright.analysis (
+			    '(:basedpyright (
+							     :typeCheckingMode "standard"
+							     )
+							    :basedpyright.analysis (
 												        :diagnosticSeverityOverrides (
 																	                  :reportUnusedCallResult "none"
 																	                  )
@@ -3192,7 +3205,8 @@ If called with a prefix argument, query for word to search."
 	       (magit-diff-refine-hunk t)
 	       (magit-repository-directories nil)
 	       (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
-	       (magit-bury-buffer-function #'magit-restore-window-configuration))
+	       (magit-bury-buffer-function #'magit-restore-window-configuration)
+           (magit-process-apply-ansi-colors t))
   :config
   ;; gh-auth-switch, gh-auth-status, (adds P @ in Magit)
   (require 'sej-gh-auth-switch)
