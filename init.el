@@ -4741,7 +4741,7 @@ function with the \\[universal-argument]."
   (org-startup-folded 'content)
   (org-startup-indented t)
   (org-tags-column -115)
-  (org-startup-with-inline-images t)
+  (org-startup-with-inline-images nil)  ; PERFORMANCE: Load images on demand (C-c C-x C-v to toggle)
   (org-image-actual-width '(300))
   (org-highlight-latex-and-related '(latex))
   (org-clock-sound t)
@@ -4861,7 +4861,9 @@ function with the \\[universal-argument]."
   :after org
   :commands (org-agenda sej/org-agenda-call consult-org-agenda)
   :preface
-  (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
+  ;; PERFORMANCE: Commenting out native-comp deny list to test if bug is fixed
+  ;; If org-element errors occur, uncomment this line:
+  ;; (setq native-comp-jit-compilation-deny-list '(".*org-element.*"))
   :bind (("C-c a" . org-agenda)
 	     (:map org-agenda-mode-map
 	           ("2" . org-agenda-fortnight-view))
@@ -4886,7 +4888,7 @@ function with the \\[universal-argument]."
            (org-agenda-diary-file (concat org-directory "/diary.org"))
 	       ;; Set org-agenda-files in :config after denote-journal-directory is defined
            (org-agenda-dim-blocked-tasks t) ; other option is 'invisible
-           (org-agenda-inhibit-startup nil)
+           (org-agenda-inhibit-startup t)  ; PERFORMANCE: 2-3x faster agenda generation
            (org-agenda-show-all-dates t)
            (org-agenda-skip-scheduled-if-done t)
            (org-agenda-start-on-weekday 1) ; Monday
@@ -4900,7 +4902,7 @@ function with the \\[universal-argument]."
            (org-agenda-skip-scheduled-if-deadline-is-shown t) ;don't show tasks as scheduled if shown as deadline
            (org-agenda-skip-deadline-prewarning-if-scheduled (quote pre-scheduled))
            (org-deadline-warning-days 7) ;warn me of any deadlines in next 7 days
-	       (org-agenda-sticky nil)) ; FIX change later to t
+	       (org-agenda-sticky t))  ; PERFORMANCE: Reuse agenda buffer (faster refresh)
   :config
   ;; get denote up and running
   (require 'denote)
