@@ -2007,13 +2007,12 @@ The returned list contains live buffers only."
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
-   consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep consult-man
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
-   ;; :preview-key "M-."
-   :preview-key '(:debounce 0.4 any))
+   consult-source-bookmark consult-source-file-register
+   consult-source-recent-file consult-source-project-recent-file
+   :preview-key '(:debounce 0.4 any)) ;; Option 1: Delay preview
+  ;; :preview-key "M-."              ;; Option 2: Manual preview
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -3007,14 +3006,18 @@ If called with a prefix argument, query for word to search."
 		   (eglot-extend-to-xref t))
   :config
   ;; Eglot optimization
-  ;; This reduces log clutter to improves performance.
-  ;;(setq jsonrpc-event-hook nil)
   ;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
-  ;;(setq eglot-events-buffer-size 0)  ; Deprecated
-  ;;(setq eglot-events-buffer-config '(:size 0 :format short))
+  (setq eglot-events-buffer-config '(:size 0 :format short))
+  (setq eglot-report-progress nil)  ; Prevent minibuffer spam
 
-  ;;(setq eglot-report-progress nil)  ; Prevent minibuffer spam
-
+  (setq eglot-ignored-server-capabilities
+        '(:documentHighlightProvider
+          :colorProvider
+          :foldingRangeProvider))
+  
+  (setq eldoc-idle-delay 0.8)
+  (setq eglot-send-changes-idle-time 0.5)
+  
   (defun sej/eglot-ensure-prg ()
     "run eglot in all prog except"
     (interactive)
