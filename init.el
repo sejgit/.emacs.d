@@ -1586,7 +1586,7 @@ The returned list contains live buffers only."
   :hook ((emacs-startup . vertico-mode)
 	     (minibuffer-setup . vertico-repeat-save))
   :custom ((vertico-scroll-margin 0) ;; Different scroll margin
-	       (vertico-count 20)        ;; Show more candidates
+	       (vertico-count 15)        ;; PERFORMANCE: Show 15 candidates (reduced from 20)
 	       (vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
 	       (vertico-cycle t)        ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
 
@@ -1683,23 +1683,14 @@ The returned list contains live buffers only."
 
   ;; Optional customizations
   :custom ((corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
-	       (corfu-auto nil)                    ;; Enable auto completion
-	       (corfu-separator ?\s)             ;; Orderless field separator
+	       (corfu-auto nil)                    ;; Manual completion (GOOD for performance)
+	       (corfu-separator ?\s)               ;; Orderless field separator
 	       (corfu-quit-at-boundary nil)        ;; Never quit at completion boundary
-	       (corfu-quit-no-match nil)           ;; t, 'separator, nil Never quit
-	       (corfu-preview-current nil)       ;; Disable current candidate preview
-	       (corfu-preselect 'directory)      ;; Preselect the prompt
-	       ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-	       (corfu-scroll-margin 5)           ;; Use scroll margin
-	       (corfu-auto-delay 2)
-	       (corfu-auto-prefix 2)
-	       (corfu-count 10)
-	       (corfu-echo-documentation nil)
-	       (corfu-quit-at-boundary nil)
-	       (corfu-separator ?\s)            ; Use space
-	       (corfu-quit-no-match t) ; Don't quit if there is `corfu-separator' inserted
-	       (corfu-preview-current 'insert)  ; Preview first candidate. Insert on input if only one
-	       (corfu-preselect-first t))        ; Preselect first candidate?
+	       (corfu-quit-no-match t)             ;; Quit if no match (PERFORMANCE: single setting)
+	       (corfu-preview-current 'insert)     ;; Preview first candidate, insert on input if only one
+	       (corfu-preselect 'directory)        ;; Preselect the prompt
+	       (corfu-scroll-margin 5)             ;; Use scroll margin
+	       (corfu-count 10))                   ;; Number of candidates to show
 
   :config
   ;; Recommended: Enable Corfu globally.
@@ -1789,7 +1780,7 @@ The returned list contains live buffers only."
          (org-mode . sej/cape-capf-setup-org)
          (eshell-mode . sej/cape-capf-setup-eshell)
          (git-commit-mode . sej/cape-capf-setup-git-commit))
-  :custom (cape-dabbrev-min-length 3)
+  :custom (cape-dabbrev-min-length 4)  ; PERFORMANCE: Increased from 3 to reduce triggers
   :config
   (sej/add-all-to-list 'completion-at-point-functions
 		               #'cape-dabbrev

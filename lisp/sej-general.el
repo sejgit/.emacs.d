@@ -96,12 +96,15 @@ If the region is active and option `transient-mark-mode' is on, call
 (defun sej/lisp-on-save-funcs ()
   "If you're saving an elisp file, likely the .elc is no longer valid.
 FIX: causing issue in Magit for diff ; due to `auto-save-mode' active in Magit commit."
-  (make-local-variable 'after-save-hook)
-  (add-hook 'after-save-hook
-            (lambda ()
-              (check-parens)
-              (if (file-exists-p (concat buffer-file-name "c"))
-                  (delete-file (concat buffer-file-name "c"))))))
+  ;; Only run for Lisp modes
+  (when (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'lisp-interaction-mode)
+    (make-local-variable 'after-save-hook)
+    (add-hook 'after-save-hook
+              (lambda ()
+                (check-parens)
+                (if (file-exists-p (concat buffer-file-name "c"))
+                    (delete-file (concat buffer-file-name "c"))))
+              nil t)))
 
 
 ;;;;; pop-to-mark-command
