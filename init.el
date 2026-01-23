@@ -333,6 +333,14 @@
   (push "/post-early-init.el" compile-angel-excluded-files)
   (push "\\.*org-element\\.*" compile-angel-excluded-files-regexps)
   (push "/var/.*\\.el" compile-angel-excluded-files-regexps)
+  
+  ;; PERFORMANCE: Exclude built-in theme files from compilation (portable)
+  ;; Prevents errors from broken/incomplete built-in modus-themes in Emacs 31.x
+  (when (boundp 'data-directory)
+    (let ((themes-dir (expand-file-name "etc/themes" data-directory)))
+      (when (file-directory-p themes-dir)
+        (dolist (theme-file (directory-files-recursively themes-dir "\\.el$"))
+          (push theme-file compile-angel-excluded-files)))))
 
   ;; A local mode that compiles .el files whenever the user saves them.
   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
@@ -1099,18 +1107,20 @@
   (load-theme 'tron-legacy :no-confirm))
 
 ;;;;; modus-themes
-;; built-in: theme
-;; https://protesilaos.com/emacs/modus-themes#h:1af85373-7f81-4c35-af25-afcef490c111
-;; current preferred theme
-(use-package emacs ; built-in package
+;; Built-in theme (Emacs 31.x has broken built-in, but we'll suppress the error)
+;; https://protesilaos.com/emacs/modus-themes
+;; NOTE: Package version would be better, but requires network access
+(use-package emacs
   :bind ("C-c C-t" . modus-themes-toggle)
-  :custom ((require-theme 'modus-themes)
-	       (modus-themes-italic-constructs t)
-	       (modus-themes-bold-constructs nil)
-	       (modus-themes-mixed-fonts t)
-	       (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi)))
+  :custom
+  (modus-themes-italic-constructs t)
+  (modus-themes-bold-constructs nil)
+  (modus-themes-mixed-fonts t)
+  (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi))
   :config
-  (load-theme 'modus-vivendi :no-confirm))
+  ;; Load theme with error suppression for broken built-in modus-themes
+  (with-demoted-errors "Theme loading error: %S"
+    (load-theme 'modus-vivendi :no-confirm)))
 
 ;;;; frames
 ;;;;; frame
