@@ -2993,7 +2993,7 @@ If called with a prefix argument, query for word to search."
 
   :bind (:map eglot-mode-map
               ("C-c r" . eglot-rename)
-              ("C-c o" . eglot-code-action-organize-imports)
+              ("C-c i" . eglot-code-action-organize-imports)  ; Changed from C-c o (conflicts with combobulate)
 			  ("C-c C-." . eglot-code-actions)
               ("C-c h" . eglot-help-at-point)
               ("C-c x" . xref-find-definitions)
