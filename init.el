@@ -2975,10 +2975,9 @@ If called with a prefix argument, query for word to search."
   :ensure nil
   :commands eglot
   :preface
-  (defun mp-eglot-eldoc ()
-    (setq eldoc-documentation-strategy
-          'eldoc-documentation-compose-eagerly))
-  :hook ((eglot-managed-mode . mp-eglot-eldoc)
+  ;; REMOVED: Redundant eldoc setting (uses global from embark line 1874)
+  ;; Function and hook removed since it only set eldoc-documentation-strategy
+  :hook ((python-base-mode . eglot-ensure)
          (python-base-mode . eglot-ensure)
          ((c-or-c++-mode objc-mode cuda-mode) . eglot-ensure) )
 
@@ -3389,7 +3388,7 @@ Falls back to the default formatter for large (likely binary) files."
   (add-to-list 'display-buffer-alist
                '("^\\*eldoc" display-buffer-at-bottom
                  (window-height . 4)))
-  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+  ;; REMOVED: Redundant eldoc-documentation-strategy setting (uses global from embark line 1874)
   :hook ((emacs-lisp-mode-hook . eldoc-mode)
          (lisp-interaction-mode-hook . eldoc-mode)
          (ielm-mode-hook . eldoc-mode))
