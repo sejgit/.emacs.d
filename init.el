@@ -1708,7 +1708,7 @@ The returned list contains live buffers only."
   ;; See also `corfu-excluded-modes'.
   (global-corfu-mode)
 
-  (setq global-corfu-modes '((not markdown-mode) t))
+  (setq global-corfu-modes '((not markdown-mode vterm-mode) t))
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3)
 
@@ -1719,7 +1719,7 @@ The returned list contains live buffers only."
   ;; Free the RET key for less intrusive behavior.
   ;; Option 1: Unbind RET completely
   ;; (keymap-unset corfu-map "RET")
-  ;; Option 2: Use RET only in shell modes
+  ;; Option 2: Use RET only in shell modes (eshell, comint, NOT vterm)
   (keymap-set corfu-map "RET" `( menu-item "" nil :filter
                                  ,(lambda (&optional _)
                                     (and (derived-mode-p 'eshell-mode 'comint-mode)
@@ -3540,7 +3540,12 @@ Falls back to the default formatter for large (likely binary) files."
 (use-package envrc
   :defer 3  ;; Defer to reduce startup direnv calls - will still activate when editing files
   :config
-  (envrc-global-mode))
+  (envrc-global-mode)
+  ;; Exclude vterm-mode from envrc (it can interfere with special buffers)
+  (with-eval-after-load 'envrc
+    (when (boundp 'envrc-inhibit-functions)
+      (add-to-list 'envrc-inhibit-functions
+                   (lambda () (eq major-mode 'vterm-mode))))))
 
 ;;;;; [[https://github.com/radian-software/apheleia][apheleia]]
 ;; Apheleia is an Emacs package designed to run code formatters (e.g., Shfmt,
@@ -5890,20 +5895,128 @@ function with the \\[universal-argument]."
 
 ;;;; Other Services
 ;; a place to put set-ups for Emacs outside services
-;;;;; term ansi-term serial-term
-;; built-in: basic terminal
-;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Terminal-emulator.html#Terminal-emulator][Emacs manual]]
+;;;;; vterm
+;; fully-fledged terminal emulator inside Emacs based on libvterm
+;; [[https://github.com/akermu/emacs-libvterm]]
+;; Note: Requires cmake and libtool (brew install cmake libtool)
+(use-package vterm
+  :commands (vterm vterm-other-window)
+  :bind (:map sej-C-q-map
+              ("S t" . vterm)
+              ("S v" . vterm-other-window)
+              ("S S" . serial-term))
+  :custom
+  ;; Performance
+  (vterm-max-scrollback 10000)
+  (vterm-buffer-name-string "vterm: %s")
+  (vterm-timer-delay 0.01)
+  (vterm-kill-buffer-on-exit t)
+  ;; Shell integration - use bash (zsh config too complex for vterm)
+  ;; For zsh features in Emacs, use eat or eshell instead
+  (vterm-shell "/bin/bash")
+  (vterm-term-environment-variable "xterm-256color")
+  ;; Enable features
+  (vterm-enable-manipulate-selection-data-by-osc52 t)
+  (vterm-use-vterm-prompt-detection-method t)
+  
+  :init
+  (setq vterm-module-cmake-args "-DUSE_SYSTEM_LIBVTERM=Off")
+  ;; Use custom bashrc for colored prompt
+  (setq vterm-shell "/bin/bash --rcfile ~/.emacs.d/vterm-bashrc -i")
+  
+  :config
+  ;; Better window management
+  (defun sej/vterm-new ()
+    "Create a new vterm buffer."
+    (interactive)
+    (let ((vterm-buffer-name (format "vterm: %s"
+                                     (read-string "Buffer name: "
+                                                  (format "shell-%d" (random 1000))))))
+      (vterm)))
+  
+  (defun sej/vterm-toggle ()
+    "Toggle vterm buffer. Create if doesn't exist."
+    (interactive)
+    (if (eq major-mode 'vterm-mode)
+        (bury-buffer)
+      (if-let ((vterm-buffer (seq-find (lambda (buf)
+                                         (with-current-buffer buf
+                                           (eq major-mode 'vterm-mode)))
+                                       (buffer-list))))
+          (switch-to-buffer vterm-buffer)
+        (vterm))))
+  
+  ;; Directory tracking integration
+  (defun sej/vterm-directory-sync ()
+    "Sync vterm directory with default-directory."
+    (interactive)
+    (when (eq major-mode 'vterm-mode)
+      (vterm-send-string (concat "cd " default-directory))
+      (vterm-send-return)))
+  
+  ;; Better copy mode
+  (defun sej/vterm-copy-mode-done-and-yank ()
+    "Exit copy mode and yank the copied text."
+    (interactive)
+    (vterm-copy-mode-done nil)
+    (yank))
+  
+  ;; Clear scrollback
+  (defun sej/vterm-clear ()
+    "Clear vterm buffer and scrollback."
+    (interactive)
+    (vterm-send-string "clear")
+    (vterm-send-return)
+    (vterm-clear-scrollback))
+  
+  ;; Global keybindings for vterm helpers
+  (define-key sej-C-q-map (kbd "S n") #'sej/vterm-new)
+  (define-key sej-C-q-map (kbd "S d") #'sej/vterm-directory-sync)
+  (define-key sej-C-q-map (kbd "S p") #'sej/vterm-project)
+  
+  ;; Environment setup
+  (setenv "INSIDE_EMACS" (format "%s,vterm" emacs-version))
+  
+  ;; Hook for better defaults
+  (defun sej/vterm-mode-setup ()
+    "Setup vterm mode with better defaults."
+    ;; Ensure buffer is writable (some global modes set it read-only)
+    (setq-local buffer-read-only nil)
+    (setq-local inhibit-read-only t)
+    
+    (setq-local scroll-margin 0)
+    (setq-local truncate-lines nil)
+    (setq-local global-hl-line-mode nil)
+    (visual-line-mode -1)
+    (display-line-numbers-mode -1)
+    ;; Disable modes that might interfere
+    (when (fboundp 'corfu-mode) (corfu-mode -1))
+    (when (fboundp 'company-mode) (company-mode -1))
+    (when (fboundp 'semantic-mode) (semantic-mode -1))
+    (when (fboundp 'envrc-mode) (envrc-mode -1))
+    (read-only-mode -1))
+  
+  (add-hook 'vterm-mode-hook #'sej/vterm-mode-setup)
+  
+  ;; Additional safety: force writable at end of hooks
+  (add-hook 'vterm-mode-hook 
+            (lambda () 
+              (setq buffer-read-only nil))
+            90)
+  
+  ;; Integration with project.el
+  (defun sej/vterm-project ()
+    "Open vterm in project root."
+    (interactive)
+    (let* ((default-directory (project-root (project-current t)))
+           (vterm-buffer-name (format "vterm: %s" (file-name-nondirectory
+                                                   (directory-file-name default-directory)))))
+      (vterm))))
+
+;; Keep serial-term from built-in term package
 (use-package term
   :ensure nil
-  :commands (term ansi-term serial-term)
-  :bind (:map sej-C-q-map
-              ("S a" . ansi-term)
-              ("S S" . serial-term)
-              ("S t" . term))
-  :custom ((term-buffer-maximum-size 9999)
-	       (term-completion-autolist t)
-	       (term-completion-recexact t)
-	       (term-scroll-to-bottom-on-output nil)))
+  :commands serial-term)
 
 ;;;;; ERC IRC client
 ;; built-in: irc client
