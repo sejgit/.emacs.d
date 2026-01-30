@@ -31,7 +31,7 @@
 ;; a long journey to here...
 ;;
 ;; using Emacs 31
-;; on macos installing emacs-plus@31
+;; on OSX installing emacs-plus@31
 ;; brew install emacs-plus@30 --with-xwidgets --with-native-comp --with-imagemagick --with-dbus
 ;; or
 ;; emacs-head@31
@@ -4468,10 +4468,27 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("s-:" . jinx-correct-all)
-	       ("C-;" . jinx-correct-nearest)
-           ("C-M-;" . jinx-correct-all))
-    :custom	(jinx-languages "en_US en_GB en_CA")
+    :bind (("s-;" . jinx-correct)
+           ("C-;" . jinx-correct-nearest)
+           ("A-;" . jinx-correct-all))
+    :custom
+    (jinx-languages "en_US en_GB en_CA")
+    ;; Exclude code blocks, URLs, email, org properties, numbers/times/dates/currency/measurements
+    (jinx-exclude-regexps
+     '((emacs-lisp-mode "Package-Requires:.*$")
+       (org-mode "^#\\+[a-z_]+:" "~[^~]+~" "=[^=]+=+"
+                 "\\<\\(TODO\\|INPROCESS\\|WAIT\\|DEFER\\|DONE\\|MAYBE\\|DELIGATE\\|CHECK\\|VERIFIED\\|FIX\\|FIXED\\|MAINT\\|MAINTd\\)\\>")
+       (markdown-mode "`[^`]+`" "```.*```")
+       (t "\\<https?://\\S-+"
+          "<?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]\\{2,\\}>?"
+          "\\<[0-9]+\\(?:[:.][0-9]+\\)*\\>"
+          "\\<[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\>"
+          "[$£€¥₹]\\s-*[0-9]+\\(?:[.,][0-9]+\\)*"
+          "\\<[0-9]+\\(?:[.,][0-9]+\\)?\\s-*[$£€¥₹]\\>"
+          "\\<[0-9]+x\\>"
+          "\\<[0-9]+\\(?:[.,][0-9]+\\)?[a-zA-Z]+\\>"
+          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>")))
+    (jinx-camel-modes '(prog-mode))
     :config
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
@@ -4485,9 +4502,27 @@ the children of class at point."
     :init
     ;; (setenv "PKG_CONFIG_PATH" (concat "/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/:" (getenv "PKG_CONFIG_PATH")))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-;" . jinx-correct-nearest)
-           ("C-M-'" . jinx-languages)
-           ("C-M-;" . jinx-next))
+    :bind (("s-;" . jinx-correct)
+           ("C-;" . jinx-correct-nearest)
+           ("A-;" . jinx-correct-all))
+    :custom
+    (jinx-languages "en_US en_GB en_CA")
+    ;; Exclude code blocks, URLs, email, org properties, numbers/times/dates/currency/measurements
+    (jinx-exclude-regexps
+     '((emacs-lisp-mode "Package-Requires:.*$")
+       (org-mode "^#\\+[a-z_]+:" "~[^~]+~" "=[^=]+=+"
+                 "\\<\\(TODO\\|INPROCESS\\|WAIT\\|DEFER\\|DONE\\|MAYBE\\|DELIGATE\\|CHECK\\|VERIFIED\\|FIX\\|FIXED\\|MAINT\\|MAINTd\\)\\>")
+       (markdown-mode "`[^`]+`" "```.*```")
+       (t "\\<https?://\\S-+"
+          "<?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]\\{2,\\}>?"
+          "\\<[0-9]+\\(?:[:.][0-9]+\\)*\\>"
+          "\\<[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\>"
+          "[$£€¥₹]\\s-*[0-9]+\\(?:[.,][0-9]+\\)*"
+          "\\<[0-9]+\\(?:[.,][0-9]+\\)?\\s-*[$£€¥₹]\\>"
+          "\\<[0-9]+x\\>"
+          "\\<[0-9]+\\(?:[.,][0-9]+\\)?[a-zA-Z]+\\>"
+          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>")))
+    (jinx-camel-modes '(prog-mode))
     :config
     (vertico-multiform-mode 1)
     (add-to-list 'vertico-multiform-categories
