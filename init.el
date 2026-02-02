@@ -4492,7 +4492,8 @@ the children of class at point."
           "\\<[0-9]+\\(?:[.,][0-9]+\\)?\\s-*[$£€¥₹]\\>"
           "\\<[0-9]+x\\>"
           "\\<[0-9]+\\(?:[.,][0-9]+\\)?[a-zA-Z]+\\>"
-          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>")))
+          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>"
+          "\\<W[0-9]\\{2\\}\\>")))
     (jinx-camel-modes '(prog-mode))
     :config
     (vertico-multiform-mode 1)
@@ -4526,7 +4527,8 @@ the children of class at point."
           "\\<[0-9]+\\(?:[.,][0-9]+\\)?\\s-*[$£€¥₹]\\>"
           "\\<[0-9]+x\\>"
           "\\<[0-9]+\\(?:[.,][0-9]+\\)?[a-zA-Z]+\\>"
-          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>")))
+          "\\<\\(?:red\\|green\\|blue\\|yellow\\|orange\\|purple\\|pink\\|brown\\|gray\\|grey\\|black\\|white\\|cyan\\|magenta\\)\\>"
+          "\\<W[0-9]\\{2\\}\\>")))
     (jinx-camel-modes '(prog-mode))
     :config
     (vertico-multiform-mode 1)
