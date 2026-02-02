@@ -4724,7 +4724,9 @@ function with the \\[universal-argument]."
                ("C-c )" . org-fold-hide-drawer-all)
                ("C-c b" . org-switchb)
                ("C-c x" . org-todo)
-               ("C-c H-t" . org-todo-yesterday)))
+               ("C-c H-t" . org-todo-yesterday)
+               ("C-c w" . sej/insert-current-iso-week)
+               ("C-c W" . sej/calendar-goto-iso-week)))
   :custom
   ;; set headline numbering face to something more subtle
   (org-num-face 'org-modern-date-inactive)
@@ -4894,6 +4896,218 @@ function with the \\[universal-argument]."
    `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
       1 'org-checkbox-done-text prepend))
    'append)) ; end of use-pacakge for org
+
+;;;;; calendar
+;; built-in: calendar and date utilities
+;; [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Calendar_002fDiary.html][Calendar manual]]
+(use-package calendar
+  :ensure nil
+  :commands (calendar sej/iso-week sej/calendar-insert-iso-week)
+  :bind ((:map calendar-mode-map
+               ;; ISO week bindings
+               ("w" . sej/calendar-insert-iso-week-at-point)
+               ("W" . sej/calendar-insert-iso-week)
+               ;; Date bindings (no time)
+               ("d" . sej/calendar-insert-date-at-point)
+               ("D" . sej/calendar-copy-date)
+               ;; Inactive timestamp binding
+               ("i" . sej/calendar-insert-inactive-timestamp-at-point)
+               ;; Date + time bindings
+               ("t" . sej/calendar-insert-timestamp-with-time-at-point)
+               ("T" . sej/calendar-copy-timestamp-with-time)
+               ;; Move diary from 'd' to 'C-d'
+               ("C-d" . diary-view-entries))
+         (:map global-map
+               ("C-c C-SPC" . calendar)))
+  :custom
+  ;; Week starts on Monday
+  (calendar-week-start-day 1)
+  ;; ISO 8601 week numbers
+  (calendar-intermonth-text
+   '(propertize
+     (format "%2d"
+             (car
+              (calendar-iso-from-absolute
+               (calendar-absolute-from-gregorian (list month day year)))))
+     'font-lock-face 'font-lock-comment-face))
+  ;; Show week numbers in left margin
+  (calendar-left-margin 5)
+  
+  :config
+  ;; Force our binding to take precedence over org-agenda
+  (defun sej/calendar-setup-keys ()
+    "Ensure calendar keys are correctly bound."
+    (define-key calendar-mode-map "i" 'sej/calendar-insert-inactive-timestamp-at-point)
+    (define-key calendar-mode-map "C-i" 'org-agenda-diary-entry))
+  
+  (add-hook 'calendar-mode-hook 'sej/calendar-setup-keys)
+  
+  ;; Also override after org-agenda loads
+  (with-eval-after-load 'org-agenda
+    (sej/calendar-setup-keys))
+  
+  ;; ISO week functions
+  (defun sej/iso-week (&optional date)
+    "Return the ISO week number for DATE (defaults to today).
+DATE can be a string in YYYY-MM-DD format or nil for current time.
+Returns a string in the format 'YYYY-W##'."
+    (interactive)
+    (let* ((time (if date
+                     (let ((parsed (parse-time-string date)))
+                       ;; Fill in missing fields with 0 for time components
+                       (encode-time (or (nth 0 parsed) 0)  ; second
+                                    (or (nth 1 parsed) 0)  ; minute
+                                    (or (nth 2 parsed) 0)  ; hour
+                                    (nth 3 parsed)         ; day
+                                    (nth 4 parsed)         ; month
+                                    (nth 5 parsed)))       ; year
+                   (current-time)))
+           (year (format-time-string "%Y" time))
+           (week (format-time-string "%V" time)))
+      (if (called-interactively-p 'any)
+          (message "ISO Week: %s-W%s" year week)
+        (format "%s-W%s" year week))))
+  
+  (defun sej/calendar-insert-iso-week ()
+    "Copy ISO week number from calendar date.
+Shows in message area and copies to kill ring."
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
+           (iso-week (sej/iso-week (format-time-string "%Y-%m-%d" time))))
+      (message "ISO Week: %s (copied to kill ring)" iso-week)
+      (kill-new iso-week)))
+  
+  (defun sej/calendar-copy-date ()
+    "Copy date from calendar to kill ring.
+In org-mode format: <2026-02-02 Sun>
+In other formats: 2026-02-02 Sunday"
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
+           (date-str (if (derived-mode-p 'org-mode)
+                         (format-time-string "<%Y-%m-%d %a>" time)
+                       (format-time-string "%Y-%m-%d %A" time))))
+      (kill-new date-str)
+      (message "Copied: %s" date-str)))
+  
+  (defun sej/calendar-copy-timestamp-with-time ()
+    "Copy timestamp with current time from calendar date to kill ring.
+In org-mode format: <2026-02-02 Sun 14:30>
+In other formats: 2026-02-02 Sunday 14:30"
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (now (decode-time (current-time)))
+           (time (encode-time 0
+                              (nth 1 now)
+                              (nth 2 now)
+                              (nth 1 date)
+                              (nth 0 date)
+                              (nth 2 date)))
+           (ts-str (if (derived-mode-p 'org-mode)
+                       (format-time-string "<%Y-%m-%d %a %H:%M>" time)
+                     (format-time-string "%Y-%m-%d %A %H:%M" time))))
+      (kill-new ts-str)
+      (message "Copied: %s" ts-str)))
+  
+  (defun sej/calendar-insert-iso-week-at-point ()
+    "Insert ISO week number from calendar date at point in previous buffer.
+Exits calendar and returns to previous buffer location."
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
+           (iso-week (sej/iso-week (format-time-string "%Y-%m-%d" time)))
+           (calendar-buffer (current-buffer)))
+      (other-window 1)  ; Switch to other window
+      (insert iso-week)
+      (message "Inserted: %s" iso-week)))
+  
+  (defun sej/calendar-insert-date-at-point ()
+    "Insert date from calendar at point in previous buffer.
+In org-mode: inserts org timestamp like <2026-02-02 Sun>
+In other modes: inserts 'YYYY-MM-DD Dayname' like '2026-02-02 Sunday'"
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
+           (calendar-buffer (current-buffer)))
+      (other-window 1)  ; Switch to other window
+      (if (derived-mode-p 'org-mode)
+          ;; In org-mode: insert org timestamp
+          (let ((org-ts (format-time-string "<%Y-%m-%d %a>" time)))
+            (insert org-ts)
+            (message "Inserted org timestamp: %s" org-ts))
+        ;; In other modes: insert plain date with day name
+        (let ((date-str (format-time-string "%Y-%m-%d %A" time)))
+          (insert date-str)
+          (message "Inserted: %s" date-str)))))
+  
+  (defun sej/calendar-insert-inactive-timestamp-at-point ()
+    "Insert inactive org timestamp from calendar at point.
+In org-mode: inserts [2026-02-02 Mon]
+In other modes: inserts 'YYYY-MM-DD Dayname'"
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (time (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
+           (calendar-buffer (current-buffer)))
+      (other-window 1)  ; Switch to other window
+      (if (derived-mode-p 'org-mode)
+          ;; In org-mode: insert inactive org timestamp
+          (let ((org-ts (format-time-string "[%Y-%m-%d %a]" time)))
+            (insert org-ts)
+            (message "Inserted inactive timestamp: %s" org-ts))
+        ;; In other modes: insert plain date with day name
+        (let ((date-str (format-time-string "%Y-%m-%d %A" time)))
+          (insert date-str)
+          (message "Inserted: %s" date-str)))))
+  
+  (defun sej/calendar-insert-timestamp-with-time-at-point ()
+    "Insert org timestamp with current time from calendar date.
+In org-mode: inserts <2026-02-02 Mon 14:30>
+In other modes: inserts 'YYYY-MM-DD Dayname HH:MM'"
+    (interactive)
+    (let* ((date (calendar-cursor-to-date t))
+           (now (decode-time (current-time)))
+           ;; Use calendar date but current time
+           (time (encode-time 0                    ; seconds
+                              (nth 1 now)          ; minutes (current)
+                              (nth 2 now)          ; hours (current)
+                              (nth 1 date)         ; day (from calendar)
+                              (nth 0 date)         ; month (from calendar)
+                              (nth 2 date)))       ; year (from calendar)
+           (calendar-buffer (current-buffer)))
+      (other-window 1)  ; Switch to other window
+      (if (derived-mode-p 'org-mode)
+          ;; In org-mode: insert org timestamp with time
+          (let ((org-ts (format-time-string "<%Y-%m-%d %a %H:%M>" time)))
+            (insert org-ts)
+            (message "Inserted timestamp with time: %s" org-ts))
+        ;; In other modes: insert plain date with day name and time
+        (let ((date-str (format-time-string "%Y-%m-%d %A %H:%M" time)))
+          (insert date-str)
+          (message "Inserted: %s" date-str)))))
+  
+  (defun sej/insert-current-iso-week ()
+    "Insert current ISO week number at point."
+    (interactive)
+    (insert (sej/iso-week)))
+  
+  (defun sej/calendar-goto-iso-week (year week)
+    "Go to the first day of ISO YEAR and WEEK in calendar."
+    (interactive
+     (list (read-number "ISO year: " (string-to-number (format-time-string "%Y")))
+           (read-number "ISO week (1-53): " (string-to-number (format-time-string "%V")))))
+    (require 'calendar)
+    (let* ((jan-4 (encode-time 0 0 0 4 1 year))
+           (jan-4-day (string-to-number (format-time-string "%u" jan-4)))
+           (week-start (time-add jan-4 
+                                 (seconds-to-time 
+                                  (* 86400 (+ (* 7 (1- week)) 
+                                            (- 1 jan-4-day)))))))
+      (calendar)
+      (calendar-goto-date 
+       (list (string-to-number (format-time-string "%m" week-start))
+             (string-to-number (format-time-string "%d" week-start))
+             (string-to-number (format-time-string "%Y" week-start)))))))
 
 ;;;;; org-agenda
 ;; built-in: agenda for todo & calendar items
